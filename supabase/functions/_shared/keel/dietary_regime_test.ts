@@ -381,3 +381,204 @@ Deno.test("la consigne PORTE la clé de schéma, son compte et son échappatoire
     assertStringIncludes(line, "vegan sausage is tofu_tempeh");
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE MOT QUI EN NOMME UN AUTRE — 2026-09-04
+//
+// ── LE CAS MESURÉ, RECOPIÉ MOT POUR MOT D'UN PLAN RÉEL ────────────────────
+// Foyer de quatre, une bouche VÉGANE, un petit-déjeuner composé POUR ELLE:
+//
+//   prep_tofu_breakfast — « Émietter le tofu, le mélanger aux légumes coupés et
+//   à l'huile, remplir des moules et cuire à 190 °C jusqu'à fermeté. »
+//
+// La ceinture y lisait le coquillage. Elle a retiré la bouche de sa propre
+// boîte au tofu TROIS fois, et le plan le lui a dit trois fois.
+//
+// ⛔ ET LA CONTRE-ÉPREUVE EST LA MOITIÉ QUI COMPTE: une liste qui éteindrait
+// « moules marinières » ou « du pâté » ne serait plus une garde. Chaque cas
+// éteint est suivi ici de son jumeau qui doit MORDRE.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ HOMOGRAPHE · « remplir des moules » n'est pas un coquillage", () => {
+  const scan = scanDietaryRegime("vegan", {
+    prose: [
+      "Émietter le tofu, le mélanger aux légumes coupés et à l'huile, " +
+      "remplir des moules et cuire à 190 °C jusqu'à fermeté.",
+    ],
+  });
+  assertEquals(scan.breaches.length, 0);
+  assertEquals(scan.silencedByHomograph.length, 1);
+  // ⚠️ ET PAS DANS L'AUTRE COMPTEUR: un homographe n'est pas un analogue
+  // végétal, et les additionner rendrait le journal muet le jour où celui-ci
+  // se trompe.
+  assertEquals(scan.silencedByPlantAnalogue.length, 0);
+});
+
+Deno.test("⛔ HOMOGRAPHE · « la pâte » n'est pas du pâté", () => {
+  // ⚠️ `normalizeForMatch` retire les diacritiques: `pate` et `pâté` sont le
+  // MÊME mot pour le moteur. La mémoire du dépôt le disait « irréparable par
+  // alias » — il l'est par alias, pas par PORTÉE.
+  for (const prose of ["Étaler la pâte à tarte.", "Pétrir la pâte 5 minutes."]) {
+    const scan = scanDietaryRegime("vegan", { prose: [prose] });
+    assertEquals(scan.breaches.length, 0, prose);
+    assertEquals(scan.silencedByHomograph.length, 1, prose);
+  }
+});
+
+Deno.test("⛔ LA CONTRE-ÉPREUVE · l'aliment réel mord toujours", () => {
+  for (
+    const [prose, attendu] of [
+      ["Faire ouvrir les moules marinières au vin blanc.", "moules"],
+      ["Des moules et des frites.", "moules"],
+      ["Du pâté de campagne sur du pain.", "pâté"],
+      ["Une tranche de pâté en croûte.", "pâté"],
+    ] as const
+  ) {
+    const scan = scanDietaryRegime("vegan", { prose: [prose] });
+    assertEquals(scan.breaches.length >= 1, true, prose);
+    assertEquals(scan.silencedByHomograph.length, 0, prose);
+    assertEquals(
+      scan.breaches.some((b) => b.matchedText.toLowerCase() === attendu),
+      true,
+      `${prose} → ${JSON.stringify(scan.breaches)}`,
+    );
+  }
+});
+
+Deno.test("HOMOGRAPHE · les formes qu'une recette écrit vraiment", () => {
+  for (
+    const prose of [
+      "Verser dans des moules à muffins.",
+      "Beurrer les moules et enfourner.",
+      "Démouler après refroidissement.",
+      "Répartir dans les moules en silicone.",
+      "Divide between the muffin tins and bake.",
+      "Servir avec des pâtes complètes.",
+    ]
+  ) {
+    const scan = scanDietaryRegime("vegan", { prose: [prose] });
+    assertEquals(scan.breaches.length, 0, prose);
+  }
+});
+
+Deno.test("⛔ L'EXTINCTION EST UNE PORTÉE, pas un blanchiment de phrase", () => {
+  // Le mot éteint est celui qui est DANS la portée. Un vrai aliment interdit,
+  // ailleurs dans la même phrase, doit mordre — sans quoi une méthode
+  // mentionnant un moule blanchirait tout ce qu'elle décrit.
+  const scan = scanDietaryRegime("vegan", {
+    prose: ["Remplir des moules avec la garniture, puis napper de beurre."],
+  });
+  assertEquals(scan.silencedByHomograph.length, 1);
+  assertEquals(
+    scan.breaches.map((b) => b.matchedText.toLowerCase()),
+    ["beurre"],
+  );
+});
+
+Deno.test("HOMOGRAPHE · un régime qui n'exclut pas l'aliment est inchangé", () => {
+  // ⚠️ LA GARDE NE DOIT RIEN CHANGER LÀ OÙ ELLE N'A RIEN À FAIRE. Un
+  // pescétarien mange des moules: aucune morsure, donc aucune extinction, donc
+  // les deux compteurs restent à zéro — et pas « éteint une morsure qui
+  // n'existait pas ».
+  const scan = scanDietaryRegime("pescatarian", {
+    prose: ["Remplir des moules et cuire au four."],
+  });
+  assertEquals(scan.breaches.length, 0);
+  assertEquals(scan.silencedByHomograph.length, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// L'ORTHOGRAPHE COMME DISCRIMINANT — « pâtes » n'est pas « pâté »
+//
+// ⟳ 2026-09-04, TROUVÉ EN RÉEL, PAS EN RELECTURE. Un plan VALIDE a été refusé
+// (`mouth_unfed`): la préparation « Pâtes aux légumes », végétarienne, servie à
+// une végétarienne, a été lue comme de la CHARCUTERIE. La liste de PORTÉES du
+// lot précédent couvrait « des pâtes » et « les pâtes » — elle ne pouvait rien
+// pour le mot NU, qui est la forme d'un nom d'ingrédient.
+//
+// ⛔ ET LA CONTRE-ÉPREUVE EST LA MOITIÉ QUI COMPTE. Un correctif qui ajouterait
+// « pâtes » à la liste des portées éteindrait AUSSI « pâtés » — le pluriel de
+// la charcuterie se normalise pareil. Chaque cas éteint ci-dessous est donc
+// suivi de son jumeau carné, qui doit MORDRE.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ ORTHOGRAPHE · le cas réel: « Pâtes aux légumes » n'est pas du pâté", () => {
+  const scan = scanDietaryRegime("vegetarian", { prose: ["Pâtes aux légumes"] });
+  assertEquals(scan.breaches.length, 0);
+  assertEquals(scan.silencedBySpelling.length, 1);
+  // ⚠️ ET DANS SA PROPRE COLONNE: aucune portée n'a tranché ici, c'est l'accent
+  // qui l'a fait. Les additionner rendrait le journal muet le jour où l'une des
+  // deux preuves se trompe.
+  assertEquals(scan.silencedByHomograph.length, 0);
+  assertEquals(scan.silencedByPlantAnalogue.length, 0);
+});
+
+Deno.test("⛔ ORTHOGRAPHE · le mot NU, qui est la forme d'un ingrédient", () => {
+  // C'est très exactement ce que la liste de portées ne pouvait pas atteindre:
+  // un item de boîte s'appelle « pâtes », jamais « des pâtes ».
+  for (const term of ["pâtes", "Pâtes", "pâte"]) {
+    const scan = scanDietaryRegime("vegan", { items: [{ term, group: null }] });
+    assertEquals(scan.breaches.length, 0, term);
+    assertEquals(scan.silencedBySpelling.length, 1, term);
+  }
+});
+
+Deno.test("⛔ LA CONTRE-ÉPREUVE · la charcuterie mord toujours, accent compris", () => {
+  for (
+    const [texte, attendu] of [
+      ["pâté de campagne", "pâté"],
+      ["pâtés en croûte", "pâtés"],
+      ["Terrine et pâté de foie.", "pâté"],
+    ] as const
+  ) {
+    const scan = scanDietaryRegime("vegetarian", { items: [{ term: texte, group: null }] });
+    assertEquals(scan.silencedBySpelling.length, 0, texte);
+    assertEquals(
+      scan.breaches.some((b) => b.matchedText.toLowerCase() === attendu),
+      true,
+      `${texte} → ${JSON.stringify(scan.breaches)}`,
+    );
+  }
+});
+
+Deno.test("⛔ SANS ACCENT, LE MOT RESTE AMBIGU — et la morsure reste", () => {
+  // Le sens de l'erreur n'est pas symétrique: un faux positif retire un plat,
+  // un faux négatif sert du pâté à une végétarienne. « pates » tapé à plat peut
+  // être l'un ou l'autre, donc on ne l'éteint PAS. C'est le repli fermé, et il
+  // est acceptable parce que la surface scannée est écrite par le modèle, qui
+  // accentue le français (mesuré: il a écrit « pâtes »).
+  for (const term of ["pates", "pate", "pate de campagne"]) {
+    const scan = scanDietaryRegime("vegetarian", { items: [{ term, group: null }] });
+    assertEquals(scan.silencedBySpelling.length, 0, term);
+    assertEquals(scan.breaches.length >= 1, true, term);
+  }
+});
+
+Deno.test("ORTHOGRAPHE · la PORTÉE garde la priorité quand elle a tranché", () => {
+  // L'ordre est un choix: un voisinage porte plus d'information qu'un accent,
+  // donc c'est lui qui est crédité quand les deux pouvaient répondre. Sans cet
+  // ordre, la liste de portées se viderait de ses cas sans que rien ne bouge.
+  const scan = scanDietaryRegime("vegan", { prose: ["Servir avec des pâtes complètes."] });
+  assertEquals(scan.breaches.length, 0);
+  assertEquals(scan.silencedByHomograph.length, 1);
+  assertEquals(scan.silencedBySpelling.length, 0);
+});
+
+Deno.test("⛔ LE COMPTEUR EST BRANCHÉ SUR LES QUATRE VOIES, pas sur une", () => {
+  // C'est le défaut que ce dépôt paie en boucle et que ce module a DÉJÀ payé
+  // une fois: l'extinction marchait pendant que son compteur restait à zéro.
+  // Les quatre branches de `scanDietaryRegime` doivent remonter le silence.
+  const prose = scanDietaryRegime("vegan", { prose: ["Pâtes aux légumes"] });
+  const nu = scanDietaryRegime("vegan", { items: [{ term: "pâtes", group: null }] });
+  const viaTerms = scanDietaryRegime("vegan", { terms: ["pâtes"] });
+  // ⚠️ LA BRANCHE `plant_only` JETAIT LE SILENCE. Un item déclaré `refined_grain`
+  // est éteint par son groupe — mais la morsure a bien été éteinte, et par
+  // l'orthographe: si ce nombre retombe à zéro, c'est la branche qui a lâché.
+  const groupe = scanDietaryRegime("vegan", {
+    items: [{ term: "pâtes", group: "refined_grain" }],
+  });
+  for (const [nom, scan] of [["prose", prose], ["items", nu], ["terms", viaTerms], ["plant_only", groupe]] as const) {
+    assertEquals(scan.breaches.length, 0, nom);
+    assertEquals(scan.silencedBySpelling.length, 1, nom);
+  }
+});

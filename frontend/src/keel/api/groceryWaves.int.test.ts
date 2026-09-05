@@ -32,7 +32,7 @@ function item(term: string, aisle: string): ShoppingItem {
   // pendant que la date d'achat n'atteignait plus aucun écran. Un cast sur un
   // type étranger désarme le typecheck: si cette fonction ne compile plus, c'est
   // que `ShoppingItem` a bougé, et c'est exactement ce qu'on veut savoir.
-  return { term, quantity: null, aisle, food_group: null };
+  return { term, quantity: null, aisle, food_group: null, buy_on: null, freeze_on_purchase: false };
 }
 
 
@@ -269,8 +269,8 @@ describe("waveAssignments — les index d'origine, pour ne pas casser les rature
 describe("readShopping → waveAssignments (la couture)", () => {
   /** `shopping_list` tel que `mealShoppingPayload` l'écrit. */
   const payload = [
-    { term: "lentilles", quantity: "300 g", aisle: "pantry", food_group: "legumes" },
-    { term: "poulet", quantity: "1 kg", aisle: "protein", food_group: "poultry" },
+    { term: "lentilles", quantity: "300 g", aisle: "pantry", food_group: "legumes", buy_on: null, freeze_on_purchase: false },
+    { term: "poulet", quantity: "1 kg", aisle: "protein", food_group: "poultry", buy_on: null, freeze_on_purchase: false },
   ];
   const cook = [prep("p1", "mon", ["lentilles"]), prep("p2", "fri", ["poulet"])];
 

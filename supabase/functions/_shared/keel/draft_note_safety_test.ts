@@ -96,6 +96,76 @@ Deno.test("⛔ LA FRONTIÈRE EST SUR LA LIGNE DE LA CLÉ `kind`, pas dans un par
 // 4. ⛔ LE MODÈLE NE CHOISIT PAS LA SÉVÉRITÉ
 // ===========================================================================
 
+Deno.test("⛔ LA PORTÉE EST SUR LA LIGNE DE LA CLÉ — un régime d'un soir n'en est pas un", () => {
+  // ══════════════════════════════════════════════════════════════════════
+  // LE CAS MESURÉ, RECOPIÉ D'UNE CAMPAGNE RÉELLE — 2026-09-04.
+  // ══════════════════════════════════════════════════════════════════════
+  // La note disait « On mange végétarien le lundi soir ». Elle est devenue un
+  // régime STRICT de la titulaire, et un régime de la titulaire gouverne TOUT
+  // le foyer: quatre omnivores ont mangé végétarien à tous les repas, sans
+  // qu'un mot le dise.
+  //
+  // ⛔ MÊME PATRON QUE LE DISCRIMINANT DU GOÛT, VINGT LIGNES PLUS HAUT: sur la
+  // LIGNE de la clé, pas dans un paragraphe. Cicatrice chiffrée: 0 % de
+  // conformité quand la promesse et la clé de schéma sont éloignées.
+  const line = SAFETY_DECLARATION_PROMPT_BLOCK.split("\n").find((l) =>
+    l.includes('"kind"')
+  );
+  assert(line, "la clé `kind` a disparu du bloc");
+  assert(
+    /vegetarian on Monday nights/i.test(line!),
+    "l'exemple qui sépare le RÉGIME du RYTHME a quitté la ligne de la clé",
+  );
+  assert(
+    /RHYTHM, not a diet/i.test(line!),
+    "le mot qui nomme la distinction a disparu de la ligne",
+  );
+});
+
+Deno.test("⛔ LA RÈGLE GÉNÉRALE DE PORTÉE EST DITE, et elle nomme ses marqueurs", () => {
+  // L'exemple seul ne couvre que le lundi soir. La règle dit POURQUOI, et elle
+  // énumère les formes que prend une portée — un jour, un moment, une
+  // fréquence — parce qu'un modèle généralise mieux depuis une liste que
+  // depuis un cas.
+  const bloc = SAFETY_DECLARATION_PROMPT_BLOCK;
+  assert(/holds at EVERY meal, for good/i.test(bloc), "la règle de portée manque");
+  for (const marqueur of ["on Mondays", "at dinner", "twice a week"]) {
+    assert(bloc.includes(marqueur), `le marqueur « ${marqueur} » n'est pas cité`);
+  }
+  assert(
+    /one evening a week is not a diet/i.test(bloc),
+    "la phrase qui tranche — un régime d'un soir est un rythme — a disparu",
+  );
+});
+
+Deno.test("⛔ LE BLOC N'A PAS PERDU SON PREMIER DISCRIMINANT en gagnant le second", () => {
+  // Deux discriminants sur la même ligne, et le second ne doit pas chasser le
+  // premier: « goût contre sécurité » a sa propre cicatrice et son propre test
+  // vingt lignes plus haut. On vérifie ici qu'ils COEXISTENT.
+  const line = SAFETY_DECLARATION_PROMPT_BLOCK.split("\n").find((l) =>
+    l.includes('"kind"')
+  )!;
+  assert(/they make me ill/i.test(line), "l'exemple du goût a été chassé");
+  assert(/vegetarian on Monday nights/i.test(line), "l'exemple du rythme manque");
+});
+
+Deno.test("⛔ AUCUN MATCHER DE REFUS N'A ÉTÉ ÉCRIT — fail-open est interdit", () => {
+  // La sortie tentante — chercher « le lundi » dans le texte et JETER l'entrée —
+  // est la seule interdite: un faux positif jetterait une vraie ligne de
+  // sécurité (« je suis allergique aux arachides depuis lundi »).
+  //
+  // La garde est donc que le module ne fabrique AUCUN refus sur la portée: une
+  // déclaration bien formée traverse, quelle que soit sa phrase.
+  const rythme = read([{
+    kind: "diet",
+    ref: "vegetarian",
+    member_id: null,
+    text: "On mange végétarien le lundi soir",
+  }]);
+  assertEquals(rythme.declarations.length, 1, "le module ne doit RIEN refuser ici");
+  assertEquals(rythme.declarations[0].ref, "vegetarian");
+});
+
 Deno.test("⛔ AUCUNE SÉVÉRITÉ NE TRAVERSE, même déclarée", () => {
   // Une contrainte enregistrée, visible en base, et INERTE est la pire des
   // trois issues: elle a l'air d'avoir marché.

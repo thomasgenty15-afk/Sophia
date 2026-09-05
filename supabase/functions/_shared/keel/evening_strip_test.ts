@@ -528,6 +528,8 @@ Deno.test("§7 — two waves cannot fall on the same day: the calculation bucket
   const waves = planGroceryWaves({
     startsOn: "2026-08-10",
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList: [
       // `food_group: null` — requis depuis le 2026-08-23 (`WaveItem`). Ce test
       // porte sur le REGROUPEMENT par date d'achat, pas sur la fenêtre crue:

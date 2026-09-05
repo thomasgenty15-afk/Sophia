@@ -77,6 +77,118 @@ export const SLOT_PASSED_HOUR: Readonly<Record<EatingOccasion, number | null>> =
     before_bed: null,
   };
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * L'HEURE À LAQUELLE ON PREND CE MOMENT-LÀ — 2026-09-04.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE N'EST PAS `SLOT_PASSED_HOUR`, ET LES DEUX DOIVENT COEXISTER. Celle-là
+ * répond « ce moment est-il DERRIÈRE nous ? » et elle a trois lecteurs qui n'ont
+ * rien à voir avec un plan (`photo_slot_inference`, `slot_meal_ask`,
+ * `meal-photo-upload-v1`): un dîner reste photographiable à 22 h. Celle-ci
+ * répond « à quelle heure ce repas se mange-t-il ? », et elle sert à savoir s'il
+ * reste le temps d'ALLER ACHETER puis de CUISINER avant.
+ *
+ * Fondre les deux ferait déplacer l'inférence de créneau d'une photo pour une
+ * raison de courses.
+ *
+ * ⚠️ LES GOÛTERS ONT UNE HEURE ICI, LÀ OÙ ILS N'EN ONT PAS LÀ-BAS, et ce n'est
+ * pas une contradiction. `SLOT_PASSED_HOUR` refuse d'inventer l'heure à laquelle
+ * un grignotage « tombe » — un goûter pris à 17 h 30 n'est pas en retard. Mais
+ * un goûter se mange bien vers 16 h, et c'est tout ce dont on a besoin pour dire
+ * s'il reste le temps de faire les courses avant.
+ *
+ * ⚠️ CE SONT DES REPLIS. Une ligne `eating_rhythm` qui porte `at` l'emporte,
+ * exactement comme pour sa voisine.
+ */
+export const SLOT_USUAL_HOUR: Readonly<Record<EatingOccasion, number>> = {
+  breakfast: 8,
+  snack_am: 10,
+  lunch: 12,
+  snack_pm: 16,
+  dinner: 19,
+  before_bed: 22,
+};
+
+/**
+ * COMBIEN DE TEMPS IL FAUT ENTRE « JE COMPOSE » ET « JE MANGE ».
+ *
+ * Décidé par l'utilisateur, mot pour mot: « si il est 12h, alors ne pas inclure
+ * le repas de 12h parce qu'il faut faire les courses entre temps ». Il faut
+ * sortir, acheter, rentrer, cuisiner.
+ *
+ * ⚠️ DEUX HEURES EST UN CHOIX DE VIE, PAS UNE MESURE, et il se change ICI. Sa
+ * conséquence la plus visible est assumée: à 11 h, un déjeuner de midi tombe
+ * (12 < 11 + 2). La direction inverse — servir un repas qu'on n'a pas le temps
+ * d'acheter — est celle que ce lot existe pour fermer.
+ */
+export const SHOPPING_AND_COOKING_LEAD_HOURS = 2;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE QU'ON NE PEUT PLUS SERVIR AUJOURD'HUI — et pour LAQUELLE des deux raisons.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE TROU QUE ÇA FERME, MESURÉ EN REJOUANT LES FONCTIONS PURES ──────────
+ *
+ *     12 h  le déjeuner est SERVI     (il ne « passe » qu'à 14 h)
+ *     16 h  le goûter est SERVI       (les goûters ne tombent jamais par l'horloge)
+ *     19 h  le dîner est SERVI        (il ne passe qu'à 21 h)
+ *           ⛔ alors que `SHOPPING_CUTOFF_HOUR` vaut 18: le produit SAIT que les
+ *           courses sont fermées, et sert quand même un dîner du jour.
+ *
+ * ── DEUX LISTES, PAS UNE, ET C'EST TOUT L'INTÉRÊT ─────────────────────────
+ * `passed` et `heldForShopping` ne se réparent pas par le même geste et ne se
+ * disent pas avec les mêmes mots: « la journée est déjà entamée » n'est pas
+ * « il faut le temps de faire les courses ». Fondre les deux rendrait la phrase
+ * fausse dans un cas sur deux — et une phrase fausse est pire qu'un silence.
+ *
+ * ⚠️ ELLES PEUVENT SE RECOUVRIR, et `heldForShopping` exclut alors ce que
+ * `passed` porte déjà: à 12 h le petit-déjeuner est PASSÉ (10 h) et le déjeuner
+ * est RETENU. Une bouche ne peut pas perdre son repas deux fois.
+ *
+ * ⛔ PASSÉ LA COUPURE DES COURSES, TOUT CE QUI RESTE EST RETENU. Entre 18 h et
+ * 21 h, le produit servait un dîner qu'aucun magasin ne pouvait fournir. La
+ * coupure vit dans `SHOPPING_CUTOFF_HOUR`, jamais recopiée.
+ *
+ * `hourNow === null` ⇒ les deux listes sont vides: le produit d'hier, nommé.
+ *
+ * PURE: no I/O, no clock.
+ */
+export function slotsUnservableToday(input: {
+  hourNow: number | null;
+  rhythm: readonly { slot: EatingOccasion }[];
+  declaredHours: readonly RhythmHour[];
+}): { passed: EatingOccasion[]; heldForShopping: EatingOccasion[] } {
+  assertHourNow(input, "slotsUnservableToday");
+  // ⛔ UNE SEULE LECTURE DE LA RÈGLE D'AVANT: on APPELLE `slotsPassedToday`, on
+  // ne recopie pas son corps. Deux calculs de « ce moment est passé »
+  // divergeraient, et c'est la forme de défaut que ce dépôt paie en boucle.
+  const passed = slotsPassedToday(input);
+  if (input.hourNow === null) return { passed, heldForShopping: [] };
+
+  const declared = new Map(
+    input.declaredHours.filter((d) => d.hour !== null).map((d) => [d.slot, d.hour!]),
+  );
+  const inRhythm = new Set(input.rhythm.map((r) => r.slot));
+  const already = new Set(passed);
+  const cutoffReached = !cookingAskedToday({ hourNow: input.hourNow });
+  const earliest = input.hourNow + SHOPPING_AND_COOKING_LEAD_HOURS;
+
+  const held = EATING_OCCASIONS.filter((slot) => {
+    if (!inRhythm.has(slot)) return false;
+    if (already.has(slot)) return false;
+    // Après la coupure, plus rien n'est achetable aujourd'hui: le moment le plus
+    // tardif du monde ne se cuisine pas avec un magasin fermé.
+    if (cutoffReached) return true;
+    // ⚠️ `<` ET PAS `<=`: un dîner de 19 h reste servi à 17 h (17 + 2 = 19).
+    // La borne est INCLUSIVE côté service — on ne retire pas un repas qu'on a
+    // exactement le temps de préparer.
+    return (declared.get(slot) ?? SLOT_USUAL_HOUR[slot]) < earliest;
+  });
+  return { passed, heldForShopping: held };
+}
+
 // ---------------------------------------------------------------------------
 // L'HORLOGE DÉCLARÉE PAR L'ÉLÈVE
 // ---------------------------------------------------------------------------

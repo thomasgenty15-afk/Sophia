@@ -101,8 +101,10 @@ describe("effectiveSelectedDay — une sélection qui survit au changement de pl
 
 describe("waveForDate — la vague qui tombe ce jour-là", () => {
   const WAVES = [
-    { buyOn: "2026-08-12", servesCookOn: null, indices: [0, 2] },
-    { buyOn: "2026-08-15", servesCookOn: "2026-08-16", indices: [1] },
+    // ⟳ LOT C (2026-09-04) — `freezeIndices` est REQUIS sur une vague. Écrit
+    // vide plutôt qu'omis: c'est ce qui fait rougir le jour où un champ naît.
+    { buyOn: "2026-08-12", servesCookOn: null, indices: [0, 2], freezeIndices: [] },
+    { buyOn: "2026-08-15", servesCookOn: "2026-08-16", indices: [1], freezeIndices: [] },
   ];
 
   it("la jointure est une égalité de DATES — celle que `windowDates` a rendue", () => {
@@ -342,6 +344,12 @@ describe("le câblage de la vue jour", () => {
       // né, plutôt que de le laisser se perdre en silence comme `food_group`
       // s'était perdu. `null` ici parce que la réponse simulée n'en porte pas.
       buy_on: null,
+      // ⟳ LOT C (2026-09-04) — LE GESTE DU JOUR DES COURSES TRAVERSE AUSSI, et
+      // l'exhaustivité de cette assertion a fait exactement son travail: elle a
+      // rougi le jour où le champ est né. `false` ici parce que la réponse
+      // simulée n'en porte pas — et `false` est une valeur pleine, « rien à
+      // congeler », jamais un champ manquant.
+      freeze_on_purchase: false,
     });
     // ⚠️ ET SON ABSENCE RESTE UNE ABSENCE: la seconde ligne n'en porte pas
     // (un plan écrit avant `L0-a`), et le lecteur rend `null` — une valeur

@@ -304,15 +304,30 @@ for (const [name, rel] of LANES) {
     const src = await Deno.readTextFile(new URL(rel, import.meta.url));
     // ⛔ `hasFreezerDeclared`, jamais `!== false`: « pas de congélateur » et
     // « jamais demandé » doivent rendre le même refus.
-    // ⟳ A2 (2026-09-03) — LA DEMANDE A DEUX ORIGINES, LA PORTE EN A UNE.
-    // « Une seule course » (`grocery_runs = 1`) veut dire que le plan doit
-    // tenir sur une session: c'est une DEMANDE de plus, et elle entre par la
-    // MÊME porte. Ce test tenait le littéral de la porte; il tient maintenant
-    // la porte ET l'union des deux demandes, pour qu'une quatrième
-    // implémentation du congélateur ne puisse pas s'installer à côté.
+    // ⟳ LOT C (2026-09-04) — LA DEMANDE N'A PLUS QU'UNE ORIGINE, ET C'EST UN
+    // RENVERSEMENT ASSUMÉ DE A2 (2026-09-03).
+    //
+    // A2 avait ajouté « une seule course » (`grocery_runs = 1`) comme seconde
+    // origine: acheter une fois, c'est tout cuire d'un coup. Le raisonnement ne
+    // tient que SANS congélateur — et ce cas-là est déjà couvert par la poussée
+    // « une course en exige deux » de `deriveCookingPlan`. Avec un congélateur,
+    // on achète le dimanche, on congèle ce dont mercredi aura besoin, et on
+    // cuisine deux fois: la configuration que le produit doit servir, et que
+    // cette union rendait impossible.
+    //
+    // ⛔ CE QUE CE TEST TIENT TOUJOURS: la PORTE est unique, et la demande
+    // explicite y entre seule. Une quatrième implémentation du congélateur ne
+    // peut toujours pas s'installer à côté.
     assertStringIncludes(
       src,
-      "const askedOneSession = askedOneCookingSession || groceryRuns === 1;",
+      "const askedOneSession = askedOneCookingSession;",
+    );
+    // ⛔ ET LA SECONDE ORIGINE NE DOIT PAS REVENIR. Sans cette absence, un lot
+    // futur la remettrait « par symétrie » et refermerait la configuration
+    // « une course, deux sessions » sans que rien ne rougisse.
+    assert(
+      !src.includes("askedOneCookingSession || groceryRuns === 1"),
+      "la dérivation « une course ⇒ une session » a été retirée le 2026-09-04 (lot C)",
     );
     assertStringIncludes(
       src,

@@ -19,7 +19,7 @@ import { type ShoppingItem } from "../api/mealGeneration";
 // GROUPEMENT PAR RAYON, qui ne le lit pas: la valeur est neutre ici, et elle est
 // écrite plutôt qu'omise pour que l'oubli redevienne impossible ailleurs.
 function item(term: string, aisle: string): ShoppingItem {
-  return { term, quantity: null, aisle, food_group: null };
+  return { term, quantity: null, aisle, food_group: null, buy_on: null, freeze_on_purchase: false };
 }
 
 describe("groupByAisle", () => {

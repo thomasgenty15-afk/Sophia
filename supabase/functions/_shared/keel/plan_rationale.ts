@@ -178,6 +178,19 @@ export interface PlanRationaleFacts {
    * qui n'a rien dit.
    */
   slotsDroppedToday: readonly string[];
+  /**
+   * ⟳ 2026-09-04 · LES CRÉNEAUX RETENUS PARCE QU'IL FALLAIT LE TEMPS D'ACHETER.
+   *
+   * ⛔ DISTINCTS DE `slotsDroppedToday`, ET LA PHRASE EST DIFFÉRENTE. « La
+   * journée est déjà entamée » est un fait d'horloge qu'on subit; « il faut le
+   * temps de faire les courses avant » est un fait de logistique, et quelqu'un
+   * qui a déjà ses courses dans le coffre a raison contre lui. Dire l'un pour
+   * l'autre serait un fait faux — la famille de défaut que ce module existe pour
+   * fermer.
+   *
+   * `[]` = rien n'est retenu. REQUIS, comme tous les faits de ce module.
+   */
+  slotsHeldForShopping: readonly string[];
   /** Les créneaux marqués absents DANS la fenêtre. `[]` = personne n'est parti. */
   awayInWindow: readonly { day: DayToken; slot: string }[];
   /**
@@ -710,6 +723,14 @@ const COPY = {
       `Pour aujourd'hui, ${slots} ne sont plus au plan : la journée est déjà entamée.`,
     slotDropped: (slot: string) =>
       `Pour aujourd'hui, ${slot} n'est plus au plan : la journée est déjà entamée.`,
+    // ⟳ 2026-09-04 · LA SECONDE CAUSE, ET ELLE SE DIT AUTREMENT. Le repas n'est
+    // pas derrière nous: il est devant, et c'est le temps d'aller acheter qui
+    // manque. Une personne qui lit « la journée est déjà entamée » à midi pour
+    // son déjeuner cherche ce qu'elle a raté.
+    slotsHeld: (slots: string) =>
+      `Pour aujourd'hui, ${slots} ne sont pas au plan : il faut le temps de faire les courses avant.`,
+    slotHeld: (slot: string) =>
+      `Pour aujourd'hui, ${slot} n'est pas au plan : il faut le temps de faire les courses avant.`,
     away: (n: number) =>
       n === 1
         ? "Un repas est sauté, tu l'avais marqué hors de la maison."
@@ -926,6 +947,12 @@ const COPY = {
       `For today, ${slots} are off the plan: the day is already under way.`,
     slotDropped: (slot: string) =>
       `For today, ${slot} is off the plan: the day is already under way.`,
+    // ⟳ 2026-09-04 · la seconde cause: le repas est devant, c'est le temps
+    // d'aller acheter qui manque.
+    slotsHeld: (slots: string) =>
+      `For today, ${slots} are not in the plan: there has to be time to shop first.`,
+    slotHeld: (slot: string) =>
+      `For today, ${slot} is not in the plan: there has to be time to shop first.`,
     away: (n: number) =>
       n === 1
         ? "One meal is skipped, you marked it away from home."
@@ -1095,6 +1122,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "today",
   "localMinuteOfDay",
   "slotsDroppedToday",
+  "slotsHeldForShopping",
   "awayInWindow",
   "emptySlots",
   "daysOutOfBatchReach",
@@ -1351,6 +1379,23 @@ export function explainPlanChoices(input: {
       dropped.length === 1
         ? copy.slotDropped(renderSlots(dropped, input.locale))
         : copy.slotsDropped(renderSlots(dropped, input.locale)),
+    );
+  }
+  // ⟳ 2026-09-04 · ET LA SECONDE CAUSE, JUSTE APRÈS, SUR SA PROPRE LIGNE.
+  //
+  // ⛔ `held \ dropped`, DÉFENSIVEMENT. Les deux listes viennent du même appel
+  // et ne se recouvrent pas par construction (`slotsUnservableToday` exclut de
+  // `heldForShopping` ce que `passed` porte déjà). On soustrait quand même: le
+  // jour où un appelant les passe séparément, une bouche perdrait son repas
+  // deux fois à l'écran, et ce serait la PHRASE qui aurait tort.
+  const heldForShopping = facts.slotsHeldForShopping
+    .filter(Boolean)
+    .filter((slot) => !dropped.includes(slot));
+  if (heldForShopping.length > 0) {
+    lines.push(
+      heldForShopping.length === 1
+        ? copy.slotHeld(renderSlots(heldForShopping, input.locale))
+        : copy.slotsHeld(renderSlots(heldForShopping, input.locale)),
     );
   }
 

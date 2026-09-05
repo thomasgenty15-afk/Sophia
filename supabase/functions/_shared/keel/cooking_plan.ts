@@ -169,13 +169,33 @@ export type CookingPlanNote =
   /** Le style plafonne les sessions sous le nombre de courses demandé. */
   | "style_caps_sessions"
   /** La fenêtre est trop courte pour autant de sessions que de courses. */
-  | "days_cap_sessions";
+  | "days_cap_sessions"
+  /**
+   * ⟳ LOT C (2026-09-04) — les courses demandées dépassaient les sessions, et
+   * le plan les a ramenées. On ne va pas au magasin plus souvent qu'on ne
+   * cuisine: c'est l'invariant `runs <= sessions`, tranché par l'utilisateur.
+   */
+  | "runs_capped_by_sessions";
 
 export interface CookingPlan {
   /** Combien de fois on cuisine. `1..MAX_COOKING_SESSIONS`. */
   sessions: number;
   /** Les jours de cuisine, en jetons, dans l'ordre du plan. */
   cookDays: DayToken[];
+  /**
+   * ⟳ LOT C (2026-09-04) — COMBIEN DE FOIS LE PLAN VA AU MAGASIN.
+   *
+   * ⛔ CE N'EST PLUS L'ENTRÉE, ET C'EST TOUT LE LOT. Avant, `runs` SEMAIT les
+   * sessions (`sessions = min(runs, ...)`), si bien qu'une réponse de logistique
+   * décidait combien de fois on cuisine. Désormais le style décide des sessions,
+   * et les courses sont bornées par elles: `runs <= sessions`, toujours.
+   *
+   * ⚠️ CE N'EST PAS « la personne n'ira pas plus souvent ». Elle en a le droit,
+   * et `unusedGroceryRuns` compte exactement cet écart pour que la rationale le
+   * DISE. Ce nombre est ce que le PLAN organise — les vagues de la liste de
+   * courses — pas ce que quelqu'un a le droit de faire de sa semaine.
+   */
+  runs: GroceryRuns;
   /** Ce qui part dans `cooking_time_min`. */
   sessionMinutes: number;
   difficulty: "simple" | "normal" | "keen";
@@ -195,10 +215,35 @@ export interface CookingPlan {
  * LE PLAN DE CUISINE D'UNE FENÊTRE — sessions, jours, minutes, difficulté.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * ── LA RÈGLE, EN UNE LIGNE ────────────────────────────────────────────────
- *   `sessions = min(runs, MAX_COOKING_SESSIONS, cap(style), joursMangés)`
+ * ── LA RÈGLE, EN DEUX LIGNES ⟳ LOT C (2026-09-04) ─────────────────────────
+ *   `sessions = min(cap(style), MAX_COOKING_SESSIONS, joursMangés)`
+ *   `runs     = min(coursesDemandées, sessions)`
  *
- * et « 1 course » exige le congélateur — sinon deux sessions, et on le DIT.
+ * et « 1 course » exige le congélateur — sinon deux COURSES, et on le DIT.
+ *
+ * ── CE QUI A ÉTÉ RENVERSÉ, ET SUR QUELLE AUTORITÉ ─────────────────────────
+ * Jusqu'au 2026-09-04, `runs` SEMAIT les sessions: `sessions = min(runs, …)`.
+ * Une réponse de logistique décidait donc combien de fois on cuisine, et « une
+ * seule course » forçait « une seule session » (le commentaire A2 du
+ * 2026-09-03, dans `generate-household-meal-v1/index.ts`, l'énonçait comme une
+ * règle: acheter une fois, c'est tout cuire d'un coup).
+ *
+ * ⛔ CETTE RÈGLE INTERDISAIT LA CONFIGURATION QUE LE PRODUIT DOIT SERVIR.
+ * « Une course, deux sessions » est précisément le cas où le congélateur sert:
+ * on achète tout le dimanche, on CONGÈLE ce dont mercredi aura besoin, et la
+ * liste de courses doit le marquer. Tant que `runs = 1` forçait `sessions = 1`,
+ * ce cas ne pouvait pas exister, donc la marque « à congeler à l'achat » n'avait
+ * aucun plan où se poser.
+ *
+ * L'invariant tranché est **`runs <= sessions`**: on ne va pas au magasin plus
+ * souvent qu'on ne cuisine. Le sens de la contrainte est inversé — les courses
+ * sont bornées PAR les sessions, elles ne les décident plus.
+ *
+ * ⚠️ ET ON NE FORCE TOUJOURS PAS UNE SESSION DE PLUS (voir le ⛔ plus bas): quand
+ * quelqu'un demande trois courses et que son style n'en porte que deux, le PLAN
+ * organise deux vagues et la rationale dit que deux suffisent. Il reste libre
+ * d'aller au magasin une troisième fois; `unusedGroceryRuns` compte cet écart
+ * pour qu'il soit DIT, jamais pour l'interdire.
  *
  * ── OÙ TOMBENT LES JOURS DE CUISINE ───────────────────────────────────────
  * La première session est au **rang 0** de la fenêtre. Depuis A1 (2026-09-03)
@@ -256,26 +301,15 @@ export function deriveCookingPlan(input: {
   const notes: CookingPlanNote[] = [];
   const eaten = Math.max(1, Math.round(input.daysToEat));
 
-  // ── ① LE CONGÉLATEUR OUVRE « UNE SEULE FOIS », ET RIEN D'AUTRE ──────────
-  // ⛔ LA PORTE EST CELLE QUI EXISTE, pas une quatrième. `hasFreezerDeclared`
-  // vit dans `kitchen_equipment.ts` et l'appelant la lit; ici on ne fait que
-  // constater son verdict. Trois implémentations de cette règle sont déjà
-  // alignées (`freezerMirror.int.test.ts`); en écrire une de plus les ferait
-  // diverger au premier ajustement.
-  let wanted: number = input.runs;
-  if (wanted === 1 && input.freezer !== true) {
-    wanted = 2;
-    notes.push("runs_1_needs_freezer");
-  }
-
-  // ── ② LE STYLE PLAFONNE ─────────────────────────────────────────────────
-  if (wanted > profile.sessionCap) {
-    wanted = profile.sessionCap;
-    notes.push("style_caps_sessions");
-  }
+  // ── ① LES SESSIONS, SEMÉES PAR LE STYLE ⟳ LOT C ────────────────────────
+  // ⛔ ET PLUS PAR LES COURSES. C'est le renversement du lot, expliqué en tête.
+  // `sessionCap` est la cadence que le style porte; c'est la seule réponse de
+  // la personne qui parle de CUISINE, donc la seule qui a le droit de dire
+  // combien de fois on cuisine.
+  let wanted: number = profile.sessionCap;
   if (wanted > MAX_COOKING_SESSIONS) wanted = MAX_COOKING_SESSIONS;
 
-  // ── ③ LA FENÊTRE PLAFONNE AUSSI ─────────────────────────────────────────
+  // ── ② LA FENÊTRE PLAFONNE ───────────────────────────────────────────────
   // Deux sessions sur deux jours mangés est déjà limite; trois est impossible.
   // Le refus est nommé plutôt que silencieux: sinon deux jours de cuisine
   // tomberaient sur la même date et `planGroceryWaves` rendrait une vague de
@@ -285,6 +319,29 @@ export function deriveCookingPlan(input: {
     notes.push("days_cap_sessions");
   }
   const sessions = Math.max(1, wanted);
+
+  // ── ③ LES COURSES, BORNÉES PAR LES SESSIONS ⟳ LOT C ────────────────────
+  // ⛔ LA PORTE DU CONGÉLATEUR EST CELLE QUI EXISTE, pas une quatrième.
+  // `hasFreezerDeclared` vit dans `kitchen_equipment.ts` et l'appelant la lit;
+  // ici on ne fait que constater son verdict. Trois implémentations de cette
+  // règle sont déjà alignées (`freezerMirror.int.test.ts`).
+  //
+  // ⚠️ ELLE POUSSE MAINTENANT LES COURSES, PLUS LES SESSIONS. « Une seule
+  // course » sans congélateur reste impossible — rien ne tiendrait sept jours
+  // au frais — mais le remède est d'aller au magasin une seconde fois, pas de
+  // cuisiner une fois de moins.
+  let runs: number = input.runs;
+  if (runs === 1 && input.freezer !== true) {
+    runs = 2;
+    notes.push("runs_1_needs_freezer");
+  }
+  // Le style est la CAUSE quand c'est lui qui borne, et la rationale a déjà sa
+  // phrase pour ça — on la garde armée sur le fait qui la justifie.
+  if (input.runs > profile.sessionCap) notes.push("style_caps_sessions");
+  if (runs > sessions) {
+    runs = sessions;
+    notes.push("runs_capped_by_sessions");
+  }
 
   // ── ④ LES JOURS ─────────────────────────────────────────────────────────
   const days = [...input.windowDays];
@@ -312,13 +369,25 @@ export function deriveCookingPlan(input: {
 
   return {
     sessions,
+    runs: runs as GroceryRuns,
     cookDays,
     sessionMinutes,
     difficulty: profile.difficulty,
     variety: profile.variety,
-    // ⚠️ « CE PLAN S'APPUIE SUR LE CONGÉLATEUR » — et il ne peut être vrai que
-    // si le congélateur a été DÉCLARÉ, puisque ① a déjà écarté l'autre cas.
-    usesFreezer: sessions === 1,
+    // ⚠️ « CE PLAN S'APPUIE SUR LE CONGÉLATEUR », pas « il y en a un ».
+    //
+    // ⛔ LE `input.freezer === true` EST NEUF, ET IL RÉPARE UN DÉFAUT LATENT.
+    // Avant ce lot, `sessions === 1` suffisait, parce que ① garantissait qu'une
+    // session unique impliquait un congélateur déclaré. Ce n'était vrai que par
+    // ce chemin: une fenêtre d'UN SEUL jour mangé donne déjà `sessions === 1`
+    // par le plafond de la fenêtre, sans congélateur nulle part — et le plan
+    // annonçait alors qu'il s'appuie sur un appareil que personne n'a.
+    //
+    // ⟳ LOT C · LA SECONDE MOITIÉ: on s'appuie AUSSI sur le congélateur quand on
+    // fait les courses moins souvent qu'on ne cuisine. C'est exactement le cas
+    // « une course, deux sessions »: le cru de la session suivante est acheté
+    // d'avance, donc congelé à l'achat.
+    usesFreezer: input.freezer === true && (sessions === 1 || runs < sessions),
     notes,
   };
 }
@@ -397,16 +466,18 @@ export interface ResolvedCookingCapacity extends DeclaredCookingCapacity {
    */
   plan: CookingPlan | null;
   /**
-   * « UNE SEULE COURSE » VAUT « TOUT DANS UNE SESSION ».
+   * ⟳ LOT C (2026-09-04) — `impliesOneSession` A ÉTÉ RETIRÉ, PAS OUBLIÉ.
    *
-   * ⛔ CE N'EST PAS UNE QUATRIÈME PORTE DU CONGÉLATEUR. C'est une DEMANDE, au
-   * même titre que `body.one_cooking_session`; l'appelant la passe dans la
-   * porte qui existe déjà (`askedOneCookingSession && hasFreezerDeclared`), et
-   * c'est elle seule qui tranche. Trois implémentations de cette règle sont
-   * alignées par `freezerMirror.int.test.ts`; en écrire une quatrième ici les
-   * ferait diverger au premier ajustement.
+   * Il portait « une seule course vaut tout dans une session ». C'est
+   * exactement la règle que ce lot renverse: acheter une fois n'oblige plus à
+   * cuisiner une fois, parce qu'un congélateur déclaré permet d'acheter le
+   * dimanche et de cuisiner aussi le mercredi. La demande explicite
+   * (`body.one_cooking_session`) reste, et elle est la SEULE porte.
+   *
+   * ⛔ On ne le garde pas à `false`: un champ toujours faux est une garde
+   * désarmée qui ressemble à une garde. Cette fonction ne reçoit pas la case
+   * explicite, donc elle ne peut plus répondre à cette question — elle se tait.
    */
-  impliesOneSession: boolean;
 }
 
 /**
@@ -460,7 +531,7 @@ export function resolveCookingCapacity(input: {
   // combien de temps. Deviner la manquante servirait un plan sur une moitié de
   // réponse — et c'est très exactement ce que « clé absente ≠ minimal » refuse.
   if (input.style === null || input.runs === null) {
-    return { ...input.declared, plan: null, impliesOneSession: false };
+    return { ...input.declared, plan: null };
   }
   const plan = deriveCookingPlan({
     style: input.style,
@@ -483,10 +554,5 @@ export function resolveCookingCapacity(input: {
     recipeDifficulty: COOKING_STYLE_PROFILE[input.style].difficulty,
     variety: COOKING_STYLE_PROFILE[input.style].variety,
     plan,
-    // ⚠️ SUR `runs`, PAS SUR `plan.sessions`. « Une course » est ce que la
-    // personne a DEMANDÉ; `plan.sessions` peut déjà valoir 2 parce qu'il n'y a
-    // pas de congélateur, et lire la sortie ferait disparaître la demande au
-    // moment même où le refus doit être nommé.
-    impliesOneSession: input.runs === 1,
   };
 }

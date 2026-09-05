@@ -275,6 +275,12 @@ export async function loadEveningStripContext(
             ? (row.preparations as Array<Record<string, unknown>>)
             : [],
         ),
+        // ⟳ LOT C (2026-09-04) — CE LECTEUR NE CONNAÎT PAS LA CADENCE, et il ne
+        // doit donc RIEN replier: `runs: null` rend le comportement d'avant le
+        // lot, octet pour octet. Seuls les deux générateurs, qui ont lu le style
+        // et le nombre de courses, passent un nombre ici.
+        runs: null,
+        freezer: false,
       });
       // DEUX VAGUES LE MÊME JOUR ⇒ UNE SEULE LIGNE (§7). La question porte sur
       // « les courses du jour », pas sur chaque vague — et l'état écrit est

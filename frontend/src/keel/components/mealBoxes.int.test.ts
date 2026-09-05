@@ -646,7 +646,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // Le test ci-dessus juge le composant; celui-ci juge ce que la personne
     // voit. La fixture n'a AUCUN ingrédient du jour, donc tout chiffre suivi
     // d'un « g » qui apparaîtrait ici viendrait forcément des contenants.
-    const html = textOf(createElement(DishCard, { dish: twoBoxDish(), boxes }));
+    const html = textOf(createElement(DishCard, { slotBadge: false, dish: twoBoxDish(), boxes }));
     expect(html, html).not.toMatch(/\d+\s*g\b/);
   });
 
@@ -663,7 +663,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // CARTE les rend elle-même. Les remettre dehors la rend muette, et ce test
     // rougit — ce qu'aucune assertion de présence dans `PlanDayBlock` ne peut
     // faire, puisqu'elles passent des deux côtés de la frontière.
-    const html = markup(createElement(DishCard, {
+    const html = markup(createElement(DishCard, { slotBadge: false,
       dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       eaters: [
         { memberId: CASIMIR_ID, name: "Casimir" },
@@ -673,7 +673,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     }));
     expect(html).toContain(`data-eater-member-id="${CASIMIR_ID}"`);
     expect(html).toContain(`data-share-member-id="${CASIMIR_ID}"`);
-    const text = textOf(createElement(DishCard, {
+    const text = textOf(createElement(DishCard, { slotBadge: false,
       dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       eaters: [],
       shares: [{ memberId: CASIMIR_ID, name: "Casimir", note: "sans la sauce" }],
@@ -694,7 +694,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // sur le couvercle est le seul marqueur de v4, et rien d'autre n'a le droit
     // de répondre à la même question — ni pour la contredire, ni pour la
     // répéter.
-    const html = markup(createElement(DishCard, {
+    const html = markup(createElement(DishCard, { slotBadge: false,
       dish: twoBoxDish(),
       boxes,
       eaters: [{ memberId: CASIMIR_ID, name: "Casimir" }],
@@ -724,7 +724,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
       const from = html.indexOf(`data-share-member-id="${CASIMIR_ID}"`);
       return html.slice(from, html.indexOf("</li>", from));
     };
-    const anonymous = lineOf(markup(createElement(DishCard, {
+    const anonymous = lineOf(markup(createElement(DishCard, { slotBadge: false,
       dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       shares: [{ memberId: CASIMIR_ID, name: null, note: "sans la sauce" }],
     })));
@@ -735,7 +735,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // ⚠️ LE CAS QUI PASSE: quand la voie n'a nommé personne, le prénom et son
     // tiret sont là. Sans cette moitié, une carte qui n'écrirait JAMAIS le
     // prénom lirait pareil.
-    const named = lineOf(markup(createElement(DishCard, {
+    const named = lineOf(markup(createElement(DishCard, { slotBadge: false,
       dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       shares: [{ memberId: CASIMIR_ID, name: "Casimir", note: "sans la sauce" }],
     })));
@@ -750,7 +750,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // trancher. Le libellé est donc construit UNE fois (`boxLidLabel`) et rendu
     // tel quel des deux côtés.
     const inBoxing = textOf(createElement(BoxTable, { lines: boxes, context: "session" }));
-    const onCard = textOf(createElement(DishCard, { dish: twoBoxDish(), boxes }));
+    const onCard = textOf(createElement(DishCard, { slotBadge: false, dish: twoBoxDish(), boxes }));
     for (const line of boxes) {
       expect(line.lid, "le couvercle est vide").not.toBe("");
       expect(inBoxing, inBoxing).toContain(line.lid);
@@ -762,12 +762,12 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // `/app/today` — l'écran où l'on OUVRE la boîte — ne passe pas `sources`.
     // Un libellé qui en dépendrait serait complet sur `/app/plan` et amputé là
     // où on le lit vraiment. On monte donc les deux et on exige le même mot.
-    const withPreps = textOf(createElement(DishCard, {
+    const withPreps = textOf(createElement(DishCard, { slotBadge: false,
       dish: twoBoxDish(),
       boxes,
       sources: [{ title: "Roast chicken", cookOn: "mon" }],
     }));
-    const without = textOf(createElement(DishCard, { dish: twoBoxDish(), boxes }));
+    const without = textOf(createElement(DishCard, { slotBadge: false, dish: twoBoxDish(), boxes }));
     for (const line of boxes) {
       expect(withPreps, withPreps).toContain(line.lid);
       expect(without, without).toContain(line.lid);
@@ -781,7 +781,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
         { preparation_id: "prep_rice", servings: 4, kept: "fridge" as const },
       ],
     });
-    const text = textOf(createElement(DishCard, {
+    const text = textOf(createElement(DishCard, { slotBadge: false,
       dish: twoLots,
       boxes: boxLinesForDish(twoLots, ROSTER),
     }));
@@ -789,7 +789,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
   });
 
   it("un plat sans contenant ne rend aucun bloc — le cas majoritaire", () => {
-    const html = markup(createElement(DishCard, { dish: dish(), boxes: [] }));
+    const html = markup(createElement(DishCard, { slotBadge: false, dish: dish(), boxes: [] }));
     expect(html).not.toContain(en["meals.boxes.title_dish"]);
     expect(html).not.toContain(fr["meals.boxes.title_dish"]);
   });
@@ -826,10 +826,27 @@ describe("le jour suit l'ordre des gestes", () => {
       run_through: "Chicken first, then the rice.",
       total_minutes: 60,
     }],
-    wave: { buyOn: "thu", servesCookOn: "thu", indices: [0, 1] },
+    // ⟳ LOT C (2026-09-04) — `freezeIndices` est REQUIS sur une vague, et les
+    // deux champs de ligne aussi. Écrits vides plutôt qu'omis: c'est ce qui
+    // fait rougir le jour où un champ naît, au lieu de le laisser se perdre.
+    wave: { buyOn: "thu", servesCookOn: "thu", indices: [0, 1], freezeIndices: [] },
     shoppingList: [
-      { term: "chicken thighs", quantity: "1 kg", aisle: "meat", food_group: "poultry" },
-      { term: "rice", quantity: "500 g", aisle: "grocery", food_group: "whole_grain" },
+      {
+        term: "chicken thighs",
+        quantity: "1 kg",
+        aisle: "meat",
+        food_group: "poultry",
+        buy_on: null,
+        freeze_on_purchase: false,
+      },
+      {
+        term: "rice",
+        quantity: "500 g",
+        aisle: "grocery",
+        food_group: "whole_grain",
+        buy_on: null,
+        freeze_on_purchase: false,
+      },
     ],
     moments: [],
     portions: ROSTER,
@@ -874,7 +891,7 @@ describe("les ingrédients du jour disent qu'ils s'ajoutent au lot", () => {
   });
 
   it("le titre paraît quand le plat PUISE dans un lot", () => {
-    const text = textOf(createElement(DishCard, {
+    const text = textOf(createElement(DishCard, { slotBadge: false,
       dish: withExtras,
       boxes: boxLinesForDish(withExtras, ROSTER),
     }));
@@ -891,9 +908,157 @@ describe("les ingrédients du jour disent qu'ils s'ajoutent au lot", () => {
       uses: [],
       ingredients: withExtras.ingredients,
     });
-    const text = textOf(createElement(DishCard, { dish: scratch, boxes: [] }));
+    const text = textOf(createElement(DishCard, { slotBadge: false, dish: scratch, boxes: [] }));
     expect(text).toContain("feta");
     expect(text, text).not.toContain(en["meals.result.extra_ingredients"]);
     expect(text, text).not.toContain(fr["meals.result.extra_ingredients"]);
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-04 — LE BOXING DIT CE QUI PART AU CONGÉLATEUR
+//
+// ── LE DÉFAUT FERMÉ ────────────────────────────────────────────────────────
+// Une seule session de cuisine pour sept jours ne tient QUE par le
+// congélateur: `uses[].kept === "freezer"` est lu par la garde de fenêtre
+// depuis le 2026-09-01, et le plan entier en dépend. Devant l'évier, au moment
+// de remplir six bacs, RIEN ne disait lesquels y vont — la seule mention du
+// congélateur à l'écran était `DishCard`, quatre jours plus tard, au moment de
+// SORTIR la part. On disait quoi décongeler sans avoir dit quoi congeler.
+//
+// ⛔ LA MARQUE EST DÉRIVÉE DE LA CLÉ, JAMAIS DE LA PROSE. Le modèle écrit aussi
+// « put the rest in the freezer » dans sa `method`; le lire là serait un
+// matcher maison sur du texte de modèle, et son verdict changerait avec la
+// langue du plan.
+// ===========================================================================
+
+/** Le même repas de référence, mais dont la part de poulet est CONGELÉE. */
+function frozenChickenDish(over: Partial<GeneratedDish> = {}): GeneratedDish {
+  return twoBoxDish({
+    uses: [{ preparation_id: "prep_chicken", servings: 4, kept: "freezer" as const }],
+    ...over,
+  });
+}
+
+describe("le Boxing dit ce qui part au congélateur", () => {
+  it("LE CAS QUI MARQUE — la part congelée marque SES contenants", () => {
+    const lines = boxLinesForDish(frozenChickenDish(), ROSTER);
+    expect(lines.map((l) => l.frozen)).toEqual([true, true]);
+  });
+
+  // ⛔ LA CONTRE-ÉPREUVE, ET ELLE EST LA MOITIÉ QUI COMPTE. Sans elle, une
+  // marque posée sur TOUS les contenants passerait le test ci-dessus.
+  it("LE CAS QUI NE MARQUE PAS — `kept: fridge` ne marque rien", () => {
+    const lines = boxLinesForDish(twoBoxDish(), ROSTER);
+    expect(lines.map((l) => l.frozen)).toEqual([false, false]);
+  });
+
+  it("⛔ LA JOINTURE EST PAR `preparation_id`, pas par plat", () => {
+    // Deux casseroles, UNE seule congelée. Le contenant qui ne porte que du riz
+    // ne doit PAS être marqué: sa part n'a jamais vu le congélateur.
+    const lines = boxLinesForDish(
+      dish({
+        uses: [
+          { preparation_id: "prep_chicken", servings: 4, kept: "freezer" as const },
+          { preparation_id: "prep_rice", servings: 4, kept: "fridge" as const },
+        ],
+        boxes: [
+          {
+            id: "box_thu_dinner_peregrine",
+            member_ids: [PEREGRINE_ID],
+            items: [{ preparation_id: "prep_chicken", term: "roast chicken", grams: 140 }],
+            legacy_total_grams: null,
+          },
+          {
+            id: "box_thu_dinner_rest",
+            member_ids: [CASIMIR_ID, ODALRIC_ID],
+            items: [{ preparation_id: "prep_rice", term: "rice", grams: 330 }],
+            legacy_total_grams: null,
+          },
+        ],
+      }),
+      ROSTER,
+    );
+    expect(lines.map((l) => `${l.id}:${l.frozen}`)).toEqual([
+      "box_thu_dinner_peregrine:true",
+      "box_thu_dinner_rest:false",
+    ]);
+  });
+
+  it("un `item` sans `preparation_id` (l'ajout frais du jour) ne marque rien", () => {
+    const lines = boxLinesForDish(
+      frozenChickenDish({
+        boxes: [{
+          id: "box_thu_dinner_bread",
+          member_ids: [PEREGRINE_ID],
+          items: [{ preparation_id: null, term: "pain complet", grams: 60 }],
+          legacy_total_grams: null,
+        }],
+      }),
+      ROSTER,
+    );
+    expect(lines[0].frozen).toBe(false);
+  });
+
+  it("un plan v2 relu (aucun `item`) ne se voit inventer aucune congélation", () => {
+    const lines = boxLinesForDish(
+      frozenChickenDish({
+        boxes: [{
+          id: "box_v2",
+          member_ids: [CASIMIR_ID, ODALRIC_ID],
+          items: [],
+          legacy_total_grams: 900,
+        }],
+      }),
+      ROSTER,
+    );
+    expect(lines[0].frozen).toBe(false);
+  });
+
+  it("LE RENDU — la marque et le compte sortent", () => {
+    // ⚠️ LE RENDU EST EN ANGLAIS ICI, comme partout dans ce fichier: `t()` sert
+    // `en` sans navigateur. On asserte donc la chaîne SERVIE en anglais, et la
+    // parité des deux dictionnaires est tenue par `parity.int.test.ts` — la
+    // recopier ici en ferait une seconde garde qui divergerait.
+    const html = decode(renderToStaticMarkup(
+      createElement(BoxTable, {
+        lines: boxLinesForDish(frozenChickenDish(), ROSTER),
+        context: "session",
+      }),
+    ));
+    expect(html).toContain(en["meals.boxes.freeze"]);
+    expect(html).toContain(en["meals.boxes.freeze_count"].replace("{n}", "2"));
+    // ⛔ ET LA CLÉ FRANÇAISE EXISTE ET DIT QUELQUE CHOSE. Une clé vide passerait
+    // la parité (elle est présente) et sortirait un blanc à l'écran.
+    expect(fr["meals.boxes.freeze"].trim().length).toBeGreaterThan(2);
+    expect(fr["meals.boxes.freeze_count"]).toContain("{n}");
+  });
+
+  // ⛔ ARMÉE PAR UNE PRÉMISSE, MUETTE SINON. « 0 au congélateur » apprendrait à
+  // ne plus lire cette place, et un plan à deux sessions n'a rien à congeler.
+  it("LE RENDU MUET — rien à congeler, aucune mention", () => {
+    const html = decode(renderToStaticMarkup(
+      createElement(BoxTable, {
+        lines: boxLinesForDish(twoBoxDish(), ROSTER),
+        context: "session",
+      }),
+    ));
+    expect(html).not.toContain(en["meals.boxes.freeze"]);
+    expect(html).not.toContain(en["meals.boxes.freeze_count"].replace("{n}", "0"));
+  });
+
+  // ⛔ LES DEUX SURFACES, et c'est le sujet du lot: remplir et sortir sont à
+  // quatre jours d'écart, et `DishCard` ne disait que le second.
+  it("la marque se rend AUSSI sur la carte du repas", () => {
+    const html = decode(renderToStaticMarkup(
+      createElement(BoxTable, {
+        lines: boxLinesForDish(frozenChickenDish(), ROSTER),
+        context: "dish",
+      }),
+    ));
+    expect(html).toContain(en["meals.boxes.freeze"]);
+    // ⚠️ mais PAS le compte: sur une carte de repas les contenants sont deux au
+    // plus et ils sont sous les yeux.
+    expect(html).not.toContain(en["meals.boxes.freeze_count"].replace("{n}", "2"));
   });
 });

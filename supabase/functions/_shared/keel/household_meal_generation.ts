@@ -629,6 +629,12 @@ import {
 // une consigne différente: les foyers où au moins une bouche adulte a
 // répondu « gamelle » au déjeuner de semaine. Les autres reçoivent v22 au
 // caractère près, et un test le tient.
+// ⟳ v26 (2026-09-04) — LE PLAN DIT CE QU'IL A PESÉ. Le suffixe système gagne
+// `EXPLANATION_SCHEMA_BLOCK`, et le message utilisateur gagne
+// `DECIDED BEFORE YOU` dès qu'un appelant passe `decided`. Trois populations à
+// distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
+// le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
+// `explanation.asked` sépare les deux dernières.
 export const HOUSEHOLD_PROMPT_VERSION = "v27_the_swap_cooks_apart";
 
 export interface HouseholdRestriction {
@@ -637,8 +643,106 @@ export interface HouseholdRestriction {
   label: string;
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE QUI EST DÉJÀ TRANCHÉ QUAND LE MODÈLE COMMENCE — 2026-09-04.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE BLOC N'EST PAS UN RAPPEL, C'EST UNE FRONTIÈRE. Le modèle écrit
+ * maintenant une prose sur SES arbitrages (`explanation`); sans savoir ce que
+ * le moteur a déjà décidé, il l'explique aussi — et il l'explique de travers,
+ * parce qu'il ne sait pas POURQUOI. C'est la cicatrice
+ * `redirect-appends-contradict-the-model-guess` prise à l'endroit: on donne le
+ * fait AVANT la génération plutôt que de coller une phrase après.
+ *
+ * ⚠️ TOUS LES CHAMPS SONT DÉJÀ CALCULÉS quand le prompt s'assemble. On ne
+ * recalcule rien ici — deux calculs du même fait divergent, et c'est
+ * l'explication qui a tort (trois fois dans ce dépôt: `usableCookDays`,
+ * `addedCookDays`, la liste des jours de cuisine de la veille).
+ */
+export interface DecidedBeforeYou {
+  /** `same_morning` | `starts_tomorrow` | `day_before`. */
+  readonly timing: string;
+  /** Le jour retiré parce qu'il était déjà dépensé, ou `null`. */
+  readonly droppedDay: string | null;
+  /** Les moments d'aujourd'hui qui ne sont plus au plan. `[]` = aucun. */
+  readonly slotsDroppedToday: readonly string[];
+  /** Les jours où une session de cuisine est posée. */
+  readonly cookDays: readonly string[];
+  /** Les jours qu'aucun lot ne peut atteindre — ils se cuisinent frais. */
+  readonly daysOutOfReach: readonly string[];
+  /** La ligne alimentaire la plus stricte de la table, ou `null`. */
+  readonly strictestRegime: string | null;
+  /**
+   * LE SENS DU PLAN: `down` | `up` | `null` (rien de visé).
+   *
+   * ⛔ UNE DIRECTION, JAMAIS UN OBJECTIF. « fat_loss » est un fait sur la
+   * personne, et la garde du bloc interdit au modèle d'en écrire un. Lui donner
+   * le mot qu'il ne doit pas répéter serait le lui faire répéter.
+   */
+  readonly direction: string | null;
+  /** Une envie a-t-elle été servie au modèle pour cette semaine ? */
+  readonly wishServed: boolean;
+}
+
+/**
+ * LES FAITS, EN QUELQUES LIGNES — et la clé qui les complète, dans CE message.
+ *
+ * ⛔ ELLE EST NOMMÉE ICI AUSSI, et ce n'est pas une redondance: un « ci-dessus »
+ * ne traverse pas la frontière système/utilisateur. Ce dépôt l'a mesuré à 0 %
+ * trois fois — la promesse vit dans un message, la clé dans l'autre, et le
+ * modèle écrit ce qu'il a sous les yeux.
+ *
+ * ⚠️ `null` REND UNE CHAÎNE VIDE, donc un `userSuffix` byte-identique à celui
+ * d'avant ce lot. C'est ce qui rend l'ajout mesurable: un appelant qui ne passe
+ * pas les faits produit le prompt de v25, et le compteur `asked` le dit.
+ */
+function decidedBeforeYouBlock(decided: DecidedBeforeYou | null): string {
+  if (decided === null) return "";
+  const or = (xs: readonly string[], none: string) =>
+    xs.length === 0 ? none : xs.join(", ");
+  return [
+    "== DECIDED BEFORE YOU (facts, already explained to them -- do not re-decide) ==",
+    `- The plan starts: ${decided.timing}.` +
+    (decided.droppedDay === null
+      ? " No day was dropped."
+      : ` ${decided.droppedDay} was dropped: it was already spent.`),
+    `- Not eaten here today: ${or(decided.slotsDroppedToday, "nothing")}.`,
+    `- Cooking session(s) on: ${or(decided.cookDays, "days you choose")}.`,
+    `- Days no batch can reach (cooked fresh that day): ${
+      or(decided.daysOutOfReach, "none")
+    }.`,
+    decided.strictestRegime === null
+      ? "- No declared diet at this table."
+      : `- The shared dish follows the ${decided.strictestRegime} line.`,
+    `- Which way this plan leans: ${
+      decided.direction === "down"
+        ? "lighter"
+        : decided.direction === "up"
+        ? "bigger"
+        : "steady"
+    }.`,
+    `- A wish for this week was given to you: ${decided.wishServed ? "yes" : "no"}.`,
+    "",
+    'Explain only what YOU chose among what these leave open, in "explanation".',
+  ].join("\n");
+}
+
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
+  /**
+   * ⟳ 2026-09-04 — LES FAITS DÉJÀ TRANCHÉS, pour que la prose du modèle ne les
+   * réexplique pas de travers.
+   *
+   * ⚠️ OPTIONNEL, ET POUR LA MÊME RAISON QUE `workLunch` juste en dessous: ce
+   * type est construit par des dizaines de littéraux de fixture. La cicatrice
+   * « paramètre optionnel = garde désarmée » est compensée par les deux mêmes
+   * mécanismes qu'elle: un COMPTEUR (`explanation.asked`, écrit sur chaque
+   * ligne, y compris à `false`) et un test de câblage qui lit la source de la
+   * lane. Un appelant qui l'oublie produit le `userSuffix` de v25, octet pour
+   * octet — et le compteur le dit.
+   */
+  readonly decided?: DecidedBeforeYou | null;
   /**
    * D6.2 (2026-09-03) — CE QUE CHAQUE BOUCHE FAIT DE SON MIDI DE SEMAINE.
    *
@@ -1092,6 +1196,51 @@ function memberIdRosterLines(
     ...members.map((m) => `  ${m.memberId}  = ${m.displayName}`),
   ];
 }
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE QUE LE PLAN A DÛ PESER — la moitié SCHÉMA (2026-09-04).
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LA PROMESSE ET LA CLÉ SE TOUCHENT, ICI ET DANS L'AUTRE MESSAGE. Ce bloc
+ * dit qu'une clé EXISTE et quelle forme elle a; le bloc `DECIDED BEFORE YOU`,
+ * côté message utilisateur, dit ce qu'il y a à expliquer et la nomme aussi.
+ * `member_portions` a ces deux moitiés et il est rempli 100 % du temps;
+ * `for_member_id` n'avait que celle-ci et il est resté à zéro sur douze
+ * générations. On copie le patron qui marche.
+ *
+ * ⛔ ET L'ÉCHAPPATOIRE EST NOMMÉE, parce que c'est le geste le plus rentable et
+ * le plus contre-intuitif de cette cicatrice: sans « rends `[]` si tu n'as rien
+ * arbitré », le modèle invente une tension pour remplir la clé.
+ *
+ * ⚠️ CE BLOC DIT AUSSI QUI PORTE QUOI. Le calendrier, les courses et le sort
+ * des envies sont expliqués par des GABARITS déterministes sous ce texte
+ * (`plan_rationale`, `request_report`). Sans cette phrase, le modèle les redit
+ * sous ses propres mots et l'aperçu bégaie — la cicatrice
+ * `redirect-appends-contradict-the-model-guess`, prise à l'endroit.
+ */
+const EXPLANATION_SCHEMA_BLOCK = [
+  "== ONE MORE OUTPUT FIELD (household): WHAT YOU HAD TO WEIGH UP ==",
+  "Add ONE more top-level key to the JSON you return:",
+  '  "explanation": [ "<one short line>", ... ]',
+  "At most 8 lines, one sentence each, in the CONTENT LANGUAGE named at the",
+  "end of the user message.",
+  "Write a line ONLY where you had to CHOOSE between two things this table",
+  "asked for, or between a wish and the direction this plan follows: a craving",
+  "that pulls against that direction, a dish they asked for that carries food",
+  "someone at this table avoids, a shared dish built on the stricter of two",
+  "lines. Say what you did, and in a few words why it is a reasonable choice",
+  "for this week -- half information, half education.",
+  'If you had nothing to weigh up, return "explanation": [].',
+  "Never invent a tension to fill the list.",
+  "NEVER in these lines: a calorie, gram or kilo figure; anyone's weight, body,",
+  "goal, diet, allergy, medical line, or a house rule (the HOUSE RULES block is",
+  "not yours to explain, not even to say you honoured it); a first name next to",
+  "any number.",
+  "The calendar -- which days, which cooking session, which shop -- is",
+  "explained by the app in fixed sentences under your text. Do not restate it,",
+  "and do not contradict the DECIDED BEFORE YOU block.",
+] as const;
 
 const PORTION_SCHEMA_BLOCK = [
   "== ADDITIONAL OUTPUT FIELD (household) ==",
@@ -2130,6 +2279,12 @@ export function buildHouseholdPromptBlocks(
     // elle qui l'emporte sur ce point-là.
     notes.block,
     envyBlock,
+    // ── ⟳ 2026-09-04 · CE QUI EST DÉJÀ TRANCHÉ, ET LA CLÉ QUI LE COMPLÈTE ──
+    // Juste après l'envie, parce que la première tension que le modèle doit
+    // savoir nommer est « ce qu'ils veulent CETTE FOIS contre la direction du
+    // plan » — et l'envie est la ligne juste au-dessus. Loin devant les
+    // verrous, qui restent en queue.
+    decidedBeforeYouBlock(input.decided ?? null),
     // ── L7 ① · LA CUISINE EST DANS LE GROUPE DES VERROUS, APRÈS L'ENVIE ─────
     // Ce n'est pas une préférence, c'est une impossibilité physique: elle doit
     // survivre à « on a envie d'un gratin » écrit trois lignes plus haut. D'où
@@ -2221,6 +2376,12 @@ export function buildHouseholdPromptBlocks(
         // `memberIdRosterLines`.
         ...(idRoster.length === 0 ? [] : [...idRoster, ""]),
         ...PORTION_SCHEMA_BLOCK,
+        // ⟳ 2026-09-04 · L'EXPLICATION VIENT APRÈS LE SCHÉMA DES PORTIONS ET
+        // AVANT CELUI DES BOÎTES. Elle parle de ce que le modèle a ARBITRÉ,
+        // pas de qui reçoit quoi: la coller entre les deux schémas de portion
+        // ferait lire la boîte comme une précision de l'explication.
+        "",
+        ...EXPLANATION_SCHEMA_BLOCK,
         // LOT 4 — LE SCHÉMA DES BOÎTES REJOINT LE SCHÉMA DES PORTIONS, et il
         // vient JUSTE APRÈS lui: les deux disent « qui reçoit combien », l'un en
         // prose lue à table, l'autre en grammes sur un couvercle. Les séparer

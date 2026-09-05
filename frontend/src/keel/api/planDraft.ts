@@ -164,6 +164,41 @@ export interface DraftEnvelope {
   requestReport: readonly string[];
   requestReportRefusal: string | null;
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * CE QUE LE PLAN A DÛ PESER — la seule prose du MODÈLE sur ses arbitrages.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ ELLE N'EST PAS DU MÊME AUTEUR QUE `rationale`, ET C'EST TOUT LE SUJET.
+   * `rationale` et `requestReport` sont des GABARITS déterministes assemblés
+   * par le serveur sur des faits que le code connaît — calendrier, courses,
+   * sort des envies. Ces lignes-ci sont écrites par le modèle, sur les choix
+   * que LUI a faits en composant: une envie qui tire contre une direction, un
+   * plat demandé qui porte un aliment qu'une bouche évite, un plat partagé
+   * aligné sur la ligne la plus stricte. Aucun des deux ne peut dire ce que
+   * dit l'autre.
+   *
+   * ⛔ ET ELLES NE REMPLACENT RIEN. Les phrases déterministes sortent comme
+   * avant, même quand ce bloc est refusé par sa garde: c'est le PLANCHER, et
+   * un plancher ne dépend pas d'un modèle.
+   *
+   * ⚠️ VIDE EST DEUX CHOSES, et l'écran les rend pareil parce qu'il n'a rien à
+   * en faire: « il n'y avait rien à arbitrer » (le cas fréquent, honnête) et
+   * « la garde a tout jeté » (`explanationRefusal` le nomme). Le SERVEUR, lui,
+   * les compte séparément.
+   */
+  explanation: readonly string[];
+  /**
+   * POURQUOI LE BLOC EST TOMBÉ, ou `null`. Liste fermée côté serveur
+   * (`_shared/keel/plan_explanation.ts`): `unreadable`, `too_many_lines`,
+   * `line_too_long`, `energy_number`, `guilt_tripping`,
+   * `house_rule_mentioned`, `number_targets_person`, `discloses_person`.
+   *
+   * ⚠️ LU MAIS NON RENDU, exprès: aucun de ces motifs ne veut dire quelque
+   * chose à la personne devant son plan. Il vit ici pour qu'un banc puisse le
+   * relire sur une réponse d'aperçu, où `generated_from` n'existe pas.
+   */
+  explanationRefusal: string | null;
+  /**
    * LA FENÊTRE QU'ON AURAIT PROPOSÉE. `shifted` = le départ a été décalé parce
    * qu'il est tard. ⚠️ CE N'EST PAS UN REFUS: la demande en cours est déjà
    * acceptée. L'écran peut la proposer par défaut au prochain formulaire.
@@ -234,6 +269,10 @@ export function readDraftEnvelope(raw: unknown): DraftEnvelope {
   const payload = (raw ?? {}) as Record<string, unknown>;
   const rationale = readLines(payload.rationale);
   const report = readLines(payload.request_report);
+  // ⚠️ MÊME LECTEUR QUE LES DEUX AUTRES, et la même enveloppe `{lines, refusal}`:
+  // une troisième forme de payload pour un troisième bloc de texte finirait par
+  // diverger sur la seule chose qui compte — ce qui s'affiche quand c'est vide.
+  const explanation = readLines(payload.explanation);
   const suggested = (payload.suggested_window ?? {}) as Record<string, unknown>;
   const startsOn = String(suggested.starts_on ?? "").trim();
   // `dropped_clauses` est lu S'IL ARRIVE. Un `Number(undefined)` vaut `NaN`, et
@@ -247,6 +286,8 @@ export function readDraftEnvelope(raw: unknown): DraftEnvelope {
     rationaleRefusal: rationale.refusal,
     requestReport: report.lines,
     requestReportRefusal: report.refusal,
+    explanation: explanation.lines,
+    explanationRefusal: explanation.refusal,
     suggestedStartsOn: startsOn === "" ? null : startsOn,
     // ══════════════════════════════════════════════════════════════════════
     // ⛔ `=== true` ÉTAIT TOUJOURS FAUX — corrigé le 2026-08-23.

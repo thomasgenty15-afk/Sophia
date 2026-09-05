@@ -97,7 +97,9 @@ import {
   leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
+  cookingAskedToday,
   slotsPassedToday,
+  slotsUnservableToday,
 } from "../_shared/keel/plan_hours.ts";
 // POURQUOI CES JOURS-LÀ — l'explication est DÉTERMINISTE et assemblée par le
 // serveur. Jamais demandée au modèle: une jolie phrase inventée peut être
@@ -1575,8 +1577,14 @@ Deno.serve(async (req) => {
     // décider le retrait ET à retirer les moments passés plus bas. Deux appels
     // à `slotsPassedToday` pourraient diverger, et c'est celui qu'on regarde le
     // moins qui garderait l'ancien état.
-    const passedToday = startsOn === todayDate
-      ? slotsPassedToday({
+    // ⟳ 2026-09-04 · DEUX QUESTIONS, UNE SEULE LECTURE DE L'HEURE.
+    // `slotsUnservableToday` APPELLE `slotsPassedToday` — il ne le recopie pas —
+    // et ajoute la seconde: « reste-t-il le temps d'acheter et de cuisiner
+    // avant ce repas ? ». Mesuré avant le lot: à 12 h le déjeuner était servi,
+    // à 19 h le dîner l'était aussi, alors que la coupure des courses est à
+    // 18 h.
+    const unservableToday = startsOn === todayDate
+      ? slotsUnservableToday({
         hourNow: localMinuteOfDay === null ? null : Math.floor(localMinuteOfDay / 60),
         rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
         declaredHours: rhythmClockFrom(
@@ -1584,7 +1592,14 @@ Deno.serve(async (req) => {
             ?.eating_rhythm,
         ),
       })
-      : [];
+      : { passed: [], heldForShopping: [] };
+    // ⚠️ L'UNION EST CE QUE LE PROMPT DOIT IGNORER; les DEUX listes séparées
+    // sont ce que la PHRASE doit distinguer. Fondre ici et re-séparer plus bas
+    // ferait deux vérités du même fait.
+    const passedToday = [
+      ...unservableToday.passed,
+      ...unservableToday.heldForShopping,
+    ];
     const spentFirstDay = withoutSpentFirstDay({ startsOn, durationDays }, {
       today: todayDate,
       // ⛔ LA GARDE DU PIÈGE PASSE PAR ICI. Si la veille de cuisine a reculé la
@@ -1593,12 +1608,26 @@ Deno.serve(async (req) => {
       cookOnlyDay,
       declaredSlots: (eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM)
         .map((r) => r.slot),
-      passedSlots: passedToday,
+      passedSlots: unservableToday.passed,
+      heldSlots: unservableToday.heldForShopping,
+      // ⛔ LA COUPURE VIT DANS `plan_hours.ts`, jamais recopiée: un `>= 18` ici
+      // serait une seconde définition, et c'est celle qu'on regarde le moins
+      // qui garderait l'ancienne valeur.
+      shoppingCutoffReached: !cookingAskedToday({
+        hourNow: localMinuteOfDay === null ? null : Math.floor(localMinuteOfDay / 60),
+      }),
     });
     startsOn = spentFirstDay.startsOn;
     durationDays = spentFirstDay.durationDays;
     if (spentFirstDay.dropped !== null) {
-      issues.push(`spent_first_day_dropped: ${spentFirstDay.dropped}`);
+      // ⟳ 2026-09-04 · LA CAUSE VOYAGE AVEC LE FAIT. « la journée est déjà
+      // entamée » et « il ne restait pas le temps de faire les courses » se
+      // réparent par des gestes opposés — le premier se subit, le second se
+      // contourne (quelqu'un qui a déjà ses courses a raison contre lui). Un
+      // `issues` qui ne dit que le jour laisse les deux indiscernables en base.
+      issues.push(
+        `spent_first_day_dropped: ${spentFirstDay.dropped} (${spentFirstDay.cause})`,
+      );
     } else if (
       // ⛔ LES DEUX REFUS QUI MÉRITENT D'ÊTRE DITS, ET SEULEMENT EUX.
       //
@@ -1720,14 +1749,44 @@ Deno.serve(async (req) => {
     // journée dépensée a été retirée, la fenêtre ne commence plus aujourd'hui
     // et il n'y a plus rien à retirer — `[]` est alors la bonne réponse, pas
     // un repli.
-    const slotsDroppedToday = startsOn === todayDate ? passedToday : [];
+    const slotsDroppedToday = startsOn === todayDate
+      ? unservableToday.passed
+      : [];
+    // ⟳ 2026-09-04 · LA SECONDE LISTE, POUR LA PHRASE ET POUR ELLE SEULE. Le
+    // PROMPT reçoit l'union (`passedToday`) — un moment retenu ne se compose
+    // pas plus qu'un moment passé. L'EXPLICATION, elle, doit les distinguer:
+    // « la journée est déjà entamée » et « il faut le temps de faire les
+    // courses » se réparent par des gestes opposés.
+    const slotsHeldForShopping = startsOn === todayDate
+      ? unservableToday.heldForShopping
+      : [];
     // LA FUSION DES DEUX SOURCES, une seule fois, ici. Le jour d'aujourd'hui
     // porte l'union; les autres jours ne bougent pas. Une entrée `slots: []`
     // (journée entière) l'emporte et n'est pas rouverte.
-    const awayDays = slotsDroppedToday.length === 0 ? declaredAway : (() => {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LA FUSION LIT L'UNION, PAS LA SEULE LISTE DES MOMENTS PASSÉS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ DÉFAUT INTRODUIT PAR CE LOT ET TROUVÉ PAR UN RUN RÉEL, le 2026-09-04.
+    // En séparant `passed` et `heldForShopping` pour que la PHRASE distingue
+    // les deux causes, j'ai laissé cette fusion sur la seule liste des moments
+    // PASSÉS. Le plan a donc rendu, à 12 h: « Pour aujourd'hui, le déjeuner
+    // n'est pas au plan : il faut le temps de faire les courses avant » — ET un
+    // déjeuner composé le jour même. La phrase était juste, le plan la
+    // démentait trois lignes plus bas.
+    //
+    // ⛔ AUCUN TEST UNITAIRE NE POUVAIT LE VOIR: les deux listes étaient
+    // correctes, la phrase était correcte, et c'est leur JOINTURE au prompt qui
+    // manquait. Il fallait un plan rendu.
+    //
+    // La règle: un moment RETENU ne se compose pas plus qu'un moment PASSÉ —
+    // c'est le prompt qui décide ce qui est cuisiné, et il doit recevoir les
+    // deux. Seule l'explication a besoin de les séparer.
+    const unservableUnion = startsOn === todayDate ? passedToday : [];
+    const awayDays = unservableUnion.length === 0 ? declaredAway : (() => {
       const row = declaredAway.find((a) => a.day === todayToken);
       if (row && row.slots.length === 0) return declaredAway;
-      const merged = new Set<string>([...(row?.slots ?? []), ...slotsDroppedToday]);
+      const merged = new Set<string>([...(row?.slots ?? []), ...unservableUnion]);
       return [
         ...declaredAway.filter((a) => a.day !== todayToken),
         {
@@ -1862,7 +1921,22 @@ Deno.serve(async (req) => {
     // garderait l'ancienne (la leçon de `readKitchenEquipment`, dix lignes
     // au-dessus).
     const groceryRuns = readGroceryRuns(goalRow.practical_constraints as Record<string, unknown> | null);
-    const askedOneSession = askedOneCookingSession || groceryRuns === 1;
+    // ⟳ LOT C (2026-09-04) — « UNE SEULE COURSE » NE VAUT PLUS « UNE SEULE
+    // SESSION », et c'est un renversement assumé de la règle A2 du 2026-09-03.
+    //
+    // A2 raisonnait ainsi: acheter une fois, c'est tout cuire d'un coup, sinon
+    // le cru ne tient pas. C'est vrai SANS congélateur — et c'est déjà dit par
+    // la poussée « une course en exige deux » dans `deriveCookingPlan`. Avec un
+    // congélateur DÉCLARÉ, on achète le dimanche, on CONGÈLE ce dont mercredi
+    // aura besoin, et on cuisine deux fois. Tant que cette ligne dérivait la
+    // session unique du nombre de courses, cette configuration ne pouvait pas
+    // exister — donc la marque « à congeler à l'achat » n'avait aucun plan où
+    // se poser.
+    //
+    // ⛔ LA DEMANDE EXPLICITE RESTE LA SEULE PORTE, et elle est inchangée:
+    // `body.one_cooking_session` plus un congélateur déclaré. Le refus compté
+    // ci-dessous ne bouge pas d'un caractère.
+    const askedOneSession = askedOneCookingSession;
     const oneCookingSession = askedOneSession &&
       hasFreezerDeclared(kitchenEquipment);
     // ⚠️ LE REFUS EST COMPTÉ, ET IL SORT MÊME À ZÉRO NUMÉRATEUR AILLEURS: sans
@@ -3617,6 +3691,8 @@ Deno.serve(async (req) => {
       // rend le compte d'avant ce lot, à l'unité près.
       const breaches: string[] = [];
       let silenced = 0;
+      let silencedHomograph = 0;
+      let silencedSpelling = 0;
       const groupTally = { excluded: 0, plantOnly: 0, undecided: 0 };
       for (const dish of meal.dishes) {
         const scan = scanDietaryRegime(declaredRegime, {
@@ -3638,6 +3714,16 @@ Deno.serve(async (req) => {
           breaches.push(`${dish.title}: ${hit.matchedText}`);
         }
         silenced += scan.silencedByPlantAnalogue.length;
+        // ⟳ 2026-09-04 · L'HOMOGRAPHE, COMPTÉ À PART. Voir `HOMOGRAPH_PHRASES`:
+        // « remplir des moules » décrit un récipient, « étaler la pâte » n'est
+        // pas du pâté. L'extinction est neuve, donc c'est elle qui peut se
+        // tromper — et ce nombre est le seul endroit où ça se verrait.
+        silencedHomograph += scan.silencedByHomograph.length;
+        // ⟳ 2026-09-04 · ET L'ORTHOGRAPHE À PART DE LA PORTÉE. Un plan valide a
+        // été refusé parce que « pâtes » se normalise comme « pâtés ». Deux
+        // preuves différentes du même verdict: fusionner les deux nombres
+        // rendrait muet le jour où l'une des deux se trompe.
+        silencedSpelling += scan.silencedBySpelling.length;
         groupTally.excluded += scan.group.excluded;
         groupTally.plantOnly += scan.group.plantOnly;
         groupTally.undecided += scan.group.undecided;
@@ -3656,6 +3742,8 @@ Deno.serve(async (req) => {
         forms: excludedForms.length,
         breaches: breaches.length,
         analogues_silenced: silenced,
+        homograph_silenced: silencedHomograph,
+        spelling_silenced: silencedSpelling,
         // ── LES TROIS NOMBRES DU CHAMP DÉCLARÉ ────────────────────────────
         // `undecided` est celui qu'on lit EN PREMIER: tant qu'il reste haut,
         // le modèle n'écrit pas le champ, et les deux autres ne veulent rien
@@ -3800,13 +3888,22 @@ Deno.serve(async (req) => {
       durationDays,
       shoppingList: meal.shopping_list,
       preparations: wavePreps,
+      // ⟳ LOT C — LA CADENCE DEMANDÉE REPLIE LES VAGUES, quand un congélateur
+      // peut absorber la différence. `null` = ni style ni nombre de courses
+      // déclarés, donc aucun repli: la conservation garde la main.
+      runs: capacity.plan?.runs ?? null,
+      freezer: hasFreezerDeclared(kitchenEquipment),
     });
     meal.shopping_list = meal.shopping_list.map((line, at) => ({
       ...line,
-      buy_on: buyDates[at],
+      buy_on: buyDates.buyOn[at],
+      // ⟳ LOT C — LE GESTE DU JOUR DES COURSES. `false` par défaut et jamais
+      // absent: une clé manquante et « rien à congeler » rendraient le même
+      // silence à l'écran.
+      freeze_on_purchase: buyDates.freezeOnPurchase[at] === true,
     }));
     const shoppingDays: string[] = [];
-    for (const date of buyDates) {
+    for (const date of buyDates.buyOn) {
       if (date !== null && !shoppingDays.includes(date)) shoppingDays.push(date);
     }
     shoppingDays.sort();
@@ -3815,6 +3912,16 @@ Deno.serve(async (req) => {
     // le même silence — la cicatrice des deux compteurs du congélateur.
     issues.push(
       `shopping_waves: ${shoppingDays.length} (${shoppingDays.join(", ") || "none"})`,
+    );
+    // ⟳ LOT C — CE QUE LE REPLI A COÛTÉ, ÉCRIT MÊME À ZÉRO.
+    //
+    // ⛔ LES DEUX NOMBRES, PAS UN. « aucune ligne à congeler » et « le repli n'a
+    // pas eu lieu » sont deux états très différents; le dénominateur dit sur
+    // quelle population la règle s'est exercée. Sans lui, un repli désarmé
+    // rendrait exactement le même `0` qu'un plan qui n'en avait pas besoin.
+    issues.push(
+      `freeze_on_purchase: ${buyDates.freezeOnPurchase.filter(Boolean).length}/` +
+        `${buyDates.freezeOnPurchase.length}`,
     );
 
     // ── CE QUI NE PEUT PAS VENIR DE LA PREMIÈRE COURSE ────────────────────
@@ -3972,6 +4079,7 @@ Deno.serve(async (req) => {
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,
+          slotsHeldForShopping,
           // ⚠️ `declaredAway` ET PAS `awayDays`: le second porte l'UNION avec
           // les créneaux tombés par l'horloge, et les compter ici les dirait
           // DEUX FOIS — une fois « la journée est déjà entamée », une fois

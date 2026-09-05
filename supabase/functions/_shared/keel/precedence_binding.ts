@@ -84,6 +84,15 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // précédent j'avais recopié une empreinte en le croyant, et c'était faux —
   // ce test l'avait dit.
   v25_every_mouth_has_a_voice: "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v26 (2026-09-04) — MÊME EMPREINTE QUE v25, ET VÉRIFIÉE PAR LE TEST, pas
+  // recopiée par symétrie. Le bump vient de `EXPLANATION_SCHEMA_BLOCK` (suffixe
+  // SYSTÈME) et de `DECIDED BEFORE YOU` (message utilisateur, avant les
+  // verrous). Le bloc d'arbitrage ne cite que les EN-TÊTES des verrous, et
+  // aucun n'a bougé — ni le régime, ni les règles de maison, ni la cuisine.
+  // Si l'empreinte tombait quand même, c'est que j'ai déplacé un verrou sans
+  // le voir, et il faudrait le lire avant d'écrire un nouveau chiffre ici.
+  v26_the_plan_says_what_it_weighed:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
   // v27 (2026-09-04): la préparation à part pour le composant échangé, dans le
   // bloc SCHÉMA des boîtes — le bloc d'arbitrage ne bouge pas, même empreinte.
   v27_the_swap_cooks_apart:

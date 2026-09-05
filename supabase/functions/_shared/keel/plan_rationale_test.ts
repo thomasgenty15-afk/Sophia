@@ -54,6 +54,7 @@ function nominalFacts(): PlanRationaleFacts {
     today: { localDate: "2026-08-13", dayToken: "thu" },
     localMinuteOfDay: 9 * 60,
     slotsDroppedToday: [],
+    slotsHeldForShopping: [],
     awayInWindow: [],
     // ⛔ `[]` = « le plan est complet », et c'est le cas nominal. Un trou dans
     // le jeu de faits qui doit PASSER ferait de la phrase d'écart la phrase
@@ -176,6 +177,7 @@ Deno.test("un créneau tombé par l'heure ne s'attribue pas à l'élève", () =>
       ...nominalFacts(),
       localMinuteOfDay: 20 * 60,
       slotsDroppedToday: ["breakfast", "lunch"],
+      slotsHeldForShopping: [],
     },
     locale: "fr",
   });
@@ -425,6 +427,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     today: { localDate: "2026-08-13", dayToken: "thu" },
     localMinuteOfDay: 20 * 60 + 30,
     slotsDroppedToday: ["breakfast", "lunch"],
+    slotsHeldForShopping: [],
     awayInWindow: [{ day: "fri", slot: "lunch" }],
     // ALLUMÉ AUSSI: la phrase des trous doit passer la porte 4 comme les
     // autres. Deux jours qui manquent LES MÊMES moments ⇒ la forme groupée.
@@ -1287,6 +1290,7 @@ Deno.test("⛔ AUCUNE LIGNE NE COMMENCE PAR UNE MINUSCULE — garde d'écran", (
     addedCookDays: ["thu"],
     requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
     slotsDroppedToday: ["breakfast", "lunch"],
+    slotsHeldForShopping: [],
     awayInWindow: [{ day: "fri", slot: "lunch" }],
     emptySlots: [{ day: "sat", slot: "dinner" }],
     daysOutOfBatchReach: ["wed", "thu", "fri", "sat"],
@@ -2197,4 +2201,71 @@ Deno.test("⟳ le REPLI sur la boîte de table a sa propre phrase, et ne préten
   }).lines.join(" ");
   assert(text.includes("Tom mange le plat commun"), text);
   assert(text.includes("Zoé mange le plat commun"), text);
+});
+
+// ⟳ 2026-09-04 · LA SECONDE CAUSE A SA PROPRE PHRASE
+//
+// ⛔ « la journée est déjà entamée » et « il faut le temps de faire les
+// courses » se réparent par des gestes opposés: le premier se subit, le second
+// se contourne (quelqu'un qui a déjà ses courses a raison contre lui). Dire
+// l'un pour l'autre est un fait faux, la famille que ce module ferme.
+
+Deno.test("⛔ DÉLAI DE COURSES — la phrase ne dit pas « la journée est entamée »", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const out = explainPlanChoices({
+      locale,
+      facts: { ...nominalFacts(), slotsHeldForShopping: ["lunch"] },
+    });
+    const texte = out.lines.join("\n");
+    // La phrase du délai sort…
+    assertEquals(
+      texte.includes("courses") || texte.includes("time to shop"),
+      true,
+      `${locale}: ${texte}`,
+    );
+    // …et surtout PAS celle de l'horloge.
+    assertEquals(
+      texte.includes("déjà entamée") || texte.includes("already under way"),
+      false,
+      `${locale}: la mauvaise cause est sortie — ${texte}`,
+    );
+  }
+});
+
+Deno.test("⛔ LES DEUX CAUSES ENSEMBLE — deux phrases, jamais un doublon", () => {
+  // À midi: le petit-déjeuner est PASSÉ, le déjeuner est RETENU. Les deux
+  // lignes sortent, chacune avec son moment et sa raison.
+  const out = explainPlanChoices({
+    locale: "fr",
+    facts: {
+      ...nominalFacts(),
+      slotsDroppedToday: ["breakfast"],
+      slotsHeldForShopping: ["lunch"],
+    },
+  });
+  const texte = out.lines.join("\n");
+  assertEquals(texte.includes("déjà entamée"), true, texte);
+  assertEquals(texte.includes("courses"), true, texte);
+});
+
+Deno.test("⛔ UN MOMENT NE SE PERD PAS DEUX FOIS — la soustraction défensive", () => {
+  // Les deux listes ne se recouvrent pas par construction. On soustrait quand
+  // même: le jour où un appelant les passe séparément, une bouche perdrait son
+  // repas deux fois À L'ÉCRAN, et ce serait la PHRASE qui aurait tort.
+  const out = explainPlanChoices({
+    locale: "fr",
+    facts: {
+      ...nominalFacts(),
+      slotsDroppedToday: ["lunch"],
+      slotsHeldForShopping: ["lunch"],
+    },
+  });
+  const texte = out.lines.join("\n");
+  assertEquals(texte.includes("déjà entamée"), true, texte);
+  assertEquals(texte.includes("courses"), false, `doublon rendu: ${texte}`);
+});
+
+Deno.test("MUETTE quand rien n'est retenu — armée par sa prémisse", () => {
+  const out = explainPlanChoices({ locale: "fr", facts: { ...nominalFacts() } });
+  assertEquals(out.lines.join("\n").includes("faire les courses avant"), false);
 });

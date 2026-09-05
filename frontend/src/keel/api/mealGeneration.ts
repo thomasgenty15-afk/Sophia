@@ -580,6 +580,22 @@ export interface ShoppingItem {
    * retombe alors sur la liste plate d'avant.
    */
   buy_on: string | null;
+  /**
+   * ⟳ LOT C (2026-09-04) — CET ARTICLE PART AU CONGÉLATEUR DÈS LE RETOUR DU
+   * MAGASIN.
+   *
+   * ⛔ REQUIS, booléen, jamais `T?` — la leçon de `food_group` et de `buy_on`
+   * au-dessus, appliquée le jour même. `false` par défaut, JAMAIS absent: une
+   * clé manquante et « rien à congeler » rendraient le même silence à l'écran,
+   * et c'est très exactement l'instruction que la personne doit exécuter.
+   *
+   * ⛔ CE N'EST PAS `aisle: "frozen"`. Celui-là est un RAYON — on achète du
+   * surgelé. Celui-ci est un GESTE — on achète du frais et on le congèle.
+   *
+   * Posé par la lane quand la cadence de courses a replié les vagues: l'article
+   * est acheté plus tôt que sa fenêtre crue ne le permet.
+   */
+  freeze_on_purchase: boolean;
 }
 
 /**
@@ -1099,6 +1115,14 @@ export function readShopping(raw: unknown): ShoppingItem[] {
       buy_on: s.buy_on === null || s.buy_on === undefined
         ? null
         : String(s.buy_on),
+      // ⟳ LOT C (2026-09-04) — LE GESTE DU JOUR DES COURSES, RECOPIÉ ICI.
+      //
+      // ⛔ `=== true` ET PAS UNE COERCITION. La charge vient du réseau: une
+      // chaîne « false » est vraie en JavaScript, et c'est exactement le genre
+      // de conversion muette qui ferait congeler toute une liste. Un plan écrit
+      // avant ce lot n'a pas la clé et rend `false`, ce qui est le comportement
+      // d'avant, octet pour octet.
+      freeze_on_purchase: (s as { freeze_on_purchase?: unknown }).freeze_on_purchase === true,
     };
   });
 }

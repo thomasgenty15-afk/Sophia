@@ -72,6 +72,10 @@ export function BoxTable(
   // cuisiné de zéro le jour même. Un en-tête au-dessus du vide se lirait comme
   // une panne.
   if (lines.length === 0) return null;
+  // ⚠️ DÉRIVÉ DES LIGNES, jamais passé par l'appelant: deux façons de compter
+  // la même chose divergent, et c'est celle qu'on regarde le moins qui garde
+  // l'ancienne. `BoxLine.frozen` est la seule autorité (lue de `uses[].kept`).
+  const frozenCount = lines.filter((l) => l.frozen).length;
   return (
     <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
       <div className="flex flex-wrap items-baseline gap-x-2">
@@ -94,6 +98,25 @@ export function BoxTable(
             {lines.length === 1
               ? mealCopy("meals.boxes.count_one")
               : mealCopy("meals.boxes.count_many", { n: lines.length })}
+          </span>
+        )}
+        {/* ══════════════════════════════════════════════════════════════
+            COMBIEN PARTENT AU CONGÉLATEUR — 2026-09-04.
+            ══════════════════════════════════════════════════════════════
+            On sort ses bacs avant de commencer; on veut savoir dans le même
+            regard combien iront au congélateur, parce que ça décide du geste
+            (et parfois du contenant qu'on choisit).
+
+            ⛔ ARMÉ PAR UNE PRÉMISSE, MUET SINON. Zéro contenant congelé ⇒
+            aucune ligne — « 0 à congeler » apprendrait à ne plus lire cette
+            place, et un plan à deux sessions n'a rien à congeler par
+            construction.
+            ⚠️ BOXING SEULEMENT, comme le compte à côté: sur la carte d'un
+            plat, les contenants sont deux au plus et chacun porte déjà sa
+            propre marque. */}
+        {context === "session" && frozenCount > 0 && (
+          <span className="text-label tabular-nums text-ink-soft">
+            {mealCopy("meals.boxes.freeze_count", { n: frozenCount })}
           </span>
         )}
       </div>
@@ -172,6 +195,22 @@ function BoxRow(
         {line.shared && (
           <span className="text-label tabular-nums text-ink-soft">
             {mealCopy("meals.boxes.for_n", { n: line.eaterCount })}
+          </span>
+        )}
+        {/* ── CE CONTENANT VA AU CONGÉLATEUR ──────────────────────────────
+            Sur le couvercle, à côté du nom, parce que c'est là qu'on décide
+            quoi en faire une fois rempli. Même forme que le marqueur « pour
+            n »: un `text-label` discret, jamais un badge coloré — ce n'est ni
+            une alerte ni un statut, c'est une instruction de rangement.
+
+            ⛔ IL SE REND SUR LES DEUX SURFACES, Boxing ET carte du plat, et
+            c'est voulu: le geste de remplir et le geste de sortir sont à
+            quatre jours d'écart, et `DishCard` ne dit que le second (« sors-la
+            du congélateur la veille »). Dire l'un sans l'autre laissait une
+            part au frigo pendant six jours. */}
+        {line.frozen && (
+          <span className="text-label text-ink-soft">
+            {mealCopy("meals.boxes.freeze")}
           </span>
         )}
       </span>

@@ -184,10 +184,62 @@ export function wavePreparationsFromRows(
   }));
 }
 
+// ── CE QUI NE SE CONGÈLE PAS, ÉCRIT À LA MAIN ⟳ LOT C ──────────────────────
+//
+// ⛔ TROUVÉ SUR UN TIR RÉEL, PAS EN RELECTURE. Le premier plan replié a rendu
+// « salade verte — à congeler ». C'est une instruction FAUSSE, et une
+// instruction fausse est pire qu'une absente: elle apprend à ignorer les
+// autres, y compris celle qui portait sur le poisson juste au-dessus.
+//
+// ⚠️ LISTE FERMÉE ET COURTE, par groupe d'aliment. On ne dit pas « ces groupes
+// sont fragiles »: on dit « ces trois-là ne supportent pas la congélation »,
+// cas par cas. La quasi-totalité des aliments se congèle très bien, y compris
+// la viande, le poisson, le pain et la plupart des légumes.
+//
+// ⛔ ET LE REFUS A UNE CONSÉQUENCE, IL N'EST PAS COSMÉTIQUE: un article qui ne
+// peut ni tenir au frais ni être congelé ne peut PAS être absorbé par le repli.
+// Il garde sa vague, la cadence demandée cède devant la physique, et ça se
+// COMPTE (`freezeRefused`). Le supprimer en silence ferait acheter une salade
+// six jours avant de la manger.
+const NOT_FREEZABLE: ReadonlySet<string> = new Set<string>([
+  // La salade rendue à la décongélation est une flaque: c'est le cas mesuré.
+  "leafy_greens",
+  // Un yaourt tranche et rend son petit-lait.
+  "dairy_yogurt",
+  // Un œuf en coquille éclate.
+  "eggs",
+]);
+
 export interface GroceryWave<T extends WaveItem = WaveItem> {
   /** Date d'achat, `YYYY-MM-DD`, dans le calendrier local du plan. */
   buyOn: string;
   items: T[];
+  /**
+   * ⟳ LOT C (2026-09-04) — CE QUI PART AU CONGÉLATEUR DÈS LE RETOUR DU MAGASIN.
+   *
+   * Un SOUS-ENSEMBLE de `items`, par référence d'objet (jamais par terme: deux
+   * lignes peuvent porter le même mot, et ce module mappe déjà ses index par
+   * identité). Non vide seulement quand un congélateur est DÉCLARÉ et que le
+   * plan a replié ses vagues: l'article est alors acheté plus tôt que sa
+   * fenêtre crue ne le permet, donc il ne tiendra pas au frais jusqu'à sa
+   * cuisson.
+   *
+   * ⛔ CE N'EST PAS `aisle: "frozen"`. Celui-là est un RAYON — on achète du
+   * surgelé. Celui-ci est un GESTE: on achète du frais et on le congèle en
+   * rentrant. Les confondre ferait disparaître la seule instruction que la
+   * personne doit exécuter le jour des courses.
+   */
+  freezeOnPurchase: T[];
+  /**
+   * ⟳ LOT C — CE QUI A FAIT SURVIVRE CETTE VAGUE À UN REPLI.
+   *
+   * Non vide seulement sur une vague que la cadence demandée aurait dû
+   * absorber, et qui reste parce qu'elle porte un aliment qui ne se congèle pas
+   * (`NOT_FREEZABLE`). C'est le COMPTEUR de ce refus: sans lui, « le repli n'a
+   * pas eu lieu » et « le repli a tout absorbé » rendraient le même nombre de
+   * vagues, et la personne verrait une course de plus sans savoir pourquoi.
+   */
+  keptForFreshness: T[];
   /**
    * La cuisson la plus proche que cette vague sert. `null` en première vague
    * quand elle ne porte que de l'épicerie. Sert la phrase de l'écran
@@ -266,10 +318,48 @@ export function planGroceryWaves<T extends WaveItem>(args: {
   durationDays: number;
   shoppingList: readonly T[];
   preparations: readonly WavePreparation[];
+  /**
+   * ⟳ LOT C — COMBIEN DE FOIS LE PLAN VA AU MAGASIN. REQUIS.
+   *
+   * ⛔ PAS DE `?`, ET C'EST LA RÈGLE DE CE DÉPÔT: « un paramètre de garde
+   * optionnel est une garde désarmée ». Un appelant qui l'oublierait
+   * obtiendrait le repli le plus permissif — autant de vagues que la
+   * conservation en demande — c'est-à-dire exactement le défaut que ce lot
+   * ferme, en silence.
+   *
+   * ⚠️ `null` EST UNE VALEUR, PAS UNE ABSENCE: « la cadence n'a pas été
+   * déclarée » (ni style ni nombre de courses, donc `capacity.plan === null`).
+   * On ne replie alors RIEN — la conservation garde la main, exactement comme
+   * avant ce lot. C'est la même discipline que `freezer: null` chez
+   * `deriveCookingPlan`: l'ignorance ne se déguise pas en réponse.
+   */
+  runs: number | null;
+  /**
+   * ⟳ LOT C — UN CONGÉLATEUR EST-IL DÉCLARÉ. REQUIS, même raison.
+   *
+   * ⛔ SANS LUI ON NE REPLIE PAS. Replier sans congélateur ferait acheter
+   * mercredi du poisson qu'on cuisine samedi: le plan tiendrait sur le papier
+   * et pourrirait dans le frigo. La cadence demandée cède alors devant la
+   * conservation, et c'est le bon ordre.
+   */
+  freezer: boolean;
 }): GroceryWave<T>[] {
   const { startsOn, durationDays, shoppingList, preparations } = args;
   if (shoppingList.length === 0) return [];
   if (!CALENDAR_DATE.test(String(startsOn ?? ""))) return [];
+  if (
+    args.runs !== null &&
+    (typeof args.runs !== "number" || !Number.isFinite(args.runs) || args.runs < 1)
+  ) {
+    throw new Error(
+      `[keel/grocery_waves] \`runs\` est REQUIS: un entier >= 1, ou null quand la ` +
+        `cadence n'a pas été déclarée. Reçu: ${JSON.stringify(args.runs)}`,
+    );
+  }
+  if (typeof args.freezer !== "boolean") {
+    throw new Error("[keel/grocery_waves] `freezer` est REQUIS et booléen");
+  }
+
 
   const dates = windowDates(startsOn, durationDays);
 
@@ -352,7 +442,82 @@ export function planGroceryWaves<T extends WaveItem>(args: {
   // « `buyOn > firstBuyOn` », pas « `buyOn > startsOn` »: c'est la même chose
   // au cas nominal, et ce n'est PAS la même chose quand la première vague
   // tombe après le début du plan.
-  const sortedDates = [...byDate.keys()].sort();
+  let sortedDates = [...byDate.keys()].sort();
+
+  // ── ⟳ LOT C · LE REPLI SUR LA CADENCE DEMANDÉE ──────────────────────────
+  //
+  // La conservation a proposé autant de vagues qu'il en faut pour tout acheter
+  // frais. La personne, elle, a dit combien de fois elle va au magasin. Quand
+  // la seconde est plus petite, c'est elle qui gagne — MAIS SEULEMENT SI un
+  // congélateur peut absorber la différence.
+  //
+  // ⛔ ON GARDE LES PREMIÈRES DATES, ET ON REVERSE SUR LA DERNIÈRE GARDÉE.
+  // Reverser sur la PREMIÈRE ferait acheter tout le frais le dimanche pour le
+  // samedi suivant; la dernière gardée est la date la plus TARDIVE que la
+  // cadence autorise, donc celle qui congèle le moins de choses.
+  const freezeOnPurchase = new Set<T>();
+  // Ce que le repli n'a PAS pu absorber, par date d'origine: ces vagues-là
+  // survivent, et le plan porte alors plus de vagues que de courses demandées.
+  const keptFresh = new Map<string, T[]>();
+  if (args.freezer && args.runs !== null && sortedDates.length > args.runs) {
+    const kept = sortedDates.slice(0, args.runs);
+    const dropped = sortedDates.slice(args.runs);
+    const target = kept[kept.length - 1]!;
+    const targetBucket = byDate.get(target)!;
+    const survivors: string[] = [];
+    for (const date of dropped) {
+      const bucket = byDate.get(date)!;
+      const keptBack: T[] = [];
+      for (const item of bucket.items) {
+        // ⛔ CE QUI NE SE CONGÈLE PAS N'EST PAS ABSORBÉ. Il reste sur SA vague:
+        // la personne devra y retourner, et c'est la vérité — mieux vaut une
+        // course de plus qu'une salade congelée.
+        if (NOT_FREEZABLE.has(String(item.food_group ?? ""))) {
+          keptBack.push(item);
+          continue;
+        }
+        targetBucket.items.push(item);
+        // ⛔ TOUT CE QUE LE REPLI DÉPLACE EST MARQUÉ, ET C'EST UNE PROPRIÉTÉ
+        // DÉMONTRÉE, PAS UN RACCOURCI.
+        //
+        // J'avais d'abord écrit ici un contrôle de conservation
+        // (`target + fenêtre < cuisson ?`), pour ne pas marquer un article qui
+        // tiendrait quand même. **Ce contrôle est toujours vrai**, et une
+        // mutation qui le retirait est restée VERTE — c'est comme ça qu'il a
+        // été trouvé. La démonstration:
+        //
+        //   · un article dont la fenêtre couvre déjà tout est acheté à
+        //     `startsOn` (`buyOn = max(earliest, startsOn)`), qui est la
+        //     PREMIÈRE date — toujours gardée, jamais déplacée;
+        //   · un article déplacé vient donc d'une vague dont la date vaut
+        //     exactement son `earliest`, et cette date trie APRÈS toutes les
+        //     dates gardées;
+        //   · donc `target < earliest = cuisson − fenêtre`, c'est-à-dire
+        //     `target + fenêtre < cuisson`.
+        //
+        // Un contrôle qui ne peut pas être faux est une garde qui ressemble à
+        // une garde. On garde la propriété, écrite, et son test.
+        freezeOnPurchase.add(item);
+      }
+      // La vague absorbée cède aussi ses cuissons à celle qui la reprend: sans
+      // ça, la phrase de la vague gardée ne nommerait pas ce qu'elle sert.
+      for (const cook of bucket.all) targetBucket.all.add(cook);
+      if (bucket.serves && (!targetBucket.serves || bucket.serves < targetBucket.serves)) {
+        targetBucket.serves = bucket.serves;
+      }
+      // ⛔ LA VAGUE SURVIT quand elle porte quelque chose d'incongelable.
+      if (keptBack.length > 0) {
+        bucket.items = keptBack;
+        survivors.push(date);
+        keptFresh.set(date, keptBack);
+      } else {
+        byDate.delete(date);
+      }
+    }
+    sortedDates = [...kept, ...survivors].sort();
+  }
+
+
   const firstBuyOn = sortedDates[0] ?? null;
 
   return sortedDates
@@ -360,6 +525,8 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     .map(([buyOn, bucket]) => ({
       buyOn,
       items: bucket.items,
+      freezeOnPurchase: bucket.items.filter((it) => freezeOnPurchase.has(it)),
+      keptForFreshness: keptFresh.get(buyOn) ?? [],
       servesCookOn: firstBuyOn !== null && buyOn > firstBuyOn ? bucket.serves : null,
       // Trié: l'ordre d'itération d'un `Set` suit l'insertion, c'est-à-dire
       // l'ordre de la liste de courses. Un appelant qui prend « la première »
@@ -430,6 +597,12 @@ export interface WaveAssignment {
   servesCookOn: string | null;
   /** Index dans la liste passée à `planGroceryWaves`. */
   indices: number[];
+  /**
+   * ⟳ LOT C — LES MÊMES INDEX, restreints à ce qui part au congélateur dès
+   * l'achat. Un SOUS-ENSEMBLE de `indices`, jamais une seconde liste: l'écran
+   * rend une ligne par index et marque celles qui sont ici.
+   */
+  freezeIndices: number[];
 }
 
 export function waveAssignments<T extends WaveItem>(args: {
@@ -437,6 +610,8 @@ export function waveAssignments<T extends WaveItem>(args: {
   durationDays: number;
   shoppingList: readonly T[];
   preparations: readonly WavePreparation[];
+  runs: number | null;
+  freezer: boolean;
 }): WaveAssignment[] {
   const waves = planGroceryWaves(args);
   if (waves.length === 0) return [];
@@ -452,16 +627,29 @@ export function waveAssignments<T extends WaveItem>(args: {
     indexOf.set(item, list);
   });
 
-  return waves.map((wave) => ({
-    buyOn: wave.buyOn,
-    servesCookOn: wave.servesCookOn,
-    indices: wave.items.map((item) => {
+  return waves.map((wave) => {
+    // ⚠️ L'APPARIEMENT SE FAIT UNE SEULE FOIS, et `freezeIndices` en est tiré —
+    // rejouer `shift()` sur `freezeOnPurchase` consommerait une seconde fois le
+    // même vivier et rendrait des index faux dès qu'une ligne se répète.
+    const frozen = new Set<T>(wave.freezeOnPurchase);
+    const indices: number[] = [];
+    const freezeIndices: number[] = [];
+    for (const item of wave.items) {
       const pool = indexOf.get(item);
       // `shift()` consomme: deux références identiques dans la même liste
       // reçoivent deux index différents, dans l'ordre.
-      return pool && pool.length > 0 ? pool.shift()! : -1;
-    }).filter((i) => i >= 0),
-  }));
+      const at = pool && pool.length > 0 ? pool.shift()! : -1;
+      if (at < 0) continue;
+      indices.push(at);
+      if (frozen.has(item)) freezeIndices.push(at);
+    }
+    return {
+      buyOn: wave.buyOn,
+      servesCookOn: wave.servesCookOn,
+      indices,
+      freezeIndices,
+    };
+  });
 }
 
 /**
@@ -497,12 +685,20 @@ export function buyDatesByIndex<T extends WaveItem>(args: {
   durationDays: number;
   shoppingList: readonly T[];
   preparations: readonly WavePreparation[];
-}): (string | null)[] {
-  const out: (string | null)[] = args.shoppingList.map(() => null);
+  runs: number | null;
+  freezer: boolean;
+}): { buyOn: (string | null)[]; freezeOnPurchase: boolean[] } {
+  const buyOn: (string | null)[] = args.shoppingList.map(() => null);
+  const freezeOnPurchase: boolean[] = args.shoppingList.map(() => false);
   for (const wave of waveAssignments(args)) {
     for (const index of wave.indices) {
-      if (index >= 0 && index < out.length) out[index] = wave.buyOn;
+      if (index >= 0 && index < buyOn.length) buyOn[index] = wave.buyOn;
+    }
+    // ⟳ LOT C — LA MARQUE VOYAGE AVEC LA DATE, dans le même passage. Deux
+    // parcours séparés auraient pu diverger le jour où l'un des deux filtre.
+    for (const index of wave.freezeIndices) {
+      if (index >= 0 && index < freezeOnPurchase.length) freezeOnPurchase[index] = true;
     }
   }
-  return out;
+  return { buyOn, freezeOnPurchase };
 }

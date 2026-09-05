@@ -227,6 +227,18 @@ Deno.test("CEINTURE — personne n'a déclaré: rien ne bouge, et le compteur le
     separated: 0,
     not_separated: 0,
     silenced: 0,
+    // ⟳ 2026-09-04 · l'extinction par nom d'ustensile — zéro ici, aucune
+    // méthode de ce plan ne nomme un récipient homographe d'un aliment.
+    silenced_homograph: 0,
+    // ⟳ 2026-09-04 (soir) · l'extinction par l'ORTHOGRAPHE du mot mordu —
+    // « pâtes » n'est pas « pâté ». Compteur SÉPARÉ de celui du dessus: une
+    // portée et une orthographe sont deux preuves différentes du même verdict,
+    // et un total fusionné ne dirait pas laquelle s'est trompée. Zéro ici,
+    // aucune bouche ne porte de ligne.
+    // ⛔ CE TEST A FAIT SON TRAVAIL: l'égalité exacte a refusé de compiler
+    // quand le champ est apparu sur le type, ce qui est exactement ce que le
+    // commentaire ci-dessous promet.
+    silenced_spelling: 0,
     unknown_mouth: 0,
     // ── ÉCHANGE (2026-09-04) · SUR QUELLE SURFACE ───────────────────────
     // Zéro parce qu'aucune bouche ne porte de ligne: la ceinture n'a lu aucun

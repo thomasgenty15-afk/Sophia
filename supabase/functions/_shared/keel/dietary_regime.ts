@@ -550,6 +550,26 @@ export interface DietaryRegimeScan {
    *                   croire les deux autres.
    */
   group: { excluded: number; plantOnly: number; undecided: number };
+  /**
+   * ⟳ 2026-09-04 — LES MORSURES ÉTEINTES PARCE QUE LE MOT EN NOMMAIT UN AUTRE.
+   *
+   * ⛔ COMPTÉES, JAMAIS SILENCIEUSES. C'est une garde qui se DÉSARME sur un
+   * cas: si elle mord un jour sur un vrai coquillage — « faire revenir les
+   * moules dans le moule » —, le seul moyen de le voir est ce compteur. Un
+   * silence qui ne se compte pas est une faille qui ne se mesure pas.
+   */
+  silencedByHomograph: DietaryRegimeBreach[];
+  /**
+   * ⟳ 2026-09-04 — LES MORSURES ÉTEINTES PAR L'ORTHOGRAPHE DU MOT MORDU.
+   *
+   * ── POURQUOI UN TROISIÈME COMPTEUR ET PAS UNE ADDITION ────────────────────
+   * Les deux au-dessus disent « le mot est dans une portée » — un voisinage a
+   * tranché. Celui-ci dit « le mot lui-même n'est pas écrit comme l'aliment » —
+   * c'est l'ACCENT qui tranche, sans voisinage. Deux preuves différentes du
+   * même verdict: le jour où l'une des deux se trompe, un total fusionné ne
+   * dirait pas laquelle, et c'est exactement la lecture dont on aurait besoin.
+   */
+  silencedBySpelling: DietaryRegimeBreach[];
 }
 
 /**
@@ -569,6 +589,8 @@ function emptyScan(): DietaryRegimeScan {
   return {
     breaches: [],
     silencedByPlantAnalogue: [],
+    silencedByHomograph: [],
+    silencedBySpelling: [],
     group: { excluded: 0, plantOnly: 0, undecided: 0 },
   };
 }
@@ -576,6 +598,132 @@ function emptyScan(): DietaryRegimeScan {
 /** Les analogues, en aiguilles du moteur du dépôt. */
 const PLANT_ANALOGUE_TERMS: readonly ForbiddenTerm[] = PLANT_ANALOGUE_PHRASES
   .map((phrase) => ({ ruleId: "plant_analogue", token: phrase }));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-04 — LE MOT QUI EN NOMME UN AUTRE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE CAS MESURÉ, SUR UN PLAN RÉEL ───────────────────────────────────────
+// Foyer de quatre, une bouche VÉGANE, un petit-déjeuner composé POUR ELLE:
+//
+//   prep_tofu_breakfast — « Émietter le tofu, le mélanger aux légumes coupés et
+//   à l'huile, REMPLIR DES MOULES et cuire à 190 °C jusqu'à fermeté. »
+//
+// La ceinture y a lu le coquillage, retiré la bouche de sa propre boîte au tofu
+// TROIS fois, et le plan le lui a dit trois fois: « Il manque vendredi au
+// petit-déjeuner — le plat ne suit pas la ligne déclarée. » On a annoncé à une
+// végane que son muffin au tofu ne respecte pas son régime, parce que la
+// recette dit de remplir des moules.
+//
+// ── ET UN SECOND, TROUVÉ EN ÉCRIVANT LE PREMIER ───────────────────────────
+// « Étaler la PÂTE à tarte » mord comme du **pâté**: `normalizeForMatch` retire
+// les diacritiques, donc `pate` et `pâté` sont le même mot pour le moteur. Ce
+// cas est plus fréquent qu'un moule dans une cuisine, et la mémoire du dépôt le
+// nommait déjà « irréparable par alias » — il l'est par alias, pas par PORTÉE.
+//
+// ⛔ CE N'EST PAS « LAITUE / LAIT », ET C'EST PIRE. Là-bas un préfixe mordait et
+// `tokenPattern` a suffi. Ici le mot est ENTIER, correctement orthographié, dans
+// la bonne langue: aucune règle de découpage ne le distingue. Seul le VOISINAGE
+// le peut — en français, c'est l'ARTICLE qui tranche (« la pâte » contre « du
+// pâté »), et le verbe (« remplir des moules » contre « ouvrir les moules »).
+//
+// ⛔ ET ON NE RETIRE PAS `prep.method` DE LA SURFACE. C'est la réparation qui
+// vient à l'esprit et elle désarme une vraie garde: « ajouter une noix de
+// beurre » n'est écrit nulle part ailleurs que dans la méthode. On garde la
+// surface, on éteint les cas mesurés.
+//
+// ⚠️ LE MÉCANISME EST CELUI QUI EXISTE, PAS UN NEUF. `scanProse` éteint déjà
+// une morsure couverte par la portée d'un analogue végétal (« lait » dans
+// « lait d'avoine »). Un homographe est la même forme: une portée dans laquelle
+// un nom d'aliment ne nomme pas CET aliment.
+//
+// ⚠️ ET LA LISTE EST FERMÉE, ÉCRITE À LA MAIN, CAS PAR CAS. Elle ne dit pas
+// « moules est ambigu » — elle dit « ces suites-là décrivent autre chose ».
+// « moules marinières », « des moules et des frites » et « du pâté de
+// campagne » n'y sont pas et mordent comme avant: une entrée absente ne peut
+// pas ÉLARGIR une faille, elle ne peut que rendre un faux positif au silence.
+const HOMOGRAPH_PHRASES = [
+  // ── LE MOULE À PÂTISSERIE, sous les formes qu'une recette écrit vraiment ──
+  "remplir des moules", "remplir les moules", "remplir le moule",
+  "garnir les moules", "garnir le moule",
+  "beurrer les moules", "beurrer le moule", "huiler les moules",
+  "verser dans des moules", "verser dans les moules", "verser dans le moule",
+  "repartir dans des moules", "repartir dans les moules",
+  "dans des moules", "dans les moules", "dans un moule", "dans le moule",
+  "moules a muffins", "moule a muffins", "moules a cake", "moule a cake",
+  "moules a tarte", "moule a tarte", "moules a manque", "moule a manque",
+  "moules en silicone", "moule en silicone", "moules a empreintes",
+  "demouler", "demoulez", "demoulage",
+  // ⚠️ L'ANGLAIS AUSSI: `content_locale` vaut `fr-FR` par défaut, mais le tronc
+  // du prompt est anglais et une méthode anglaise arrive régulièrement.
+  "muffin tins", "muffin tin", "cake tin", "baking tin", "baking tins",
+  "silicone moulds", "silicone molds", "the moulds", "the molds",
+  // ── LA PÂTE, QUE L'ARTICLE SUFFIT À DISTINGUER DU PÂTÉ ──────────────────
+  // ⛔ LE FÉMININ EST LE DISCRIMINANT, et il est fiable: « la pâte » est de la
+  // pâte, « le pâté » est du pâté. On n'écrit donc JAMAIS « du pate » ni
+  // « le pate » ici — ce sont précisément les formes qui doivent mordre.
+  "la pate", "une pate", "cette pate", "sa pate", "de la pate",
+  "pate a tarte", "pate brisee", "pate feuilletee", "pate sablee",
+  "pate a pizza", "pate a crepes", "pate a pain", "pate levee",
+  "etaler la pate", "petrir la pate", "abaisser la pate",
+  // ⚠️ LES PÂTES (le féculent) sont un aliment végétal ordinaire, et le pluriel
+  // ne se confond avec aucun pâté.
+  "des pates", "les pates", "pates completes", "pates fraiches",
+] as const;
+
+/** Les homographes, en aiguilles du même moteur. */
+const HOMOGRAPH_TERMS: readonly ForbiddenTerm[] = HOMOGRAPH_PHRASES
+  .map((phrase) => ({ ruleId: "homograph", token: phrase }));
+
+// ── LE MOT NU, QUE LA PORTÉE NE PEUT PAS ATTEINDRE ──────────────────────────
+//
+// ⟳ 2026-09-04, TROUVÉ EN RÉEL. Un plan VALIDE a été refusé (`mouth_unfed`)
+// parce que la préparation « Pâtes aux légumes » — végétarienne, servie à une
+// végétarienne — a été lue comme du PÂTÉ. La liste de portées au-dessus couvre
+// « des pâtes » et « les pâtes »; elle ne pouvait rien pour un ingrédient NU,
+// où le mot est écrit seul, sans article et sans verbe. Or c'est la forme la
+// plus fréquente: un item de boîte s'appelle « pâtes », pas « des pâtes ».
+//
+// ── CE QUI TRANCHE, ET POURQUOI C'EST EXACT ────────────────────────────────
+// `normalizeForMatch` fait NFD puis retire les diacritiques: les quatre mots
+// deviennent le même. Mais ils ne s'écrivent PAS pareil, et la charcuterie est
+// la seule à porter un É:
+//
+//     pâtes  (les pasta)      â, pas d'é   → aliment végétal
+//     pâte   (à tarte)        â, pas d'é   → ni viande ni pasta, jamais une morsure
+//     pâté   (la charcuterie) â ET é       → l'aliment réel, qui doit mordre
+//     pâtés  (au pluriel)     â ET é       → idem
+//
+// ⚠️ ON LIT `matchedText`, ET C'EST LE TEXTE BRUT. Mesuré: le matcher rend la
+// sous-chaîne ORIGINALE, accents compris, même quand la chaîne en porte
+// d'autres avant la morsure (« Purée de céleri, crème et pâtes » → « pâtes »).
+// On ne rejoue donc AUCUN offset contre le texte normalisé — ils ne
+// coïncideraient pas, puisque NFD retire des marques et raccourcit la chaîne.
+//
+// ⛔ SANS AUCUN ACCENT, LE MOT RESTE AMBIGU ET LA MORSURE RESTE. « pates » tapé
+// à plat peut être l'un ou l'autre; on garde la morsure, parce que le sens de
+// l'erreur n'est pas symétrique — un faux positif retire un plat, un faux
+// négatif sert du pâté à une végétarienne. La surface scannée est écrite par le
+// modèle, qui accentue le français; c'est ce qui rend ce repli acceptable.
+//
+// ⚠️ LISTE FERMÉE, UNE PAIRE, ÉCRITE À LA MAIN. Ce n'est pas « détecter les
+// homographes »: c'est nommer CETTE paire-là, mesurée. Un jeton absent d'ici se
+// comporte exactement comme avant.
+const ACCENT_HOMOGRAPHS: Readonly<Record<string, (matchedText: string) => boolean>> = {
+  // Le jeton d'exclusion est `pate` (voir les formes de surface carnées).
+  pate: (raw) => /[âÂ]/.test(raw) && !/[éÉ]/.test(raw),
+};
+
+/**
+ * Le mot mordu nomme-t-il un AUTRE mot que l'aliment, à son orthographe seule ?
+ *
+ * Rendu séparément de la portée: deux preuves, deux compteurs (voir
+ * `DietaryRegimeScan.silencedBySpelling`).
+ */
+function silencedBySpellingOf(token: string, matchedText: string): boolean {
+  const rule = ACCENT_HOMOGRAPHS[normalizeForMatch(token)];
+  return rule !== undefined && rule(matchedText);
+}
 
 function regimeTermsFor(regime: DietaryRegime): ForbiddenTerm[] {
   return excludedSurfaceFormsFor(regime).map((form) => ({
@@ -611,18 +759,52 @@ function scanProse(
   const spans = findForbiddenMatches(text, PLANT_ANALOGUE_TERMS, {
     allowNegatedMentions: false,
   }).map((m) => [m.index, m.index + m.matchedText.length] as const);
+  // ⟳ 2026-09-04 — LA MÊME MÉCANIQUE, SUR LES HOMOGRAPHES. Voir `HOMOGRAPH_PHRASES`:
+  // « remplir des moules » est un récipient, et une morsure prise DEDANS ne
+  // nomme aucun aliment.
+  //
+  // ⚠️ DEUX LISTES, DEUX PORTÉES, DEUX COMPTEURS — jamais une liste fusionnée.
+  // Un analogue végétal éteint un aliment qui EXISTE dans le plat sous une forme
+  // végétale (« lait d'avoine ») ; un ustensile éteint un mot qui n'est pas un
+  // aliment du tout. Les confondre rendrait le journal illisible le jour où
+  // l'une des deux mord de travers.
+  const homographSpans = findForbiddenMatches(text, HOMOGRAPH_TERMS, {
+    allowNegatedMentions: false,
+  }).map((m) => [m.index, m.index + m.matchedText.length] as const);
 
   const breaches: DietaryRegimeBreach[] = [];
   const silenced: DietaryRegimeBreach[] = [];
+  const homograph: DietaryRegimeBreach[] = [];
+  const spelling: DietaryRegimeBreach[] = [];
   for (const hit of hits) {
     const found = { token: hit.token, matchedText: hit.matchedText };
     const end = hit.index + hit.matchedText.length;
-    const covered = spans.some(([s, e]) => hit.index >= s && end <= e);
-    (covered ? silenced : breaches).push(found);
+    // ⚠️ L'ANALOGUE VÉGÉTAL PASSE EN PREMIER, et l'ordre est un choix: les deux
+    // portées ne peuvent pas se recouvrir sur un cas connu, mais si ça arrivait,
+    // « c'est un aliment végétal » est plus informatif que « c'est un récipient ».
+    if (spans.some(([s, e]) => hit.index >= s && end <= e)) {
+      silenced.push(found);
+      continue;
+    }
+    if (homographSpans.some(([s, e]) => hit.index >= s && end <= e)) {
+      homograph.push(found);
+      continue;
+    }
+    // ⚠️ L'ORTHOGRAPHE PASSE EN DERNIER, et l'ordre est un choix: quand une
+    // portée a déjà tranché (« des pâtes »), c'est elle qui doit être créditée,
+    // parce qu'elle porte plus d'information qu'un accent. Ce test-ci ne
+    // rattrape que ce qu'aucun voisinage n'atteignait — le mot NU.
+    if (silencedBySpellingOf(hit.token, hit.matchedText)) {
+      spelling.push(found);
+      continue;
+    }
+    breaches.push(found);
   }
   return {
     breaches,
     silencedByPlantAnalogue: silenced,
+    silencedByHomograph: homograph,
+    silencedBySpelling: spelling,
     group: { excluded: 0, plantOnly: 0, undecided: 0 },
   };
 }
@@ -662,6 +844,13 @@ export function scanDietaryRegime(
     const scan = scanProse(String(text ?? ""), needles);
     out.breaches.push(...scan.breaches);
     out.silencedByPlantAnalogue.push(...scan.silencedByPlantAnalogue);
+    // ⚠️ LA TROISIÈME LISTE SE FUSIONNE AUSSI, et son oubli est exactement ce
+    // qu'un test de compteur existe pour attraper: l'extinction MARCHAIT
+    // (`breaches` vide) pendant que son compteur restait à zéro — c'est-à-dire
+    // une garde qui se désarme sans rien dire, la forme que ce dépôt paie en
+    // boucle. Trouvé par l'épreuve, pas par la relecture.
+    out.silencedByHomograph.push(...scan.silencedByHomograph);
+    out.silencedBySpelling.push(...scan.silencedBySpelling);
   }
 
   const items: DeclaredFood[] = [
@@ -698,6 +887,14 @@ export function scanDietaryRegime(
         ...scan.breaches,
         ...scan.silencedByPlantAnalogue,
       );
+      // ⟳ 2026-09-04 — ET LES DEUX AUTRES SILENCES GARDENT LEUR COLONNE. Ils
+      // étaient JETÉS ici: une morsure éteinte par une portée dans un item
+      // `plant_only` ne se comptait nulle part. Le verdict ne changeait pas
+      // (tout est éteint sur cette branche), mais le compteur de la garde
+      // sous-comptait en silence — et un compteur qui sous-compte est
+      // exactement ce qui fait croire qu'une garde ne sert à rien.
+      out.silencedByHomograph.push(...scan.silencedByHomograph);
+      out.silencedBySpelling.push(...scan.silencedBySpelling);
       continue;
     }
 
@@ -714,10 +911,19 @@ export function scanDietaryRegime(
         ...scan.breaches,
         ...scan.silencedByPlantAnalogue,
       );
+      out.silencedByHomograph.push(...scan.silencedByHomograph);
+      out.silencedBySpelling.push(...scan.silencedBySpelling);
       continue;
     }
     out.breaches.push(...scan.breaches);
     out.silencedByPlantAnalogue.push(...scan.silencedByPlantAnalogue);
+    // ⚠️ SUR LA VOIE DES `items` AUSSI, et c'est presque toujours zéro: un
+    // ingrédient est UN aliment (« tofu ferme »), pas une phrase de recette,
+    // donc il ne porte pratiquement jamais un nom d'ustensile. On le remonte
+    // quand même — un compteur qui n'est branché que sur une des deux voies
+    // rendrait un total faux le jour où l'autre en produit un.
+    out.silencedByHomograph.push(...scan.silencedByHomograph);
+    out.silencedBySpelling.push(...scan.silencedBySpelling);
   }
 
   return out;

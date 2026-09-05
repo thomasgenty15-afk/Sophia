@@ -111,6 +111,8 @@ Deno.test("🔴 la vague du PREMIER JOUR sert des cuissons, et le dit enfin", ()
   const waves = planGroceryWaves({
     startsOn: STARTS_ON,
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList: row.shopping_list as never[],
     preparations: [
       { id: "prep_a", cookOn: "mon", ingredientTerms: ["chicken thighs"] },

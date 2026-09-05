@@ -25,6 +25,10 @@
 // La règle de dépôt qui EXIGE ces épinglages vit dans
 // `constant_pinning_gate_test.ts`; ce fichier-ci en est la première fournée.
 
+import {
+  EXPLANATION_MAX_CHARS,
+  EXPLANATION_MAX_LINES,
+} from "./plan_explanation.ts";
 import { assertEquals } from "jsr:@std/assert@1";
 
 import { UNANSWERED_EXTRAS_KCAL } from "./meal_extras.ts";
@@ -629,4 +633,25 @@ Deno.test("épinglage — la bande de JUGEMENT est élargie de 10 %, pas plus", 
   // quelques pour cent. Ce dépassement-là est un arbitrage assumé — le plancher
   // protéine gagne — et c'est cette marge qui dit jusqu'où il est toléré.
   assertEquals(ENERGY_DIRECTION_MARGIN, 1.10);
+});
+
+Deno.test("épinglage — l'explication du modèle tient en 8 lignes", () => {
+  // `EXPLANATION_MAX_LINES` (`plan_explanation.ts`). Le nombre vient du
+  // propriétaire, mot pour mot: « 8 lignes max ». Il est épinglé ici parce que
+  // la CONSIGNE et la GARDE doivent lire le même — une consigne qui promet huit
+  // et une garde qui en accepte neuf laisserait passer une ligne que personne
+  // n'a demandée, et le bloc grossirait d'un cran par lot.
+  //
+  // ⚠️ CE N'EST PAS UNE MESURE, C'EST UNE DEMANDE. Le monter rend un pavé qu'on
+  // ne lit plus; le baisser coupe un arbitrage au milieu. Aucune des deux
+  // directions n'est rattrapée ailleurs.
+  assertEquals(EXPLANATION_MAX_LINES, 8);
+});
+
+Deno.test("épinglage — une ligne d'explication tient en 220 caractères", () => {
+  // `EXPLANATION_MAX_CHARS` (`plan_explanation.ts`). Le plafond de LIGNES ne
+  // borne rien tout seul: huit paragraphes tiennent en huit lignes. 220
+  // caractères est une phrase longue et lisible; au-delà, ce n'est plus « une
+  // ligne », et le bloc cesse d'être survolable à côté du plan.
+  assertEquals(EXPLANATION_MAX_CHARS, 220);
 });

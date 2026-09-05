@@ -6,6 +6,7 @@ import { aisleLabel } from "../api/mealLabels";
 import { groupByAisle } from "../lib/mealBuilderModel";
 import { requestMealDocument } from "../api/mealDocument";
 import { Button } from "./ui/Button";
+import { Badge } from "./ui/Badge";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
 import { formatDateLong, formatWeekday } from "../i18n/format";
@@ -139,6 +140,21 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
   // telle quelle. Elle exigeait autrefois des `GroceryWave` complets, ce qui
   // obligeait à fabriquer ici une vague entière pour une question de comptage.
   const showWaves = wavesAreMeaningful(waves);
+  // ⟳ LOT C (2026-09-04) — LES LIGNES QUI PARTENT AU CONGÉLATEUR EN RENTRANT.
+  //
+  // ⛔ DÉRIVÉ DES VAGUES, JAMAIS RECALCULÉ. `freezeIndices` vient de la ligne
+  // que le serveur a écrite (`freeze_on_purchase`); refaire ici le raisonnement
+  // « ça ne tient pas jusqu'à la cuisson » recréerait le jumeau que ce fichier
+  // a déjà coûté une fois.
+  //
+  // ⚠️ ET IL S'AFFICHE MÊME QUAND LES VAGUES SONT MASQUÉES. `wavesAreMeaningful`
+  // cache le DÉCOUPAGE quand il n'y a qu'une course — or « une seule course »
+  // est précisément le cas où il y a le plus à congeler. Lier la marque à
+  // l'affichage des vagues la ferait disparaître là où elle sert le plus.
+  const freezeAtPurchase = React.useMemo(
+    () => new Set<number>(waves.flatMap((w) => w.freezeIndices)),
+    [waves],
+  );
 
   const toggle = (index: number) => {
     setTicked((prev) => {
@@ -233,6 +249,14 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                           dit déjà, dont un `gray-300` à 1,7:1. */}
                       {item.quantity && (
                         <span className="text-ink-soft">{item.quantity}</span>
+                      )}
+                      {/* ⟳ LOT C — LE GESTE, SUR LA LIGNE QUI LE PORTE.
+                          ⛔ `caution` ET PAS `info`: le bleu de `info` est déjà
+                          celui de la case native juste à gauche (`accent-ink`
+                          ne peint que la coche), et une marque bleue à côté
+                          d'une case bleue se lit comme un état de la case. */}
+                      {freezeAtPurchase.has(index) && (
+                        <Badge tone="caution">{t("meals.shopping.freeze")}</Badge>
                       )}
                     </span>
                   </label>

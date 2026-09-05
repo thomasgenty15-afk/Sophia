@@ -2684,6 +2684,11 @@ export default function StudentWeekPlanPage() {
           // serveur, dans la langue du contenu: cet écran les affiche, il ne
           // les décide pas.
           rationale={draft?.envelope.rationale ?? []}
+          // LA PROSE DU MODÈLE, à côté des phrases fixes et jamais à leur
+          // place. `[]` quand il n'avait rien à arbitrer OU quand la garde a
+          // refusé le bloc — l'écran rend les deux pareil, le serveur les
+          // compte séparément.
+          explanation={draft?.envelope.explanation ?? []}
           // 🔴 TOUJOURS `0` AUJOURD'HUI, et ce n'est pas une constante posée
           // ici: c'est ce que le serveur rend, parce qu'il journalise `dropped`
           // sans le publier. Voir `DraftEnvelope.droppedClauses`.

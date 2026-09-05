@@ -1077,6 +1077,12 @@ function shiftedBuyOn(
       cookOn: p.cookOn,
       ingredientTerms: p.ingredientTerms,
     })),
+    // ⟳ LOT C (2026-09-04) — CE LECTEUR NE CONNAÎT PAS LA CADENCE, et il ne
+    // doit donc RIEN replier: `runs: null` rend le comportement d'avant le
+    // lot, octet pour octet. Seuls les deux générateurs, qui ont lu le style
+    // et le nombre de courses, passent un nombre ici.
+    runs: null,
+    freezer: false,
   });
   const newCookOn = addDays(cookOn, delta);
   const serving = waves.find((w) => w.servesCookOn === newCookOn);
@@ -1935,6 +1941,12 @@ export function planGroceryWavesForPlan(plan: AccidentPlan) {
       cookOn: p.cookOn,
       ingredientTerms: p.ingredientTerms,
     })),
+    // ⟳ LOT C (2026-09-04) — CE LECTEUR NE CONNAÎT PAS LA CADENCE, et il ne
+    // doit donc RIEN replier: `runs: null` rend le comportement d'avant le
+    // lot, octet pour octet. Seuls les deux générateurs, qui ont lu le style
+    // et le nombre de courses, passent un nombre ici.
+    runs: null,
+    freezer: false,
   });
 }
 

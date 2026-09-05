@@ -4454,6 +4454,16 @@ export const fr: TranslatedMessages = {
   // joindre, et l'instruction de pesée reste vraie sans lui.
   "meals.boxes.lid_unnamed": "Un contenant",
   "meals.boxes.grams": "{n} g",
+  // ── LE CONTENANT QUI PART AU CONGÉLATEUR (2026-09-04) ─────────────────────
+  // ⛔ « À CONGELER », PAS « CONGELÉ »: c'est une INSTRUCTION au moment où on
+  // remplit le bac, pas un état constaté. `DishCard` dit l'autre moitié du
+  // geste quatre jours plus tard (« sors-la du congélateur la veille »), et
+  // sans celle-ci on demandait de sortir une part que personne n'avait rangée.
+  "meals.boxes.freeze": "· à congeler",
+  // Le compte en tête, à côté du nombre de contenants: on veut savoir avant de
+  // commencer combien iront au congélateur. Muet à zéro — un plan à deux
+  // sessions n'a rien à congeler par construction.
+  "meals.boxes.freeze_count": "· dont {n} au congélateur",
   // Les deux nombres restent DEUX nombres. « 10 min aux fourneaux » décide si
   // on s’y met ce soir, « 50 min en tout » décide si on a la fenêtre.
   "meals.sessions.session_time": "environ {n} min",
@@ -4739,6 +4749,7 @@ export const fr: TranslatedMessages = {
   "meals.shopping.pdf_download": "Ouvrir le PDF",
   "meals.shopping.buy_all_on":
     "Tout est à acheter le {date} : rien de ce plan ne se gâte d'ici sa cuisson.",
+  "meals.shopping.freeze": "à congeler",
   "meals.shopping.wave_now": "À acheter maintenant",
   "meals.shopping.wave_later": "À acheter le {date}",
   "meals.shopping.wave_serves": "pour que ce soit frais pour la cuisine du {day}",
@@ -6573,6 +6584,12 @@ export const fr: TranslatedMessages = {
 
   // ── POURQUOI CES JOURS-LÀ ───────────────────────────────────────────────
   "plan.rationale.title": "Pourquoi ces jours-là",
+  // ── LES CHOIX DU MODÈLE (2026-09-04) ─────────────────────────────────────
+  // ⛔ « Les choix », pas « les explications »: le bloc dit ce qui a été
+  // ARBITRÉ, pas ce qui a été fait. Et le titre nomme un auteur — les phrases
+  // du bloc voisin sont celles de l'app, celles-ci sont celles du modèle, et un
+  // lecteur doit pouvoir savoir qui parle.
+  "plan.explanation.title": "Les choix de Sophia",
 
   // ── LE BROUILLON ────────────────────────────────────────────────────────
   "plan.draft.cta": "Prévisualiser",

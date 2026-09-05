@@ -841,6 +841,18 @@ export interface ShoppingItem {
    */
   buy_on?: string | null;
   /**
+   * ⟳ LOT C (2026-09-04) — CETTE LIGNE PART AU CONGÉLATEUR DÈS L'ACHAT.
+   *
+   * Posée par la lane depuis `grocery_waves.ts` quand la cadence de courses a
+   * replié les vagues: l'article est acheté plus tôt que sa fenêtre crue ne le
+   * permet, donc il ne tiendra pas au frais jusqu'à sa cuisson.
+   *
+   * ⚠️ `?` ICI PARCE QUE LA LIGNE VIENT DU MODÈLE et n'a jamais ce champ à la
+   * lecture; la lane le POSE ensuite. La projection de sortie
+   * (`mealShoppingPayload`) le rend, elle, TOUJOURS — `false` plutôt qu'absent.
+   */
+  freeze_on_purchase?: boolean;
+  /**
    * ⟳ LOT `L0-a` — LE GROUPE D'ALIMENT, résolu par le référentiel de
    * composition, `null` quand le terme n'y est pas.
    *
@@ -1594,6 +1606,20 @@ export interface GeneratedMeal {
     separated: number;
     not_separated: number;
     silenced: number;
+    /**
+     * ⟳ 2026-09-04 · COMBIEN DE MORSURES ÉTEINTES PARCE QU'ELLES NOMMAIENT UN
+     * USTENSILE et non un aliment (« remplir des moules »).
+     *
+     * ⛔ IL EXISTE PARCE QUE CETTE EXTINCTION PEUT SE TROMPER. Mesuré sur un
+     * plan réel: une bouche végane retirée de sa propre boîte au TOFU trois
+     * fois, parce que la recette disait de remplir des moules. Le correctif est
+     * une liste fermée de suites qui décrivent un récipient — et le jour où
+     * l'une d'elles éteint un vrai coquillage, ce nombre est le seul endroit où
+     * ça se verra. Un silence qui ne se compte pas est une faille qui ne se
+     * mesure pas.
+     */
+    silenced_homograph: number;
+    silenced_spelling: number;
     unknown_mouth: number;
     /**
      * ÉCHANGE · COMBIEN DE COUVERCLES ONT ÉTÉ JUGÉS SUR LA BOÎTE, pas sur le
@@ -5033,6 +5059,18 @@ function scanRegimeSources(
   matched: string | null;
   preparationIds: string[];
   silenced: number;
+  /**
+   * ⟳ 2026-09-04 — LES MORSURES ÉTEINTES PAR UN NOM D'USTENSILE.
+   *
+   * ⛔ SÉPARÉ DE `silenced`, ET C'EST LE POINT. Un analogue végétal éteint un
+   * aliment qui est là sous forme végétale (« lait d'avoine »); un ustensile
+   * éteint un mot qui n'est pas un aliment (« remplir des moules »). Les
+   * additionner rendrait le journal muet le jour où l'une des deux extinctions
+   * mord de travers — et c'est CELLE-CI qui peut, parce qu'elle est neuve.
+   */
+  silencedHomograph: number;
+  /** ⟳ 2026-09-04 · éteintes par l'ORTHOGRAPHE du mot (« pâtes » n'est pas « pâté »). */
+  silencedSpelling: number;
   groupExcluded: number;
   groupPlantOnly: number;
   groupUndecided: number;
@@ -5040,6 +5078,8 @@ function scanRegimeSources(
   let matched: string | null = null;
   const preparationIds: string[] = [];
   let silenced = 0;
+  let silencedHomograph = 0;
+  let silencedSpelling = 0;
   let groupExcluded = 0;
   let groupPlantOnly = 0;
   let groupUndecided = 0;
@@ -5051,6 +5091,8 @@ function scanRegimeSources(
         .map((ing) => ({ term: ing.term, group: ing.group })),
     });
     silenced += scan.silencedByPlantAnalogue.length;
+    silencedHomograph += scan.silencedByHomograph.length;
+    silencedSpelling += scan.silencedBySpelling.length;
     groupExcluded += scan.group.excluded;
     groupPlantOnly += scan.group.plantOnly;
     groupUndecided += scan.group.undecided;
@@ -5058,7 +5100,16 @@ function scanRegimeSources(
     if (matched === null) matched = scan.breaches[0].matchedText;
     if (source.prepId !== null) preparationIds.push(source.prepId);
   }
-  return { matched, preparationIds, silenced, groupExcluded, groupPlantOnly, groupUndecided };
+  return {
+    matched,
+    preparationIds,
+    silenced,
+    silencedHomograph,
+    silencedSpelling,
+    groupExcluded,
+    groupPlantOnly,
+    groupUndecided,
+  };
 }
 
 /** LE PLAT COMME SURFACE: sa prose, ses ingrédients, et chaque casserole qu'il utilise. */
@@ -5786,6 +5837,8 @@ export function parseGeneratedMeal(
     separated: 0,
     not_separated: 0,
     silenced: 0,
+    silenced_homograph: 0,
+    silenced_spelling: 0,
     unknown_mouth: regimeUnknownMouth,
     // ÉCHANGE · sur quelle SURFACE les couvercles ont été jugés.
     box_scoped: 0,
@@ -6982,6 +7035,8 @@ export function parseGeneratedMeal(
           regimeBelt.checked++;
           if (surface !== null) regimeBelt.box_scoped++;
           regimeBelt.silenced += breach.silenced;
+          regimeBelt.silenced_homograph += breach.silencedHomograph;
+          regimeBelt.silenced_spelling += breach.silencedSpelling;
           regimeBelt.group_excluded += breach.groupExcluded;
           regimeBelt.group_plant_only += breach.groupPlantOnly;
           regimeBelt.group_undecided += breach.groupUndecided;
@@ -8961,5 +9016,23 @@ export function mealShoppingPayload(meal: GeneratedMeal): Array<Record<string, u
     // `null` sur un plan dont la fenêtre est inconnue, ou dont l'article n'a
     // pas pu être routé: l'écran retombe alors sur la liste plate d'avant.
     buy_on: s.buy_on ?? null,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT C (2026-09-04) — LE GESTE PART AVEC LA LIGNE, LUI AUSSI
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ET IL A ÉTÉ OUBLIÉ ICI PENDANT UN TIR ENTIER. La lane calculait la
+    // marque, le compteur la disait (`freeze_on_purchase: 1/30` dans les
+    // `issues`), et cette projection ne la recopiait pas: la charge rendue
+    // portait TRENTE lignes sans le champ. C'est très exactement la cicatrice
+    // du bloc au-dessus, rejouée trois jours après — un lecteur qui laisse
+    // tomber un champ le fait en SILENCE.
+    //
+    // ⚠️ LE COMPTEUR EST CE QUI L'A RÉVÉLÉ. Sans ce `1/30` dans les issues, un
+    // champ absent et « rien à congeler » rendaient exactement la même charge.
+    //
+    // `false` et jamais absent: la clé manquante et « rien à congeler » se
+    // liraient pareil à l'écran, et c'est l'unique geste que la personne doit
+    // exécuter en rentrant du magasin.
+    freeze_on_purchase: s.freeze_on_purchase === true,
   }));
 }

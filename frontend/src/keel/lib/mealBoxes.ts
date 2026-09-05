@@ -131,6 +131,40 @@ export interface BoxLine {
    * il n'y a pas d'autre marqueur, et il n'en faut pas d'autre.
    */
   shared: boolean;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * CE CONTENANT PART AU CONGÉLATEUR — 2026-09-04.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT QUE CE CHAMP FERME ──────────────────────────────────────
+   * Une seule session de cuisine pour sept jours ne tient QUE par le
+   * congélateur: `uses[].kept === "freezer"` existe depuis le 2026-09-01, la
+   * garde de fenêtre le lit, et le plan entier en dépend. Mais devant l'évier,
+   * au moment de remplir six bacs, **rien ne disait lesquels vont au
+   * congélateur** — le Boxing les rendait tous pareils. La seule mention du
+   * congélateur à l'écran était `DishCard`, quatre jours plus tard, au moment
+   * de SORTIR la part. On disait quoi décongeler sans avoir dit quoi congeler.
+   *
+   * ⛔ DÉRIVÉ DE `uses[].kept`, JAMAIS D'UNE PROSE. Le modèle écrit aussi
+   * « mettez le reste au congélateur » dans sa `method`; le lire là serait un
+   * matcher maison sur du texte de modèle, et il changerait de verdict avec la
+   * langue du plan. La clé est la seule autorité — c'est très exactement ce
+   * pour quoi elle a été créée (« la promesse et la clé de schéma doivent se
+   * toucher »).
+   *
+   * ⚠️ LA JOINTURE EST PAR `preparation_id`, ET C'EST ELLE QUI REND LE CHAMP
+   * EXACT. Un plat peut prélever sur deux casseroles, l'une gardée au frigo et
+   * l'autre congelée: c'est le contenant qui porte des `items` de la seconde
+   * qui doit être marqué, pas le plat entier. Un `item` sans
+   * `preparation_id` (l'ajout frais du jour) ne marque rien — il n'a jamais
+   * été dans un lot.
+   *
+   * ⚠️ ET IL EST FAUX SUR UN PLAN v2 RELU: aucun `item`, donc aucune
+   * jointure. C'est la bonne direction — un plan d'avant la clé n'a jamais
+   * déclaré de congélation, et lui en inventer une ferait sortir une part d'un
+   * congélateur où personne ne l'a mise.
+   */
+  frozen: boolean;
 }
 
 /**
@@ -188,11 +222,19 @@ export function boxLidLabel(
  * alors: il n'invente pas de contenant.
  */
 export function boxLinesForDish(
-  dish: Pick<GeneratedDish, "boxes" | "title" | "day" | "slot">,
+  dish: Pick<GeneratedDish, "boxes" | "title" | "day" | "slot" | "uses">,
   portions: readonly MemberPortionView[],
 ): BoxLine[] {
   const meal = mealLabelFor(dish.day, dish.slot);
-  return dish.boxes.map((box) => oneLine(box, meal, dish.title, portions));
+  // ⛔ LES CASSEROLES DONT LA PART EST CONGELÉE, LUES SUR LA CLÉ. `uses[].kept`
+  // est l'autorité; la prose de `method` ne l'est pas, et un plan d'avant la
+  // clé n'en porte aucune — il rend donc un ensemble vide, pas une devinette.
+  const frozenPreparations = new Set(
+    dish.uses.filter((u) => u.kept === "freezer").map((u) => u.preparation_id),
+  );
+  return dish.boxes.map((box) =>
+    oneLine(box, meal, dish.title, portions, frozenPreparations)
+  );
 }
 
 function oneLine(
@@ -200,6 +242,15 @@ function oneLine(
   meal: string,
   dishTitle: string,
   portions: readonly MemberPortionView[],
+  /**
+   * LES CASSEROLES DE CE PLAT DONT LA PART EST CONGELÉE.
+   *
+   * ⚠️ REQUIS, jamais optionnel. Un `?` ferait un contenant `frozen: false`
+   * chez tout appelant qui l'oublierait — c'est-à-dire un marqueur éteint qui
+   * ressemble trait pour trait à un plan sans congélation. Vide se dit `new
+   * Set()`, et ça se dit.
+   */
+  frozenPreparations: ReadonlySet<string>,
 ): BoxLine {
   const wanted = new Set(box.member_ids);
   // ⚠️ L'ORDRE DES PRÉNOMS SUIT `portions`, PAS `member_ids`. Deux contenants du
@@ -227,6 +278,12 @@ function oneLine(
       ? items.reduce((sum, it) => sum + it.grams, 0)
       : (box.legacy_total_grams ?? 0),
     shared: eaterCount > 1,
+    // ⚠️ `some`, PAS `every`: un contenant qui mélange une part congelée et une
+    // part fraîche se remplit quand même au congélateur — c'est le geste le plus
+    // contraignant qui décide, comme partout où une garde compose.
+    frozen: box.items.some((it) =>
+      it.preparation_id !== null && frozenPreparations.has(it.preparation_id)
+    ),
   };
 }
 

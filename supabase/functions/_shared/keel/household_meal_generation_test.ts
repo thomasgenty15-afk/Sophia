@@ -1861,6 +1861,15 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // « transportable, et bon froid sans micro-ondes ». Population qui voit
   // une consigne différente: les foyers où au moins une bouche emporte sa
   // gamelle. Ailleurs, prompt byte-identique à v22, et un test le tient.
+  // ⚠️ 2026-09-04 — `v26_the_plan_says_what_it_weighed`: LE MODÈLE ÉCRIT
+  // MAINTENANT UNE PROSE SUR SES ARBITRAGES. Deux blocs, deux messages, et
+  // TROIS populations à distinguer — pas deux:
+  //   · v25 — rien;
+  //   · v26 SANS `decided` — le suffixe système gagne le schéma, le message
+  //     utilisateur est byte-identique à v25 (le bloc rend `""`);
+  //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
+  // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
+  // bas tient l'identité du `userSuffix` sans les faits.
   assertEquals(HOUSEHOLD_PROMPT_VERSION, "v27_the_swap_cooks_apart");
 });
 
@@ -2383,4 +2392,114 @@ Deno.test("⛔ le bloc nomme QUI a droit à une boîte, et personne d'autre", ()
   // contenant nommé.
   assertEquals(block.includes("Nobody else does"), false, block);
   assertEquals(block.includes("not an omission"), false, block);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-04 · CE QUE LE PLAN A DÛ PESER — les deux moitiés de la consigne
+//
+// ⛔ LA PROMESSE ET LA CLÉ DOIVENT SE TOUCHER, DANS CHAQUE MESSAGE. Ce dépôt a
+// mesuré 0 % trois fois sur des champs dont la promesse vivait dans un message
+// et la clé dans l'autre. Ces épreuves tiennent l'adjacence des deux côtés.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const BASE_BLOCKS = {
+  ruleHolders: [],
+  traditions: [],
+  daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+  members: [DAD, SON, KID],
+  envyLine: null,
+  restrictions: [],
+  presence: NOBODY_AWAY,
+  merge: null,
+  cooking: "one_dish" as const,
+  divergingCount: 0,
+  weightGroups: 1,
+  dishBearers: [],
+  dedicatedDishesAsked: 0,
+  medicalMouths: [],
+  crossContactUnnamedMedical: 0,
+  kitchenEquipment: null,
+  unmerge: null,
+  dietBlock: "",
+  notes: [],
+  voices: [],
+};
+
+const DECIDED = {
+  timing: "same_morning",
+  droppedDay: null,
+  slotsDroppedToday: [],
+  cookDays: ["fri", "mon"],
+  daysOutOfReach: ["thu"],
+  strictestRegime: "vegan",
+  direction: "down",
+  wishServed: true,
+};
+
+Deno.test("la clé `explanation` est SERVIE, et sa promesse la touche", () => {
+  const { systemSuffix } = buildHouseholdPromptBlocks(BASE_BLOCKS);
+  const key = systemSuffix.indexOf('"explanation"');
+  const promise = systemSuffix.indexOf("WHAT YOU HAD TO WEIGH UP");
+  assert(key > -1, "la clé doit être servie");
+  assert(promise > -1, "la promesse doit être servie");
+  // ⛔ L'ADJACENCE, MESURÉE EN CARACTÈRES. Un « ci-dessus » ne traverse pas une
+  // frontière de message, et deux paragraphes d'écart suffisent déjà à faire
+  // tomber le taux — c'est la cicatrice, pas une précaution.
+  assert(Math.abs(key - promise) < 400, `promesse et clé à ${key - promise} car.`);
+});
+
+Deno.test("⛔ L'ÉCHAPPATOIRE EST NOMMÉE, et c'est le geste le plus rentable", () => {
+  // Sans elle, le modèle invente une tension pour remplir la clé. Mesuré deux
+  // fois sur ce générateur: la première rédaction rend 0 %, nommer la sortie
+  // débloque.
+  const { systemSuffix } = buildHouseholdPromptBlocks(BASE_BLOCKS);
+  assert(systemSuffix.includes('return "explanation": []'), systemSuffix);
+  assert(systemSuffix.includes("Never invent a tension"), systemSuffix);
+});
+
+Deno.test("⛔ LE BLOC DIT QUI PORTE QUOI — sinon l'aperçu bégaie", () => {
+  const { systemSuffix } = buildHouseholdPromptBlocks(BASE_BLOCKS);
+  assert(systemSuffix.includes("explained by the app in fixed sentences"), systemSuffix);
+  assert(systemSuffix.includes("Do not restate it"), systemSuffix);
+});
+
+Deno.test("⛔ SANS LES FAITS, LE MESSAGE UTILISATEUR NE BOUGE PAS D'UN OCTET", () => {
+  // La contre-épreuve du champ optionnel: un appelant qui ne passe pas
+  // `decided` produit le prompt de v25, exactement. C'est ce qui rend l'ajout
+  // MESURABLE — et le compteur `explanation.asked` dit lequel des deux est parti.
+  const sans = buildHouseholdPromptBlocks(BASE_BLOCKS);
+  const nul = buildHouseholdPromptBlocks({ ...BASE_BLOCKS, decided: null });
+  assertEquals(sans.userSuffix, nul.userSuffix);
+  assert(!sans.userSuffix.includes("DECIDED BEFORE YOU"), sans.userSuffix);
+});
+
+Deno.test("AVEC les faits, le bloc les dit ET renomme la clé dans CE message", () => {
+  const { userSuffix } = buildHouseholdPromptBlocks({
+    ...BASE_BLOCKS,
+    decided: DECIDED,
+  });
+  assert(userSuffix.includes("DECIDED BEFORE YOU"), userSuffix);
+  assert(userSuffix.includes("Cooking session(s) on: fri, mon."), userSuffix);
+  assert(userSuffix.includes("cooked fresh that day): thu."), userSuffix);
+  assert(userSuffix.includes("follows the vegan line"), userSuffix);
+  assert(userSuffix.includes("this plan leans: lighter"), userSuffix);
+  assert(userSuffix.includes("given to you: yes"), userSuffix);
+  // ⛔ LA CLÉ EST RENOMMÉE ICI AUSSI. Un « ci-dessus » ne traverse pas la
+  // frontière système/utilisateur — mesuré à 0 %, trois fois.
+  assert(userSuffix.includes('in "explanation"'), userSuffix);
+});
+
+Deno.test("⛔ LE BLOC REND UNE DIRECTION, JAMAIS UN OBJECTIF", () => {
+  // « fat_loss » est un fait sur la personne, et la garde interdit au modèle
+  // d'en écrire un. Lui donner le mot qu'il ne doit pas répéter serait le lui
+  // faire répéter.
+  for (const direction of ["down", "up", null]) {
+    const { userSuffix } = buildHouseholdPromptBlocks({
+      ...BASE_BLOCKS,
+      decided: { ...DECIDED, direction },
+    });
+    for (const forbidden of ["fat_loss", "muscle_gain", "maintenance"]) {
+      assert(!userSuffix.includes(forbidden), `${forbidden} dans le bloc`);
+    }
+  }
 });

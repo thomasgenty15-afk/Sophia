@@ -6114,6 +6114,13 @@ export const en = {
   "meals.boxes.lid_unnamed": "One container",
   // « g » est le symbole international du gramme.
   "meals.boxes.grams": "{n} g",
+  // ── LE CONTENANT QUI PART AU CONGÉLATEUR (2026-09-04) ─────────────────────
+  // ⛔ Une INSTRUCTION au moment de remplir le bac, pas un état constaté: la
+  // moitié « sortir » est dite par `DishCard` quatre jours plus tard, et sans
+  // celle-ci on demandait de sortir une part que personne n'avait rangée.
+  "meals.boxes.freeze": "· freeze",
+  // Le compte en tête, muet à zéro: un plan à deux sessions n'a rien à congeler.
+  "meals.boxes.freeze_count": "· {n} to the freezer",
   // ── LE TEMPS ──────────────────────────────────────────────────────────────
   // Deux nombres, jamais fondus en un. « 10 min hands-on » décide si on s'y met
   // ce soir; « 50 min in all » décide si on a la fenêtre. N'en montrer qu'un
@@ -6454,6 +6461,7 @@ export const en = {
   // exactement ce que ce produit promet de retirer.
   "meals.shopping.buy_all_on":
     "Buy it all on {date}: nothing in this plan spoils before it is cooked.",
+  "meals.shopping.freeze": "freeze it",
   "meals.shopping.wave_now": "Buy now",
   "meals.shopping.wave_later": "Buy on {date}",
   "meals.shopping.wave_serves": "so it is fresh for the {day} cooking",
@@ -7588,6 +7596,9 @@ export const en = {
   // miroir de leurs gabarits dans `frontend/` serait une garde en double, et
   // une garde en double diverge — la cicatrice la plus chère de ce dépôt.
   "plan.rationale.title": "Why those days",
+  // ⛔ « Choices », pas « explanations »: le bloc dit ce qui a été ARBITRÉ. Le
+  // titre nomme un auteur — le bloc voisin est celui de l'app.
+  "plan.explanation.title": "Sophia's choices",
 
   // ── LE BROUILLON (Lot C) ────────────────────────────────────────────────
   // Un aperçu n'écrit RIEN: ni plan, ni parts, ni quota de fusion. C'est ce que

@@ -73,7 +73,9 @@ import {
   leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
+  cookingAskedToday,
   slotsPassedToday,
+  slotsUnservableToday,
 } from "../_shared/keel/plan_hours.ts";
 // POURQUOI CES JOURS-LÀ — déterministe, assemblé par le serveur, jamais
 // demandé au modèle.
@@ -238,6 +240,10 @@ import {
   type MemberAgeState,
 } from "../_shared/keel/household.ts";
 import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.ts";
+import {
+  extractExplanation,
+  gatePlanExplanation,
+} from "../_shared/keel/plan_explanation.ts";
 // ══ PERSONNE SANS REPAS — l'invariant, sa relance, son dernier recours ══════
 //
 // Mesuré le 2026-09-04 sur un plan vivant: cinq repas où la même bouche n'avait
@@ -2618,6 +2624,23 @@ Deno.serve(async (req) => {
 
     // ── LE PROMPT ───────────────────────────────────────────────────────
     const goalRow = ownerGoal as Record<string, unknown>;
+    // ⟳ 2026-09-04 · LA DIRECTION DU TITULAIRE, lue UNE fois pour le bloc
+    // `DECIDED BEFORE YOU`. C'est celle de la personne qui compose — il n'y a
+    // pas de « direction du foyer » — et c'est elle contre laquelle une envie
+    // peut tirer. `scaleDirectionOf` est la même réduction que partout ailleurs
+    // dans ce fichier (l. 3358, 3823, 3855): un `if` recopié ici en ferait une
+    // seconde définition de ce qu'est une direction.
+    //
+    // ⛔ ON REND UNE DIRECTION, JAMAIS LE JETON D'OBJECTIF. « fat_loss » est un
+    // objectif — c'est-à-dire un fait sur la personne — et la garde du bloc
+    // interdit au modèle d'en écrire un. `down`/`up`/`null` dit ce dont il a
+    // besoin (« l'envie tire contre le sens du plan ») sans lui donner le mot
+    // qu'il ne doit pas répéter.
+    const ownerDirection =
+      typeof goalRow.goal === "string" &&
+        (GOAL_TOKENS as readonly string[]).includes(goalRow.goal)
+        ? scaleDirectionOf(goalRow.goal as GoalToken)
+        : null;
 
     // LA SÉPARATION DES DEUX NATURES, décidée en UN endroit et pas ici.
     // `householdHardConstraints` rend l'union de sécurité d'un côté et les
@@ -3269,7 +3292,22 @@ Deno.serve(async (req) => {
     // garderait l'ancienne (la leçon de `readKitchenEquipment`, dix lignes
     // au-dessus).
     const groceryRuns = readGroceryRuns(pc);
-    const askedOneSession = askedOneCookingSession || groceryRuns === 1;
+    // ⟳ LOT C (2026-09-04) — « UNE SEULE COURSE » NE VAUT PLUS « UNE SEULE
+    // SESSION », et c'est un renversement assumé de la règle A2 du 2026-09-03.
+    //
+    // A2 raisonnait ainsi: acheter une fois, c'est tout cuire d'un coup, sinon
+    // le cru ne tient pas. C'est vrai SANS congélateur — et c'est déjà dit par
+    // la poussée « une course en exige deux » dans `deriveCookingPlan`. Avec un
+    // congélateur DÉCLARÉ, on achète le dimanche, on CONGÈLE ce dont mercredi
+    // aura besoin, et on cuisine deux fois. Tant que cette ligne dérivait la
+    // session unique du nombre de courses, cette configuration ne pouvait pas
+    // exister — donc la marque « à congeler à l'achat » n'avait aucun plan où
+    // se poser.
+    //
+    // ⛔ LA DEMANDE EXPLICITE RESTE LA SEULE PORTE, et elle est inchangée:
+    // `body.one_cooking_session` plus un congélateur déclaré. Le refus compté
+    // ci-dessous ne bouge pas d'un caractère.
+    const askedOneSession = askedOneCookingSession;
     const oneCookingSession = askedOneSession &&
       hasFreezerDeclared(kitchenEquipment);
     if (askedOneSession && !oneCookingSession) {
@@ -3489,15 +3527,27 @@ Deno.serve(async (req) => {
     // `eatingRhythm` que la lane passe au prompt et au parseur. Le retrait ne
     // décide donc rien de nouveau sur les bouches — il lit la même chose que
     // `slotsDroppedToday` lisait déjà.
-    const passedToday = startsOn === todayDate
-      ? slotsPassedToday({
+    // ⟳ 2026-09-04 · DEUX QUESTIONS, UNE SEULE LECTURE DE L'HEURE.
+    // `slotsUnservableToday` APPELLE `slotsPassedToday` — il ne le recopie pas —
+    // et ajoute la seconde: « reste-t-il le temps d'acheter et de cuisiner
+    // avant ce repas ? ». Mesuré avant le lot: à 12 h le déjeuner était servi,
+    // à 19 h le dîner l'était aussi, alors que la coupure des courses est à
+    // 18 h.
+    const unservableToday = startsOn === todayDate
+      ? slotsUnservableToday({
         hourNow,
         rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
         declaredHours: rhythmClockFrom(
           Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm : [],
         ),
       })
-      : [];
+      : { passed: [], heldForShopping: [] };
+    // ⚠️ L'UNION est ce que le PROMPT doit ignorer; les deux listes séparées
+    // sont ce que la PHRASE doit distinguer.
+    const passedToday = [
+      ...unservableToday.passed,
+      ...unservableToday.heldForShopping,
+    ];
     const spentFirstDay = withoutSpentFirstDay({ startsOn, durationDays }, {
       today: todayDate,
       // ⛔ LA GARDE DU PIÈGE. Si la veille de cuisine a reculé la fenêtre,
@@ -3507,12 +3557,22 @@ Deno.serve(async (req) => {
       cookOnlyDay,
       declaredSlots: (eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM)
         .map((r) => r.slot),
-      passedSlots: passedToday,
+      passedSlots: unservableToday.passed,
+      heldSlots: unservableToday.heldForShopping,
+      // ⛔ LA COUPURE VIT DANS `plan_hours.ts`, jamais recopiée ici.
+      shoppingCutoffReached: !cookingAskedToday({ hourNow }),
     });
     startsOn = spentFirstDay.startsOn;
     durationDays = spentFirstDay.durationDays;
     if (spentFirstDay.dropped !== null) {
-      issues.push(`spent_first_day_dropped: ${spentFirstDay.dropped}`);
+      // ⟳ 2026-09-04 · LA CAUSE VOYAGE AVEC LE FAIT. « la journée est déjà
+      // entamée » et « il ne restait pas le temps de faire les courses » se
+      // réparent par des gestes opposés — le premier se subit, le second se
+      // contourne (quelqu'un qui a déjà ses courses a raison contre lui). Un
+      // `issues` qui ne dit que le jour laisse les deux indiscernables en base.
+      issues.push(
+        `spent_first_day_dropped: ${spentFirstDay.dropped} (${spentFirstDay.cause})`,
+      );
     } else if (
       // Les deux refus qui veulent dire « la journée EST dépensée et on a gardé
       // le jour quand même ». Les deux cas ORDINAIRES restent muets: une ligne
@@ -3645,11 +3705,41 @@ Deno.serve(async (req) => {
     // condition reste `startsOn === todayDate` APRÈS le retrait: quand la
     // journée dépensée a été retirée, la fenêtre ne commence plus aujourd'hui
     // et il n'y a plus rien à retirer — `[]` est alors la bonne réponse.
-    const slotsDroppedToday = startsOn === todayDate ? passedToday : [];
-    const awayDays = slotsDroppedToday.length === 0 ? declaredAway : (() => {
+    const slotsDroppedToday = startsOn === todayDate
+      ? unservableToday.passed
+      : [];
+    // ⟳ 2026-09-04 · LA SECONDE LISTE, POUR LA PHRASE ET POUR ELLE SEULE. Le
+    // PROMPT reçoit l'union (`passedToday`) — un moment retenu ne se compose
+    // pas plus qu'un moment passé. L'EXPLICATION, elle, doit les distinguer:
+    // « la journée est déjà entamée » et « il faut le temps de faire les
+    // courses » se réparent par des gestes opposés.
+    const slotsHeldForShopping = startsOn === todayDate
+      ? unservableToday.heldForShopping
+      : [];
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LA FUSION LIT L'UNION, PAS LA SEULE LISTE DES MOMENTS PASSÉS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ DÉFAUT INTRODUIT PAR CE LOT ET TROUVÉ PAR UN RUN RÉEL, le 2026-09-04.
+    // En séparant `passed` et `heldForShopping` pour que la PHRASE distingue
+    // les deux causes, j'ai laissé cette fusion sur la seule liste des moments
+    // PASSÉS. Le plan a donc rendu, à 12 h: « Pour aujourd'hui, le déjeuner
+    // n'est pas au plan : il faut le temps de faire les courses avant » — ET un
+    // déjeuner composé le jour même. La phrase était juste, le plan la
+    // démentait trois lignes plus bas.
+    //
+    // ⛔ AUCUN TEST UNITAIRE NE POUVAIT LE VOIR: les deux listes étaient
+    // correctes, la phrase était correcte, et c'est leur JOINTURE au prompt qui
+    // manquait. Il fallait un plan rendu.
+    //
+    // La règle: un moment RETENU ne se compose pas plus qu'un moment PASSÉ —
+    // c'est le prompt qui décide ce qui est cuisiné, et il doit recevoir les
+    // deux. Seule l'explication a besoin de les séparer.
+    const unservableUnion = startsOn === todayDate ? passedToday : [];
+    const awayDays = unservableUnion.length === 0 ? declaredAway : (() => {
       const row = declaredAway.find((a) => a.day === todayToken);
       if (row && row.slots.length === 0) return declaredAway;
-      const merged = new Set<string>([...(row?.slots ?? []), ...slotsDroppedToday]);
+      const merged = new Set<string>([...(row?.slots ?? []), ...unservableUnion]);
       return [
         ...declaredAway.filter((a) => a.day !== todayToken),
         { day: todayToken, slots: EATING_OCCASIONS.filter((s) => merged.has(s)) },
@@ -3664,6 +3754,56 @@ Deno.serve(async (req) => {
       windowStartsOn: startsOn,
       todayLocalDate: todayDate,
       hourNow,
+    });
+
+    // ── LES JOURS DE CUISINE QUE LA CONSIGNE A RÉELLEMENT SERVIS ────────
+    //
+    // ⛔ L'EXPLICATION DOIT LIRE LA MÊME RÉDUCTION QUE LE PROMPT. Avec l'option
+    // « tout dans une session », le tronc ne garde qu'un jour
+    // (`singleSessionCookDay`); lire ici les trois jours cochés ferait nommer
+    // hors de portée d'autres journées que celles servies au modèle — et ce
+    // serait l'explication qui aurait tort, pour la quatrième fois.
+    const rationaleCookDays = [
+      // ⛔ LA VEILLE D'ABORD, ET C'EST UN DÉFAUT MESURÉ LE 2026-09-01. Sans
+      // cette ligne, `buildMealPrompt` nommait « ONE session, on wed » pendant
+      // que l'explication écrivait « tout est cuisiné en une seule session »
+      // sans jour — deux calculs du même fait, et c'est l'explication qui avait
+      // tort. Vu sur le run réel `af04fd89-…`, exactement la divergence que
+      // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
+      ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
+      ...usableCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
+        declared: capacity.cookDays ?? [],
+        window: daysToFill,
+      }),
+      ...addedCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
+        declared: capacity.cookDays ?? [],
+        window: daysToFill,
+        firstDayCookable,
+      }),
+    ];
+    const rationaleSingleSessionDay = oneCookingSession
+      ? singleSessionCookDay({ window: daysToFill, cookDays: rationaleCookDays })
+      : null;
+    // ── LES JOURS QU'AUCUN LOT N'ATTEINT — hissé pour la même raison ────
+    // ⛔ UN SEUL APPEL, DEUX LECTEURS: le bloc `DECIDED BEFORE YOU` (avant le
+    // modèle) et `explainPlanChoices` (après). Le refaire en bas nommerait
+    // d'autres jours que ceux que le modèle a reçus.
+    const outOfBatchReach = daysOutOfBatchReach({
+      window: daysToFill,
+      cookDays: oneCookingSession
+        ? (rationaleSingleSessionDay === null ? [] : [rationaleSingleSessionDay])
+        : rationaleCookDays,
+      hasFreezer: hasFreezerDeclared(kitchenEquipment),
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+      freezerWindowDays: FREEZER_WINDOW_DAYS,
     });
 
     // ── LA FENÊTRE QU'ON PROPOSERAIT ────────────────────────────────────
@@ -4910,6 +5050,36 @@ Deno.serve(async (req) => {
     }
 
     const household = buildHouseholdPromptBlocks({
+      // ══════════════════════════════════════════════════════════════════
+      // ⟳ 2026-09-04 · CE QUI EST DÉJÀ TRANCHÉ, DIT AU MODÈLE AVANT QU'IL
+      //    ÉCRIVE SA PROSE
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ TOUTES CES VALEURS SONT LUES, JAMAIS RECALCULÉES. Chacune est la
+      // constante que la consigne ET l'explication déterministe lisent déjà —
+      // `rationaleCookDays` et `outOfBatchReach` ont été hissés exprès. Un
+      // second calcul ferait dire au modèle autre chose que ce que le plan
+      // fait, et ce serait lui qui aurait tort.
+      //
+      // ⚠️ ET C'EST UNE FRONTIÈRE, PAS UN RAPPEL: sans ces faits, le modèle
+      // explique aussi le calendrier — et de travers, parce qu'il ne sait pas
+      // pourquoi. On donne le fait AVANT la génération plutôt que de coller
+      // une phrase après (`redirect-appends-contradict-the-model-guess`).
+      decided: {
+        timing: planTiming.kind,
+        droppedDay: spentFirstDay.dropped,
+        slotsDroppedToday,
+        cookDays: oneCookingSession
+          ? (rationaleSingleSessionDay === null ? [] : [rationaleSingleSessionDay])
+          : rationaleCookDays,
+        daysOutOfReach: outOfBatchReach,
+        strictestRegime,
+        // ⚠️ LA DIRECTION DU TITULAIRE, celui qui compose. Ce n'est pas « la
+        // direction du foyer » — il n'y en a pas — mais celle de la personne
+        // dont l'envie et le plan se répondent.
+        direction: ownerDirection,
+        wishServed: envyLine !== null && envyLine.trim() !== "",
+      },
       // D6.2 — la réponse hebdomadaire de chaque bouche, telle qu'elle est
       // écrite. Le bloc ne sort que pour les gamelles; `outside` a déjà son
       // effet par les cinq midis `eating_out` que la porte SQL a posés.
@@ -5332,7 +5502,19 @@ Deno.serve(async (req) => {
           "household",
         ),
         built.contentLocale,
-        MEAL_TRANSLATABLE_FIELDS,
+        // ⟳ 2026-09-04 · `explanation[]` EST TRADUISIBLE, ET LA LISTE EST
+        // ÉTENDUE ICI PLUTÔT QU'À LA SOURCE.
+        //
+        // ⛔ `MEAL_TRANSLATABLE_FIELDS` est la liste du TRONC, lue aussi par la
+        // lane solo. La clé `explanation` n'existe que dans le suffixe de
+        // FOYER: l'ajouter là-haut demanderait au modèle solo de traduire un
+        // champ qu'on ne lui a jamais demandé d'écrire — une consigne sur du
+        // vide, et un bump de `MEAL_PROMPT_VERSION` sans population.
+        //
+        // ⚠️ ET C'EST LA SEULE GARDE DE LANGUE. Ce dépôt n'a aucun détecteur de
+        // langue, et en écrire un serait un matcher maison. La langue s'impose
+        // à la SOURCE, dans le message; elle ne se vérifie pas après coup.
+        [...MEAL_TRANSLATABLE_FIELDS, "explanation[]"],
         MEAL_TOKEN_FIELDS,
       );
 
@@ -6109,9 +6291,13 @@ Deno.serve(async (req) => {
       for (const [i, m] of restorable.entries()) {
         const fate = outcome.rows[i] ?? "none";
         issues.push(
-          `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} kept on the shared ` +
-            `box although it carries what they avoid -- no other meal could be ` +
-            `composed for them there`,
+          fate === "fallback"
+            ? `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)}'s own box was dropped by the ` +
+              `exclusion belt; put back on the shared box of that dish, which carries what they avoid`
+            : fate === "restored"
+            ? `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} kept on the shared box although ` +
+              `it carries what they avoid`
+            : `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} could not be put back on any box`,
         );
       }
       restoredFate = new Map(restorable.map((m, i) => [`${m.memberId}/${m.day}/${m.slot}`, outcome.rows[i] ?? "none"]));
@@ -6569,6 +6755,53 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-04 — CE QUE LE PLAN A DÛ PESER, ET SA GARDE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ICI, ET APRÈS LE VERROU DE MAISON. `applyHouseRuleLock` vient de
+    // nettoyer les `why` qui commentaient une règle; la garde de ce bloc lit la
+    // MÊME liste de libellés, et la lire avant le verrou ferait juger un texte
+    // que le plan n'aurait pas encore fini de produire.
+    //
+    // ⛔ `mealSourceText`, JAMAIS `result` — la raison est écrite vingt lignes
+    // plus haut: une relance remplace `meal`, et lire `result` jugerait la
+    // réponse d'AVANT.
+    //
+    // ⚠️ LA GARDE JETTE LE BLOC ENTIER, jamais la ligne fautive: ce qui reste a
+    // été écrit EN SUPPOSANT ce qu'on retirerait. Le motif est nommé, compté, et
+    // les phrases déterministes sortent comme avant — elles sont le plancher.
+    const explanation = gatePlanExplanation({
+      raw: extractExplanation(mealSourceText),
+      // Les prénoms de la table, pour la garde d'adjacence. Ce n'est PAS « pas
+      // de prénom »: le bloc doit pouvoir dire « les raviolis de Léa ».
+      names: platedMembers.map((m) => m.displayName),
+      // ⛔ LES MÊMES LIBELLÉS QUE LE VERROU, jamais une seconde lecture de la
+      // table: deux listes d'interdits divergeraient, et c'est celle qu'on
+      // regarde le moins qui garderait l'ancienne.
+      houseRuleLabels: householdSplit.houseRuleLabels,
+    });
+    if (explanation.refused !== null) {
+      issues.push(`plan_explanation_refused: ${explanation.refused}`);
+    }
+    // ⛔ JOURNALISÉ MÊME À ZÉRO, et par le journal PLUTÔT que par
+    // `generated_from` seul: celui-ci ne sort pas en `draft`, et toute
+    // vérification en situation réelle de ce lot se fait en `draft`. Un nombre
+    // qu'on ne journalise pas est un nombre que personne ne verra bouger.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.plan_explanation",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      // `asked` dit si la CONSIGNE est partie. Sans lui, « le modèle n'écrit
+      // rien » et « on ne lui a rien demandé » rendent le même zéro, et seul le
+      // premier appelle un travail de prompt.
+      asked: true,
+      declared: explanation.declared,
+      kept: explanation.lines.length,
+      refused: explanation.refused,
+    }));
+
     // ── LES PORTIONS, RÉCONCILIÉES AVEC LE FOYER RÉEL ───────────────────
     // `platedMembers`, PAS `members`: la boucle de réconciliation réattribue
     // une portion standard à toute bouche que le modèle a omise
@@ -6693,13 +6926,22 @@ Deno.serve(async (req) => {
       durationDays,
       shoppingList: meal.shopping_list,
       preparations: wavePreps,
+      // ⟳ LOT C — LA CADENCE DEMANDÉE REPLIE LES VAGUES, quand un congélateur
+      // peut absorber la différence. `null` = ni style ni nombre de courses
+      // déclarés, donc aucun repli: la conservation garde la main.
+      runs: capacity.plan?.runs ?? null,
+      freezer: hasFreezerDeclared(kitchenEquipment),
     });
     meal.shopping_list = meal.shopping_list.map((line, at) => ({
       ...line,
-      buy_on: buyDates[at],
+      buy_on: buyDates.buyOn[at],
+      // ⟳ LOT C — LE GESTE DU JOUR DES COURSES. `false` par défaut et jamais
+      // absent: une clé manquante et « rien à congeler » rendraient le même
+      // silence à l'écran.
+      freeze_on_purchase: buyDates.freezeOnPurchase[at] === true,
     }));
     const shoppingDays: string[] = [];
-    for (const date of buyDates) {
+    for (const date of buyDates.buyOn) {
       if (date !== null && !shoppingDays.includes(date)) shoppingDays.push(date);
     }
     shoppingDays.sort();
@@ -6708,6 +6950,16 @@ Deno.serve(async (req) => {
     // le même silence — la cicatrice des deux compteurs du congélateur.
     issues.push(
       `shopping_waves: ${shoppingDays.length} (${shoppingDays.join(", ") || "none"})`,
+    );
+    // ⟳ LOT C — CE QUE LE REPLI A COÛTÉ, ÉCRIT MÊME À ZÉRO.
+    //
+    // ⛔ LES DEUX NOMBRES, PAS UN. « aucune ligne à congeler » et « le repli n'a
+    // pas eu lieu » sont deux états très différents; le dénominateur dit sur
+    // quelle population la règle s'est exercée. Sans lui, un repli désarmé
+    // rendrait exactement le même `0` qu'un plan qui n'en avait pas besoin.
+    issues.push(
+      `freeze_on_purchase: ${buyDates.freezeOnPurchase.filter(Boolean).length}/` +
+        `${buyDates.freezeOnPurchase.length}`,
     );
 
     // ── CE QUI NE PEUT PAS VENIR DE LA PREMIÈRE COURSE ────────────────────
@@ -6758,42 +7010,12 @@ Deno.serve(async (req) => {
         `one_cooking_session: ${meal.cooking_sessions.length}/1 sessions returned`,
       );
     }
-    // ── LES JOURS DE CUISINE QUE LA CONSIGNE A RÉELLEMENT SERVIS ────────
-    //
-    // ⛔ L'EXPLICATION DOIT LIRE LA MÊME RÉDUCTION QUE LE PROMPT. Avec l'option
-    // « tout dans une session », le tronc ne garde qu'un jour
-    // (`singleSessionCookDay`); lire ici les trois jours cochés ferait nommer
-    // hors de portée d'autres journées que celles servies au modèle — et ce
-    // serait l'explication qui aurait tort, pour la quatrième fois.
-    const rationaleCookDays = [
-      // ⛔ LA VEILLE D'ABORD, ET C'EST UN DÉFAUT MESURÉ LE 2026-09-01. Sans
-      // cette ligne, `buildMealPrompt` nommait « ONE session, on wed » pendant
-      // que l'explication écrivait « tout est cuisiné en une seule session »
-      // sans jour — deux calculs du même fait, et c'est l'explication qui avait
-      // tort. Vu sur le run réel `af04fd89-…`, exactement la divergence que
-      // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
-      ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
-      ...usableCookDays({
-        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
-        // version vidée qui part aux faits de rationale. Cette liste-ci
-        // nomme le jour de la session unique; la vider ferait nommer une
-        // journée que le modèle n'a pas reçue.
-        declared: capacity.cookDays ?? [],
-        window: daysToFill,
-      }),
-      ...addedCookDays({
-        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
-        // version vidée qui part aux faits de rationale. Cette liste-ci
-        // nomme le jour de la session unique; la vider ferait nommer une
-        // journée que le modèle n'a pas reçue.
-        declared: capacity.cookDays ?? [],
-        window: daysToFill,
-        firstDayCookable,
-      }),
-    ];
-    const rationaleSingleSessionDay = oneCookingSession
-      ? singleSessionCookDay({ window: daysToFill, cookDays: rationaleCookDays })
-      : null;
+    // ⟳ 2026-09-04 · `rationaleCookDays` ET `rationaleSingleSessionDay` SONT
+    // HISSÉS, juste après `firstDayCookable`. Motif: le bloc `DECIDED BEFORE
+    // YOU` du prompt en a besoin AVANT l'appel modèle, et les recalculer ici
+    // ferait deux calculs du même fait — la faute que ce fichier documente
+    // déjà trois fois (`usableCookDays`, `addedCookDays`, la veille). Un seul
+    // calcul, deux lecteurs: la consigne et l'explication.
     let rationaleLines: string[] = [];
     let rationaleRefusal: string | null = null;
     try {
@@ -6845,6 +7067,7 @@ Deno.serve(async (req) => {
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,
+          slotsHeldForShopping,
           // LES ABSENCES DÉCLARÉES SEULEMENT — pas l'union avec l'horloge.
           // « la journée est déjà entamée » et « quelqu'un a dit qu'il n'était
           // pas là » sont deux phrases différentes, et les compter ensemble
@@ -6871,19 +7094,10 @@ Deno.serve(async (req) => {
           // jours que ceux servis au modèle, et ce serait l'explication qui
           // aurait tort. Troisième application de la règle après
           // `usableCookDays` et `addedCookDays`.
-          daysOutOfBatchReach: daysOutOfBatchReach({
-            window: daysToFill,
-            // ⚠️ LA MÊME RÉDUCTION QUE `buildMealPrompt`, hissée juste avant ce
-            // bloc pour que les deux lectures partent du même tableau.
-            cookDays: oneCookingSession
-              ? (rationaleSingleSessionDay === null
-                ? []
-                : [rationaleSingleSessionDay])
-              : rationaleCookDays,
-            hasFreezer: hasFreezerDeclared(kitchenEquipment),
-            maxFridgeDays: MAX_FRIDGE_DAYS,
-            freezerWindowDays: FREEZER_WINDOW_DAYS,
-          }) as never,
+          // ⟳ 2026-09-04 · LA CONSTANTE HISSÉE, pas un second appel. Le bloc
+          // `DECIDED BEFORE YOU` la lit AVANT le modèle et cette explication la
+          // lit APRÈS: un seul calcul, deux lecteurs.
+          daysOutOfBatchReach: outOfBatchReach as never,
           // ── « TOUT DANS UNE SESSION » — CE QUE LA DEMANDE EST DEVENUE ─
           // `null` quand la case n'a pas été cochée: aucune ligne ne sort, et
           // l'explication d'un plan ordinaire ne bouge pas d'un caractère.
@@ -8505,6 +8719,12 @@ Deno.serve(async (req) => {
         suggested_window: suggestedWindow,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
+        // ⟳ 2026-09-04 · CE QUE LE PLAN A DÛ PESER — la prose du MODÈLE, à côté
+        // des phrases fixes et jamais à leur place. Même enveloppe
+        // `{lines, refusal}` que ses deux voisines: une troisième forme de
+        // payload pour un troisième bloc de texte finirait par diverger sur la
+        // seule chose qui compte — ce qui s'affiche quand c'est vide.
+        explanation: { lines: explanation.lines, refusal: explanation.refused },
         // L7 ③ — LE COMPTEUR DU NOM, À LA RACINE ET PAS SOUS `household`, pour
         // la raison exacte de `same_day`: le champ est demandé par le schéma du
         // TRONC et lu par le parseur partagé, donc les deux lanes le comptent
@@ -9095,6 +9315,18 @@ Deno.serve(async (req) => {
             rationale: { lines: rationaleLines, refusal: rationaleRefusal },
             // FF-061 — ce qui a été fait de ce qui avait été demandé.
             request_report: { lines: reportLines, refusal: reportRefusal },
+            // ⟳ 2026-09-04 · ARCHIVÉE AVEC LA COMPOSITION. `generated_from` ne
+            // sort pas en `draft`: c'est donc la ligne ÉCRITE qui porte ces
+            // phrases, et c'est là que l'écran du plan adopté les relit.
+            explanation: {
+              lines: explanation.lines,
+              refusal: explanation.refused,
+              // Les deux nombres, écrits MÊME à zéro. « le modèle n'a rien
+              // écrit » et « on a tout jeté » rendent le même écran, et seul le
+              // premier appelle un travail de prompt.
+              declared: explanation.declared,
+              kept: explanation.lines.length,
+            },
             // FF-027 — la provenance de l'adaptation, archivée avec la
             // composition (voir `hungerSignalProvenance`). Le décompte est
             // archivé ici; il n'est pas entré dans le prompt.
@@ -9207,6 +9439,12 @@ Deno.serve(async (req) => {
       // ⛔ Aucun miroir de ces gabarits côté écran.
       rationale: { lines: rationaleLines, refusal: rationaleRefusal },
       request_report: { lines: reportLines, refusal: reportRefusal },
+      // ⟳ 2026-09-04 · CE QUE LE PLAN A DÛ PESER — la prose du MODÈLE, à côté
+      // des phrases fixes et jamais à leur place. Même enveloppe
+      // `{lines, refusal}` que ses deux voisines: une troisième forme de
+      // payload pour un troisième bloc de texte finirait par diverger sur la
+      // seule chose qui compte — ce qui s'affiche quand c'est vide.
+      explanation: { lines: explanation.lines, refusal: explanation.refused },
       household: {
         id: householdId,
         // `kind` a disparu avec la colocation (lot 2). L'ecran ne le lisait que

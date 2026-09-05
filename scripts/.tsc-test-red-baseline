@@ -24,7 +24,6 @@
 src/edge/internal-functions.int.test.ts 1
 src/edge/ultimate.int.test.ts 7
 src/keel/api/coachFoodItems.int.test.ts 1
-src/keel/api/groceryWaves.int.test.ts 1
 src/keel/api/household.int.test.ts 2
 src/keel/api/householdHabits.int.test.ts 1
 src/keel/api/householdReference.int.test.ts 6
@@ -62,7 +61,7 @@ src/keel/components/dishCardSameDay.int.test.ts 1
 #    hausses ci-dessus, meme dette. Ajoutes pour que le gate REDEVIENNE un
 #    signal — un gate qui refuse tout ne dit plus rien, et huit lots commitaient
 #    `--no-verify` en le citant.
-src/keel/components/mealBoxes.int.test.ts 16
+src/keel/components/mealBoxes.int.test.ts 1
 src/keel/components/mouthFormDialog.int.test.ts 2
 src/keel/components/planDaySeparation.int.test.ts 1
 src/keel/components/planGridEatingOut.int.test.ts 1
@@ -74,7 +73,17 @@ src/keel/lib/planByPersonModel.int.test.ts 2
 src/keel/lib/planDaySlots.int.test.ts 5
 src/keel/lib/planGridModel.int.test.ts 5
 src/keel/lib/presenceRoster.int.test.ts 1
-src/keel/lib/shoppingAisles.int.test.ts 1
 src/keel/pages/meCardSheet.int.test.ts 10
 src/keel/pages/setupMouthsStep.int.test.ts 0
 src/keel/pages/setupSituateStep.int.test.ts 3
+
+# ⟳ LOT C (2026-09-04) — TROIS LIGNES ABAISSÉES, ET LA DETTE EST PAYÉE, PAS
+# TOLÉRÉE. `ShoppingItem` a reçu `freeze_on_purchase` et `WaveAssignment`
+# `freezeIndices`; les fixtures qui les omettaient ont été COMPLÉTÉES plutôt
+# que rangées ici. `groceryWaves` et `shoppingAisles` tombent donc à zéro (leurs
+# lignes sont retirées), et `mealBoxes` passe de 16 à 1 — les quinze autres
+# étaient un `slotBadge` requis que treize fixtures n'écrivaient pas.
+#
+# ⛔ CE QUI RESTE DANS `mealBoxes` EST UN VRAI RESTE: un `as DishIngredient[]`
+# sur un littéral qui porte un `aisle` inexistant sur ce type. Il n'est pas de
+# ce lot et il n'a pas été maquillé.

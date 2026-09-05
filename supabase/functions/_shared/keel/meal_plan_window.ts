@@ -683,6 +683,20 @@ export interface WindowWithoutSpentDay {
   /** Le jour RETIRÉ, pour que l'écran puisse le nommer. `null` si rien n'a bougé. */
   dropped: DayToken | null;
   refused: SpentFirstDayRefusal | null;
+  /**
+   * ⟳ 2026-09-04 · POURQUOI CE JOUR EST TOMBÉ, quand il tombe.
+   *
+   * ⛔ DEUX CAUSES, DEUX PHRASES, ET ELLES NE SE RÉPARENT PAS PAREIL.
+   * `slots_passed` = « la journée est déjà entamée », un fait d'horloge qu'on
+   * subit. `shopping_lead` = « il ne restait pas le temps d'acheter avant le
+   * prochain repas », et `shopping_cutoff` = « les magasins sont fermés » —
+   * deux faits de LOGISTIQUE, et la personne qui a déjà ses courses dans le
+   * coffre a raison contre eux. Les fondre rendrait la phrase fausse une fois
+   * sur deux, et une phrase fausse est pire qu'un silence.
+   *
+   * `null` quand rien n'est tombé.
+   */
+  cause: "slots_passed" | "shopping_lead" | "shopping_cutoff" | null;
 }
 
 /**
@@ -744,13 +758,46 @@ export function withoutSpentFirstDay(
     cookOnlyDay: string | null;
     declaredSlots: readonly string[];
     passedSlots: readonly string[];
+    /**
+     * ⟳ 2026-09-04 · LES MOMENTS QU'ON NE PEUT PLUS ACHETER À TEMPS.
+     *
+     * ⚠️ REQUIS, jamais optionnel. Un défaut à `[]` chez un appelant qui
+     * l'oublie rendrait le comportement d'avant le lot **sans qu'aucun test ne
+     * rougisse** — c'est la cicatrice « paramètre de garde optionnel = garde
+     * désarmée », et elle a déjà coûté `safetyBand` à ce dépôt. `[]` se dit, et
+     * ça veut dire « rien n'est retenu ».
+     */
+    heldSlots: readonly string[];
+    /**
+     * LA COUPURE DES COURSES EST-ELLE PASSÉE ? REQUIS.
+     *
+     * ⛔ UN BOOLÉEN, PAS UNE HEURE. La coupure vit dans
+     * `plan_hours.ts::SHOPPING_CUTOFF_HOUR` et l'appelant la lit par
+     * `cookingAskedToday`. Recopier `hourNow >= 18` ici en ferait une seconde
+     * définition, et c'est celle qu'on regarde le moins qui garderait l'ancienne
+     * valeur.
+     */
+    shoppingCutoffReached: boolean;
   },
 ): WindowWithoutSpentDay {
   const untouched = {
     startsOn: window.startsOn,
     durationDays: window.durationDays,
     dropped: null,
+    cause: null,
   } as const;
+  if (!Array.isArray(input.heldSlots)) {
+    throw new Error(
+      "[keel/meal_plan_window] `heldSlots` est REQUIS — `[]` dit « rien de " +
+        "retenu », `undefined` ne dit rien",
+    );
+  }
+  if (typeof input.shoppingCutoffReached !== "boolean") {
+    throw new Error(
+      "[keel/meal_plan_window] `shoppingCutoffReached` est REQUIS et booléen — " +
+        "un `?` en ferait une garde désarmée",
+    );
+  }
   if (window.startsOn !== input.today) {
     return { ...untouched, refused: "not_today" };
   }
@@ -765,10 +812,28 @@ export function withoutSpentFirstDay(
   // d'avant ce lot, exactement.
   const declared = new Set(input.declaredSlots);
   if (declared.size === 0) return { ...untouched, refused: "slots_remain" };
+  // ⟳ 2026-09-04 · LA JOURNÉE EST FINIE SI CHAQUE MOMENT EST **PASSÉ OU
+  // INACHETABLE**. Avant ce lot, seul « passé » comptait: à 19 h le dîner
+  // restait au plan alors que les magasins ferment à 18 h, et le produit servait
+  // un repas qu'il savait impossible à acheter.
   const passed = new Set(input.passedSlots);
+  const held = new Set(input.heldSlots);
   for (const slot of declared) {
-    if (!passed.has(slot)) return { ...untouched, refused: "slots_remain" };
+    if (!passed.has(slot) && !held.has(slot)) {
+      return { ...untouched, refused: "slots_remain" };
+    }
   }
+  // ⛔ LA CAUSE SE LIT SUR CE QUI RESTE, PAS SUR CE QUI A MORDU EN PREMIER.
+  // Si tous les moments déclarés sont derrière nous, c'est l'HORLOGE — même si
+  // la coupure des courses est aussi passée. Un lecteur à qui on dit « il
+  // fallait le temps de faire les courses » pour une journée finie à 22 h
+  // chercherait un magasin ouvert.
+  const cause: WindowWithoutSpentDay["cause"] =
+    declared.size > 0 && [...declared].every((slot) => passed.has(slot))
+      ? "slots_passed"
+      : input.shoppingCutoffReached
+      ? "shopping_cutoff"
+      : "shopping_lead";
   // ⛔ UNE FENÊTRE D'UN JOUR NE SE RÉTRÉCIT PAS: elle deviendrait vide. Générer
   // zéro jour est pire que générer un plan court — on sert la fenêtre demandée
   // et le motif dit pourquoi elle est déjà entamée.
@@ -780,6 +845,7 @@ export function withoutSpentFirstDay(
     durationDays: window.durationDays - 1,
     dropped: dayTokenOf(window.startsOn),
     refused: null,
+    cause,
   };
 }
 

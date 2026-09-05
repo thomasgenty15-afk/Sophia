@@ -4,7 +4,11 @@ import {
   assertStringIncludes,
 } from "jsr:@std/assert@^1.0.0";
 
-import { buildMealPrompt, MEAL_PROMPT_VERSION } from "./meal_generation.ts";
+import {
+  buildMealPrompt,
+  MEAL_PROMPT_VERSION,
+  mealShoppingPayload,
+} from "./meal_generation.ts";
 import { RAW_WINDOW_DAYS } from "./fridge_window.ts";
 import {
   daysNeedingTheirOwnShop,
@@ -295,9 +299,11 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
 
 Deno.test("LE CAS RAPPORTÉ, DE BOUT EN BOUT — le poulet n'est plus daté du lundi", () => {
   // Fenêtre lundi 2026-09-07 → dimanche, poulet cuisiné SAMEDI.
-  const dates = buyDatesByIndex({
+  const { buyOn: dates } = buyDatesByIndex({
     startsOn: "2026-09-07",
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList: [
       { term: "chicken thighs", aisle: "protein", food_group: "poultry" },
       { term: "rice", aisle: "grains", food_group: "refined_grain" },
@@ -315,9 +321,11 @@ Deno.test("LE CAS RAPPORTÉ, DE BOUT EN BOUT — le poulet n'est plus daté du l
 Deno.test("une ligne qu'aucune préparation ne consomme garde le premier jour", () => {
   // « Rien ne disparaît »: un terme non rattaché part en première vague, jamais
   // écarté.
-  const dates = buyDatesByIndex({
+  const { buyOn: dates } = buyDatesByIndex({
     startsOn: "2026-09-07",
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList: [{ term: "olive oil", aisle: "other", food_group: "olive_oil" }],
     preparations: [],
   });
@@ -325,9 +333,11 @@ Deno.test("une ligne qu'aucune préparation ne consomme garde le premier jour", 
 });
 
 Deno.test("sans fenêtre lisible, aucune date n'est inventée", () => {
-  const dates = buyDatesByIndex({
+  const { buyOn: dates } = buyDatesByIndex({
     startsOn: "",
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList: [{ term: "x", aisle: "protein", food_group: "poultry" }],
     preparations: [],
   });
@@ -347,10 +357,18 @@ for (
   Deno.test(`la lane ${name} POSE la date sur chaque ligne de courses`, async () => {
     const src = await Deno.readTextFile(new URL(rel, import.meta.url));
     assertStringIncludes(src, "const buyDates = buyDatesByIndex({");
-    assertStringIncludes(src, "buy_on: buyDates[at],");
+    // ⟳ LOT C (2026-09-04) — `buyDatesByIndex` REND DEUX TABLEAUX. La date, et
+    // la marque « à congeler à l'achat ». Un seul parcours les produit tous
+    // les deux: deux fonctions séparées auraient pu diverger le jour où l'une
+    // filtre et pas l'autre.
+    assertStringIncludes(src, "buy_on: buyDates.buyOn[at],");
+    assertStringIncludes(src, "freeze_on_purchase: buyDates.freezeOnPurchase[at] === true,");
     // ⛔ ET ELLE COMPTE, MÊME À UNE SEULE VAGUE: « une course » et « on n'a pas
     // su dater » rendent sinon le même silence.
     assertStringIncludes(src, "shopping_waves:");
+    // ⛔ LE COMPTEUR DU REPLI SORT AUSSI, ET AVEC SON DÉNOMINATEUR: « rien à
+    // congeler » et « le repli n'a pas eu lieu » sont deux états différents.
+    assertStringIncludes(src, "freeze_on_purchase: ${buyDates.freezeOnPurchase.filter(Boolean).length}/");
   });
 
   Deno.test(`la lane ${name} CONSTATE la fenêtre crue et la DIT`, async () => {
@@ -430,9 +448,11 @@ Deno.test("REJEU — LE DÉFAUT RAPPORTÉ, PRIS PAR LA DATE D'ACHAT", () => {
   const preparations = [
     { id: "p", cookOn: "mon", ingredientTerms: ["cod fillets", "potatoes"] },
   ];
-  const dates = buyDatesByIndex({
+  const { buyOn: dates } = buyDatesByIndex({
     startsOn: "2026-09-03",
     durationDays: 7,
+    runs: null,
+    freezer: false,
     shoppingList,
     preparations,
   });
@@ -444,4 +464,37 @@ Deno.test("REJEU — LE DÉFAUT RAPPORTÉ, PRIS PAR LA DATE D'ACHAT", () => {
   assertEquals(dates[1], "2026-09-03");
   // La pomme de terre tient deux semaines: première vague.
   assertEquals(dates[2], "2026-09-03");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LOT C (2026-09-04) — LA PROJECTION DE SORTIE PORTE LE GESTE
+//
+// ⛔ CE TEST EXISTE PARCE QUE LE CHAMP A ÉTÉ PERDU UN TIR ENTIER. La lane
+// calculait la marque, les `issues` la disaient (`freeze_on_purchase: 1/30`),
+// et `mealShoppingPayload` ne la recopiait pas: les trente lignes rendues
+// n'avaient tout simplement pas la clé. Un lecteur qui laisse tomber un champ
+// le fait en SILENCE, et c'est la deuxième fois que ce même endroit le fait
+// (voir `buy_on`, 2026-09-01).
+//
+// ⚠️ ET C'EST LE COMPTEUR QUI L'A RÉVÉLÉ, pas la relecture: sans le `1/30`
+// dans les issues, « le champ n'est pas rendu » et « rien à congeler » rendent
+// exactement la même charge.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ LOT C — `mealShoppingPayload` rend `freeze_on_purchase`, TOUJOURS", () => {
+  const payload = mealShoppingPayload({
+    shopping_list: [
+      { term: "poisson", quantity: "400 g", aisle: "protein", food_group: "white_fish", buy_on: "2026-09-05", freeze_on_purchase: true },
+      { term: "lentilles", quantity: "500 g", aisle: "pantry", food_group: "legumes", buy_on: "2026-09-05" },
+    ],
+    // deno-lint-ignore no-explicit-any
+  } as any);
+  assertEquals(payload.length, 2);
+  assertEquals(payload[0].freeze_on_purchase, true, "la marque posée doit sortir");
+  // ⛔ `false`, JAMAIS ABSENT. La clé manquante et « rien à congeler » se
+  // liraient pareil à l'écran.
+  assertEquals(payload[1].freeze_on_purchase, false);
+  assert("freeze_on_purchase" in payload[1], "la clé doit être présente même à false");
+  // La date continue de partir avec, et les deux voyagent ensemble.
+  assertEquals(payload[0].buy_on, "2026-09-05");
 });

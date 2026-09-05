@@ -232,6 +232,58 @@ export function safetyOf(raw: unknown): unknown[] | null {
  * clé de schéma sont éloignées dans le prompt. La frontière goût/sécurité est
  * donc écrite SUR la ligne de `"kind"`, pas dans un paragraphe plus bas.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-04 — LA PORTÉE MANQUAIT, ET UN FOYER ENTIER A MANGÉ VÉGÉTARIEN.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUI A ÉTÉ MESURÉ, SUR UNE CAMPAGNE RÉELLE ──────────────────────────
+ * La note d'un cycle disait: **« On mange végétarien le lundi soir. »** Un dîner
+ * par semaine. Ce bloc l'a fait ranger en `{"kind":"diet","ref":"vegetarian",
+ * "member_id":null}`, et trois maillons ont fait le reste — le sujet vide vaut
+ * « la personne qui écrit » (la titulaire), `DEFAULT_SEVERITY.diet` vaut
+ * `strict`, et la contrainte dure d'une bouche gouverne TOUT ce que le foyer
+ * cuisine, achète, met en boîte et sert.
+ *
+ * ⇒ **Quatre omnivores ont mangé végétarien à tous les repas, et rien ne le
+ * disait.** Le symptôme ressemblait même à une amélioration: le plat devient
+ * commun partout (`common_pot_day` au maximum) et les refus « quelqu'un n'a
+ * rien à manger » s'ARRÊTENT — parce qu'il n'y a plus rien à échanger.
+ *
+ * ⛔ LES DEUX AUTRES MAILLONS SONT JUSTES, ET ON N'Y TOUCHE PAS. Le `null` est
+ * correct — « je suis végétarienne » n'a pas de sujet. Le défaut de sévérité est
+ * correct, et son propre commentaire dit pourquoi: plus bas produirait une
+ * contrainte enregistrée, visible en base et INERTE, la pire des trois issues.
+ * Et la gouvernance par le foyer est la doctrine, pas un défaut.
+ *
+ * **Le trou était ici, dans la consigne, et il est réparé ici.**
+ *
+ * ── LE DISCRIMINANT EST SUR LA LIGNE DE LA CLÉ, comme le premier ───────────
+ * Ce bloc séparait déjà le GOÛT de la SÉCURITÉ sur la ligne de `kind`, avec un
+ * exemple travaillé, et un test vérifie que l'exemple n'a pas quitté la ligne
+ * (cicatrice chiffrée: 0 % de conformité quand la promesse et la clé sont
+ * éloignées). Le second discriminant — la PORTÉE — est posé au même endroit et
+ * de la même façon, plus une ligne à part qui donne la règle générale.
+ *
+ * ── ⚠️ CE QUE CE CORRECTIF NE FAIT PAS, ET IL FAUT LE LIRE ────────────────
+ * **Une consigne de prompt régresse en réel.** C'est la loi que
+ * `household_restriction_lock.ts` a tirée d'un run — le prompt interdisait de
+ * commenter les règles de maison, et le modèle a écrit « SANS NUTELLA » — et le
+ * défaut ci-dessus en est la seconde démonstration. Ce lot se mesure donc par un
+ * TIR RÉEL sur une note de rythme, jamais par un test vert.
+ *
+ * ⛔ ET ON N'ÉCRIT AUCUN MATCHER DE REFUS SUR LE TEXTE. La sortie tentante —
+ * chercher « le lundi », « au dîner » dans la phrase et jeter l'entrée — est la
+ * seule qu'on n'a pas le droit de prendre: un faux positif jetterait une VRAIE
+ * ligne de sécurité (« je suis allergique aux arachides depuis lundi »),
+ * c'est-à-dire fail-OPEN sur la sécurité.
+ *
+ * ⚠️ LA SORTIE DURE EST LA CLARIFICATION, et elle n'est pas dans ce lot. Le
+ * canal existe (`MEMORY_CLARIFICATION_ABOUTS`) et la question est courte: « tu
+ * manges végétarien le lundi soir — est-ce que ça vaut pour tous tes repas ? ».
+ * Elle appartient au lot qui tient la chaîne de mémoire. Voie NON PRISE, nommée
+ * ici avec sa raison pour que personne ne la redécouvre comme un oubli.
+ */
 export const SAFETY_DECLARATION_PROMPT_BLOCK = [
   "",
   // ⟳ 2026-09-04 — CETTE LIGNE ÉTAIT PÉRIMÉE, ET ELLE MENTAIT AU MODÈLE. Elle
@@ -249,11 +301,14 @@ export const SAFETY_DECLARATION_PROMPT_BLOCK = [
     SAFETY_DECLARATION_ALLOWED_KINDS.join(" | ")
   } — and NEVER ${
     SAFETY_DECLARATION_REFUSED_KINDS.join(", NEVER ")
-  }: "no peanuts, they make me ill" is a safety fact and belongs here; "I don't like peanuts" is a taste and belongs in "items" as food.exclude,`,
+  }: "no peanuts, they make me ill" is a safety fact and belongs here; "I don't like peanuts" is a taste and belongs in "items" as food.exclude; "we eat vegetarian on Monday nights" is a RHYTHM, not a diet -- it holds on ONE occasion, so it belongs in "items" and NEVER here,`,
   '  "ref": the thing itself as ONE lowercase english word or short slug — peanut, lactose, gluten, shellfish, vegetarian, vegan, halal. Never a sentence, never their whole phrase,',
   '  "member_id": null when it is the person writing. An id COPIED EXACTLY from the roster when the note says it is someone else — same rule as "items": if you cannot tell WHO, leave the entry out entirely. An allergy written on the wrong person is worse than one not written,',
   '  "text": their own sentence, so we can tell them what we understood',
   "}",
+  "",
+  "",
+  "⛔ A line here holds at EVERY meal, for good. If the note ties it to a day, a moment or a frequency -- \"on Mondays\", \"at dinner\", \"twice a week\", \"during Lent\" -- it is not a safety fact whatever words it uses, and it goes in \"items\". A diet that holds one evening a week is not a diet: it is a rhythm.",
   "",
   "Return \"safety\": [] when the note says nothing about any of these. That is the normal answer.",
   "⛔ You do NOT choose how serious it is. Never return a severity.",

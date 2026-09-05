@@ -65,6 +65,15 @@ export interface PlanDraftDialogProps {
   /** Les phrases de Lot A. `[]` = rien à expliquer, et ce n'est pas un manque. */
   rationale: readonly string[];
   /**
+   * CE QUE LE PLAN A DÛ PESER — écrit par le MODÈLE, gardé côté serveur.
+   *
+   * ⚠️ REQUISE ET NULLABLE-PAR-LE-VIDE, jamais optionnelle: un `?` rendrait le
+   * bloc invisible chez tout appelant qui l'oublie, et un bloc absent est
+   * indiscernable d'un modèle qui n'écrit rien. `[]` se dit, et se dit en
+   * silence à l'écran (aucun titre au-dessus du vide).
+   */
+  explanation: readonly string[];
+  /**
    * ⚠️ PROP AJOUTÉE AU CONTRAT §4.4, ET REQUISE. LE FAIT, JAMAIS LE MOTIF.
    *
    * La garde d'entrée refuse LA CLAUSE, pas le texte: « des pizzas tous les
@@ -95,7 +104,17 @@ export interface PlanDraftDialogProps {
 }
 
 export default function PlanDraftDialog(props: PlanDraftDialogProps) {
-  const { open, onClose, draft, rationale, droppedClauses, onRemix, onAdopt, busy } =
+  const {
+    open,
+    onClose,
+    draft,
+    rationale,
+    explanation,
+    droppedClauses,
+    onRemix,
+    onAdopt,
+    busy,
+  } =
     props;
 
   const [note, setNote] = React.useState("");
@@ -231,6 +250,44 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           <p role="alert" className="mt-2 text-sm leading-6 text-red-700 break-words">
             {failure.message}
           </p>
+        )
+        : null}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          LES CHOIX DE SOPHIA — et pourquoi ce bloc est AU-DESSUS de l'autre.
+          ══════════════════════════════════════════════════════════════════
+          Ces lignes-ci sont écrites par le MODÈLE, sur les arbitrages qu'il a
+          dû prendre en composant: une envie qui tire contre une direction, un
+          plat demandé qui porte un aliment qu'une bouche évite. Celles du bloc
+          suivant sont des GABARITS déterministes sur le calendrier et les
+          courses.
+
+          ⛔ AU-DESSUS, ET C'EST UNE DÉCISION. La prose du modèle EST
+          l'explication que la personne cherche; les phrases fixes sont son
+          plancher — vraies quoi qu'il arrive, y compris quand la garde a tout
+          jeté. Mettre le plancher en premier ferait lire l'explication comme
+          une note de bas de page.
+
+          ⛔ ET ELLES NE SE CONTREDISENT PAS PAR CONSTRUCTION, pas par leur
+          ordre: le serveur donne au modèle, AVANT la génération, les faits déjà
+          tranchés (fenêtre, sessions, jours hors de portée) et lui dit que
+          l'app les redit en phrases fixes sous son texte. Une annotation ne se
+          rattache pas à un texte par la proximité — cicatrice payée deux fois
+          ici.
+
+          Vide = il n'y avait rien à arbitrer, OU la garde a refusé le bloc. Les
+          deux se rendent pareil: aucun titre au-dessus du vide. Le serveur, lui,
+          les compte séparément. */}
+      {explanation.length > 0
+        ? (
+          <Card className="mt-3">
+            <SectionLabel>{t("plan.explanation.title")}</SectionLabel>
+            <ul className="mt-1 flex flex-col gap-1 pl-4 text-sm leading-6 text-ink-soft">
+              {explanation.map((line, i) => (
+                <li key={`${i}:${line}`} className="break-words">{line}</li>
+              ))}
+            </ul>
+          </Card>
         )
         : null}
 

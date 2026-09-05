@@ -3092,6 +3092,12 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
+  // ⟳ v26 (2026-09-04) — LE PLAN DIT CE QU'IL A PESÉ. L'enveloppe FOYER gagne
+  // deux blocs — `EXPLANATION_SCHEMA_BLOCK` côté système, `DECIDED BEFORE YOU`
+  // côté message — et le TRONC ne bouge pas d'un octet: la clé `explanation`
+  // n'existe que sur cette lane, et la demander au solo serait une consigne sur
+  // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
+  // (message byte-identique à v25), v26 avec.
   assertEquals(HOUSEHOLD_PROMPT_VERSION, "v27_the_swap_cooks_apart");
 });
 
