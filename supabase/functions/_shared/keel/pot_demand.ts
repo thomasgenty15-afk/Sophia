@@ -327,6 +327,16 @@ export function neededPotFactor(
    * sur un type étranger désarme le typecheck » est une cicatrice de ce dépôt.
    */
   anchors: ReadonlyMap<string, { raw: number | null; factor: number }>,
+  /**
+   * ⟳ 2026-09-05 — LA MASSE RÉELLE DU POT, quand elle est connue. Mesuré sur
+   * C03 après le regram: le quinoa faisait ~3 900 g prêts et les boîtes en
+   * tiraient 4 506 g DÈS LE DÉPART; le facteur, calculé sur les tirages
+   * (« now »), ne grossissait le pot que du surplus d'ancrage, jamais de
+   * l'écart initial — et le plafond de récipient rabotait ensuite les boîtes
+   * sur 12 journées-bouche. Quand la masse est connue et positive, c'est
+   * ELLE la base; sinon, les tirages, comme avant.
+   */
+  potMass: ReadonlyMap<string, number | null> = new Map(),
 ): Map<string, number> {
   /** Par casserole: ce qui est tiré aujourd'hui, et ce qui serait tiré ancré. */
   const now = new Map<string, number>();
@@ -356,9 +366,11 @@ export function neededPotFactor(
     }
   }
   const out = new Map<string, number>();
-  for (const [id, base] of now) {
-    if (base <= 0) continue;
-    out.set(id, (wanted.get(id) ?? base) / base);
+  for (const [id, drawn] of now) {
+    if (drawn <= 0) continue;
+    const mass = potMass.get(id) ?? null;
+    const base = mass !== null && mass > 0 ? mass : drawn;
+    out.set(id, (wanted.get(id) ?? drawn) / base);
   }
   return out;
 }

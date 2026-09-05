@@ -8115,6 +8115,13 @@ Deno.serve(async (req) => {
       new Map(
         [...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }]),
       ),
+      // ⟳ 2026-09-05: la MASSE du pot (regrammée juste avant), pour que la
+      // croissance rattrape l'écart initial entre pot et tirages, pas
+      // seulement le surplus d'ancrage. Nulle quand le référentiel manque.
+      new Map(meal.preparations.map((prep) => [
+        prep.id,
+        composition ? preparationReadyGrams(prep.ingredients, composition) : null,
+      ])),
     );
     const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0 };
     for (const prep of meal.preparations) {

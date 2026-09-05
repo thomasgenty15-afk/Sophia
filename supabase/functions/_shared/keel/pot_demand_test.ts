@@ -392,3 +392,14 @@ Deno.test("⛔ A2 — LE VOCABULAIRE DES MOTIFS EST FERMÉ", () => {
   assertEquals(new Set(POT_REASONS).size, POT_REASONS.length);
   for (const reason of POT_REASONS) assert(reason.startsWith("pot_"));
 });
+
+// ⟳ 2026-09-05 — LA BASE EST LA MASSE DU POT QUAND ELLE EST CONNUE.
+Deno.test("un pot déjà plus petit que ses tirages grossit de l'écart ENTIER, pas du seul surplus d'ancrage", () => {
+  const meals = [{ shares: [{ key: KEY, grams: 1500 }], uses: [{ preparationId: "p", servings: 1 }] }];
+  const anchors = new Map([[KEY, anchor({ factor: 1, raw: 1 })]]);
+  assertEquals(neededPotFactor(meals, anchors).get("p"), 1);
+  assertEquals(neededPotFactor(meals, anchors, new Map([["p", 1000]])).get("p"), 1.5);
+  assertEquals(neededPotFactor(meals, new Map([[KEY, anchor({ factor: 1.2, raw: 1.2 })]]), new Map([["p", 1000]])).get("p"), 1.8);
+  assertEquals(neededPotFactor(meals, anchors, new Map([["p", null]])).get("p"), 1);
+  assertEquals(neededPotFactor(meals, anchors, new Map([["p", 0]])).get("p"), 1);
+});

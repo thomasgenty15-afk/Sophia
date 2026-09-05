@@ -19,3 +19,12 @@ Deno.test("CÂBLAGE — la lane foyer regramme ses casseroles APRÈS la croissan
   assert(firstAt > -1 && firstAt < growthAt, "le regram d'avant la croissance a disparu");
   assert(/pot_growth: growth,/.test(src), "pot_growth n'est plus archivé tel quel");
 });
+
+Deno.test("CÂBLAGE — la croissance des pots reçoit la MASSE de chaque casserole (regrammée avant)", async () => {
+  const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  const at = src.indexOf("const potGrowth = neededPotFactor(");
+  const call = src.slice(at, src.indexOf("\n    );", at));
+  assert(/composition \? preparationReadyGrams\(prep\.ingredients, composition\) : null/.test(call), "la croissance ne lit plus la masse du pot");
+  const firstRegram = src.indexOf("const regrammed = regramMeal(meal, composition);");
+  assert(firstRegram > -1 && firstRegram < at, "la masse serait lue avant d'être regrammée");
+});
