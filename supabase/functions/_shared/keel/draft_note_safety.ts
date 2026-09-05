@@ -301,14 +301,19 @@ export const SAFETY_DECLARATION_PROMPT_BLOCK = [
     SAFETY_DECLARATION_ALLOWED_KINDS.join(" | ")
   } — and NEVER ${
     SAFETY_DECLARATION_REFUSED_KINDS.join(", NEVER ")
-  }: "no peanuts, they make me ill" is a safety fact and belongs here; "I don't like peanuts" is a taste and belongs in "items" as food.exclude; "we eat vegetarian on Monday nights" is a RHYTHM, not a diet -- it holds on ONE occasion, so it belongs in "items" and NEVER here,`,
+  }: "no peanuts, they make me ill" is a safety fact and belongs here; "I don't like peanuts" is a taste and belongs in "items" as food.exclude; "we eat vegetarian on Monday nights" is a RHYTHM, not a diet -- it holds on ONE occasion, so it belongs in "notes" with its "when" and NEVER here,`,
   '  "ref": the thing itself as ONE lowercase english word or short slug — peanut, lactose, gluten, shellfish, vegetarian, vegan, halal. Never a sentence, never their whole phrase,',
   '  "member_id": null when it is the person writing. An id COPIED EXACTLY from the roster when the note says it is someone else — same rule as "items": if you cannot tell WHO, leave the entry out entirely. An allergy written on the wrong person is worse than one not written,',
   '  "text": their own sentence, so we can tell them what we understood',
   "}",
   "",
   "",
-  "⛔ A line here holds at EVERY meal, for good. If the note ties it to a day, a moment or a frequency -- \"on Mondays\", \"at dinner\", \"twice a week\", \"during Lent\" -- it is not a safety fact whatever words it uses, and it goes in \"items\". A diet that holds one evening a week is not a diet: it is a rhythm.",
+  "⛔ A line here holds at EVERY meal, for good. If the note ties it to a day, a moment or a frequency -- \"on Mondays\", \"at dinner\", \"twice a week\", \"during Lent\" -- it is not a safety fact whatever words it uses, and it goes in \"notes\" with its \"when\". A diet that holds one evening a week is not a diet: it is a rhythm.",
+  // ⟳ 2026-09-05 — LA TROISIÈME ISSUE, SUR LA MÊME LIGNE QUE LES DEUX AUTRES.
+  // Entre « toujours » et « un soir par semaine », la phrase qui ne dit rien
+  // de sa portée. Deviner écrit une ceinture sur une supposition; la sortie
+  // est la question `scope` de la liste `clarify` (règle SCOPE, plus haut).
+  "⛔ And when the note names a diet WITHOUT saying whether it always holds -- \"we eat vegetarian\", \"we try to eat vegan\", \"we mostly skip meat these days\" -- put NOTHING here and nothing in the drawers above: it goes in \"clarify\" with \"about\": \"scope\" (rule SCOPE), carrying this very entry under \"safety\". They will be asked, once.",
   "",
   "Return \"safety\": [] when the note says nothing about any of these. That is the normal answer.",
   "⛔ You do NOT choose how serious it is. Never return a severity.",

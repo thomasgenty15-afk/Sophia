@@ -30,6 +30,8 @@
 import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 
 import {
+  safetyHeldForScope,
+  withoutSafetyHeldForScope,
   buildDraftNoteClassifyPrompt,
   DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT,
   DRAFT_NOTE_FORBIDDEN_KINDS,
@@ -1333,4 +1335,218 @@ Deno.test("⑤ la ligne de schéma périmée du bloc sécurité est partie", () 
   // A. Deux lignes de schéma contradictoires dans le même prompt, dont une
   // fausse: le modèle en suit une, et personne ne sait laquelle.
   assert(!DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('{ "items": ['));
+});
+
+
+// ===========================================================================
+// ⑤ ⟳ 2026-09-05 — LA PORTÉE D'UNE RÈGLE DE RÉGIME
+//
+// « On mange végétarien » sans plus: toujours (⇒ sécurité, stricte, qui
+// gouverne tout le foyer) ou parfois (⇒ une note) ? La relecture ne devine
+// pas: elle garde la déclaration EN ATTENTE, impose les deux jetons, et
+// range l'entrée nulle part ailleurs.
+// ===========================================================================
+
+function scopeRow(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    about: "scope",
+    gate: "notes",
+    entry: { text: "on mange végétarien", member_id: null, when: null },
+    safety: { kind: "diet", ref: "vegetarian", member_id: null, text: "On mange végétarien." },
+    options: ["always", "sometimes"],
+    ...over,
+  };
+}
+
+Deno.test("⑤ PORTÉE — le cas qui passe: en attente, avec sa déclaration, et RIEN de rangé", () => {
+  const out = read({ preferences: [], notes: [], next_plan: [], skipped: [], safety: [], clarify: [scopeRow()] });
+  assert(out.ok);
+  const c = out.classification;
+  assertEquals(c.clarify.kept, 1);
+  assertEquals(c.clarify.scope, 1);
+  assertEquals(c.clarify.who, 0);
+  assertEquals(c.preferences.kept, 0);
+  assertEquals(c.notes.kept, 0);
+  const entry = c.clarify.entries[0];
+  assertEquals(entry.about, "scope");
+  assertEquals(entry.gate, "notes");
+  assertEquals(entry.kind, null);
+  assertEquals(entry.subject, "household");
+  assertEquals(entry.when, null);
+  assertEquals(entry.safety?.kind, "diet");
+  assertEquals(entry.safety?.ref, "vegetarian");
+  assertEquals(entry.safety?.memberId, null);
+  // ⛔ LES OPTIONS SONT IMPOSÉES, jamais celles du modèle.
+  assertEquals(entry.options, ["always", "sometimes"]);
+});
+
+Deno.test("⑤ PORTÉE — les options du modèle sont IGNORÉES: deux jetons, dans cet ordre", () => {
+  const out = read({ clarify: [scopeRow({ options: ["sometimes", "always", "never"] })] });
+  assertEquals(out.classification.clarify.entries[0].options, ["always", "sometimes"]);
+  const none = read({ clarify: [scopeRow({ options: [] })] });
+  assertEquals(none.classification.clarify.kept, 1);
+});
+
+Deno.test("⑤ PORTÉE — une bouche nommée: le sujet ET la déclaration la portent", () => {
+  const out = read({
+    clarify: [scopeRow({
+      entry: { text: "elle est plutôt végé", member_id: ZOE, when: null },
+      safety: { kind: "diet", ref: "vegetarian", member_id: ZOE, text: "Zoé est plutôt végé" },
+    })],
+  });
+  const entry = out.classification.clarify.entries[0];
+  assertEquals(entry.subject, `member:${ZOE}`);
+  assertEquals(entry.safety?.memberId, ZOE);
+});
+
+Deno.test("⛔ ⑤ PORTÉE — sans déclaration relisable, l'entrée tombe (malformed), jamais devinée", () => {
+  const cases: Record<string, unknown>[] = [
+    scopeRow({ safety: undefined }),
+    scopeRow({ safety: { kind: "dislike", ref: "vegetarian", member_id: null } }),
+    scopeRow({ safety: { kind: "diet", ref: "", member_id: null } }),
+    scopeRow({ safety: { kind: "diet", ref: "vegetarian", member_id: "99999999-9999-4999-8999-999999999999" } }),
+  ];
+  for (const row of cases) {
+    const out = read({ clarify: [row] });
+    assertEquals(out.classification.clarify.kept, 0, JSON.stringify(row.safety));
+    assertEquals(out.classification.clarify.refused.malformed, 1);
+    assertEquals(out.classification.notes.kept, 0);
+  }
+});
+
+Deno.test("⛔ ⑤ PORTÉE — une porte autre que la note est refusée (badGate)", () => {
+  const out = read({ clarify: [scopeRow({ gate: "preferences", entry: { kind: "food.exclude", text: "viande", member_id: null } })] });
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.badGate, 1);
+});
+
+Deno.test("⑤ PORTÉE — la règle est dans le prompt, À CÔTÉ de la clé `about`, et le bloc sécurité y renvoie", () => {
+  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  assert(prompt.includes('"about": "scope"'), "la règle SCOPE a quitté le prompt");
+  assert(/\["always", "sometimes"\]/.test(prompt), "les deux jetons ne sont plus nommés");
+  // Les deux bornes qui ne sont PAS des questions: le rythme (une note avec
+  // son `when`) et le régime dit pour de bon (sécurité).
+  assert(/NOT ambiguous/.test(prompt));
+  // Le bloc sécurité renvoie vers `clarify` sur le même cas — sinon le
+  // modèle lit deux consignes contradictoires sur la même phrase.
+  assert(/put NOTHING here and nothing in the drawers above: it goes in "clarify" with "about": "scope"/.test(prompt));
+  // Et le rythme va dans la note avec son when, plus dans « items ».
+  assert(/it goes in "notes" with its "when"/.test(prompt));
+  assert(!/it goes in "items"/.test(prompt), "l'ancienne destination « items » est revenue");
+});
+
+
+Deno.test("⑤ PORTÉE — la déclaration DANS `entry` est lue comme celle à côté (premier tir réel)", () => {
+  const out = read({
+    clarify: [scopeRow({
+      safety: undefined,
+      entry: { text: "on mange végétarien", member_id: null, when: null, safety: { kind: "diet", ref: "vegetarian", member_id: null, text: "On mange végétarien." } },
+    })],
+  });
+  assertEquals(out.classification.clarify.kept, 1);
+  assertEquals(out.classification.clarify.entries[0].safety?.ref, "vegetarian");
+});
+
+Deno.test("⛔ ⑤ PORTÉE — une question posée RETIENT le régime que le modèle a aussi mis dans `safety`", () => {
+  // Mesuré le 2026-09-05 sur « On mange végétarien. »: question `scope` ET
+  // `safety: [{diet, vegetarian}]` dans la même réponse. Sans cette garde, la
+  // contrainte stricte de la titulaire est écrite — exactement ce que la
+  // question existe pour empêcher.
+  const raw = {
+    preferences: [], notes: [], next_plan: [], skipped: [],
+    clarify: [scopeRow()],
+    safety: [
+      { kind: "diet", ref: "vegetarian", member_id: null, text: "On mange végétarien." },
+      { kind: "allergy", ref: "peanut", member_id: null, text: "allergique aux arachides" },
+    ],
+  };
+  const held = safetyHeldForScope(raw);
+  assertEquals([...held], ["vegetarian"]);
+  const out = withoutSafetyHeldForScope(raw.safety, held);
+  assertEquals(out.held, 1);
+  // ⛔ L'ALLERGIE PASSE: aucune question ne porte sur elle, et la retenir
+  // serait fail-open sur la santé.
+  assertEquals(out.safety?.length, 1);
+  assertEquals((out.safety![0] as Record<string, unknown>).kind, "allergy");
+});
+
+Deno.test("⛔ ⑤ PORTÉE — la question REFUSÉE (forme fausse) retient quand même la contrainte", () => {
+  // Une forme fausse ne doit pas écrire ce que la forme juste retient.
+  const raw = {
+    clarify: [scopeRow({ gate: "preferences", entry: { kind: "food.exclude", text: "viande", member_id: null } })],
+    safety: [{ kind: "diet", ref: "vegetarian", member_id: null }],
+  };
+  assertEquals(withoutSafetyHeldForScope(raw.safety, safetyHeldForScope(raw)).held, 1);
+});
+
+Deno.test("⑤ PORTÉE — sans question de portée, rien n'est retenu ; un autre `ref` non plus", () => {
+  assertEquals(safetyHeldForScope({ clarify: [clarifyRow()], safety: [{ kind: "diet", ref: "vegan" }] }).size, 0);
+  const held = safetyHeldForScope({ clarify: [scopeRow()] });
+  assertEquals(withoutSafetyHeldForScope([{ kind: "diet", ref: "vegan", member_id: null }], held).held, 0);
+  assertEquals(withoutSafetyHeldForScope(null, held).safety, null);
+});
+
+Deno.test("⑤ PORTÉE — la trace porte `clarify_scope`", () => {
+  const out = read({ clarify: [scopeRow()] });
+  const trace = draftNoteClassifyTrace(out.classification) as Record<string, unknown>;
+  assertEquals(trace.clarify_scope, 1);
+});
+
+
+Deno.test("⑤ PORTÉE — LE TIR RÉEL du 2026-09-05: déclaration dans la liste `safety`, pas dans l'entrée", () => {
+  // Réponse brute du modèle, recopiée: la question `scope` sans `safety`, et
+  // le régime dans la liste du haut. La relecture prend le candidat au même
+  // sujet (seul), la question tient, et la garde retient le régime.
+  const raw = {
+    preferences: [], notes: [], next_plan: [], skipped: [],
+    clarify: [{ about: "scope", gate: "notes", entry: { text: "On mange végétarien.", member_id: null, when: null }, options: ["always", "sometimes"] }],
+    safety: [{ kind: "diet", ref: "vegetarian", member_id: null, text: "On mange végétarien." }],
+  };
+  const out = read(raw);
+  assertEquals(out.classification.clarify.kept, 1);
+  assertEquals(out.classification.clarify.entries[0].safety?.ref, "vegetarian");
+  const held = safetyHeldForScope(raw);
+  assertEquals(withoutSafetyHeldForScope(raw.safety, held).held, 1);
+});
+
+Deno.test("⛔ ⑤ PORTÉE — deux régimes candidats au même sujet: la question tombe, et les DEUX sont retenus", () => {
+  const raw = {
+    clarify: [{ about: "scope", gate: "notes", entry: { text: "on est plutôt végé, parfois vegan", member_id: null, when: null }, options: ["always", "sometimes"] }],
+    safety: [
+      { kind: "diet", ref: "vegetarian", member_id: null },
+      { kind: "diet", ref: "vegan", member_id: null },
+      { kind: "allergy", ref: "peanut", member_id: null },
+    ],
+  };
+  const out = read(raw);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.malformed, 1);
+  const filtered = withoutSafetyHeldForScope(raw.safety, safetyHeldForScope(raw));
+  assertEquals(filtered.held, 2);
+  assertEquals((filtered.safety![0] as Record<string, unknown>).kind, "allergy");
+});
+
+Deno.test("⑤ PORTÉE — le candidat de la liste `safety` doit avoir le MÊME sujet que l'entrée", () => {
+  // Question sur la table, régime sur Zoé dans la liste: ce n'est pas la même
+  // chose, la question tombe et le régime de Zoé s'écrit normalement.
+  const raw = {
+    clarify: [{ about: "scope", gate: "notes", entry: { text: "on mange végétarien", member_id: null, when: null }, options: ["always", "sometimes"] }],
+    safety: [{ kind: "diet", ref: "vegetarian", member_id: ZOE }],
+  };
+  assertEquals(read(raw).classification.clarify.kept, 0);
+  assertEquals(withoutSafetyHeldForScope(raw.safety, safetyHeldForScope(raw)).held, 0);
+});
+
+
+Deno.test("⑤ ⟳ 2026-09-05 — un `when` aux deux clés nulles vaut « pas de moment » (troisième tir réel)", () => {
+  const scope = read({ clarify: [scopeRow({ entry: { text: "on mange végétarien", member_id: null, when: { weekday: null, slot: null } } })] });
+  assertEquals(scope.classification.clarify.kept, 1);
+  assertEquals(scope.classification.clarify.entries[0].when, null);
+  // Même règle à la porte ③: le gabarit rempli de `null` n'est pas un moment.
+  const note = read({ notes: [{ text: "elle rentre tard", member_id: ZOE, when: { weekday: null, slot: null } }] });
+  assertEquals(note.classification.notes.kept, 1);
+  assertEquals(note.classification.notes.lines[0].when, null);
+  // Un jour illisible reste un refus nommé.
+  const bad = read({ notes: [{ text: "elle rentre tard", member_id: ZOE, when: { weekday: "lundi", slot: null } }] });
+  assertEquals(bad.classification.notes.refused.badWhen, 1);
 });

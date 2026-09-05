@@ -1,9 +1,12 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  clarificationEscapeLabel,
+  clarificationOptionLabel,
   MEMORY_CLARIFICATION_ABOUTS,
   MEMORY_CLARIFICATION_BUTTON_PREFIX,
   MEMORY_CLARIFICATION_MAX_OPTIONS,
+  MEMORY_CLARIFICATION_SCOPE_OPTIONS,
   MEMORY_VIEW_BUTTON_PAYLOAD_PREFIX,
   memoryClarificationNoneId,
   memoryClarificationPickId,
@@ -52,8 +55,11 @@ function pendingWho(over: Partial<PendingClarification> = {}): PendingClarificat
 // 1. Le vocabulaire
 // ---------------------------------------------------------------------------
 
-Deno.test("les deux `about`, et la liste est fermée", () => {
-  assertEquals([...MEMORY_CLARIFICATION_ABOUTS], ["who", "what"]);
+Deno.test("les trois `about`, et la liste est fermée", () => {
+  // ⟳ 2026-09-05 — `scope` rejoint `who` et `what`: la portée d'une règle de
+  // régime. Miroir du CHECK de la migration 20260905190000.
+  assertEquals([...MEMORY_CLARIFICATION_ABOUTS], ["who", "what", "scope"]);
+  assertEquals([...MEMORY_CLARIFICATION_SCOPE_OPTIONS], ["always", "sometimes"]);
 });
 
 Deno.test("quatre options au plus — au-delà c'est un formulaire", () => {
@@ -322,4 +328,120 @@ Deno.test("les deux langues, et jamais l'anglais par défaut", () => {
   });
   assert(en !== fr);
   assert(en.includes("fish"));
+});
+
+
+// ---------------------------------------------------------------------------
+// 5. ⟳ 2026-09-05 — LA PORTÉE: deux réponses, deux destinations OPPOSÉES
+// ---------------------------------------------------------------------------
+
+const SCOPE_NOTE = "On mange végétarien.";
+
+function pendingScope(over: Partial<PendingClarification> = {}): PendingClarification {
+  return {
+    about: "scope",
+    gate: "notes",
+    kind: null,
+    text: "on mange végétarien",
+    subject: "household",
+    when: null,
+    note: SCOPE_NOTE,
+    at: "2026-09-05",
+    anchor: "2026-09-07",
+    safety: { kind: "diet", ref: "vegetarian", memberId: null, text: SCOPE_NOTE },
+    ...over,
+  };
+}
+
+Deno.test("PORTÉE — « toujours » rend la DÉCLARATION DE SÉCURITÉ, et rien d'autre", () => {
+  const out = resolveClarification(pendingScope(), "always", {
+    writtenAt: "2026-09-05T18:00:00.000Z",
+  });
+  assert(out !== null);
+  assertEquals(out.safety?.length, 1);
+  assertEquals(out.safety![0].kind, "diet");
+  assertEquals(out.safety![0].ref, "vegetarian");
+  assertEquals(out.safety![0].memberId, null);
+  // ⛔ UNE RÉPONSE N'ÉCRIT QU'À UN ENDROIT. Une contrainte ET une note
+  // feraient lire deux fois la même consigne au modèle, et la carte
+  // montrerait une chose que la fiche santé porte déjà.
+  assertEquals(out.memo, undefined);
+  assertEquals(out.durable, undefined);
+  assertEquals(out.nextPlan, undefined);
+});
+
+Deno.test("PORTÉE — « parfois » rend une NOTE, avec la phrase en citation, et aucune contrainte", () => {
+  const out = resolveClarification(pendingScope(), "sometimes", {
+    writtenAt: "2026-09-05T18:00:00.000Z",
+  });
+  assert(out !== null);
+  assertEquals(out.safety, undefined);
+  assertEquals(out.memo?.length, 1);
+  assertEquals(out.memo![0].text, "on mange végétarien");
+  assertEquals(out.memo![0].quote, SCOPE_NOTE);
+  assertEquals(out.memo![0].subject, "household");
+  assertEquals(out.memo![0].when, null);
+  assertEquals(out.memo![0].source, "draft_note");
+});
+
+Deno.test("PORTÉE — « parfois » sur une bouche nommée garde SA ligne", () => {
+  const out = resolveClarification(
+    pendingScope({
+      subject: `member:${LEA}`,
+      safety: { kind: "diet", ref: "vegan", memberId: LEA, text: SCOPE_NOTE },
+    }),
+    "sometimes",
+    { writtenAt: "2026-09-05T18:00:00.000Z" },
+  );
+  assert(out !== null);
+  assertEquals(out.memo![0].subject, `member:${LEA}`);
+});
+
+Deno.test("⛔ PORTÉE — sans déclaration en attente, RIEN ne s'écrit (ligne d'avant, ou forgée)", () => {
+  // Une ligne `scope` écrite avant le 05/09 n'existe pas; une ligne sans
+  // `safety` ne peut donc être qu'une forge ou une corruption. « toujours »
+  // sur elle écrirait une contrainte dont on ne sait rien: on rend `null`,
+  // l'appelant ferme la question.
+  for (const safety of [undefined, null, { kind: "diet", ref: "", memberId: null, text: "" }]) {
+    const out = resolveClarification(
+      pendingScope({ safety: safety as PendingClarification["safety"] }),
+      "always",
+      { writtenAt: "2026-09-05T18:00:00.000Z" },
+    );
+    assertEquals(out, null);
+  }
+});
+
+Deno.test("⛔ PORTÉE — un jeton hors des deux, ou une porte autre que la note, rend `null`", () => {
+  for (const option of ["", "yes", "toujours", LEA, "poulet rôti"]) {
+    assertEquals(
+      resolveClarification(pendingScope(), option, { writtenAt: "2026-09-05T18:00:00.000Z" }),
+      null,
+      `option « ${option} » acceptée`,
+    );
+  }
+  assertEquals(
+    resolveClarification(pendingScope({ gate: "preferences", kind: "food.exclude" }), "sometimes", {
+      writtenAt: "2026-09-05T18:00:00.000Z",
+    }),
+    null,
+  );
+});
+
+Deno.test("PORTÉE — la question nomme les DEUX bornes, et les deux boutons ont un mot", () => {
+  const fr = renderClarificationQuestion({ about: "scope", text: "on mange végétarien", language: "fr" });
+  assert(fr.includes("« on mange végétarien »"));
+  assert(/tous tes repas/.test(fr) && /tout le temps/.test(fr), fr);
+  const en = renderClarificationQuestion({ about: "scope", text: "we eat vegetarian", language: "en" });
+  assert(/every meal/.test(en) && /all the time/.test(en), en);
+
+  assertEquals(clarificationOptionLabel("scope", "always", "fr"), "Oui, tous mes repas");
+  assertEquals(clarificationOptionLabel("scope", "sometimes", "fr"), "Non, pas toujours");
+  assertEquals(clarificationOptionLabel("scope", "always", "en"), "Yes, every meal");
+  // ⛔ UN JETON INCONNU N'A PAS DE MOT — l'io renonce à la question.
+  assertEquals(clarificationOptionLabel("scope", "yes", "fr"), null);
+  // Sur `who` / `what`, le libellé vient d'ailleurs (prénom, aliment).
+  assertEquals(clarificationOptionLabel("who", LEA, "fr"), null);
+  assertEquals(clarificationEscapeLabel("scope", "fr"), "Passer");
+  assertEquals(clarificationEscapeLabel("scope", "en"), "Skip");
 });

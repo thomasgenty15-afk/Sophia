@@ -55,7 +55,11 @@
  * d'écriture arrivent TOUJOURS en paramètre.
  */
 
-import { SAFETY_DECLARATION_PROMPT_BLOCK } from "./draft_note_safety.ts";
+import {
+  readSafetyDeclarations,
+  SAFETY_DECLARATION_PROMPT_BLOCK,
+  type SafetyDeclaration,
+} from "./draft_note_safety.ts";
 import {
   canProduce,
   HOUSEHOLD_SUBJECT,
@@ -72,6 +76,7 @@ import {
 import {
   MEMORY_CLARIFICATION_ABOUTS,
   MEMORY_CLARIFICATION_MAX_OPTIONS,
+  MEMORY_CLARIFICATION_SCOPE_OPTIONS,
   type ClarificationAbout,
   type PendingClarification,
 } from "./memory_clarification.ts";
@@ -228,6 +233,30 @@ const WHAT_RULES = [
   '  ⛔ If the list of plan foods below is empty, never use "about": "what" at all.',
 ] as const;
 
+/**
+ * ⟳ 2026-09-05 — LA PORTÉE D'UNE RÈGLE DE RÉGIME, la troisième moitié de `clarify`.
+ *
+ * ── LE DÉFAUT QUE CETTE RÈGLE FERME ───────────────────────────────────────
+ * « On mange végétarien le lundi soir » a été rangé en régime STRICT de la
+ * titulaire — et un régime d'une bouche gouverne tout ce que le foyer cuisine:
+ * quatre omnivores ont mangé végétarien à tous les repas (campagne du
+ * 2026-09-04, §8.1). Le bloc de sécurité sépare depuis un RYTHME (un jour, un
+ * moment, une fréquence ⇒ une note avec son `when`) d'un RÉGIME (toujours ⇒
+ * sécurité). Entre les deux reste la phrase qui ne dit ni l'un ni l'autre —
+ * « on mange végétarien », « on essaie de manger vegan » — et la deviner dans
+ * un sens écrit une ceinture sur une supposition, la deviner dans l'autre perd
+ * un vrai régime. La seule sortie est de DEMANDER.
+ *
+ * ⛔ CE N'EST PAS UN MATCHER: le modèle juge, la relecture vérifie la FORME
+ * (une déclaration de sécurité relisable par la même porte que la liste
+ * `safety`) et IMPOSE les deux options. Une entrée `scope` n'est écrite nulle
+ * part tant que la personne n'a pas tapé — c'est exactement la règle de ⑤.
+ */
+const SCOPE_RULES = [
+  '  SCOPE — a diet-like rule (vegetarian, vegan, pescatarian, halal, kosher, no pork, gluten-free, lactose-free…) whose REACH you cannot tell: "we eat vegetarian", "we try to eat vegan", "we mostly skip meat these days", "on est plutôt végé". Said for good and for every meal, it is a safety fact that governs EVERYTHING this table cooks; said as a habit, it is a note. Guessing either way is wrong, so you file it NOWHERE and ask: "about": "scope", "gate": "notes", "entry": { "text": their words, "member_id": see WHO, "when": null, "safety": { "kind", "ref", "member_id", "text" } — the declaration written EXACTLY as the safety list below would take it, carried INSIDE this entry and NOT in the safety list }, and "options": ["always", "sometimes"] — those two words, nothing else.',
+  '  ⛔ NOT ambiguous, so never "scope": a rule tied to a day, a moment or a frequency ("on Mondays", "at dinner", "twice a week") is a note with its "when" (3); a rule said plainly for good ("I am vegetarian", "my son is vegan", "we are a halal household") goes in "safety" below. Only the sentence that names a diet WITHOUT saying whether it always holds is a scope question.',
+];
+
 export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "You read ONE short note someone wrote on a DRAFT meal plan, and you FILE what it says into the right drawer. You are a filing clerk. You are not a nutritionist, you do not write the plan, and you have no opinion on what they want.",
   "",
@@ -285,17 +314,19 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   // ── PORTE ⑤ — ce qu'on n'a pas pu ranger FAUTE D'UNE PRÉCISION ──────────
   // La promesse est SUR la ligne du titre, et le schéma juste après: une
   // consigne séparée de sa clé par trois paragraphes n'est pas lue.
-  '5. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about, or WHICH food it means. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3 or 4. They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
+  '5. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about, WHICH food it means, or — for a diet-like rule — whether it holds ALWAYS or only SOMETIMES. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3, 4 or "safety". They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
   "{",
   `  "about": exactly one of ${MEMORY_CLARIFICATION_ABOUTS.join(" | ")},`,
   `  "gate": exactly one of ${DRAFT_NOTE_GATES.join(" | ")} — the drawer it WOULD have gone to,`,
   '  "entry": the entry exactly as you would have written it in that drawer (same keys), with "member_id": null when you are asking who,',
-  `  "options": between 1 and ${MEMORY_CLARIFICATION_MAX_OPTIONS} candidates — member ids from the roster when "about" is "who", plan foods copied EXACTLY when it is "what". Never a first name, never a food you rephrased, never more than ${MEMORY_CLARIFICATION_MAX_OPTIONS}.`,
+  `  "options": between 1 and ${MEMORY_CLARIFICATION_MAX_OPTIONS} candidates — member ids from the roster when "about" is "who", plan foods copied EXACTLY when it is "what", the two words ["always", "sometimes"] when it is "scope". Never a first name, never a food you rephrased, never more than ${MEMORY_CLARIFICATION_MAX_OPTIONS}.`,
   "}",
   "",
   ...WHO_RULES,
   "",
   ...WHAT_RULES,
+  "",
+  ...SCOPE_RULES,
   "",
   "NEVER file an allergy, an intolerance, a diet, or a medical condition in any of these drawers. \"no peanuts, they make me ill\" is at most a food.exclude — you are filing a preference, never a medical fact. Those have their own list below.",
   // ⛔ LA SECONDE LISTE — arbitrage du 2026-09-01. Le bloc vit dans
@@ -464,8 +495,15 @@ export interface DraftNoteClarifyEntry {
   /** Le sujet DÉJÀ connu. `null` quand c'est justement ce qu'on demande. */
   readonly subject: RetainedSubject | null;
   readonly when: MemoWhen | null;
-  /** Les candidats — ids du rôle, ou aliments du plan. Vérifiés, jamais crus. */
+  /** Les candidats — ids du rôle, aliments du plan, ou les deux jetons de portée. Vérifiés, jamais crus. */
   readonly options: readonly string[];
+  /**
+   * ⟳ 2026-09-05 — SUR `scope` SEULEMENT: la déclaration de sécurité qui
+   * s'écrira si la personne répond « toujours ». Relue par
+   * `readSafetyDeclarations`, donc de la même forme que la liste `safety`.
+   * Absente sur `who` / `what`.
+   */
+  readonly safety?: SafetyDeclaration | null;
 }
 
 export interface DraftNoteClassification {
@@ -487,9 +525,10 @@ export interface DraftNoteClassification {
    */
   readonly clarify: DraftNoteGateCount & {
     readonly entries: readonly DraftNoteClarifyEntry[];
-    /** Combien portaient sur la personne, combien sur l'aliment. */
+    /** Combien portaient sur la personne, sur l'aliment, sur la portée. */
     readonly who: number;
     readonly what: number;
+    readonly scope: number;
   };
   /**
    * Les listes que le modèle a OMISES (clé absente). `[]` est une réponse;
@@ -552,6 +591,7 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
     entries: [],
     who: 0,
     what: 0,
+    scope: 0,
   },
   listsMissing: [],
 };
@@ -629,6 +669,32 @@ function sumRefusals(parts: readonly DraftNoteRefusals[]): DraftNoteRefusals {
  *   fait retomber la ligne sur la règle du jour; un appelant vivant le passe.
  * @param note la note d'origine — elle borne `text` et devient la citation.
  */
+/**
+ * ⟳ 2026-09-05 — `{ "weekday": null, "slot": null }` VEUT DIRE « pas de moment ».
+ *
+ * Mesuré au troisième tir réel de la question de portée: le modèle a rendu le
+ * schéma de `when` avec ses deux clés à `null` au lieu de `null` tout court,
+ * et `parseMemoWhen` l'a lu `unreadable` (à raison: un objet sans jour ni
+ * moment ne dit rien). Ici, avant la porte, un objet dont AUCUNE clé ne porte
+ * de valeur est la même réponse que `null` — le modèle a rempli le gabarit,
+ * pas inventé un moment. Un objet qui porte un jour ou un moment illisible
+ * reste un refus `badWhen`.
+ */
+function whenOrNull(value: unknown): unknown {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const row = value as Record<string, unknown>;
+    // ⚠️ LES DEUX CLÉS PRÉSENTES ET EXPLICITEMENT `null` — le gabarit rempli.
+    // `{}` reste un refus: « rien dedans » n'est pas « pas de moment ».
+    if (
+      "weekday" in row && "slot" in row && row.weekday === null &&
+      row.slot === null
+    ) {
+      return null;
+    }
+  }
+  return value;
+}
+
 export function readDraftNoteClassification(args: {
   raw: unknown;
   today: string;
@@ -806,7 +872,7 @@ export function readDraftNoteClassification(args: {
     }
     // `when` hors vocabulaire ⇒ REFUS de la ligne, jamais `null`: replier
     // servirait « gros repas » tous les jours au lieu du mardi.
-    const whenRaw = record.when;
+    const whenRaw = whenOrNull(record.when);
     const probe = parseMemoLine({
       text,
       at,
@@ -854,10 +920,12 @@ export function readDraftNoteClassification(args: {
   // ⚠️ L'ORDRE DES REFUS EST CELUI DU COÛT: la forme, puis ce qu'on demande,
   // puis la famille, puis le texte, puis les options — le plus cher en dernier
   // parce qu'il exige de croiser le rôle ou le plan.
+  const rawSafety = rawSafetyOf(args.raw);
   const clarifyRefusals = new Refusals();
   const clarifyEntries: DraftNoteClarifyEntry[] = [];
   let clarifyWho = 0;
   let clarifyWhat = 0;
+  let clarifyScope = 0;
   for (const row of lists.clarify) {
     const record = asRecord(row);
     const entry = record ? asRecord(record.entry) : null;
@@ -878,6 +946,68 @@ export function readDraftNoteClassification(args: {
     }
     const asked = about as ClarificationAbout;
     const drawer = gate as DraftNoteGate;
+
+    // ── ⟳ 2026-09-05 — LA PORTÉE: une déclaration en attente, deux jetons ──
+    //
+    // Une question `scope` n'a qu'une porte de repli (la note), aucune famille,
+    // un sujet DÉJÀ résolu (member_id → bouche, vide → la table), et une
+    // déclaration de sécurité que la MÊME porte que la liste `safety` relit —
+    // un `kind` hors liste, un `ref` vide, une bouche hors rôle la font tomber
+    // (comptée `malformed`: ce n'est pas une option fausse, c'est une entrée
+    // sans la moitié qui s'écrirait). Les options ne viennent JAMAIS du
+    // modèle: ce sont les deux jetons, dans cet ordre, et le tap compare un
+    // index à eux.
+    if (asked === "scope") {
+      if (drawer !== "notes") {
+        clarifyRefusals.badGate += 1;
+        continue;
+      }
+      const text = textOf(entry);
+      if (text === null) {
+        clarifyRefusals.badText += 1;
+        continue;
+      }
+      const resolved = subjectOf(entry);
+      if (resolved === null) {
+        clarifyRefusals.unknownMember += 1;
+        continue;
+      }
+      const when = parseMemoWhen(whenOrNull(entry.when));
+      if (when === "unreadable") {
+        clarifyRefusals.badWhen += 1;
+        continue;
+      }
+      // ⚠️ À CÔTÉ DE `entry` OU DEDANS: le prompt dit « plus "safety" », et le
+      // premier tir réel (2026-09-05) l'a mis DANS `entry`. Les deux formes
+      // portent la même déclaration; refuser l'une ferait tomber une question
+      // que le modèle a bien posée — et écrire la contrainte à la place.
+      const where = scopeDeclarationOf({ record, entry, rawSafety });
+      const safetyRaw = where.own !== undefined
+        ? where.own
+        : where.candidates.length === 1
+        ? where.candidates[0]
+        : undefined;
+      const reading = readSafetyDeclarations({
+        raw: safetyRaw === undefined ? [] : [safetyRaw],
+        memberIds: [...roster],
+      });
+      if (reading.declarations.length !== 1) {
+        clarifyRefusals.malformed += 1;
+        continue;
+      }
+      clarifyScope += 1;
+      clarifyEntries.push({
+        about: asked,
+        gate: drawer,
+        kind: null,
+        text,
+        subject: resolved as RetainedSubject,
+        when,
+        options: [...MEMORY_CLARIFICATION_SCOPE_OPTIONS],
+        safety: reading.declarations[0],
+      });
+      continue;
+    }
 
     // La famille — sauf pour une note, qui n'en a pas.
     let kind: RetainedKind | null = null;
@@ -936,7 +1066,7 @@ export function readDraftNoteClassification(args: {
     // qu'on veut valider, et rien d'autre.
     let when: MemoWhen | null = null;
     if (drawer === "notes") {
-      const parsed = parseMemoWhen(entry.when);
+      const parsed = parseMemoWhen(whenOrNull(entry.when));
       if (parsed === "unreadable") {
         clarifyRefusals.badWhen += 1;
         continue;
@@ -1013,6 +1143,7 @@ export function readDraftNoteClassification(args: {
     entries: clarifyEntries,
     who: clarifyWho,
     what: clarifyWhat,
+    scope: clarifyScope,
   };
   const refused = sumRefusals([
     preferences.refused,
@@ -1148,6 +1279,7 @@ export function draftNoteClassifyTrace(
     clarify_refused_unknown_kind: classification.clarify.refused.unknownKind,
     clarify_who: classification.clarify.who,
     clarify_what: classification.clarify.what,
+    clarify_scope: classification.clarify.scope,
     skipped: classification.skipped.total,
     skipped_degree: classification.skipped.degree,
     skipped_setting: classification.skipped.setting,
@@ -1160,3 +1292,146 @@ export function draftNoteClassifyTrace(
 
 /** Le type d'un item ressorti d'ici, pour les appelants qui veulent l'écrire. */
 export type DraftNoteItem = RetainedItem;
+
+
+/**
+ * ⟳ 2026-09-05 — OÙ LE MODÈLE POSE LA DÉCLARATION D'UNE QUESTION DE PORTÉE.
+ *
+ * Trois formes vues ou prévues, dans cet ordre de préférence: dans `entry`
+ * (ce que le prompt demande), à côté de `entry` (première rédaction du
+ * prompt), ou — mesuré au premier tir réel du 2026-09-05 — NULLE PART dans
+ * l'entrée, avec le régime dans la liste `safety` du haut. Dans ce dernier
+ * cas on prend le candidat de la liste `safety` qui a le même sujet, s'il
+ * est SEUL: deux candidats seraient une devinette, et une devinette sur une
+ * contrainte est le défaut qu'on ferme. `candidates` porte TOUS les régimes
+ * de la liste `safety` au même sujet, pour que la garde de retenue les
+ * tienne même quand la question est refusée.
+ */
+function scopeDeclarationOf(args: {
+  record: Record<string, unknown>;
+  entry: Record<string, unknown>;
+  rawSafety: unknown[] | null;
+}): { readonly own: unknown; readonly candidates: readonly Record<string, unknown>[] } {
+  const own = args.record.safety !== undefined
+    ? args.record.safety
+    : args.entry.safety;
+  const subject = String(args.entry.member_id ?? "").trim().toLowerCase();
+  const candidates = (args.rawSafety ?? []).filter((row) => {
+    const rec = row && typeof row === "object" && !Array.isArray(row)
+      ? row as Record<string, unknown>
+      : null;
+    if (!rec) return false;
+    if (!SCOPE_HELD_KINDS.has(String(rec.kind ?? "").trim().toLowerCase())) return false;
+    const member = String(rec.member_id ?? "").trim().toLowerCase();
+    return (member === "" || member === "null") === (subject === "" || subject === "null") &&
+      (subject === "" || subject === "null" || member === subject);
+  }) as Record<string, unknown>[];
+  return { own, candidates };
+}
+
+/**
+ * ⟳ 2026-09-05 — LES DÉCLARATIONS QU'UNE QUESTION DE PORTÉE RETIENT.
+ *
+ * ── LE DÉFAUT, MESURÉ AU PREMIER TIR RÉEL ─────────────────────────────────
+ * « On mange végétarien. » : le modèle a posé la question `scope` (bien) ET a
+ * écrit `{"kind":"diet","ref":"vegetarian"}` dans la liste `safety` (mal) —
+ * malgré « put NOTHING here ». La contrainte STRICTE de la titulaire a été
+ * écrite, et elle gouverne tout le foyer: exactement ce que la question existe
+ * pour empêcher. Une consigne de prompt régresse en réel; la garde est donc
+ * déterministe, et elle est ici.
+ *
+ * ⛔ FAIL-CLOSED SUR L'ÉCRITURE D'UNE CONTRAINTE, PAS SUR LA SÉCURITÉ. On ne
+ * retient que les déclarations dont le `kind` est un RÉGIME (`diet`,
+ * `religious`) et dont le `ref` normalisé est celui d'une question `scope`
+ * PROPOSÉE par le modèle — refusée ou gardée: la question dit que le modèle
+ * n'a pas su la portée, et une contrainte écrite sur un doute est le défaut.
+ * Une allergie, une intolérance, une condition ne sont JAMAIS retenues: aucune
+ * question ne porte sur elles, et les retenir serait fail-open sur la santé.
+ *
+ * ⚠️ NE LIT QUE LA CHARGE BRUTE. La relecture peut avoir refusé l'entrée
+ * (forme fausse); la déclaration doit être retenue quand même — sinon la forme
+ * fausse d'une question écrit la contrainte que la forme juste retient.
+ */
+export function safetyHeldForScope(raw: unknown): ReadonlySet<string> {
+  const held = new Set<string>();
+  const lists = listsOf(raw);
+  if (!lists) return held;
+  for (const row of lists.clarify) {
+    const record = row && typeof row === "object" && !Array.isArray(row)
+      ? row as Record<string, unknown>
+      : null;
+    if (!record) continue;
+    if (String(record.about ?? "").trim().toLowerCase() !== "scope") continue;
+    const entry = record.entry && typeof record.entry === "object" &&
+        !Array.isArray(record.entry)
+      ? record.entry as Record<string, unknown>
+      : {};
+    const where = scopeDeclarationOf({ record, entry, rawSafety: rawSafetyOf(raw) });
+    // ⚠️ ON RELIT LE `ref` SEUL (`member_id: null`, rôle vide): c'est lui qu'on
+    // retient, pas le sujet — une bouche hors rôle ne doit pas faire écrire.
+    const refOf = (value: unknown): string | null => {
+      const rec = value && typeof value === "object" && !Array.isArray(value)
+        ? value as Record<string, unknown>
+        : null;
+      return rec
+        ? readSafetyDeclarations({ raw: [{ ...rec, member_id: null }], memberIds: [] })
+          .declarations[0]?.ref ?? null
+        : null;
+    };
+    const own = refOf(where.own);
+    if (own) held.add(own);
+    for (const candidate of where.candidates) {
+      const ref = refOf(candidate);
+      if (ref) held.add(ref);
+    }
+  }
+  return held;
+}
+
+/** La liste `safety` brute d'une charge, ou `null` — même tolérance que `safetyOf`. */
+function rawSafetyOf(raw: unknown): unknown[] | null {
+  let value = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const safety = (value as Record<string, unknown>).safety;
+  return Array.isArray(safety) ? safety : null;
+}
+
+/** Les `kind` qu'une question de portée peut retenir — un régime, jamais une allergie. */
+export const SCOPE_HELD_KINDS: ReadonlySet<string> = new Set(["diet", "religious"]);
+
+/**
+ * La liste `safety` sans les déclarations qu'une question de portée retient.
+ * Rend la liste et le nombre retenu, pour que l'appelant le COMPTE.
+ */
+export function withoutSafetyHeldForScope(
+  safety: unknown[] | null,
+  held: ReadonlySet<string>,
+): { readonly safety: unknown[] | null; readonly held: number } {
+  if (!safety || held.size === 0) return { safety, held: 0 };
+  let count = 0;
+  const kept = safety.filter((row) => {
+    const rec = row && typeof row === "object" && !Array.isArray(row)
+      ? row as Record<string, unknown>
+      : null;
+    if (!rec) return true;
+    const kind = String(rec.kind ?? "").trim().toLowerCase();
+    if (!SCOPE_HELD_KINDS.has(kind)) return true;
+    const ref = readSafetyDeclarations({
+      raw: [{ ...rec, member_id: null }],
+      memberIds: [],
+    }).declarations[0]?.ref ?? null;
+    if (ref && held.has(ref)) {
+      count += 1;
+      return false;
+    }
+    return true;
+  });
+  return { safety: kept, held: count };
+}

@@ -1715,6 +1715,10 @@ export async function handleDeterministicButton(
       reply: memclar,
       language,
       nameOf: (id) => roster.get(id) ?? null,
+      // ⟳ 2026-09-05 — une réponse « toujours » écrit une contrainte de
+      // sécurité: la porte veut le rôle (jamais un repli) et la locale.
+      memberIds: [...roster.keys()],
+      contentLocale: voice.contentLocale,
       now,
     });
     await ack(admin, {

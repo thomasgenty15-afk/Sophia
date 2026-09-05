@@ -79,6 +79,14 @@ export interface SafetyWriteOutcome {
   readonly refused: number;
   /** Les écritures qui ont échoué, comptées et jamais avalées. */
   readonly failed: number;
+  /**
+   * ⟳ 2026-09-05 — CE QUI N'A PAS ÉTÉ ÉCRIT, nommé. `failed` comptait; il ne
+   * disait pas QUOI, et l'accusé « j'ai noté » ne nomme que `written`: une
+   * allergie d'enfant refusée par la base restait un chiffre dans un journal.
+   * L'appelant s'en sert pour le DIRE à la personne (« je n'ai pas pu
+   * enregistrer … »), avec le motif de la base quand elle en a donné un.
+   */
+  readonly notWritten: readonly { declaration: SafetyDeclaration; reason: string }[];
 }
 
 /**
@@ -87,9 +95,25 @@ export interface SafetyWriteOutcome {
  * ⛔ DEUX DESTINATIONS, PARCE QUE `student_safety_constraints` EST CLAVETÉE SUR
  * `user_id` et n'a AUCUNE colonne de bouche:
  *   · `memberId === null` → la ligne de la personne qui écrit;
- *   · une bouche nommée   → `keel_household_add_allergy` (allergie,
- *     intolérance, condition) ou `keel_household_set_member_diet` (régime,
+ *   · une bouche nommée   → `keel_household_add_allergy_for` (allergie,
+ *     intolérance, condition) ou `keel_household_set_member_diet_for` (régime,
  *     règle religieuse).
+ *
+ * ══ ⟳ 2026-09-05 — LES VARIANTES `_for`, ET POURQUOI LA BOUCHE N'ÉTAIT JAMAIS ÉCRITE ══
+ * Ce module appelait les RPC de l'ÉCRAN (`keel_household_set_member_diet`,
+ * `keel_household_add_allergy`), gatées sur `auth.uid()` — NULL sous le client
+ * `service_role` qui exécute ce code. Elles rendaient `{ok:false, reason:
+ * "not_authenticated"}` à CHAQUE appel: « mon fils est devenu végétarien »,
+ * « Tom est allergique aux arachides » ont compté `failed=1` dans un journal
+ * depuis le 2026-09-01, et rien d'autre. Mesuré le 03/09 sur la phrase 9 du
+ * banc des trois portes, puis en base le 05/09 (`set local role service_role`).
+ *
+ * La réparation N'EST PAS de retirer la garde de l'écran: c'est une variante
+ * serveur `…_for(p_user, p_member, …)` (migration `20260905180000`), qui porte
+ * les MÊMES refus (`not_a_member`, `has_account`, `bad_diet`, `not_owner`) avec
+ * `p_user` à la place de `auth.uid()`, et que `service_role` seul peut appeler.
+ * ⛔ `p_user` EST TOUJOURS `args.userId` — la personne qui a écrit la note.
+ * Un test fige le nom de la RPC ET la présence de `p_user`.
  *
  * Router les deux au même endroit écrirait l'allergie d'un enfant sur la ligne
  * de sa mère — un fait faux sur de la santé.
@@ -117,10 +141,12 @@ export async function persistSafetyDeclarations(args: {
       proposed: reading.proposed,
       refused: reading.refused.total,
       failed: 0,
+      notWritten: [],
     };
   }
 
   const written: SafetyDeclaration[] = [];
+  const notWritten: { declaration: SafetyDeclaration; reason: string }[] = [];
   let failed = 0;
 
   for (const d of reading.declarations) {
@@ -150,12 +176,15 @@ export async function persistSafetyDeclarations(args: {
         continue;
       }
 
+      // ⛔ LES VARIANTES `_for`, JAMAIS LES RPC D'ÉCRAN — voir l'en-tête.
       const rpc = MEMBER_DIET_KINDS.has(d.kind)
-        ? await args.admin.rpc("keel_household_set_member_diet", {
+        ? await args.admin.rpc("keel_household_set_member_diet_for", {
+          p_user: args.userId,
           p_member: d.memberId,
           p_diet: d.ref,
         })
-        : await args.admin.rpc("keel_household_add_allergy", {
+        : await args.admin.rpc("keel_household_add_allergy_for", {
+          p_user: args.userId,
           p_member: d.memberId,
           p_label: d.ref,
         });
@@ -170,6 +199,10 @@ export async function persistSafetyDeclarations(args: {
       written.push(d);
     } catch (error) {
       failed += 1;
+      notWritten.push({
+        declaration: d,
+        reason: error instanceof Error ? error.message : String(error),
+      });
       console.error("keel.draft_note_safety.write_failed", {
         kind: d.kind,
         // ⚠️ AUCUN `ref` NI TEXTE DANS LE JOURNAL. Un journal n'est pas
@@ -185,5 +218,6 @@ export async function persistSafetyDeclarations(args: {
     proposed: reading.proposed,
     refused: reading.refused.total,
     failed,
+    notWritten,
   };
 }

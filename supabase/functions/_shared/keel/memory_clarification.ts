@@ -45,6 +45,7 @@ import {
   type RetainedSubject,
 } from "./retained_item.ts";
 import type { NextPlanEntry } from "./retained_next_plan.ts";
+import type { SafetyDeclaration } from "./draft_note_safety.ts";
 
 /** Le producteur de toute ligne née d'une note — le tap n'en change pas. */
 const CLARIFICATION_PRODUCER = "draft_note" as const;
@@ -55,16 +56,50 @@ const CLARIFICATION_PRODUCER = "draft_note" as const;
 
 /**
  * CE QU'ON PEUT NE PAS AVOIR COMPRIS. Liste fermée, miroir du CHECK `about`
- * de la migration `20260904090000`.
+ * de la migration `20260904090000`, élargi par `20260905190000`.
  *
- * ⛔ DEUX, ET PAS TROIS. « Quand » a été écarté: une note sans moment se range
- * très bien sans moment (`when: null` veut dire « tous les jours »), donc la
- * question n'aurait rien débloqué — elle aurait juste demandé une précision que
- * personne n'a proposée. On ne demande que ce qui, sans réponse, fait JETER
- * l'entrée.
+ * ⛔ « QUAND » RESTE ÉCARTÉ: une note sans moment se range très bien sans
+ * moment (`when: null` veut dire « tous les jours »), donc la question
+ * n'aurait rien débloqué. On ne demande que ce qui, sans réponse, fait JETER
+ * l'entrée. Les trois `about` tiennent cette règle:
+ *
+ *   · `who`   — de qui on parle (deux filles, « elle » sans antécédent);
+ *   · `what`  — quel aliment du plan (« la viande » quand il y en a deux);
+ *   · `scope` — ⟳ 2026-09-05 — la PORTÉE d'une règle de régime. « On mange
+ *     végétarien » sans plus: à TOUS les repas, pour de bon (⇒ une contrainte
+ *     de sécurité, stricte, qui gouverne tout ce que le foyer cuisine), ou
+ *     seulement parfois (⇒ une ligne de « ce que Sophia sait », sans
+ *     ceinture) ? Les deux réponses écrivent des choses OPPOSÉES, et deviner
+ *     a déjà coûté un foyer entier passé au végétarien sur une phrase qui
+ *     parlait d'UN dîner par semaine (campagne du 2026-09-04, §8.1). Tant que
+ *     la réponse n'est pas là, RIEN n'est écrit — ni contrainte ni note.
  */
-export const MEMORY_CLARIFICATION_ABOUTS = ["who", "what"] as const;
+export const MEMORY_CLARIFICATION_ABOUTS = ["who", "what", "scope"] as const;
 export type ClarificationAbout = (typeof MEMORY_CLARIFICATION_ABOUTS)[number];
+
+/**
+ * LES DEUX RÉPONSES D'UNE QUESTION DE PORTÉE — par POSITION, comme les autres.
+ *
+ * ⛔ CE SONT LES `options` STOCKÉES d'une question `scope`, et le classifieur
+ * les impose (il n'accepte pas celles du modèle): le tap compare un index à
+ * ces deux jetons, jamais à un texte. `always` écrit la déclaration de
+ * sécurité portée par l'entrée; `sometimes` écrit une ligne de mémo. Aucun
+ * des deux n'est un repli de l'autre.
+ */
+export const MEMORY_CLARIFICATION_SCOPE_OPTIONS = ["always", "sometimes"] as const;
+export type ClarificationScopeOption =
+  (typeof MEMORY_CLARIFICATION_SCOPE_OPTIONS)[number];
+
+/**
+ * LA DÉCLARATION DE SÉCURITÉ QU'UNE QUESTION `scope` TIENT EN ATTENTE.
+ *
+ * ⛔ ELLE N'EST ÉCRITE NULLE PART TANT QUE LA PERSONNE N'A PAS RÉPONDU
+ * « toujours ». C'est le point: une contrainte de sécurité ne se devine pas,
+ * et une contrainte écrite « au cas où » gouverne tout le foyer en silence.
+ * Même forme que ce que `readSafetyDeclarations` rend — elle est relue par
+ * la même porte au moment d'écrire.
+ */
+export type PendingSafety = SafetyDeclaration;
 
 /**
  * QUATRE OPTIONS AU PLUS — miroir du CHECK `options between 1 and 4`.
@@ -111,6 +146,13 @@ export interface PendingClarification {
   readonly at: string;
   /** Le lundi ISO visé par l'encart. Ignoré par les deux autres portes. */
   readonly anchor: string;
+  /**
+   * ⟳ 2026-09-05 — LA DÉCLARATION EN ATTENTE d'une question `scope`, et rien
+   * d'autre. Absente (ou `null`) sur `who` / `what`, et sur toute ligne
+   * écrite avant le 05/09: une question `scope` sans elle est illisible et
+   * se ferme sans écrire (`resolveClarification` rend `null`).
+   */
+  readonly safety?: PendingSafety | null;
 }
 
 // ===========================================================================
@@ -212,6 +254,13 @@ export interface ResolvedClarification {
   readonly durable?: RetainedItem[];
   readonly nextPlan?: NextPlanEntry[];
   readonly memo?: MemoLine[];
+  /**
+   * ⟳ 2026-09-05 — « oui, toujours » sur une question `scope`: la
+   * déclaration part à la porte de SÉCURITÉ (`persistSafetyDeclarations`),
+   * jamais au port des items. Elle est seule dans sa résolution: une réponse
+   * n'écrit qu'à UN endroit.
+   */
+  readonly safety?: PendingSafety[];
 }
 
 /**
@@ -235,6 +284,30 @@ export function resolveClarification(
 ): ResolvedClarification | null {
   const chosen = String(option ?? "").trim();
   if (!chosen) return null;
+
+  // ── LA PORTÉE — deux réponses, deux destinations OPPOSÉES ──────────────
+  //
+  // ⛔ « toujours » écrit une CONTRAINTE, « parfois » écrit une NOTE; aucune
+  // des deux n'est un repli. Un jeton hors des deux, ou une entrée sans
+  // déclaration en attente (ligne d'avant le 05/09, ou forgée), rend `null`:
+  // l'appelant ferme la question, et rien n'est écrit — c'est le seul sort
+  // acceptable pour une contrainte de sécurité qu'on n'a pas su relire.
+  if (pending.about === "scope") {
+    if (pending.gate !== "notes") return null;
+    const declaration = pending.safety ?? null;
+    if (!declaration || !String(declaration.ref ?? "").trim()) return null;
+    if (chosen === "always") return { safety: [declaration] };
+    if (chosen !== "sometimes") return null;
+    const line = parseMemoLine({
+      text: pending.text,
+      at: pending.at,
+      source: CLARIFICATION_PRODUCER,
+      quote: pending.note,
+      subject: pending.subject ?? "household",
+      when: pending.when,
+    });
+    return line === null ? null : { memo: [line] };
+  }
 
   const subject = pending.about === "who"
     ? memberSubject(chosen)
@@ -319,8 +392,16 @@ const QUESTION = {
   fr: {
     who: (text: string) => `Tu as écrit « ${text} » — c'est pour qui ?`,
     what: (text: string) => `Tu as écrit « ${text} » — tu parlais de quoi ?`,
+    // ⟳ 2026-09-05 — la question nomme les DEUX bornes, parce que c'est
+    // l'écart entre elles qui décide d'une ceinture: « tous tes repas, tout
+    // le temps » contre « parfois ».
+    scope: (text: string) =>
+      `Tu as écrit « ${text} » — ça vaut pour tous tes repas, tout le temps ?`,
+    scopeAlways: "Oui, tous mes repas",
+    scopeSometimes: "Non, pas toujours",
     escapeWho: "Personne de la liste",
     escapeWhat: "Aucun de ceux-là",
+    escapeScope: "Passer",
     view: "Voir",
     declined: "D'accord, je n'ai rien noté.",
     writeFailed: "Je n'ai pas pu l'enregistrer. Réessaie dans un moment.",
@@ -328,8 +409,13 @@ const QUESTION = {
   en: {
     who: (text: string) => `You wrote "${text}" — who is that for?`,
     what: (text: string) => `You wrote "${text}" — which one did you mean?`,
+    scope: (text: string) =>
+      `You wrote "${text}" — does that hold at every meal, all the time?`,
+    scopeAlways: "Yes, every meal",
+    scopeSometimes: "No, not always",
     escapeWho: "None of them",
     escapeWhat: "None of those",
+    escapeScope: "Skip",
     view: "See",
     declined: "OK, I have not saved anything.",
     writeFailed: "I could not save that. Try again in a moment.",
@@ -342,6 +428,7 @@ export function renderClarificationQuestion(args: {
   readonly language: ClarificationLanguage;
 }): string {
   const copy = QUESTION[args.language] ?? QUESTION.en;
+  if (args.about === "scope") return copy.scope(args.text);
   return args.about === "who" ? copy.who(args.text) : copy.what(args.text);
 }
 
@@ -351,7 +438,29 @@ export function clarificationEscapeLabel(
   language: ClarificationLanguage,
 ): string {
   const copy = QUESTION[language] ?? QUESTION.en;
+  if (about === "scope") return copy.escapeScope;
   return about === "who" ? copy.escapeWho : copy.escapeWhat;
+}
+
+/**
+ * LE LIBELLÉ D'UNE OPTION DE PORTÉE — `null` pour tout ce qui n'en est pas.
+ *
+ * Sur `who` le libellé est un prénom du rôle, sur `what` l'aliment lui-même:
+ * l'io les tient. Sur `scope` les options sont deux JETONS (`always`,
+ * `sometimes`) qu'on ne montre jamais tels quels — ce sont eux qu'on
+ * traduit ici. Un jeton inconnu rend `null`, et l'io renonce à la question
+ * (« un bouton sans mot n'est pas un bouton »).
+ */
+export function clarificationOptionLabel(
+  about: ClarificationAbout,
+  option: string,
+  language: ClarificationLanguage,
+): string | null {
+  if (about !== "scope") return null;
+  const copy = QUESTION[language] ?? QUESTION.en;
+  if (option === "always") return copy.scopeAlways;
+  if (option === "sometimes") return copy.scopeSometimes;
+  return null;
 }
 
 export function clarificationViewLabel(language: ClarificationLanguage): string {

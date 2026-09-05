@@ -68,11 +68,16 @@ import {
   askClarification,
   type MemoryClarificationAskReason,
   notifyMemoryWrite,
+  notifySafetyNotWritten,
 } from "./memory_clarification_io.ts";
 import type { RecapKept } from "./memory_recap.ts";
 // ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
 // de plan EST une allergie: elle part dans une table qui a sa ceinture.
 import { safetyOf } from "./draft_note_safety.ts";
+import {
+  safetyHeldForScope,
+  withoutSafetyHeldForScope,
+} from "./draft_note_classify.ts";
 import {
   persistSafetyDeclarations,
   type SafetyWriteOutcome,
@@ -249,6 +254,7 @@ export async function classifyAndPersistDraftNote(args: {
     proposed: 0,
     refused: 0,
     failed: 0,
+    notWritten: [],
   };
   const empty = EMPTY_DRAFT_NOTE_CLASSIFICATION;
   const bail = (reason: DraftNoteClassifyReason): DraftNoteClassifyResult => {
@@ -364,20 +370,51 @@ export async function classifyAndPersistDraftNote(args: {
   // après `nothing_to_file` rendrait le canal muet sur son cas le plus
   // important. Les listes sont disjointes; un échec de l'une ne doit rien à
   // l'autre.
+  // ⟳ 2026-09-05 — UNE QUESTION DE PORTÉE RETIENT LA CONTRAINTE. Mesuré au
+  // premier tir: le modèle a posé la question ET écrit le régime dans
+  // `safety`. La garde est déterministe (`safetyHeldForScope`), et comptée.
+  const heldForScope = withoutSafetyHeldForScope(
+    safetyOf(raw),
+    safetyHeldForScope(raw),
+  );
   const safety = await persistSafetyDeclarations({
     admin: args.admin,
     userId,
-    raw: safetyOf(raw),
+    raw: heldForScope.safety,
     memberIds: (args.members ?? []).map((m) => m.memberId),
     contentLocale: args.contentLocale,
     sourceMessageId: String(args.requestId ?? ""),
   });
-  if (safety.proposed > 0 || safety.failed > 0) {
+  // ⟳ 2026-09-05 — L'ÉCHEC SE DIT, AVANT TOUT LE RESTE. Une déclaration que la
+  // base a refusée (bouche hors foyer, régime hors liste, port en panne) ne
+  // doit pas rester un chiffre dans un journal: la personne croirait Sophia
+  // prévenue d'une allergie qu'elle ne connaît pas. La bulle part AVANT
+  // l'accusé et AVANT la question, parce que seule la dernière bulle armée
+  // est tapable.
+  if (safety.notWritten.length > 0) {
+    await notifySafetyNotWritten(args.admin as never, {
+      userId,
+      failed: safety.notWritten.map((f) => ({
+        kind: f.declaration.kind,
+        ref: f.declaration.ref,
+        who: f.declaration.memberId === null
+          ? null
+          : (args.members ?? []).find((m) =>
+            String(m?.memberId ?? "").trim().toLowerCase() === f.declaration.memberId
+          )?.label ?? null,
+      })),
+      language: /^fr/i.test(String(args.contentLocale ?? "")) ? "fr" : "en",
+      requestId: args.requestId,
+      now: args.now ? new Date(args.now) : undefined,
+    });
+  }
+  if (safety.proposed > 0 || safety.failed > 0 || heldForScope.held > 0) {
     (safety.failed === 0 ? console.info : console.warn)(JSON.stringify({
       tag: "keel/draft_note_safety",
       event: safety.failed === 0 ? "written" : "partial",
       user_id: userId,
       proposed: safety.proposed,
+      held_for_scope: heldForScope.held,
       written: safety.written.length,
       refused: safety.refused,
       failed: safety.failed,

@@ -222,8 +222,10 @@ le classifieur jetait l'entrée, sans motif, et rien ne pouvait relancer. Deux r
 ce silence.
 
 **① Une question, dans le chat, qui ne retient rien.** Quand le classifieur ne peut pas trancher
-**qui** (`about: who`) ou **quoi** (`about: what`), il range l'entrée dans une cinquième liste,
-`clarify`, avec **les candidats copiés** (des `member_id` du roster, ou des aliments **du plan**).
+**qui** (`about: who`), **quoi** (`about: what`) ou — ⟳ 2026-09-05 — **la portée d'une règle de
+régime** (`about: scope`), il range l'entrée dans une cinquième liste, `clarify`, avec **les
+candidats copiés** (des `member_id` du roster, des aliments **du plan**, ou les deux jetons
+`always` / `sometimes`).
 Le plan se compose quand même — il n'attend **jamais** une réponse. Une bulle part avec les
 prénoms (ou les aliments) en boutons, plus un échappement (« Personne de la liste » /
 « Aucun de ceux-là ») :
@@ -233,6 +235,25 @@ prénoms (ou les aliments) en boutons, plus un échappement (« Personne de la l
 | **un tap** | la ligne s'écrit, avec le producteur `draft_note` et **la phrase de la personne** en citation |
 | **l'échappement** | rien n'est écrit, et la ligne passe `declined` — ce qui la **distingue du silence** |
 | **le silence** | rien n'est écrit ; la ligne expire à 48 h, comptée par la balayeuse du pouls |
+
+⟳ **2026-09-05 — la portée (`scope`).** « On mange végétarien le lundi soir » avait été rangé en
+régime **strict** de la titulaire, qui gouverne tout le foyer : quatre omnivores ont mangé
+végétarien à tous les repas (campagne du 2026-09-04, §8.1). Trois cas, trois sorties, et le
+classifieur ne devine jamais entre elles :
+
+| la phrase | ce que c'est | où ça va |
+|---|---|---|
+| « je suis végétarienne », « mon fils est vegan » | un régime, pour de bon | **sécurité** (`safety`), comme avant |
+| « on mange végétarien **le lundi soir** », « sans viande **au dîner** » | un **rythme** — un jour, un moment, une fréquence | **③ note**, avec son `when` ; jamais une contrainte |
+| « on mange végétarien », « on essaie de manger vegan », « on est plutôt végé » | une règle **sans portée dite** | **question `scope`** : « ça vaut pour tous tes repas, tout le temps ? » — *Oui, tous mes repas* ⇒ sécurité (stricte) · *Non, pas toujours* ⇒ ③ note · *Passer* ⇒ rien |
+
+Tant que la réponse n'est pas là, **rien** n'est écrit — ni contrainte ni note : la déclaration
+voyage dans `pending.safety` de la ligne `memory_clarifications`, et c'est le tap qui l'écrit par
+la **même porte** que la liste `safety` (`persistSafetyDeclarations` — la ligne de la personne,
+ou la RPC `_for` d'une bouche). Une réponse « toujours » n'ouvre pas la carte : la contrainte vit
+dans la fiche santé, et l'accusé le dit. ⛔ Aucun matcher de texte ne décide de la portée : le
+modèle juge, la relecture vérifie la **forme** (une déclaration relisable) et **impose** les deux
+jetons.
 
 ⛔ **CE TAP NE FAIT PAS ÉCRIRE LE CHAT** (§2.1 tient : deux sources, le chat n'en est pas une).
 Il complète le **slot manquant** d'une entrée que la personne a écrite elle-même, sur son
@@ -250,6 +271,16 @@ mode silencieux — couper la parole à quelqu'un qui vient d'écrire serait le 
 par l'une des deux sources, une bulle le dit tout de suite — « J'ai noté pour Tom : « pas de
 poisson » » — avec **un seul bouton, « Voir »**, qui ouvre « Ce que Sophia sait » sur le bloc
 concerné, ligne surlignée.
+
+⟳ **2026-09-05 — et l'échec d'une ligne de SÉCURITÉ se dit aussi.** Du 2026-09-01 au 2026-09-05,
+le régime ou l'allergie d'une **bouche** dit dans une note (« Tom est allergique aux arachides »)
+n'a **jamais** été écrit : les RPC d'écran (`keel_household_set_member_diet`,
+`keel_household_add_allergy`) lisent `auth.uid()`, NULL sous `service_role`, et rendaient
+`not_authenticated` à chaque appel — compté `failed=1` dans un journal, et rien d'autre. Deux
+réparations : les variantes serveur `…_for(p_user, …)` (migration `20260905180000`,
+`service_role` seul, mêmes refus que l'écran), et une bulle « Je n'ai pas pu enregistrer
+l'allergie de Tom : peanut. Ajoute-le depuis la fiche du foyer » quand la base refuse encore
+(`notifySafetyNotWritten`), envoyée **avant** l'accusé et la question.
 
 ⚠️ **« VOIR », ET PAS « ANNULER ».** Un « Annuler » dans le chat serait un **second** endroit qui
 écrit dans la mémoire, avec ses propres cas (annuler quoi, si la ligne a été éditée entre-temps

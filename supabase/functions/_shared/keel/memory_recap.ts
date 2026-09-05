@@ -102,6 +102,11 @@ const COPY = {
     } as Record<string, string>,
     undo: "Si je me suis trompée, tu peux l'enlever dans ta fiche santé.",
     undoMany: "Si je me suis trompée, tu peux les enlever dans ta fiche santé.",
+    // ⟳ 2026-09-05 — l'écriture qui a ÉCHOUÉ se dit aussi. Sans cette phrase,
+    // une allergie d'enfant refusée par la base était un chiffre dans un
+    // journal, et la personne croyait Sophia prévenue.
+    notWritten: (what: string) =>
+      `Je n'ai pas pu enregistrer ${what}. Ajoute-le depuis la fiche du foyer, pour que j'en tienne compte.`,
     keptOne: "J'ai aussi gardé ça de ton retour :",
     until: (day: string) => `jusqu'au ${day}`,
     quote: (t: string) => `« ${t} »`,
@@ -126,6 +131,8 @@ const COPY = {
     } as Record<string, string>,
     undo: "If I got that wrong, you can remove it in your health details.",
     undoMany: "If I got those wrong, you can remove them in your health details.",
+    notWritten: (what: string) =>
+      `I could not save ${what}. Add it from the household page so I can take it into account.`,
     keptOne: "I've also kept this from your feedback:",
     keptPreference: "I've noted what you do (and don't) want on the plate:",
     keptNote: "I've kept this:",
@@ -287,4 +294,31 @@ export function settingRecapLine(
   // L'espace avant le deux-points suit la langue, comme partout ailleurs ici.
   const colon = language === "fr" ? " : " : ": ";
   return `${title[language]}${colon}${moved}`;
+}
+
+
+/**
+ * ⟳ 2026-09-05 — CE QUI N'A PAS PU ÊTRE ÉCRIT EN SÉCURITÉ, dit à la personne.
+ *
+ * Même rendu par ligne que `buildMemoryRecap` (le genre, la bouche, le slug),
+ * mais la phrase dit l'ÉCHEC et où réparer. `null` quand il n'y a rien à
+ * dire — jamais une bulle vide.
+ */
+export function buildSafetyNotWrittenNotice(args: {
+  failed: readonly RecapSafety[];
+  language: RecapLanguage;
+}): string | null {
+  const copy = COPY[args.language] ?? COPY.en;
+  const failed = (args.failed ?? []).filter((s) =>
+    String(s?.ref ?? "").trim() !== ""
+  );
+  if (failed.length === 0) return null;
+  const rendered = failed.map((s) => {
+    const label = copy.kinds[String(s.kind ?? "")] ?? "";
+    const ref = String(s.ref).trim();
+    const who = String(s.who ?? "").trim();
+    if (!label) return who ? `${who} : ${ref}` : ref;
+    return who ? copy.safetyWho(who, label, ref) : copy.safetyMine(label, ref);
+  });
+  return copy.notWritten(rendered.join(" · "));
 }

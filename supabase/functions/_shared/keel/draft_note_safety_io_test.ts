@@ -71,14 +71,37 @@ Deno.test("⛔ UNE BOUCHE NOMMÉE NE VA JAMAIS DANS LA TABLE DE L'ÉLÈVE", asyn
   const { out, trace } = await run([{ kind: "allergy", ref: "peanut", member_id: TOM }]);
   assertEquals(out.written.length, 1);
   assertEquals(trace.inserts.length, 0, "l'allergie d'un enfant a été écrite sur sa mère");
-  assertEquals(trace.rpcs[0].name, "keel_household_add_allergy");
+  assertEquals(trace.rpcs[0].name, "keel_household_add_allergy_for");
   assertEquals(trace.rpcs[0].params.p_member, TOM);
+  assertEquals(trace.rpcs[0].params.p_user, USER);
 });
 
 Deno.test("un RÉGIME sur une bouche passe par la porte des régimes", async () => {
   const { trace } = await run([{ kind: "diet", ref: "vegetarian", member_id: TOM }]);
-  assertEquals(trace.rpcs[0].name, "keel_household_set_member_diet");
+  assertEquals(trace.rpcs[0].name, "keel_household_set_member_diet_for");
   assertEquals(trace.rpcs[0].params.p_diet, "vegetarian");
+  assertEquals(trace.rpcs[0].params.p_user, USER);
+});
+
+Deno.test("⛔ JAMAIS LA RPC D'ÉCRAN — `auth.uid()` est NULL sous `service_role`", async () => {
+  // ══ ⟳ 2026-09-05 — LE DÉFAUT QUE CE TEST FIGE ══════════════════════════
+  // `keel_household_set_member_diet` et `keel_household_add_allergy` rendent
+  // `not_authenticated` à CHAQUE appel depuis ce module (client service_role):
+  // le régime ou l'allergie d'une bouche dit dans une note n'a JAMAIS été
+  // écrit, du 2026-09-01 au 2026-09-05. Les variantes `_for` prennent `p_user`.
+  // Si quelqu'un « simplifie » en revenant aux RPC d'écran, ce test rougit.
+  for (const raw of [
+    [{ kind: "diet", ref: "vegetarian", member_id: TOM }],
+    [{ kind: "religious", ref: "halal", member_id: TOM }],
+    [{ kind: "allergy", ref: "peanut", member_id: TOM }],
+    [{ kind: "intolerance", ref: "lactose", member_id: TOM }],
+    [{ kind: "medical", ref: "diabetes", member_id: TOM }],
+  ]) {
+    const { trace } = await run(raw);
+    assertEquals(trace.rpcs.length, 1);
+    assert(trace.rpcs[0].name.endsWith("_for"), `${trace.rpcs[0].name}: RPC d'écran, morte sous service_role`);
+    assertEquals(trace.rpcs[0].params.p_user, USER, "sans `p_user`, la variante _for rend `no_user`");
+  }
 });
 
 // ===========================================================================
@@ -160,4 +183,21 @@ Deno.test("rien à écrire ne touche à rien", async () => {
   const { out, trace } = await run([]);
   assertEquals(out.written.length, 0);
   assertEquals(trace.inserts.length + trace.rpcs.length, 0);
+});
+
+
+Deno.test("⟳ 2026-09-05 — CE QUI N'A PAS ÉTÉ ÉCRIT EST NOMMÉ, avec le motif de la base", async () => {
+  // `failed` comptait; il ne disait pas QUOI. L'appelant doit pouvoir dire à
+  // la personne « je n'ai pas pu enregistrer l'allergie de Tom » — un chiffre
+  // dans un journal ne prévient personne.
+  const { out } = await run(
+    [{ kind: "allergy", ref: "peanut", member_id: TOM }, { kind: "diet", ref: "vegetarian" }],
+    { rpcBody: { ok: false, reason: "not_a_member" } },
+  );
+  assertEquals(out.failed, 1);
+  assertEquals(out.notWritten.length, 1);
+  assertEquals(out.notWritten[0].declaration.memberId, TOM);
+  assertEquals(out.notWritten[0].declaration.ref, "peanut");
+  assert(/not_a_member/.test(out.notWritten[0].reason));
+  assertEquals(out.written.length, 1);
 });

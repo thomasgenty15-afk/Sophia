@@ -36,16 +36,24 @@ import {
 } from "./daily_ask_budget.ts";
 import { deliverChatMessage } from "../chat/delivery.ts";
 import {
+  type ClarificationAbout,
   type ClarificationLanguage,
   clarificationEscapeLabel,
+  clarificationOptionLabel,
   clarificationViewLabel,
+  MEMORY_CLARIFICATION_ABOUTS,
   memoryClarificationNoneId,
   memoryClarificationPickId,
   MEMORY_VIEW_BUTTON_PAYLOAD_PREFIX,
   type PendingClarification,
   renderClarificationQuestion,
 } from "./memory_clarification.ts";
-import { buildMemoryRecap, type RecapKept } from "./memory_recap.ts";
+import {
+  buildMemoryRecap,
+  buildSafetyNotWrittenNotice,
+  type RecapKept,
+  type RecapSafety,
+} from "./memory_recap.ts";
 import type { DraftNoteClarifyEntry, DraftNoteMember } from "./draft_note_classify.ts";
 
 /** La table. Le nom vit ici et dans sa migration, nulle part ailleurs. */
@@ -56,6 +64,8 @@ export const MEMORY_CLARIFICATION_OPEN_FOR_HOURS = 48;
 
 export const MEMORY_CLARIFICATION_PURPOSE = "keel_memory_clarification";
 export const MEMORY_WRITTEN_PURPOSE = "keel_memory_written";
+/** ⟳ 2026-09-05 — la bulle qui dit qu'une ligne de SÉCURITÉ n'a PAS été écrite. */
+export const MEMORY_SAFETY_NOT_WRITTEN_PURPOSE = "keel_memory_safety_not_written";
 
 /** Le bloc de la carte que « Voir » ouvre, selon ce qui vient d'être écrit. */
 const BLOCK_OF: Record<RecapKept["kind"], string> = {
@@ -191,6 +201,56 @@ export async function notifyMemoryWrite(
   }
 }
 
+/**
+ * ⟳ 2026-09-05 — « JE N'AI PAS PU ENREGISTRER … » — l'échec se dit.
+ *
+ * Même doctrine que `notifyMemoryWrite` (une réponse au geste, `isReply`,
+ * jamais une exception), avec l'inverse pour contenu: ce qui n'a PAS été
+ * écrit. Sans bouton: la réparation se fait depuis la page du foyer, que la
+ * phrase nomme.
+ */
+export async function notifySafetyNotWritten(
+  admin: MinimalClient,
+  args: {
+    userId: string;
+    failed: readonly RecapSafety[];
+    language: ClarificationLanguage;
+    requestId?: string;
+    now?: Date;
+  },
+): Promise<NotifyMemoryWriteResult> {
+  const body = buildSafetyNotWrittenNotice({
+    failed: args.failed,
+    language: args.language,
+  });
+  if (!body) return { delivered: false, reason: "nothing_to_say" };
+  try {
+    const delivered = await deliverChatMessage(admin, {
+      userId: args.userId,
+      content: body,
+      purpose: MEMORY_SAFETY_NOT_WRITTEN_PURPOSE,
+      isReply: true,
+      buttons: [],
+      metadata: { keel_memory_safety_not_written: args.failed.length },
+      requestId: args.requestId,
+      now: args.now,
+    });
+    log(delivered.delivered ? "not_written_notice_sent" : "not_written_notice_not_delivered", {
+      user_id: args.userId,
+      lines: args.failed.length,
+      reason: delivered.reason,
+    });
+    return { delivered: delivered.delivered, reason: delivered.reason };
+  } catch (error) {
+    log("not_written_notice_failed", {
+      user_id: args.userId,
+      lines: args.failed.length,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { delivered: false, reason: "notice_failed" };
+  }
+}
+
 // ===========================================================================
 // 2. « C'est pour qui ? » — la moitié « on demande »
 // ===========================================================================
@@ -273,6 +333,18 @@ export async function askClarification(
     // un bouton muet que la personne taperait au hasard.
     const labels: string[] = [];
     for (const option of entry.options) {
+      if (entry.about === "scope") {
+        // ⟳ 2026-09-05 — les deux jetons de portée ont leur mot dans la
+        // langue de la personne; un jeton inconnu fait renoncer, comme un
+        // prénom absent.
+        const label = clarificationOptionLabel("scope", option, args.language);
+        if (!label) {
+          log("not_asked", { user_id: userId, reason: "no_labels", option });
+          return { asked: false, reason: "no_labels", id: null };
+        }
+        labels.push(label);
+        continue;
+      }
       if (entry.about === "who") {
         const found = (args.members ?? []).find((m) =>
           String(m?.memberId ?? "").trim().toLowerCase() === option
@@ -299,6 +371,10 @@ export async function askClarification(
       note: String(args.note ?? "").trim(),
       at: args.today,
       anchor: args.anchor,
+      // ⟳ 2026-09-05 — la déclaration EN ATTENTE d'une question de portée.
+      // Elle n'est écrite nulle part ailleurs tant que la personne n'a pas
+      // répondu « toujours »; c'est cette ligne qui la porte jusque-là.
+      safety: entry.about === "scope" ? entry.safety ?? null : null,
     };
     const expiresAt = new Date(
       now.getTime() + MEMORY_CLARIFICATION_OPEN_FOR_HOURS * 3600_000,
@@ -436,7 +512,7 @@ export async function askClarification(
 export interface OpenClarificationRow {
   readonly id: string;
   readonly userId: string;
-  readonly about: "who" | "what";
+  readonly about: ClarificationAbout;
   readonly pending: PendingClarification;
   readonly options: readonly string[];
   readonly contentLocale: string | null;
@@ -475,7 +551,9 @@ export async function loadOpenClarification(
     return {
       id: String(row.id ?? ""),
       userId: String(row.user_id ?? ""),
-      about: row.about === "what" ? "what" : "who",
+      about: (MEMORY_CLARIFICATION_ABOUTS as readonly string[]).includes(String(row.about))
+        ? row.about as ClarificationAbout
+        : "who",
       pending,
       options,
       contentLocale: row.content_locale === null

@@ -46,6 +46,7 @@ import {
   loadOpenClarification,
 } from "../keel/memory_clarification_io.ts";
 import { persistRetainedItemsFor } from "../keel/retained_items_io.ts";
+import { persistSafetyDeclarations } from "../keel/draft_note_safety_io.ts";
 import { buildMemoryRecap, type RecapKept } from "../keel/memory_recap.ts";
 import { UNUSABLE_BUTTON_ACK } from "./disarmed_tap.ts";
 
@@ -76,6 +77,14 @@ export async function handleMemoryClarificationTap(
     language: ClarificationLanguage;
     /** Le prénom de chaque bouche, pour l'accusé. Jamais un identifiant. */
     nameOf: (memberId: string) => string | null;
+    /**
+     * ⟳ 2026-09-05 — LES BOUCHES DU FOYER, pour la porte de sécurité d'une
+     * réponse « toujours » (elle refuse un `member_id` hors rôle, jamais un
+     * repli sur le titulaire). Vide = personne d'autre à table.
+     */
+    memberIds?: readonly string[];
+    /** La locale de contenu, portée par la ligne de sécurité écrite. */
+    contentLocale?: string | null;
     now: Date;
   },
 ): Promise<MemoryClarificationTapResult> {
@@ -151,6 +160,67 @@ export async function handleMemoryClarificationTap(
     });
     log("pending_unreadable", { user_id: args.userId, id: row.id });
     return stale("pending_unreadable");
+  }
+
+  // ── ⑤-bis ⟳ 2026-09-05 — « TOUJOURS »: LA PORTE DE SÉCURITÉ, PAS LE PORT ──
+  //
+  // La réponse écrit une CONTRAINTE (stricte, qui gouverne tout le foyer), par
+  // la même porte que la liste `safety` du classifieur — la ligne de la
+  // personne, ou la RPC `_for` d'une bouche. Une écriture refusée laisse la
+  // question OUVERTE et l'accusé ne dit pas « noté », comme pour le port.
+  if (resolved.safety && resolved.safety.length > 0) {
+    const safe = await persistSafetyDeclarations({
+      admin,
+      userId: args.userId,
+      raw: resolved.safety.map((d) => ({
+        kind: d.kind,
+        ref: d.ref,
+        member_id: d.memberId,
+        text: d.text,
+      })),
+      memberIds: args.memberIds ?? [],
+      contentLocale: String(args.contentLocale ?? row.contentLocale ?? ""),
+      sourceMessageId: `${TAP_SOURCE}:${row.id}`,
+    });
+    if (safe.written.length === 0) {
+      log("safety_write_failed", {
+        user_id: args.userId,
+        id: row.id,
+        failed: safe.failed,
+        refused: safe.refused,
+      });
+      return {
+        body: clarificationWriteFailedBody(args.language),
+        buttons: [],
+        handledAs: "keel_memory_clarification_write_failed",
+      };
+    }
+    await closeClarification(admin, {
+      id: row.id,
+      userId: args.userId,
+      status: "answered",
+      nowIso,
+      answer: { index: args.reply.index, option },
+    });
+    const body = buildMemoryRecap({
+      safety: safe.written.map((d) => ({
+        kind: d.kind,
+        ref: d.ref,
+        who: d.memberId === null ? null : args.nameOf(d.memberId),
+      })),
+      kept: [],
+      language: args.language,
+    }) ?? clarificationDeclinedBody(args.language);
+    log("answered", {
+      user_id: args.userId,
+      id: row.id,
+      about: row.about,
+      gate: row.pending.gate,
+      safety_written: safe.written.length,
+    });
+    // Pas de bouton « Voir »: la contrainte vit dans la fiche santé / la page
+    // du foyer, pas sur la carte « ce que Sophia sait » — et la phrase le dit.
+    return { body, buttons: [], handledAs: "keel_memory_clarification_answered" };
   }
 
   // ── ⑤ L'ÉCRITURE, PAR LA PORTE, AVEC LE PRODUCTEUR D'ORIGINE ──────────

@@ -13,7 +13,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { buildMemoryRecap, type RecapKept } from "./memory_recap.ts";
+import { buildMemoryRecap, buildSafetyNotWrittenNotice, type RecapKept } from "./memory_recap.ts";
 
 Deno.test("⛔ LA SÉCURITÉ SORT MÊME SEULE, avec son « défaire »", () => {
   const fr = buildMemoryRecap({
@@ -311,4 +311,23 @@ Deno.test("LE CAS QUI PASSE — la SÉCURITÉ, elle, se dit toujours le soir", a
   );
   assertEquals(src.includes("student_safety_constraints"), true);
   assertEquals(src.includes("household_member_allergies"), true);
+});
+
+
+Deno.test("⟳ 2026-09-05 — la bulle « je n'ai pas pu enregistrer » nomme la bouche, le genre, et où réparer", () => {
+  const fr = buildSafetyNotWrittenNotice({
+    failed: [{ kind: "allergy", ref: "peanut", who: "Tom" }],
+    language: "fr",
+  });
+  assert(fr !== null);
+  assert(/pas pu enregistrer/.test(fr!), fr!);
+  assert(/Tom/.test(fr!) && /peanut/.test(fr!), fr!);
+  assert(/fiche du foyer/.test(fr!), fr!);
+  const en = buildSafetyNotWrittenNotice({
+    failed: [{ kind: "diet", ref: "vegetarian", who: null }],
+    language: "en",
+  });
+  assert(en !== null && /could not save/.test(en!) && /vegetarian/.test(en!), String(en));
+  // Rien à dire = pas de bulle.
+  assertEquals(buildSafetyNotWrittenNotice({ failed: [], language: "fr" }), null);
 });
