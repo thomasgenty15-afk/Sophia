@@ -7,7 +7,7 @@ import {
   INDEX_MAX,
   type PortionIndex,
   HOUSEHOLD_SUBJECT,
-  isNextPlanItemAlive,
+  liveNextPlanEntries,
   itemsInBlock,
   visibleDuplicates,
   preferenceSideOf,
@@ -980,9 +980,9 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
       .join(" · ");
   };
 
-  const liveNextPlan = store.nextPlan.filter((entry) =>
-    isNextPlanItemAlive(entry.item, entry.anchor, today)
-  );
+  // ⟳ 2026-09-05 — la MÊME règle que le générateur: vivante par le calendrier
+  // ET pas encore servie par un plan validé (`store.lastValidatedAt`).
+  const liveNextPlan = liveNextPlanEntries(store.nextPlan, today, store.lastValidatedAt);
 
   /**
    * ⛔ LE SEUL CAS OÙ L'ÉCRAN NE PEUT RIEN ENREGISTRER, ET IL SE DIT AVANT LE

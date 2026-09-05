@@ -1575,6 +1575,15 @@ export interface NextPlanEntry {
   readonly item: RetainedItem;
   /** Le lundi ISO de la semaine visée, `YYYY-MM-DD`. */
   readonly anchor: string;
+  /**
+   * ⟳ 2026-09-05 — L'INSTANT D'ÉCRITURE, tel que le serveur le pose dans
+   * l'enveloppe (`written_at`). C'est LUI que le générateur compare à
+   * `validated_at` pour décider qu'une envie est servie. Mesuré: l'écran le
+   * PERDAIT à chaque enregistrement (il réécrivait `{item, anchor}` seuls) —
+   * 12 entrées sur 19 en base sans `written_at`, et le serveur retombait sur
+   * la règle du jour. Facultatif: une entrée d'avant le lot n'en a pas.
+   */
+  readonly writtenAt?: string | null;
 }
 
 /**
@@ -1744,7 +1753,8 @@ export function readNextPlanEntries(
       malformed += 1;
       continue;
     }
-    entries.push({ item, anchor });
+    const writtenAt = isoInstantOf(record?.written_at);
+    entries.push(writtenAt ? { item, anchor, writtenAt } : { item, anchor });
   }
 
   return {
@@ -1760,12 +1770,49 @@ export function readNextPlanEntries(
 }
 
 /** Ce qui vaut encore aujourd'hui. Pur: le jour arrive en paramètre. */
+/** Un instant ISO lisible, normalisé — ou `null`. Le jumeau de `parseIsoInstant` serveur. */
+export function isoInstantOf(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  if (!clean) return null;
+  const ms = Date.parse(clean);
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms).toISOString();
+}
+
+/**
+ * ⟳ 2026-09-05 — SERVIE : LA MÊME RÈGLE QUE LE GÉNÉRATEUR, pas une seconde
+ * définition de « vivante ».
+ *
+ * Serveur (`retained_next_plan.ts`, `isNextPlanItemAlive`): une envie meurt
+ * dès qu'un plan est VALIDÉ après son écriture (`validated_at > written_at`);
+ * sans `written_at`, dès qu'un plan est validé un jour postérieur à `item.at`.
+ * L'écran, lui, la gardait jusqu'à ancre + 6 jours sans regarder
+ * `validated_at`: la carte montrait encore une ligne que le générateur ne
+ * lirait plus, jusqu'à six jours — en disant « jusqu'au prochain plan
+ * validé ». Ici, le dernier `validated_at` du compte suffit (le plus récent
+ * domine tous les autres).
+ */
+export function isNextPlanItemServed(
+  entry: NextPlanEntry,
+  lastValidatedAt: string | null | undefined,
+): boolean {
+  const validatedAt = isoInstantOf(lastValidatedAt);
+  if (!validatedAt) return false;
+  const writtenAt = isoInstantOf(entry.writtenAt);
+  if (writtenAt !== null) return Date.parse(validatedAt) > Date.parse(writtenAt);
+  const at = String(entry.item?.at ?? "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(at) && validatedAt.slice(0, 10) > at;
+}
+
 export function liveNextPlanEntries(
   entries: readonly NextPlanEntry[],
   today: string,
+  lastValidatedAt: string | null | undefined = null,
 ): NextPlanEntry[] {
   return entries.filter((entry) =>
-    isNextPlanItemAlive(entry.item, entry.anchor, today)
+    isNextPlanItemAlive(entry.item, entry.anchor, today) &&
+    !isNextPlanItemServed(entry, lastValidatedAt)
   );
 }
 
@@ -1789,6 +1836,7 @@ export function withNextPlanEntries(
     .map((entry) => ({
       item: retainedItemToJson(entry.item),
       anchor: entry.anchor,
+      ...(entry.writtenAt ? { written_at: entry.writtenAt } : {}),
     }));
   return base;
 }
@@ -1864,6 +1912,12 @@ export interface KnownStore {
    * coupleraient ce test au fichier d'un autre lot.
    */
   readonly nextPlanRefused: RetainedItemsRefusals;
+  /**
+   * ⟳ 2026-09-05 — Le dernier `student_generated_meals.validated_at` du
+   * compte, ou `null`. Sert à `isNextPlanItemServed`; `null` = aucun plan
+   * validé connu, rien n'est servi (la règle d'hier, ancre + 6 jours).
+   */
+  readonly lastValidatedAt: string | null;
 }
 
 /**
@@ -1875,6 +1929,7 @@ export interface KnownStore {
 export function knownStoreFrom(
   constraints: Record<string, unknown> | null,
   hasGoal: boolean,
+  lastValidatedAt: string | null = null,
 ): KnownStore {
   const pc = constraints ?? {};
   const read = readRetainedItems(pc);
@@ -1894,6 +1949,7 @@ export function knownStoreFrom(
     dismissed: dismissedFrom(pc),
     refused: read.refused,
     nextPlanRefused: provisional.refused,
+    lastValidatedAt: isoInstantOf(lastValidatedAt),
   };
 }
 
@@ -1912,10 +1968,26 @@ export async function loadKnownStore(userId: string): Promise<KnownStore> {
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new Error(`[keel/api] loadKnownStore: ${error.message}`);
-  if (!data) return knownStoreFrom(null, false);
+  // ⟳ 2026-09-05 — le dernier plan VALIDÉ du compte: c'est lui qui « sert »
+  // une envie pour le prochain plan (voir `isNextPlanItemServed`). Une lecture
+  // qui échoue ne casse pas l'écran: rien n'est servi, la règle d'hier tient.
+  let lastValidatedAt: string | null = null;
+  try {
+    const { data: plans } = await supabase
+      .from("student_generated_meals")
+      .select("validated_at")
+      .eq("user_id", userId)
+      .not("validated_at", "is", null)
+      .order("validated_at", { ascending: false })
+      .limit(1);
+    lastValidatedAt = isoInstantOf((plans?.[0] as { validated_at?: unknown } | undefined)?.validated_at);
+  } catch {
+    lastValidatedAt = null;
+  }
+  if (!data) return knownStoreFrom(null, false, lastValidatedAt);
   const pc = (data as { practical_constraints: Record<string, unknown> | null })
     .practical_constraints;
-  return knownStoreFrom(pc ?? {}, true);
+  return knownStoreFrom(pc ?? {}, true, lastValidatedAt);
 }
 
 /**
@@ -2132,6 +2204,7 @@ export function writePortArgsFor(
       provisional.map((entry) => ({
         item: retainedItemToJson(entry.item),
         anchor: entry.anchor,
+        ...(entry.writtenAt ? { written_at: entry.writtenAt } : {}),
       })),
       args.store.opaqueNextPlan ?? [],
     ),

@@ -72,6 +72,8 @@ import {
   KNOWN_WRITE_REFUSALS,
   KnownWriteError,
   knownStoreFrom,
+  isNextPlanItemServed,
+  isoInstantOf,
   liveNextPlanEntries,
   memberSubject,
   NEXT_PLAN_ITEMS_KEY,
@@ -1887,5 +1889,68 @@ describe("⛔ la ligne médicale reste posée DANS la requête", () => {
     const source = readFileSync(resolve(__dirname, "foodPreferences.ts"), "utf8");
     const query = source.slice(source.indexOf("loadFoodPreferenceProposals"));
     expect(query).toContain('.eq("sensitivity_level", "normal")');
+  });
+});
+
+// ⟳ 2026-09-05 — « PROCHAIN PLAN » : LA MÊME RÈGLE DES DEUX CÔTÉS.
+// Serveur: une envie meurt dès qu'un plan est validé après son écriture
+// (`validated_at > written_at`). Écran: elle vivait jusqu'à ancre + 6 jours
+// sans regarder `validated_at` — et chaque enregistrement PERDAIT
+// `written_at` (12 entrées sur 19 en base sans lui).
+describe("prochain plan — servie, et written_at qui survit à l'écran", () => {
+  const craving = {
+    kind: "food.prefer", item: "", text: "du poisson", subject: "household", source: "written",
+    at: "2026-09-02", confidence: null, quote: null, scope: "next_plan", value: null,
+  } as unknown as Parameters<typeof withNextPlanEntries>[1][number]["item"];
+  const anchor = "2026-08-31";
+  const writtenAt = "2026-09-02T10:00:00.000Z";
+
+  it("written_at est LU dans l'enveloppe et RENDU tel quel par l'écrivain de l'écran", () => {
+    const read = readNextPlanEntries({
+      retained_next_plan: [{ item: { ...craving }, anchor, written_at: writtenAt }],
+    });
+    expect(read.entries).toHaveLength(1);
+    expect(read.entries[0].writtenAt).toBe(writtenAt);
+    const back = withNextPlanEntries({}, read.entries);
+    const rows = back.retained_next_plan as Array<Record<string, unknown>>;
+    expect(rows[0].written_at).toBe(writtenAt);
+    // Une entrée sans written_at n'en invente pas un.
+    const bare = withNextPlanEntries({}, [{ item: craving, anchor }]);
+    expect((bare.retained_next_plan as Array<Record<string, unknown>>)[0]).not.toHaveProperty("written_at");
+  });
+
+  it("SERVIE : un plan validé APRÈS l'écriture la sert ; avant, non ; sans plan validé, jamais", () => {
+    const entry = { item: craving, anchor, writtenAt };
+    expect(isNextPlanItemServed(entry, "2026-09-02T18:00:00.000Z")).toBe(true);
+    expect(isNextPlanItemServed(entry, "2026-09-02T09:00:00.000Z")).toBe(false);
+    expect(isNextPlanItemServed(entry, null)).toBe(false);
+    expect(isNextPlanItemServed(entry, "pas une date")).toBe(false);
+  });
+
+  it("sans written_at, la règle du jour: servie par un plan validé un jour POSTÉRIEUR à item.at", () => {
+    const entry = { item: craving, anchor };
+    expect(isNextPlanItemServed(entry, "2026-09-03T06:00:00.000Z")).toBe(true);
+    expect(isNextPlanItemServed(entry, "2026-09-02T23:00:00.000Z")).toBe(false);
+  });
+
+  it("le filtre vivant lit les DEUX règles: calendrier ET servie", () => {
+    const entry = { item: craving, anchor, writtenAt };
+    expect(liveNextPlanEntries([entry], "2026-09-04")).toHaveLength(1);
+    expect(liveNextPlanEntries([entry], "2026-09-04", "2026-09-03T12:00:00.000Z")).toHaveLength(0);
+    expect(liveNextPlanEntries([entry], "2026-09-04", "2026-09-01T12:00:00.000Z")).toHaveLength(1);
+  });
+
+  it("isoInstantOf normalise et refuse le reste", () => {
+    expect(isoInstantOf(" 2026-09-02T10:00:00Z ")).toBe("2026-09-02T10:00:00.000Z");
+    expect(isoInstantOf("n'importe quoi")).toBeNull();
+    expect(isoInstantOf(42)).toBeNull();
+  });
+
+  it("CÂBLAGE — le store lit le dernier validated_at, la carte filtre avec", () => {
+    const api = readFileSync(resolve(__dirname, "./retainedItems.ts"), "utf8");
+    expect(api).toMatch(/from\("student_generated_meals"\)[\s\S]{0,200}select\("validated_at"\)/);
+    expect(api).toMatch(/lastValidatedAt: isoInstantOf\(lastValidatedAt\)/);
+    const card = readFileSync(resolve(__dirname, "../components/KnownAboutYouCard.tsx"), "utf8");
+    expect(card).toMatch(/liveNextPlanEntries\(store\.nextPlan, today, store\.lastValidatedAt\)/);
   });
 });
