@@ -11,6 +11,7 @@ import type { BoxEnergyView, DayEnergyView, DishEnergyView } from "../../api/mea
 import type { WaveAssignment } from "../../api/groceryWaves";
 import { aisleLabel, dishDayLabel, dishSlotLabel, mealCopy } from "../../api/mealLabels";
 import { DayEnergyLine } from "./EnergyReadout";
+import { Badge } from "../ui/Badge";
 import { sessionForDish } from "../../lib/dishSession";
 import { groupByAisle } from "../../lib/mealBuilderModel";
 import { type DayMoment } from "../../lib/planDayView";
@@ -538,6 +539,11 @@ function DayGroceriesCard(props: {
   const panelId = React.useId();
   const count = props.wave.indices.length;
   const inWave = new Set(props.wave.indices);
+  // ⟳ LOT C (2026-09-04) — LES LIGNES QUI PARTENT AU CONGÉLATEUR EN RENTRANT.
+  // Dérivé de la vague, jamais recalculé: `freezeIndices` vient de la ligne que
+  // le serveur a écrite (`freeze_on_purchase`). Même marque que sur la liste de
+  // courses complète (`ShoppingListPanel`): deux rendus du même geste.
+  const freezeAtPurchase = new Set(props.wave.freezeIndices);
   const groups = groupByAisle(props.shoppingList)
     .map((g) => ({
       aisle: g.aisle,
@@ -584,6 +590,12 @@ function DayGroceriesCard(props: {
                     <span className="break-words">{item.term}</span>
                     {item.quantity && (
                       <span className="text-ink-soft">{item.quantity}</span>
+                    )}
+                    {/* ⟳ LOT C — `caution`, pas `info`: le bleu d'`info` est
+                        celui de la case à cocher native de la liste complète,
+                        et la même marque doit se lire pareil aux deux endroits. */}
+                    {freezeAtPurchase.has(index) && (
+                      <Badge tone="caution">{mealCopy("meals.shopping.freeze")}</Badge>
                     )}
                   </li>
                 ))}

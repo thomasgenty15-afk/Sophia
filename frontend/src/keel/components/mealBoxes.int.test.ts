@@ -852,6 +852,30 @@ describe("le jour suit l'ordre des gestes", () => {
     portions: ROSTER,
   });
 
+  // ⟳ LOT C (2026-09-04) — LA MARQUE « À CONGELER » SUR LA CARTE DES COURSES DU
+  // JOUR, dérivée de `wave.freezeIndices` (la ligne que le serveur a écrite),
+  // jamais recalculée. Même marque, même tonalité que la liste complète.
+  //
+  // ⚠️ ÉPINGLÉE PAR LA SOURCE, PAS PAR LE RENDU, ET VOICI POURQUOI: la carte est
+  // REPLIÉE par défaut (`useState(false)`, sans prop pour l'ouvrir), donc un
+  // rendu statique ne montre jamais ses lignes — un test de rendu ici serait
+  // vert quoi qu'il arrive, pour la mauvaise raison. J'en avais écrit un; il
+  // passait sur un plan sans marque et échouait avec, parce qu'il ne regardait
+  // qu'une carte fermée. Le câblage par lecture de source est le patron de ce
+  // dépôt pour exactement ce cas, et il rougit sous mutation (vérifié).
+  it("⛔ LOT C — la carte des courses du jour marque les lignes à congeler (câblage)", () => {
+    const src = readFileSync(resolve(__dirname, "./plan/PlanDayBlock.tsx"), "utf8");
+    const card = src.slice(src.indexOf("function DayGroceriesCard("));
+    expect(card, "l'ensemble vient de la vague écrite par le serveur")
+      .toContain("new Set(props.wave.freezeIndices)");
+    expect(card, "la marque est posée sur la ligne dont l'index est dedans")
+      .toContain("freezeAtPurchase.has(index) && (");
+    expect(card, "et c'est la MÊME clé que la liste complète")
+      .toContain('mealCopy("meals.shopping.freeze")');
+    // ⛔ ET PAS `info`: ce bleu est celui de la case native de la liste complète.
+    expect(card).toContain('<Badge tone="caution">');
+  });
+
   it("⚠️ CEINTURE ⑨ — LES COURSES SONT AU-DESSUS DE LA SESSION DE CUISINE", () => {
     // « La liste de course doit toujours être en haut de la journée »
     // (2026-08-20). On achète, puis on cuisine, puis on mange — et deux des
