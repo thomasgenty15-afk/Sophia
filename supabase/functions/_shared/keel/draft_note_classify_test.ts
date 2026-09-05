@@ -1550,3 +1550,26 @@ Deno.test("⑤ ⟳ 2026-09-05 — un `when` aux deux clés nulles vaut « pas de
   const bad = read({ notes: [{ text: "elle rentre tard", member_id: ZOE, when: { weekday: "lundi", slot: null } }] });
   assertEquals(bad.classification.notes.refused.badWhen, 1);
 });
+
+
+Deno.test("⛔ ⑤ PORTÉE — une allergie au MÊME ref qu'une question de portée passe quand même (le filtre de kind est exercé)", () => {
+  // Relecture croisée du 2026-09-05 (sophia-2-8a): `held` ne porte que des refs
+  // de régime, donc retirer `SCOPE_HELD_KINDS` restait vert sur tous les tests.
+  // Le seul cas où le filtre travaille est celui où les deux se rejoignent:
+  // « on est plutôt sans gluten » (question de portée, ref `gluten`) ET
+  // « allergique au gluten » (liste `safety`, allergie, ref `gluten`). Sans le
+  // filtre, l'allergie serait RETENUE — fail-open sur la santé.
+  const raw = {
+    clarify: [scopeRow({
+      entry: { text: "on est plutôt sans gluten", member_id: null, when: null },
+      safety: { kind: "diet", ref: "gluten", member_id: null, text: "on est plutôt sans gluten" },
+    })],
+    safety: [{ kind: "allergy", ref: "gluten", member_id: null, text: "allergique au gluten" }],
+  };
+  const held = safetyHeldForScope(raw);
+  assertEquals([...held], ["gluten"]);
+  const out = withoutSafetyHeldForScope(raw.safety, held);
+  assertEquals(out.held, 0, "l'allergie a été retenue derrière une question de régime");
+  assertEquals(out.safety?.length, 1);
+  assertEquals((out.safety![0] as Record<string, unknown>).kind, "allergy");
+});
