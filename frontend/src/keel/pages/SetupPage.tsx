@@ -7017,13 +7017,25 @@ function RequestStep({
             onChange={(next) =>
               onChange((prev) => prev === null ? prev : { ...prev, groceryRuns: next })}
             disabled={false}
-            style={draft.cookingStyle}
-            oneCookingSession={oneCookingSession}
-            // ⚠️ LA FENÊTRE DEMANDÉE (`durationDays`), pas le nombre de dates
-            // rendues: c'est la même borne que le serveur reçoit, et elle est
-            // déjà écrêtée à `MAX_WINDOW_DAYS`.
-            daysToEat={planWindow.durationDays}
           />
+          {/* ⟳ 2026-09-05 — Les trois entrées de la règle (`style`,
+              `oneCookingSession`, `daysToEat`) que `d33aae13` passait ici
+              n'ont JAMAIS eu de destinataire dans HEAD: le `GroceryRunsField`
+              commité a quatre props et les ignorait, et `tsc` refusait HEAD nu.
+              Elles vivent dans le lot « offre de courses », resté dans l'arbre
+              de travail, NON commité, six fichiers :
+                supabase/functions/_shared/keel/cooking_plan.ts (+181)
+                supabase/functions/_shared/keel/cooking_plan_test.ts
+                frontend/src/keel/api/cookingPlan.ts
+                frontend/src/keel/components/GroceryRunsField.tsx (+166)
+                frontend/src/keel/components/groceryRunsOffer.int.test.ts (non suivi)
+                frontend/src/keel/components/MealBuilder.tsx (+413/−408)
+              Mesuré: avec les six, `tsc` passe mais `householdEnvyWiring`
+              rougit; avec moins, `tsc` rougit. Les repasser demande de commiter
+              ce lot ENTIER, relu, pas ces trois lignes:
+                style={draft.cookingStyle}
+                oneCookingSession={oneCookingSession}
+                daysToEat={planWindow.durationDays} */}
 
           {/* ── UN CHIFFRE, ET PLUS TROIS PASTILLES ────────────────────────
               « Serré / normal / confortable » partait au modèle tel quel, et
