@@ -370,3 +370,86 @@ Deno.test("⟳ 2026-09-06 — CE QUE LA TABLE ÉVITE EST LA LIGNE DE CHAQUE BOUC
   assert(/\.\.\.householdExclusionTerms,/.test(block), "les termes de la table ne rejoignent plus ceux de chaque bouche: une exclusion de table redevient une consigne de prompt");
   assert(src.indexOf("const householdExclusionTerms = exclusionTermsFor(") < at, "les termes de la table sont calculés APRÈS ceux des bouches");
 });
+
+
+// ===========================================================================
+// ⟳ 2026-09-06 — UNE PHRASE = UNE RÈGLE, ET TOUS SES MOTS DOIVENT Y ÊTRE
+// ===========================================================================
+
+Deno.test("⛔ « rougaille saucisse » ne mord PAS « lentilles aux saucisses » ni « rougaille de tomates »", () => {
+  // Mesuré (banc « un retour et les calories »): la phrase rendait deux
+  // règles indépendantes, et chacune mordait seule. La personne a nommé UN
+  // plat ; ses deux mots doivent être là.
+  // ⚠️ LE TEXTE RETENU EST LA CHOSE, pas la phrase: le classifieur range
+  // « rougaille saucisse », et c'est cette forme nue qui exige tous ses mots.
+  const terms = exclusionTermsFor({
+    items: [item("rougaille saucisse", "household")],
+    subject: "household",
+  });
+  assertEquals(terms.map((t) => t.word).sort(), ["rougaille", "saucisse"]);
+  assert(terms.every((t) => t.phrase), "une phrase nue n'est pas reconnue comme telle");
+  const bites = (title: string, ingredients: string[]) =>
+    dishBitesExclusion({
+      dish: { title, method: "", ingredients: ingredients.map((term) => ({ term })) },
+      uses: [], preparationById: new Map(), terms, surface: "all",
+    } as never).matched !== null;
+  assertEquals(bites("Lentilles aux saucisses", ["lentilles", "saucisses"]), false);
+  assertEquals(bites("Rougaille de tomates", ["tomates"]), false);
+  assertEquals(bites("Rougaille saucisse", ["saucisses", "tomates"]), true);
+  // Les deux mots peuvent être répartis entre le titre et les ingrédients.
+  assertEquals(bites("Rougaille créole", ["saucisse fumée", "oignon"]), true);
+});
+
+Deno.test("une catégorie dépliée reste UN mot: n'importe quelle espèce suffit", () => {
+  // « poisson » → saumon, thon… sont des alternatives du MÊME mot, pas des
+  // mots à trouver tous.
+  const terms = exclusionTermsFor({
+    items: [item("poisson", TOM)],
+    subject: TOM,
+  });
+  assert(new Set(terms.map((t) => t.word)).size === 1);
+  assert(terms.length > 1, "la catégorie ne déplie plus ses espèces");
+  assert(terms.every((t) => t.phrase));
+  const out = dishBitesExclusion({
+    dish: { title: "Assiette", method: "", ingredients: [{ term: "thon" }] },
+    uses: [], preparationById: new Map(), terms, surface: "ingredients",
+  } as never);
+  assert(out.matched !== null);
+});
+
+Deno.test("un terme SANS `word` (appelant ancien) vaut son jeton — rien ne change pour une règle à un mot", () => {
+  const out = dishBitesExclusion({
+    dish: { title: "Poulet rôti", method: "", ingredients: [{ term: "poulet" }] },
+    uses: [], preparationById: new Map(),
+    terms: [{ ruleId: "pas de poulet", token: "poulet" }], surface: "ingredients",
+  } as never);
+  assertEquals(out.matched !== null, true);
+  assertEquals(out.because, "pas de poulet");
+});
+
+
+Deno.test("une PHRASE DE PERSONNE garde la règle d'avant: chaque mot mord seul (le bruit ne la rend pas inerte)", () => {
+  // « Mon fils n'aime pas le poisson » extrait « fil » et « poisson »; exiger
+  // les deux rendrait la règle muette. Un marqueur de phrase (mon, pas, aime)
+  // suffit à garder la règle d'avant.
+  const terms = exclusionTermsFor({ items: [item("Mon fils n'aime pas le poisson", TOM)], subject: TOM });
+  assert(terms.every((t) => !t.phrase));
+  const out = dishBitesExclusion({
+    dish: { title: "Assiette", method: "", ingredients: [{ term: "saumon" }] },
+    uses: [], preparationById: new Map(), terms, surface: "ingredients",
+  } as never);
+  assert(out.matched !== null);
+  // Et « yaourt de soja » reste une phrase nue: « yaourt nature » ne mord pas.
+  const soy = exclusionTermsFor({ items: [item("yaourt de soja", TOM)], subject: TOM });
+  assert(soy.every((t) => t.phrase));
+  const plain = dishBitesExclusion({
+    dish: { title: "Yaourt nature et fruits", method: "", ingredients: [{ term: "yaourt nature" }] },
+    uses: [], preparationById: new Map(), terms: soy, surface: "all",
+  } as never);
+  assertEquals(plain.matched, null);
+  const both = dishBitesExclusion({
+    dish: { title: "Bol", method: "", ingredients: [{ term: "yaourt de soja" }] },
+    uses: [], preparationById: new Map(), terms: soy, surface: "all",
+  } as never);
+  assert(both.matched !== null);
+});

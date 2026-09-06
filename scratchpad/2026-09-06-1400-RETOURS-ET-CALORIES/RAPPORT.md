@@ -114,3 +114,23 @@ Rejoué (4 brouillons, même fixture, même style) :
 plats) et la relance par parties sont la lane de 8a. La cible retrouvée par le correctif 3 ne se
 comble pas quand les plafonds de pot mordent (`pot_ceiling 9`) : c'est l'arbitrage 1 (74). Les
 courses et casseroles ne rétrécissent toujours pas après un retrait.
+
+## 7. ⟳ Le reste, à trois (2026-09-06, 16 h)
+
+**Ma part, rejouée :**
+- **La lane solo a une ceinture d'exclusion** (`generate-meal-v1`) : les termes retenus de la
+  table sont cherchés sur chaque plat (titre, ingrédients, casseroles citées) ; une relance
+  nomme les plats fautifs ; ce qui mord encore est **retiré** et sa case rouverte pour la relance
+  des cases vides — jamais servi, jamais compté. Tir FS1 (« poulet » exclu, 7 jours) : 3 morsures
+  détectées, relance acceptée, **0 plat au poulet servi**, 0 retrait, 0 trou. Avant : aucune
+  ceinture, une ligne d'`issue`.
+- **Une phrase nue = une règle** : « rougaille saucisse » ne mord plus « lentilles aux
+  saucisses » ni « rougaille de tomates » ; une phrase de personne (« Mon fils n'aime pas le
+  poisson ») garde la règle d'avant, parce que l'extracteur y laisse du bruit ; une catégorie
+  (« poisson ») reste un mot qu'une espèce suffit à trouver.
+
+**Les deux autres lanes** (en cours au moment d'écrire) : 8a — la relance d'exclusion rejetée
+quand elle rend moins de plats et la relance par parties qui ne répare pas (FC4), la ceinture de
+régime qui retire la végane de toutes ses boîtes (FC2), tentatives et motif de rejet au journal ;
+74 — les plafonds de pot qui empêchent de combler l'écart retrouvé, et les courses/casseroles qui
+ne rétrécissent pas après un retrait.

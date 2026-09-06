@@ -131,19 +131,69 @@ const NO_BITE: ExclusionBite = {
  * « Je veux moins de trucs compliqués » n'a aucun aliment à interdire : mieux
  * vaut ne rien chercher que de chercher « truc ».
  */
+/**
+ * ⟳ 2026-09-06 — UN TERME DE CEINTURE SAIT DE QUEL MOT DE LA PHRASE IL VIENT.
+ *
+ * Mesuré (banc « un retour et les calories ») : « j'aime pas trop le rougaille
+ * saucisse » rendait DEUX règles indépendantes, « rougaille » et « saucisse »
+ * — « lentilles aux saucisses » mordait, « rougaille de tomates » aussi. La
+ * phrase nomme UN plat ; elle ne mord que si TOUS ses mots sont là (voir
+ * `dishBitesExclusion`). `word` est le mot d'origine ; les espèces d'une
+ * catégorie (« poisson » → saumon, thon…) sont des ALTERNATIVES du même mot.
+ */
+export interface ExclusionTerm extends ForbiddenTerm {
+  readonly word: string;
+  /**
+   * `true` quand le texte retenu est une PHRASE NUE d'aliment (« rougaille
+   * saucisse », « yaourt de soja ») : tous ses mots doivent être là pour
+   * mordre. `false` quand c'est une phrase de personne (« Mon fils n'aime pas
+   * le poisson ») : l'extracteur y laisse du bruit (« fil »), et exiger tous
+   * les mots rendrait la règle inerte — chaque mot mord seul, comme avant.
+   */
+  readonly phrase: boolean;
+}
+
+/**
+ * LES MARQUEURS D'UNE PHRASE DE PERSONNE — liste FERMÉE, FR + EN. Un pronom,
+ * un possessif, une négation, un verbe de goût : dès qu'un seul est là, le
+ * texte n'est pas le nom d'un plat. Les prépositions (« de », « au ») n'y
+ * sont pas : « yaourt de soja » reste une phrase nue.
+ */
+const SENTENCE_MARKERS: ReadonlySet<string> = new Set([
+  "je", "j", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles",
+  "mon", "ma", "mes", "ton", "ta", "tes", "son", "sa", "ses", "notre", "nos",
+  "ne", "n", "pas", "plus", "jamais", "aucun", "aucune",
+  "aime", "aimer", "aimons", "adore", "deteste", "veux", "veut", "voulons",
+  "mange", "manger", "mangeons", "prend", "prends", "supporte",
+  "i", "we", "he", "she", "they", "my", "our", "his", "her",
+  "not", "no", "never", "don", "doesn", "t", "like", "likes", "hate", "hates",
+  "eat", "eats", "want", "wants", "avoid",
+]);
+
+function isBarePhrase(text: string): boolean {
+  const words = String(text ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  return words.length > 0 && !words.some((w) => SENTENCE_MARKERS.has(w));
+}
+
 export function exclusionTermsFor(args: {
   items: readonly RetainedItem[];
   subject: string;
-}): ForbiddenTerm[] {
+}): ExclusionTerm[] {
   const subject = String(args.subject ?? "").trim();
   if (!subject) return [];
-  const out: ForbiddenTerm[] = [];
+  const out: ExclusionTerm[] = [];
   const seen = new Set<string>();
   for (const item of args.items ?? []) {
     if (!item || item.kind !== "food.exclude") continue;
     if (String(item.subject ?? "") !== subject) continue;
     const text = String(item.text ?? "").trim();
     if (!text) continue;
+    const phrase = isBarePhrase(text);
     for (const token of termsOfInstruction(text)) {
       // ⛔ UN MOT DE CATÉGORIE SE DÉPLIE, UN ALIMENT PRÉCIS NON — sens unique.
       //
@@ -161,7 +211,7 @@ export function exclusionTermsFor(args: {
         seen.add(key);
         // ⚠️ `ruleId` PORTE LE TEXTE DE LA PERSONNE. Il ne décide de rien; il
         // sert à ce que l'`issue` puisse DIRE ce qui a mordu, dans ses mots.
-        out.push({ ruleId: text, token: t });
+        out.push({ ruleId: text, token: t, word: token, phrase });
       }
     }
   }
@@ -228,10 +278,26 @@ export function dishBitesExclusion(args: {
     });
   }
 
-  const preparationIds: string[] = [];
-  let matched: string | null = null;
-  let because: string | null = null;
+  // ── ⟳ 2026-09-06 — UNE PHRASE = UNE RÈGLE, ET TOUS SES MOTS DOIVENT Y ÊTRE ──
+  //
+  // Les mots attendus par règle viennent de `word` (les termes d'une catégorie
+  // dépliée partagent le même `word` : n'importe quelle espèce le trouve). Un
+  // terme sans `word` (appelant ancien) vaut son `token`, donc une règle à un
+  // mot se comporte exactement comme avant.
+  const wordOf = (t: ForbiddenTerm): string =>
+    String((t as Partial<ExclusionTerm>).word ?? t.token);
+  // Une règle n'exige TOUS ses mots que si elle est une phrase nue; sinon
+  // (phrase de personne, appelant ancien sans `phrase`) un seul mot suffit.
+  const expected = new Map<string, Set<string>>();
+  for (const t of args.terms) {
+    const set = expected.get(t.ruleId) ?? new Set<string>();
+    if ((t as Partial<ExclusionTerm>).phrase === true) set.add(wordOf(t));
+    expected.set(t.ruleId, set);
+  }
+  const wordOfToken = new Map(args.terms.map((t) => [`${t.ruleId} | ${t.token.toLowerCase()}`, wordOf(t)]));
 
+  const foundWords = new Map<string, Set<string>>();
+  const firstHit = new Map<string, { matched: string; prepIds: Set<string> }>();
   for (const source of sources) {
     const prose = source.prose.filter((t) => String(t ?? "").trim() !== "")
       .join(" • ");
@@ -240,15 +306,33 @@ export function dishBitesExclusion(args: {
     // qu'il dit. C'est l'inverse de `rule_question.ts`, qui lit des RÈGLES
     // écrites au négatif et doit donc désarmer la négation.
     const hits = findForbiddenMatches(prose, args.terms);
-    if (hits.length === 0) continue;
-    if (matched === null) {
-      matched = hits[0].matchedText;
-      because = String(hits[0].ruleId ?? "") || null;
+    for (const hit of hits) {
+      const word = wordOfToken.get(`${hit.ruleId} | ${hit.token.toLowerCase()}`) ?? hit.token;
+      const set = foundWords.get(hit.ruleId) ?? new Set<string>();
+      set.add(word);
+      foundWords.set(hit.ruleId, set);
+      const first = firstHit.get(hit.ruleId) ?? { matched: hit.matchedText, prepIds: new Set<string>() };
+      if (source.prepId) first.prepIds.add(source.prepId);
+      firstHit.set(hit.ruleId, first);
     }
-    if (source.prepId) preparationIds.push(source.prepId);
   }
 
-  return matched === null ? NO_BITE : { matched, because, preparationIds };
+  // La première règle ENTIÈREMENT trouvée mord — dans l'ordre des termes,
+  // pour que le verdict reste déterministe.
+  for (const t of args.terms) {
+    const need = expected.get(t.ruleId);
+    const got = foundWords.get(t.ruleId);
+    if (!need || !got) continue;
+    if (need.size === 0 || [...need].every((w) => got.has(w))) {
+      const first = firstHit.get(t.ruleId)!;
+      return {
+        matched: first.matched,
+        because: String(t.ruleId ?? "") || null,
+        preparationIds: [...first.prepIds],
+      };
+    }
+  }
+  return NO_BITE;
 }
 
 /**

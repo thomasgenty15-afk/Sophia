@@ -138,14 +138,18 @@ Deno.test("SOLO — le système porte le bloc, les QUATRE appels modèle le reç
   const src = await soloSource();
   assert(src.includes("EXPLANATION_SCHEMA_BLOCK_SOLO.join("), "le bloc n'est pas ajouté au système");
   // ⟳ 2026-09-06: quatre appels (plan, ancre protéique, cases vides, composition).
-  assertEquals((src.match(/soloSystemPrompt,\n/g) || []).length, 4, "les quatre appels doivent recevoir le même système");
+  // ⟳ 2026-09-06 — CINQ, pas quatre: la ceinture des exclusions de la lane
+  // solo a sa relance (`exclusion_retry`), qui reçoit le même système.
+  assertEquals((src.match(/soloSystemPrompt,\n/g) || []).length, 5, "les cinq appels doivent recevoir le même système");
   assert(!/built\.systemPrompt,\n/.test(src), "un appel reçoit encore le système sans le bloc");
 });
 
 Deno.test("SOLO — la garde lit le texte ACCEPTÉ (après relance), et les trois sorties portent le bloc", async () => {
   const src = await soloSource();
   assert(/const explanation = gatePlanExplanation\(\{\s*raw: extractExplanation\(mealSourceText\)/.test(src));
-  assertEquals((src.match(/mealSourceText = retryResult;/g) || []).length, 2, "les deux relances doivent remplacer le texte lu");
+  // ⟳ 2026-09-06 — TROIS relances remplacent le texte lu (ancre protéique,
+  // exclusion, composition) : la ceinture des exclusions en ajoute une.
+  assertEquals((src.match(/mealSourceText = retryResult;/g) || []).length, 3, "les trois relances doivent remplacer le texte lu");
   assertEquals((src.match(/explanation: \{ lines: explanation\.lines, refusal: explanation\.refused \}/g) || []).length, 3);
   assert(src.includes('[...MEAL_TRANSLATABLE_FIELDS, "explanation[]"]'), "le champ doit être traduisible sur cette lane");
   assert(src.includes('tag: "keel.meal.plan_explanation"'), "le compteur doit sortir même à zéro");

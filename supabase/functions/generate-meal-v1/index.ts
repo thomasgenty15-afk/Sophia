@@ -50,6 +50,11 @@ import {
 } from "../_shared/keel/food_preference_promotion.ts";
 import type { RetainedItem } from "../_shared/keel/retained_item.ts";
 import { HOUSEHOLD_SUBJECT } from "../_shared/keel/retained_item.ts";
+import {
+  dishBitesExclusion,
+  exclusionRetryInstruction,
+  exclusionTermsFor,
+} from "../_shared/keel/food_exclusion_belt.ts";
 import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
 import {
   type CompositionLines,
@@ -2728,6 +2733,123 @@ Deno.serve(async (req) => {
         missing_before: anchorMissingBefore,
         missing_after: meal.protein_anchor_missing.length,
         retried: proteinAnchorRetry,
+      }));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-06 — LA CEINTURE DES EXCLUSIONS, SUR LA LANE SOLO
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Mesuré (banc « un retour et les calories ») : cette lane n'avait AUCUNE
+    // ceinture d'exclusion — `boxMemberExclusions: []`, et pour seule trace une
+    // `issue` `written_instruction_unanswered` quand la consigne était avalée.
+    // « Je n'aime pas le saumon » était une consigne de prompt, et rien d'autre ;
+    // le plat au saumon partait, ses kcal comptés.
+    //
+    // Sans boîte, il n'y a personne à retirer d'un couvercle : le plat lui-même
+    // est le contenant. Le remède est celui du foyer pour un plat non ventilé —
+    // UNE relance qui nomme le plat et la raison — puis, si la morsure survit,
+    // le plat est RETIRÉ et sa case redevient un trou (`empty_slots`), que la
+    // relance des cases vides recompose. Jamais servi, jamais compté.
+    const soloExclusionTerms = exclusionTermsFor({
+      items: routedRetained.composition,
+      subject: HOUSEHOLD_SUBJECT,
+    });
+    const soloExclusionBelt = {
+      terms: soloExclusionTerms.length,
+      bites_before: 0,
+      retried: false,
+      bites_after: 0,
+      dropped: 0,
+    };
+    if (soloExclusionTerms.length > 0) {
+      type SoloMeal = typeof meal;
+      const bitesOf = (m: SoloMeal) => {
+        const prepById = new Map(m.preparations.map((p) => [p.id, p])) as never;
+        return m.dishes.flatMap((d) => {
+          const bite = dishBitesExclusion({
+            dish: { title: d.title, method: d.method, ingredients: d.ingredients },
+            uses: (d.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
+            preparationById: prepById,
+            terms: soloExclusionTerms,
+            surface: "all",
+          });
+          return bite.matched === null
+            ? []
+            : [{ dish: d.title, matched: bite.matched, because: bite.because }];
+        });
+      };
+      const before = bitesOf(meal);
+      soloExclusionBelt.bites_before = before.length;
+      soloExclusionBelt.bites_after = before.length;
+      const instruction = exclusionRetryInstruction(before);
+      if (instruction && !adoptingDraft) {
+        try {
+          const retryResult = await generateWithGemini(
+            soloSystemPrompt,
+            mealUserMessage(`\n\n${instruction}`),
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.exclusion_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = bitesOf(retried);
+            if (
+              retried.dishes.length >= meal.dishes.length &&
+              after.length < before.length
+            ) {
+              meal = retried;
+              mealSourceText = retryResult;
+              soloExclusionBelt.retried = true;
+              soloExclusionBelt.bites_after = after.length;
+            }
+          }
+        } catch (error) {
+          console.warn(`[${FN_NAME}] exclusion retry failed`, error);
+        }
+      }
+      // ⛔ CE QUI MORD ENCORE EST RETIRÉ, JAMAIS SERVI. La case redevient un
+      // trou que la relance des cases vides recompose ; si elle n'y arrive
+      // pas, le trou est DIT (`empty_slots`) plutôt que rempli avec ce que la
+      // personne a écrit ne pas vouloir.
+      const surviving = bitesOf(meal);
+      if (surviving.length > 0) {
+        const biting = new Set(surviving.map((b) => b.dish));
+        const kept: typeof meal.dishes = [];
+        for (const d of meal.dishes) {
+          if (!biting.has(d.title)) {
+            kept.push(d);
+            continue;
+          }
+          soloExclusionBelt.dropped += 1;
+          const why = surviving.find((b) => b.dish === d.title);
+          issues.push(
+            `they asked to avoid ${JSON.stringify(why?.because ?? why?.matched)} and ` +
+              `"${d.title}" still contains ${why?.matched} -- dish dropped, slot left to refill`,
+          );
+          if (
+            d.day && d.slot && d.slot !== "snack" &&
+            !meal.empty_slots.some((c) => c.day === d.day && c.slot === d.slot)
+          ) {
+            meal.empty_slots.push({ day: d.day, slot: d.slot });
+          }
+        }
+        meal.dishes = kept;
+      }
+      console.log(JSON.stringify({
+        tag: "keel.meal.exclusion_belt",
+        user_id: userId,
+        ...soloExclusionBelt,
       }));
     }
 
