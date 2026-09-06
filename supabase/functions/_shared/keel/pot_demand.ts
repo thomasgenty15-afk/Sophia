@@ -464,3 +464,67 @@ export function lostSlotEnergy(args: {
   });
   return { lostSlots, kcal: Math.round(shared.total) };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — LE RÉTRÉCISSEMENT SYMÉTRIQUE : UNE CASSEROLE QUE PERSONNE NE
+// TIRE NE SE CUIT PAS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Banc « un retour et les calories » (0f, FC4) : après une exclusion de table,
+// 21 boîtes ont sauté et la casserole de poulet (1 100 g, 6 parts) restait cuite
+// et achetée pour quatre — `neededPotFactor` ne connaît que le sens « plus », et
+// les courses ne suivent que si un pot a grossi. « Les courses et casseroles ne
+// rétrécissent jamais après un retrait » était vrai, et c'était un défaut.
+//
+// La décision est ici, pure et comptée ; l'index l'applique aux ingrédients,
+// aux citations, aux sessions et aux courses.
+//   · un plat SANS boîte qui cite la casserole (mangé à table, attribué à
+//     personne) la PROTÈGE : on ne rétrécit pas ce qu'on ne sait pas mesurer ;
+//   · 0 tirage ⇒ facteur 0 : retirée ;
+//   · tirage × marge sous (1 − tolérance) de la masse prête ⇒ facteur < 1 ;
+//   · sinon rien — la casserole a raison d'avoir des restes.
+//
+// PURE: no I/O, no clock, no randomness.
+export const POT_SHRINK_TOLERANCE = 0.15;
+
+export type PotShrinkVerdict =
+  | { factor: 0; reason: "removed" }
+  | { factor: number; reason: "shrunk" }
+  | { factor: 1; reason: "kept" | "unboxed_use" | "unreadable" };
+
+export function potShrinkPlan(
+  pots: readonly {
+    id: string;
+    /** Masse prête (`preparationReadyGrams`), `null` si illisible. */
+    readyGrams: number | null;
+    /** Ce que les boîtes lui tirent, en grammes, après ceinture, relance et recours. */
+    drawnGrams: number;
+    /** Nombre de plats SANS boîte qui la citent. */
+    unboxedUses: number;
+  }[],
+  opts: { margin: number; tolerance?: number } ,
+): Map<string, PotShrinkVerdict> {
+  const tolerance = opts.tolerance ?? POT_SHRINK_TOLERANCE;
+  const out = new Map<string, PotShrinkVerdict>();
+  for (const pot of pots) {
+    if (pot.unboxedUses > 0) {
+      out.set(pot.id, { factor: 1, reason: "unboxed_use" });
+      continue;
+    }
+    if (!(pot.drawnGrams > 0)) {
+      out.set(pot.id, { factor: 0, reason: "removed" });
+      continue;
+    }
+    if (pot.readyGrams === null || !(pot.readyGrams > 0)) {
+      out.set(pot.id, { factor: 1, reason: "unreadable" });
+      continue;
+    }
+    const wanted = pot.drawnGrams * opts.margin;
+    if (wanted >= pot.readyGrams * (1 - tolerance)) {
+      out.set(pot.id, { factor: 1, reason: "kept" });
+      continue;
+    }
+    out.set(pot.id, { factor: wanted / pot.readyGrams, reason: "shrunk" });
+  }
+  return out;
+}

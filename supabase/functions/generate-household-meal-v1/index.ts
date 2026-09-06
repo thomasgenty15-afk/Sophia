@@ -124,6 +124,7 @@ import {
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
+  normalizePantryTerm,
   addedCookDays,
   MAX_FRIDGE_DAYS,
   buildMealPrompt,
@@ -440,6 +441,7 @@ import {
   potAttributionGap,
 } from "../_shared/keel/mouth_energy.ts";
 import {
+  potShrinkPlan,
   neededPotFactor,
   POT_REASONS,
   potFactorFor,
@@ -8264,6 +8266,26 @@ Deno.serve(async (req) => {
     const POT_GROWTH_MARGIN = 1.05;
     const POT_GROWTH_PASSES = 2;
     const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0, passes: 0, short_after: 0 };
+    // ⟳ 2026-09-06 — LA DEMANDE PAR TERME, AVANT que les casseroles bougent : les
+    // courses suivront ce rapport (après / avant) ligne à ligne, pour la
+    // croissance comme pour le rétrécissement, au lieu d'un facteur moyen.
+    const demandByTerm = (): Map<string, number> => {
+      const out = new Map<string, number>();
+      const add = (ings: readonly { term: string; amount: number | null; unit: string | null }[]) => {
+        for (const ing of ings) {
+          const unit = String(ing.unit ?? "").toLowerCase();
+          if (unit !== "g" && unit !== "ml") continue;
+          const g = Number(ing.amount);
+          if (!Number.isFinite(g) || g <= 0) continue;
+          const key = normalizePantryTerm(ing.term);
+          out.set(key, (out.get(key) ?? 0) + g);
+        }
+      };
+      for (const prep of meal.preparations) add(prep.ingredients);
+      for (const dish of meal.dishes) add(dish.ingredients);
+      return out;
+    };
+    const demandBefore = demandByTerm();
     // ⟳ 2026-09-06 (tir M05 r2: `capped 4`, `pot_ceiling 7`): le plafond par
     // ingrédient (500 g × parts) lisait `servingsMade` du MODÈLE — 4 parts
     // écrites pour un pot que douze boîtes tirent. Le nombre de tirages réels
@@ -8339,18 +8361,119 @@ Deno.serve(async (req) => {
       ])),
     );
     growth.short_after = [...potGrowth.values()].filter((f) => f > 1.02).length;
-    if (growth.scaled > 0 && meal.shopping_list.length > 0) {
-      // ⚠️ LES COURSES SUIVENT AU FACTEUR MOYEN DES CASSEROLES QUI ONT GROSSI.
-      // Une attribution ligne-à-casserole n'existe pas dans ce plan
-      // (`shopping_list_unattributed: 2/24` mesuré), et l'inventer ici serait
-      // deviner. Le moyen est honnête et se compte; l'exact attend que la ligne
-      // porte sa casserole.
-      const grownFactors = [...potGrowth.values()].filter((f) => f > 1);
-      const mean = grownFactors.reduce((a, b) => a + b, 0) / grownFactors.length;
-      const shop = scaleShoppingList(meal.shopping_list, mean);
-      growth.shopping = shop.changed;
-      growth.unrewritable = shop.unrewritable.length;
-      meal.shopping_list.splice(0, meal.shopping_list.length, ...shop.items);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-06 — LE RÉTRÉCISSEMENT SYMÉTRIQUE (banc 0f, FC4)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Après une exclusion de table, 21 boîtes avaient sauté et la casserole de
+    // poulet restait cuite et achetée pour quatre : la croissance ne connaît
+    // que le sens « plus », et les courses ne suivaient que si un pot avait
+    // grossi. La décision est dans `potShrinkPlan` (pure, comptée) ; ici on
+    // l'applique — aux ingrédients, aux citations des plats, aux sessions.
+    const shrinkCounts = {
+      pots: 0,
+      removed: 0,
+      kept: 0,
+      unboxed_use: 0,
+      unreadable: 0,
+      sessions_emptied: 0,
+      lines_scaled: 0,
+      lines_dropped: 0,
+      lines_unattributed: 0,
+      lines_unrewritable: 0,
+    };
+    {
+      const drawnByPot = new Map<string, number>();
+      for (const box of sizableBoxes) {
+        for (const it of box.items) {
+          if (!it.preparationId) continue;
+          const g = Number(it.grams);
+          if (!Number.isFinite(g) || g <= 0) continue;
+          drawnByPot.set(it.preparationId, (drawnByPot.get(it.preparationId) ?? 0) + g);
+        }
+      }
+      const unboxedUses = new Map<string, number>();
+      for (const dish of meal.dishes) {
+        if (dish.boxes.length > 0) continue;
+        for (const use of dish.uses) unboxedUses.set(use.preparationId, (unboxedUses.get(use.preparationId) ?? 0) + 1);
+      }
+      const verdicts = potShrinkPlan(
+        meal.preparations.map((prep) => ({
+          id: prep.id,
+          readyGrams: composition ? preparationReadyGrams(prep.ingredients, composition) : null,
+          drawnGrams: drawnByPot.get(prep.id) ?? 0,
+          unboxedUses: unboxedUses.get(prep.id) ?? 0,
+        })),
+        { margin: POT_GROWTH_MARGIN },
+      );
+      const removed = new Set<string>();
+      for (const prep of meal.preparations) {
+        const v = verdicts.get(prep.id);
+        if (!v) continue;
+        if (v.reason === "removed") {
+          removed.add(prep.id);
+          shrinkCounts.removed++;
+          continue;
+        }
+        if (v.reason !== "shrunk") {
+          shrinkCounts[v.reason]++;
+          continue;
+        }
+        const shrunk = scaleIngredients(prep.ingredients, v.factor);
+        if (shrunk.changed === 0) {
+          shrinkCounts.kept++;
+          continue;
+        }
+        shrinkCounts.pots++;
+        prep.ingredients.splice(0, prep.ingredients.length, ...shrunk.items);
+      }
+      if (removed.size > 0) {
+        meal.preparations = meal.preparations.filter((p) => !removed.has(p.id));
+        for (const dish of meal.dishes) dish.uses = dish.uses.filter((u) => !removed.has(u.preparationId));
+        for (const session of meal.cooking_sessions) {
+          session.preparationIds = session.preparationIds.filter((id) => !removed.has(id));
+          if (session.preparationIds.length === 0) shrinkCounts.sessions_emptied++;
+        }
+        meal.cooking_sessions = meal.cooking_sessions.filter((s) => s.preparationIds.length > 0);
+        issues.push(
+          `preparations: ${removed.size} batch(es) no box draws on any more -- not cooked, not bought (${[...removed].join(", ")})`,
+        );
+      }
+      if (shrinkCounts.pots > 0) growth.regrammed += regramMeal(meal, composition);
+    }
+    // ── LES COURSES SUIVENT LA DEMANDE PAR TERME, dans les deux sens ─────────
+    // Une ligne dont la demande est tombée à zéro est retirée ; une ligne dont
+    // aucun plat ni casserole ne porte le terme reste telle quelle, et se compte.
+    if (meal.shopping_list.length > 0 && (growth.scaled > 0 || shrinkCounts.pots > 0 || shrinkCounts.removed > 0)) {
+      const demandAfter = demandByTerm();
+      const kept: typeof meal.shopping_list = [];
+      for (const line of meal.shopping_list) {
+        const key = normalizePantryTerm(line.term);
+        const before = demandBefore.get(key) ?? 0;
+        if (!(before > 0)) {
+          shrinkCounts.lines_unattributed++;
+          kept.push(line);
+          continue;
+        }
+        const after = demandAfter.get(key) ?? 0;
+        if (!(after > 0)) {
+          shrinkCounts.lines_dropped++;
+          continue;
+        }
+        const f = after / before;
+        if (Math.abs(f - 1) <= 0.02) {
+          kept.push(line);
+          continue;
+        }
+        const scaled = scaleShoppingList([line], f);
+        if (scaled.changed > 0) shrinkCounts.lines_scaled++;
+        if (scaled.unrewritable.length > 0) shrinkCounts.lines_unrewritable++;
+        kept.push(...scaled.items);
+      }
+      meal.shopping_list.splice(0, meal.shopping_list.length, ...kept);
+      growth.shopping = shrinkCounts.lines_scaled;
+      growth.unrewritable = shrinkCounts.lines_unrewritable;
     }
     const boxSizing = sizeBoxesFromTarget(
       sizableBoxes,
@@ -8648,6 +8771,7 @@ Deno.serve(async (req) => {
       pot: potReasons,
       pot_cap: potCap,
       pot_growth: growth,
+      pot_shrink: shrinkCounts,
       unmet: unmetCauses,
       unmet_band: unmetBand,
       lost_slots: lostSlots,
@@ -8995,6 +9119,8 @@ Deno.serve(async (req) => {
         anchor_cap: anchorCap,
         anchor_applied: anchorApplied,
         pot_attribution: potAttribution,
+        pot_growth: growth,
+        pot_shrink: shrinkCounts,
         // ⟳ 2026-09-04: L'ÉCART SORT AUSSI DANS L'ARCHIVE. Il ne sortait que par
         // le journal, et une mesure qui ne survit pas à la génération n'est
         // lisible que par qui regardait au bon moment. Mesuré sur deux foyers:

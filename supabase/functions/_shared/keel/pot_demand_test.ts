@@ -20,7 +20,7 @@ import {
   slotPlanTargets,
 } from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
-import { lostSlotEnergy,
+import { potShrinkPlan, POT_SHRINK_TOLERANCE, lostSlotEnergy,
   neededPotFactor,
   POT_REASONS,
   potFactorFor,
@@ -487,4 +487,25 @@ Deno.test("lostSlotEnergy — un moment que la table sert et que la bouche n'a p
   // Un moment que PERSONNE ne sert n'est pas perdu : rien ne le distingue d'un plat mangé à table.
   const nobody = lostSlotEnergy({ mouth: e.mouth, coachCounting: "no_position", mySlots: ["breakfast"], tableSlots: ["breakfast"] });
   assertEquals(nobody.kcal, 0);
+});
+
+// ⟳ 2026-09-06 — LE RÉTRÉCISSEMENT SYMÉTRIQUE (banc 0f, FC4)
+Deno.test("potShrinkPlan — une casserole que personne ne tire est retirée ; sous-tirée, rétrécie à tirage × marge ; un plat sans boîte la protège", () => {
+  const plan = potShrinkPlan([
+    { id: "chicken", readyGrams: 900, drawnGrams: 0, unboxedUses: 0 },
+    { id: "beans", readyGrams: 8000, drawnGrams: 3000, unboxedUses: 0 },
+    { id: "table_dish", readyGrams: 2000, drawnGrams: 0, unboxedUses: 1 },
+    { id: "fine", readyGrams: 1000, drawnGrams: 900, unboxedUses: 0 },
+    { id: "blind", readyGrams: null, drawnGrams: 300, unboxedUses: 0 },
+  ], { margin: 1.05 });
+  assertEquals(plan.get("chicken"), { factor: 0, reason: "removed" });
+  const beans = plan.get("beans")!;
+  assertEquals(beans.reason, "shrunk");
+  assert(Math.abs(beans.factor - (3000 * 1.05) / 8000) < 1e-9, String(beans.factor));
+  assertEquals(plan.get("table_dish"), { factor: 1, reason: "unboxed_use" });
+  assertEquals(plan.get("fine"), { factor: 1, reason: "kept" });
+  assertEquals(plan.get("blind"), { factor: 1, reason: "unreadable" });
+  // La tolérance est celle du dépôt, et elle borne : à 86 % de tirage, on garde.
+  assertEquals(POT_SHRINK_TOLERANCE, 0.15);
+  assertEquals(potShrinkPlan([{ id: "x", readyGrams: 1000, drawnGrams: 860 / 1.05, unboxedUses: 0 }], { margin: 1.05 }).get("x")!.reason, "kept");
 });
