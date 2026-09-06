@@ -6297,6 +6297,8 @@ Deno.serve(async (req) => {
     let swapRetryAccepted = 0;
     let swapRetryRejectedBy: string | null = null;
     let swapReverted = false;
+    // ⟳ 2026-09-06 — les cellules prises à une relance du flagrant rejetée en entier.
+    let swapRetryMergedCells = 0;
     let preSwap: { meal: typeof meal; mealSourceText: string; delivered: typeof delivered; swap: typeof swap } | null = null;
     if (swap.counters.flagrant && !adoptingDraft && strictestRegime !== null) {
       const names = (ids: readonly string[]) =>
@@ -6363,17 +6365,52 @@ Deno.serve(async (req) => {
               swap = after;
               swapRetryAccepted += 1;
             } else {
-              swapRetryRejectedBy = rejectedBy;
-              console.info(JSON.stringify({
-                tag: "keel.household_meal.swap_retry_rejected",
-                request_id: requestId,
-                user_id: userId,
-                rejected_by: rejectedBy,
-                dishes: [meal.dishes.length, retried.dishes.length],
-                cells_carrying: [swap.counters.cells_carrying, after.counters.cells_carrying],
-                missing: [delivered.missing, afterDelivered.missing],
-                refused: [meal.regime_belt.refused, retried.regime_belt.refused],
-              }));
+              // ── ⟳ 2026-09-06 — PAR PARTIES (M07 r3: 42 plats rendus, 0 cellule
+              // carnée en entier, rejetée par `carrying`). Les cellules que la
+              // relance rend AVEC le composant — absentes avant, portées après —
+              // sont prises avec leurs casseroles et leurs courses; le reste du
+              // plan ne bouge pas. Le manque qu'elles apportent est l'affaire de
+              // la boucle qui suit, et du retour en arrière si elle n'y arrive pas.
+              const absentBefore = new Set(swap.absentCells.map((c) => `${c.day}/${c.slot}`));
+              const absentAfter = new Set(after.absentCells.map((c) => `${c.day}/${c.slot}`));
+              const repaired = [...absentBefore].filter((c) => !absentAfter.has(c));
+              const merge = mergeRetryCells({ base: meal, retry: retried, cells: repaired });
+              const mergedSwap = merge.cells.length > 0
+                ? swapPresence({ dishes: swapViewOf(merge.meal), mouths: mouthCells, strictest: strictestRegime })
+                : swap;
+              if (merge.cells.length > 0 && mergedSwap.counters.cells_carrying > swap.counters.cells_carrying) {
+                preSwap = { meal, mealSourceText, delivered, swap };
+                meal = merge.meal;
+                delivered = mealsDelivered(deliveredViewOf(merge.meal), mouthCells);
+                swap = mergedSwap;
+                swapRetryAccepted += 1;
+                swapRetryMergedCells = merge.cells.length;
+                console.info(JSON.stringify({
+                  tag: "keel.household_meal.swap_retry_merged",
+                  request_id: requestId,
+                  user_id: userId,
+                  whole_rejected_by: rejectedBy,
+                  cells: merge.cells,
+                  cells_carrying: [preSwap.swap.counters.cells_carrying, mergedSwap.counters.cells_carrying],
+                  missing: [preSwap.delivered.missing, delivered.missing],
+                  imported_preparations: merge.importedPreparations,
+                  shopping_added: merge.shoppingAdded,
+                }));
+              } else {
+                swapRetryRejectedBy = rejectedBy;
+                console.info(JSON.stringify({
+                  tag: "keel.household_meal.swap_retry_rejected",
+                  request_id: requestId,
+                  user_id: userId,
+                  rejected_by: rejectedBy,
+                  dishes: [meal.dishes.length, retried.dishes.length],
+                  cells_carrying: [swap.counters.cells_carrying, after.counters.cells_carrying],
+                  missing: [delivered.missing, afterDelivered.missing],
+                  refused: [meal.regime_belt.refused, retried.regime_belt.refused],
+                  repaired_cells: repaired,
+                  merge_cells: merge.cells,
+                }));
+              }
             }
           }
         } catch (e) {
@@ -6395,6 +6432,7 @@ Deno.serve(async (req) => {
       retry_accepted: swapRetryAccepted,
       retry_rejected_by: swapRetryRejectedBy,
       retry_reverted: swapReverted,
+      retry_merged_cells: swapRetryMergedCells,
     }));
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -9252,6 +9290,7 @@ Deno.serve(async (req) => {
         retry_accepted: swapRetryAccepted,
       retry_rejected_by: swapRetryRejectedBy,
       retry_reverted: swapReverted,
+      retry_merged_cells: swapRetryMergedCells,
       },
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.

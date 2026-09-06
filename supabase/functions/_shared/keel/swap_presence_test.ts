@@ -169,6 +169,15 @@ Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, a
   assert(/preSwap = \{ meal, mealSourceText, delivered, swap \};/.test(src), "l'instantané d'avant la relance a disparu");
   assert(/if \(preSwap !== null && delivered\.missing > preSwap\.delivered\.missing\) \{/.test(src.slice(loopAt, restorableAt)), "le retour en arrière ne suit plus la boucle");
   assert((src.match(/retry_reverted: swapReverted,/g) || []).length === 2, "retry_reverted absent du journal ou de l'archive");
+  // ⟳ 2026-09-06 (M07 r3, rejetée par `carrying` en entier) — par parties: les cellules
+  // qui portent ENFIN le composant sont prises, le reste du plan ne bouge pas.
+  const swapBlock = src.slice(swapAt, loopAt);
+  assert(/const repaired = \[\.\.\.absentBefore\]\.filter\(\(c\) => !absentAfter\.has\(c\)\);/.test(swapBlock), "les cellules réparées ne sont plus « absentes avant, portées après »");
+  assert(/mergeRetryCells\(\{ base: meal, retry: retried, cells: repaired \}\)/.test(swapBlock), "la relance du flagrant rejette encore le plan entier sans rien garder");
+  assert(/mergedSwap\.counters\.cells_carrying > swap\.counters\.cells_carrying/.test(swapBlock), "la fusion partielle n'exige plus de porter davantage");
+  assert(/swap_retry_merged/.test(swapBlock), "la fusion partielle du flagrant n'est pas journalisée");
+  assert(/preSwap = \{ meal, mealSourceText, delivered, swap \};/.test(swapBlock.slice(swapBlock.indexOf("swap_retry_merged") - 1200, swapBlock.indexOf("swap_retry_merged"))), "la fusion partielle ne garde pas l'instantané: le retour en arrière ne la couvre pas");
+  assert((src.match(/retry_merged_cells: swapRetryMergedCells,/g) || []).length === 2, "retry_merged_cells absent du journal ou de l'archive");
 });
 
 Deno.test("CÂBLAGE — v28: l'échappatoire « nothing clashes » nomme la sortie, à côté de la clé \"boxes\"", async () => {
