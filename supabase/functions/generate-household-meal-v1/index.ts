@@ -6224,6 +6224,127 @@ Deno.serve(async (req) => {
     // ⛔ PAS SUR L'ADOPTION D'UN APERÇU. `adoptingDraft` reprend un plan que la
     // personne a DÉJÀ vu; le régénérer lui rendrait autre chose que ce qu'elle
     // a accepté. Même arbitrage que les deux relances au-dessus.
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-05 — LA TABLE ENTIÈRE AU RÉGIME DE LA MINORITÉ (C06/C07)
+    // ═══════════════════════════════════════════════════════════════════════
+    // Mesuré deux fois: cinq bouches, une végétarienne, et le modèle compose
+    // une semaine sans une casserole carnée — 42 plats, zéro viande, zéro
+    // poisson — avec `bites: 0, refused: 0, missing: 0`: le journal d'un plan
+    // parfait, parce qu'il n'y avait plus rien à mordre. Le bloc régime lui
+    // disait pourtant « do NOT drop the animal protein »; il a pris
+    // l'échappatoire « if nothing clashes ». Ici: le dénominateur, par
+    // cellule, et une relance sur le SEUL cas mesuré, le flagrant (zéro
+    // cellule à composant sur toute la fenêtre). Un ratio partiel se mesure
+    // d'abord (`swap.cells_swap_absent`), il ne se répare pas encore.
+    let swap = swapPresence({
+      dishes: swapViewOf(meal),
+      mouths: mouthCells,
+      strictest: strictestRegime,
+    });
+    let swapRetryAttempts = 0;
+    let swapRetryAccepted = 0;
+    let swapRetryRejectedBy: string | null = null;
+    let swapReverted = false;
+    let preSwap: { meal: typeof meal; mealSourceText: string; delivered: typeof delivered; swap: typeof swap } | null = null;
+    if (swap.counters.flagrant && !adoptingDraft && strictestRegime !== null) {
+      const names = (ids: readonly string[]) =>
+        ids.map((id) => String(nameOf.get(id) ?? "").trim()).filter(Boolean);
+      const instruction = swapRetryInstruction({
+        strictest: strictestRegime,
+        freeNames: names(swap.freeMemberIds),
+        boundNames: names(swap.boundMemberIds),
+        cellsChecked: swap.counters.cells_checked,
+      });
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            built.systemPrompt + household.systemSuffix,
+            householdUserMessage(`\n\n${instruction}`),
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.swap_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          swapRetryAttempts += 1;
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = swapPresence({
+              dishes: swapViewOf(retried),
+              mouths: mouthCells,
+              strictest: strictestRegime,
+            });
+            const afterDelivered = mealsDelivered(deliveredViewOf(retried), mouthCells);
+            // Accepté si des cellules portent ENFIN le composant, sans qu'une
+            // bouche perde un repas ni que la ceinture refuse davantage: la
+            // relance ne doit pas acheter la viande des uns avec l'assiette
+            // des autres.
+            // ⟳ 2026-09-06 — LE REJET SE DIT. Campagne du 05/09: trois relances du
+            // flagrant sur le foyer de cinq, aucune acceptée, aucun journal — on ne
+            // savait pas laquelle des quatre conditions refusait. Nommée et archivée.
+            // ⟳ 2026-09-06 (M07 r2, `rejected_by: "missing"`): la relance rendait
+            // 11 cellules sur 13 avec le composant carné et 17 repas manquants —
+            // refusée en bloc, parce qu'elle tournait APRÈS la boucle « personne
+            // sans repas ». Elle tourne maintenant AVANT: le manque ne la refuse
+            // plus, la boucle le répare ; et si elle n'y arrive pas, on REVIENT au
+            // plan d'avant (`swapReverted`). Un plan avec de la viande et une
+            // végétarienne sans repas n'est jamais livré.
+            const rejectedBy: string | null = !(retried.dishes.length >= meal.dishes.length)
+              ? "dishes"
+              : !(after.counters.cells_carrying > swap.counters.cells_carrying)
+              ? "carrying"
+              : !(retried.regime_belt.refused <= meal.regime_belt.refused)
+              ? "refused"
+              : null;
+            if (rejectedBy === null) {
+              preSwap = { meal, mealSourceText, delivered, swap };
+              meal = retried;
+              mealSourceText = retryResult;
+              delivered = afterDelivered;
+              swap = after;
+              swapRetryAccepted += 1;
+            } else {
+              swapRetryRejectedBy = rejectedBy;
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.swap_retry_rejected",
+                request_id: requestId,
+                user_id: userId,
+                rejected_by: rejectedBy,
+                dishes: [meal.dishes.length, retried.dishes.length],
+                cells_carrying: [swap.counters.cells_carrying, after.counters.cells_carrying],
+                missing: [delivered.missing, afterDelivered.missing],
+                refused: [meal.regime_belt.refused, retried.regime_belt.refused],
+              }));
+            }
+          }
+        } catch (e) {
+          console.warn(JSON.stringify({
+            tag: "keel.household_meal.swap_retry_failed",
+            request_id: requestId,
+            error: String(e),
+          }));
+        }
+      }
+    }
+    console.info(JSON.stringify({
+      tag: "keel.household_meal.swap_presence",
+      request_id: requestId,
+      user_id: userId,
+      ...swap.counters,
+      absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
+      retry_attempts: swapRetryAttempts,
+      retry_accepted: swapRetryAccepted,
+      retry_rejected_by: swapRetryRejectedBy,
+      retry_reverted: swapReverted,
+    }));
+
     // ⟳ 2026-09-05: trois tours, pas deux — une relance PARTIELLE (voir
     // `UNFED_RETRY_PARTIAL_BLOCK`) coûte une fraction d'un plan entier, et un
     // tour de plus vaut moins qu'un refus. La série s'arrête toujours dès
@@ -6348,118 +6469,24 @@ Deno.serve(async (req) => {
     // ⛔ ET SEULEMENT POUR UN GOÛT. Rendre son repas à quelqu'un en lui servant
     // ce que son régime lui interdit n'est pas un recours, c'est le défaut
     // d'origine. Un régime resté sans repas va au refus, plus bas.
-    // ═══════════════════════════════════════════════════════════════════════
-    // ⟳ 2026-09-05 — LA TABLE ENTIÈRE AU RÉGIME DE LA MINORITÉ (C06/C07)
-    // ═══════════════════════════════════════════════════════════════════════
-    // Mesuré deux fois: cinq bouches, une végétarienne, et le modèle compose
-    // une semaine sans une casserole carnée — 42 plats, zéro viande, zéro
-    // poisson — avec `bites: 0, refused: 0, missing: 0`: le journal d'un plan
-    // parfait, parce qu'il n'y avait plus rien à mordre. Le bloc régime lui
-    // disait pourtant « do NOT drop the animal protein »; il a pris
-    // l'échappatoire « if nothing clashes ». Ici: le dénominateur, par
-    // cellule, et une relance sur le SEUL cas mesuré, le flagrant (zéro
-    // cellule à composant sur toute la fenêtre). Un ratio partiel se mesure
-    // d'abord (`swap.cells_swap_absent`), il ne se répare pas encore.
-    let swap = swapPresence({
-      dishes: swapViewOf(meal),
-      mouths: mouthCells,
-      strictest: strictestRegime,
-    });
-    let swapRetryAttempts = 0;
-    let swapRetryAccepted = 0;
-    let swapRetryRejectedBy: string | null = null;
-    if (swap.counters.flagrant && !adoptingDraft && strictestRegime !== null) {
-      const names = (ids: readonly string[]) =>
-        ids.map((id) => String(nameOf.get(id) ?? "").trim()).filter(Boolean);
-      const instruction = swapRetryInstruction({
-        strictest: strictestRegime,
-        freeNames: names(swap.freeMemberIds),
-        boundNames: names(swap.boundMemberIds),
-        cellsChecked: swap.counters.cells_checked,
-      });
-      if (instruction) {
-        try {
-          const retryResult = await generateWithGemini(
-            built.systemPrompt + household.systemSuffix,
-            householdUserMessage(`\n\n${instruction}`),
-            0.6,
-            true,
-            [],
-            "auto",
-            {
-              source: `${FN_NAME}.swap_retry`,
-              requestId,
-              userId,
-              model: keelGenerationModel(),
-              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
-              reasoningEffort: PLAN_REASONING_EFFORT,
-            },
-          );
-          swapRetryAttempts += 1;
-          if (typeof retryResult === "string") {
-            const retried = parseGeneratedMeal(retryResult, parseArgs);
-            const after = swapPresence({
-              dishes: swapViewOf(retried),
-              mouths: mouthCells,
-              strictest: strictestRegime,
-            });
-            const afterDelivered = mealsDelivered(deliveredViewOf(retried), mouthCells);
-            // Accepté si des cellules portent ENFIN le composant, sans qu'une
-            // bouche perde un repas ni que la ceinture refuse davantage: la
-            // relance ne doit pas acheter la viande des uns avec l'assiette
-            // des autres.
-            // ⟳ 2026-09-06 — LE REJET SE DIT. Campagne du 05/09: trois relances du
-            // flagrant sur le foyer de cinq, aucune acceptée, aucun journal — on ne
-            // savait pas laquelle des quatre conditions refusait. Nommée et archivée.
-            const rejectedBy: string | null = !(retried.dishes.length >= meal.dishes.length)
-              ? "dishes"
-              : !(after.counters.cells_carrying > swap.counters.cells_carrying)
-              ? "carrying"
-              : !(afterDelivered.missing <= delivered.missing)
-              ? "missing"
-              : !(retried.regime_belt.refused <= meal.regime_belt.refused)
-              ? "refused"
-              : null;
-            if (rejectedBy === null) {
-              meal = retried;
-              mealSourceText = retryResult;
-              delivered = afterDelivered;
-              swap = after;
-              swapRetryAccepted += 1;
-            } else {
-              swapRetryRejectedBy = rejectedBy;
-              console.info(JSON.stringify({
-                tag: "keel.household_meal.swap_retry_rejected",
-                request_id: requestId,
-                user_id: userId,
-                rejected_by: rejectedBy,
-                dishes: [meal.dishes.length, retried.dishes.length],
-                cells_carrying: [swap.counters.cells_carrying, after.counters.cells_carrying],
-                missing: [delivered.missing, afterDelivered.missing],
-                refused: [meal.regime_belt.refused, retried.regime_belt.refused],
-              }));
-            }
-          }
-        } catch (e) {
-          console.warn(JSON.stringify({
-            tag: "keel.household_meal.swap_retry_failed",
-            request_id: requestId,
-            error: String(e),
-          }));
-        }
-      }
-    }
-    console.info(JSON.stringify({
-      tag: "keel.household_meal.swap_presence",
-      request_id: requestId,
-      user_id: userId,
-      ...swap.counters,
-      absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
-      retry_attempts: swapRetryAttempts,
-      retry_accepted: swapRetryAccepted,
-      retry_rejected_by: swapRetryRejectedBy,
-    }));
 
+    // ⟳ 2026-09-06 — SI LA BOUCLE N'A PAS RÉPARÉ CE QUE LA RELANCE DU FLAGRANT A
+    // CASSÉ, ON REVIENT AU PLAN D'AVANT: mieux vaut une table végétarienne
+    // nourrie qu'une table carnée avec des repas manquants.
+    if (preSwap !== null && delivered.missing > preSwap.delivered.missing) {
+      console.info(JSON.stringify({
+        tag: "keel.household_meal.swap_retry_reverted",
+        request_id: requestId,
+        user_id: userId,
+        missing: [preSwap.delivered.missing, delivered.missing],
+        cells_carrying: [preSwap.swap.counters.cells_carrying, swap.counters.cells_carrying],
+      }));
+      meal = preSwap.meal;
+      mealSourceText = preSwap.mealSourceText;
+      delivered = preSwap.delivered;
+      swap = preSwap.swap;
+      swapReverted = true;
+    }
     const restorable = delivered.mouths
       .flatMap((row) => row.missing)
       .filter((m): m is UnfedRow & { boxId: string } =>
@@ -8878,6 +8905,7 @@ Deno.serve(async (req) => {
         retry_attempts: swapRetryAttempts,
         retry_accepted: swapRetryAccepted,
       retry_rejected_by: swapRetryRejectedBy,
+      retry_reverted: swapReverted,
       },
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.

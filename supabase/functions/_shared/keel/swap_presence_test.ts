@@ -148,17 +148,27 @@ Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, a
   assert(/swap\.counters\.flagrant && !adoptingDraft && strictestRegime !== null/.test(src), "la relance ne se déclenche plus sur le seul cas flagrant");
   assert(/source: `\$\{FN_NAME\}\.swap_retry`/.test(src), "la relance swap n'a plus sa source");
   assert(/after\.counters\.cells_carrying > swap\.counters\.cells_carrying/.test(src), "l'acceptation n'exige plus des cellules qui portent");
-  assert(/afterDelivered\.missing <= delivered\.missing/.test(src), "l'acceptation peut acheter la viande des uns avec l'assiette des autres");
+  // ⟳ 2026-09-06: le manque n'est plus une condition d'acceptation — la boucle qui suit
+  // le répare, et le retour en arrière (`preSwap`) garantit qu'un plan carné avec des
+  // repas manquants n'est jamais livré (voir le test ci-dessus).
+  assert(/retried\.regime_belt\.refused <= meal\.regime_belt\.refused/.test(src), "l'acceptation laisse la ceinture refuser davantage");
   assert(/retried\.regime_belt\.refused <= meal\.regime_belt\.refused/.test(src), "l'acceptation laisse la ceinture refuser davantage");
   assert(/tag: "keel\.household_meal\.swap_presence"/.test(src), "le journal swap_presence a disparu");
   // ⟳ 2026-09-06: une relance refusée dit laquelle des quatre conditions l'a refusée.
   assert(/tag: "keel\.household_meal\.swap_retry_rejected"/.test(src), "le rejet de la relance du flagrant est muet");
   assert(/retry_rejected_by: swapRetryRejectedBy,/.test(src), "le motif de rejet n'est pas archivé");
   assert(/swap: \{\s*\.\.\.swap\.counters,/.test(src), "generated_from.household.swap n'est plus archivé");
-  // La relance swap précède la restauration du dernier recours: elle peut remplacer le plan.
+  // ⟳ 2026-09-06 (M07 r2): la relance du flagrant tourne AVANT la boucle « personne
+  // sans repas » (qui répare ce qu'elle casse), et on revient au plan d'avant si la
+  // boucle n'y arrive pas. Le manque ne la refuse plus en bloc.
   const swapAt = src.indexOf("let swap = swapPresence(");
+  const loopAt = src.indexOf("const UNFED_RETRIES_MAX = 3;");
   const restorableAt = src.indexOf("const restorable = delivered.mouths");
-  assert(swapAt > -1 && restorableAt > swapAt, "la relance swap ne précède plus la restauration");
+  assert(swapAt > -1 && loopAt > swapAt && restorableAt > loopAt, "ordre attendu: relance du flagrant → boucle personne sans repas → dernier recours");
+  assert(!/\? "missing"/.test(src.slice(swapAt, loopAt)), "le manque refuse encore la relance du flagrant en bloc");
+  assert(/preSwap = \{ meal, mealSourceText, delivered, swap \};/.test(src), "l'instantané d'avant la relance a disparu");
+  assert(/if \(preSwap !== null && delivered\.missing > preSwap\.delivered\.missing\) \{/.test(src.slice(loopAt, restorableAt)), "le retour en arrière ne suit plus la boucle");
+  assert((src.match(/retry_reverted: swapReverted,/g) || []).length === 2, "retry_reverted absent du journal ou de l'archive");
 });
 
 Deno.test("CÂBLAGE — v28: l'échappatoire « nothing clashes » nomme la sortie, à côté de la clé \"boxes\"", async () => {
