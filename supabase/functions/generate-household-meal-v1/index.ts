@@ -156,6 +156,7 @@ import {
   BOX_SUM_TOLERANCE_RATIO,
   preparationReadyGrams,
   usableCookDays,
+  scanRegimeSources,
 } from "../_shared/keel/meal_generation.ts";
 // ⟳ LOT `L0-a` — les deux nombres de la fenêtre CRUE, sur la liste de courses.
 import { rawWindowCounts } from "../_shared/keel/grocery_waves.ts";
@@ -251,6 +252,7 @@ import {
 // ceinture avait retirées.
 import {
   mealsDelivered,
+  rehomeHeldOff,
   restoreHeldOff,
   type UnfedRow,
   unfedRetryInstruction,
@@ -263,7 +265,7 @@ import {
   densifyBoxes,
   densityFromComposition,
 } from "../_shared/keel/box_densify.ts";
-import { mergeRetryByCell } from "../_shared/keel/retry_merge.ts";
+import { mergeRetryByCell, mergeRetryCells } from "../_shared/keel/retry_merge.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
 // un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
@@ -5998,6 +6000,12 @@ Deno.serve(async (req) => {
     ];
     let exclusionRetried = false;
     let exclusionBitesAfter = 0;
+    // ⟳ 2026-09-06 — DEUX NOMBRES ET UN MOTIF, PAS UN BOOLÉEN (même défaut que
+    // `unfedRetried`, mesuré sur M07 r3 et FC4: `retried: false` se lisait
+    // « jamais partie » alors qu'elle était partie et rejetée).
+    let exclusionRetryAttempts = 0;
+    let exclusionRetryRejectedBy: string | null = null;
+    let exclusionRetryMergedCells = 0;
     if (unallocatedTerms.length > 0) {
       type ParsedMeal = ReturnType<typeof parseGeneratedMeal>;
       const bitesOf = (m: ParsedMeal) =>
@@ -6021,9 +6029,11 @@ Deno.serve(async (req) => {
           });
           return bite.matched === null
             ? []
-            : [{ dish: d.title, matched: bite.matched, because: bite.because }];
+            : [{ dish: d.title, matched: bite.matched, because: bite.because, day: d.day, slot: d.slot }];
         });
       const bitesBefore = bitesOf(meal);
+      const bittenCells = (bites: ReturnType<typeof bitesOf>) =>
+        new Set(bites.map((b) => `${b.day ?? ""}/${b.slot ?? ""}`));
       exclusionBitesAfter = bitesBefore.length;
       const instruction = exclusionRetryInstruction(bitesBefore);
       if (instruction && !adoptingDraft) {
@@ -6047,6 +6057,7 @@ Deno.serve(async (req) => {
               reasoningEffort: PLAN_REASONING_EFFORT,
             },
           );
+          exclusionRetryAttempts += 1;
           if (typeof retryResult === "string") {
             const retried = parseGeneratedMeal(retryResult, parseArgs);
             const after = bitesOf(retried);
@@ -6059,8 +6070,42 @@ Deno.serve(async (req) => {
               after.length < bitesBefore.length
             ) {
               meal = retried;
+              // ⚠️ LES DEUX ENSEMBLE: `reconcilePortions` relit ce texte.
+              mealSourceText = retryResult;
               exclusionRetried = true;
               exclusionBitesAfter = after.length;
+            } else {
+              // ── ⟳ 2026-09-06 — PAR PARTIES (FC4: 7 plats au poulet, relance
+              // rejetée en bloc, 21 repas manquants). Les cellules que la relance
+              // a rendues SANS morsure sont prises avec leurs casseroles et leurs
+              // courses (`retry_merge.ts`); le reste du plan ne bouge pas.
+              const afterCells = bittenCells(after);
+              const repaired = [...bittenCells(bitesBefore)].filter((c) => !afterCells.has(c));
+              const merge = mergeRetryCells({ base: meal, retry: retried, cells: repaired });
+              const mergedBites = merge.cells.length > 0 ? bitesOf(merge.meal) : bitesBefore;
+              if (merge.cells.length > 0 && mergedBites.length < bitesBefore.length) {
+                meal = merge.meal;
+                exclusionRetried = true;
+                exclusionBitesAfter = mergedBites.length;
+                exclusionRetryMergedCells = merge.cells.length;
+              } else {
+                exclusionRetryRejectedBy = retried.dishes.length < meal.dishes.length
+                  ? "dishes"
+                  : merge.cells.length === 0
+                  ? "no_cell"
+                  : "bites";
+              }
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.exclusion_retry_rejected",
+                request_id: requestId,
+                user_id: userId,
+                whole_rejected_by: retried.dishes.length < meal.dishes.length ? "dishes" : "bites",
+                dishes: [meal.dishes.length, retried.dishes.length],
+                bites: [bitesBefore.length, after.length, mergedBites.length],
+                repaired_cells: repaired,
+                merged_cells: merge.cells,
+                rejected_by: exclusionRetryRejectedBy,
+              }));
             }
           }
         } catch (error) {
@@ -6090,6 +6135,9 @@ Deno.serve(async (req) => {
         bites_before: bitesBefore.length,
         retried: exclusionRetried,
         bites_after: exclusionBitesAfter,
+        retry_attempts: exclusionRetryAttempts,
+        retry_merged_cells: exclusionRetryMergedCells,
+        retry_rejected_by: exclusionRetryRejectedBy,
         ...meal.exclusion_belt,
       }));
     }
@@ -6220,6 +6268,8 @@ Deno.serve(async (req) => {
     const unfedRetryOn: Record<string, number> = {};
     let unfedRestored = 0;
     let unfedRestoredFallback = 0;
+    // ⟳ 2026-09-06 — bouches posées sur la boîte du même plat qui passe leur ligne.
+    let unfedRehomed = 0;
     let restoredFate = new Map<string, "restored" | "fallback" | "none">();
 
     // ── ① LA RELANCE CIBLÉE, QUI NOMME LA BOUCHE ET LE REMÈDE ────────────
@@ -6347,6 +6397,98 @@ Deno.serve(async (req) => {
       retry_reverted: swapReverted,
     }));
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-06 — LE RELOGEMENT : LA BOÎTE QUI CONVIENT EXISTE DÉJÀ (FC2)
+    // ═══════════════════════════════════════════════════════════════════════
+    // Nora, végane, nommée sur la boîte « dinde » de treize repas et retirée
+    // treize fois — la boîte de tofu existait sur chacun. Le moteur déplace le
+    // nom sur la boîte du même plat, à la même case, que sa ligne accepte ;
+    // rien n'est composé, et la ceinture est lue PAR BOÎTE (items + casseroles
+    // citées), avec le même scan que le parseur. Aucun appel modèle.
+    {
+      const rehomeRows = delivered.mouths.flatMap((row) => row.missing);
+      if (rehomeRows.length > 0) {
+        // ⚠️ INSTANTANÉ TYPÉ: `meal` est un `let` sans annotation, une fermeture
+        // qui le lit avant ses dernières affectations serait `any` en silence.
+        const mealNow: ParsedMealForDelivery = meal;
+        const prepById = new Map(mealNow.preparations.map((p) => [p.id, p]));
+        const regimeOf = new Map(members.map((m) => [m.memberId, m.diet ?? null]));
+        const termsOf = new Map(memberExclusionTerms.map((m) => [m.memberId, m.terms]));
+        const boxCanJoin = (
+          memberId: string,
+          dish: { readonly day?: string | null; readonly slot?: string | null; readonly memberId?: string | null },
+          box: { readonly id: string; readonly memberIds: readonly string[] },
+        ): boolean => {
+          const parsed = mealNow.dishes.find((d) =>
+            d.day === (dish.day ?? null) && d.slot === (dish.slot ?? null) &&
+            (d.memberId ?? null) === (dish.memberId ?? null) && d.boxes.some((b) => b.id === box.id)
+          );
+          const parsedBox = parsed?.boxes.find((b) => b.id === box.id);
+          if (!parsed || !parsedBox) return false;
+          // ⛔ UNE BOÎTE SANS ITEMS N'A PAS DE SURFACE: c'est le plat qui répond,
+          // en entier — fail-closed, comme la ceinture du parseur.
+          const items = parsedBox.items.filter((it) => String(it.term ?? "").trim());
+          if (items.length === 0) {
+            const regime = regimeOf.get(memberId) ?? null;
+            if (regime && (parsed.regimeBites as readonly string[]).includes(regime)) return false;
+            const terms = termsOf.get(memberId) ?? [];
+            return terms.length === 0 || dishBitesExclusion({
+              dish: { title: parsed.title, method: parsed.method, ingredients: parsed.ingredients },
+              uses: (parsed.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
+              preparationById: prepById as never,
+              terms,
+              surface: "ingredients",
+            }).matched === null;
+          }
+          const prepIds = [...new Set(items.map((it) => it.preparationId).filter((id): id is string => !!id && prepById.has(id)))];
+          const regime = regimeOf.get(memberId) ?? null;
+          if (regime) {
+            const breach = scanRegimeSources(regime as never, [
+              { prepId: null, prose: [], items: items.map((it) => ({ term: it.term, group: null })) },
+              ...prepIds.flatMap((id) => {
+                const prep = prepById.get(id);
+                return prep === undefined ? [] : [{ prepId: prep.id, prose: [prep.title, prep.method], items: [...prep.ingredients] }];
+              }),
+            ] as never);
+            if (breach.matched !== null) return false;
+          }
+          const terms = termsOf.get(memberId) ?? [];
+          if (terms.length === 0) return true;
+          return dishBitesExclusion({
+            dish: { title: "", method: "", ingredients: items.map((it) => ({ term: it.term })) },
+            uses: prepIds.map((id) => ({ preparationId: id })),
+            preparationById: prepById as never,
+            terms,
+            surface: "ingredients",
+          }).matched === null;
+        };
+        const rehome = rehomeHeldOff(mealNow.dishes, rehomeRows, boxCanJoin);
+        unfedRehomed = rehome.rehomed;
+        console.info(JSON.stringify({
+          tag: "keel.household_meal.rehomed",
+          request_id: requestId,
+          user_id: userId,
+          rows: rehomeRows.length,
+          rehomed: rehome.rehomed,
+          by_cause: rehomeRows.reduce<Record<string, number>>((acc, r, i) => {
+            if (rehome.rows[i]) acc[r.cause] = (acc[r.cause] ?? 0) + 1;
+            return acc;
+          }, {}),
+        }));
+        if (rehome.rehomed > 0) {
+          for (const [i, r] of rehomeRows.entries()) {
+            const boxId = rehome.rows[i];
+            if (!boxId) continue;
+            issues.push(
+              `${r.day}/${r.slot}: ${JSON.stringify(r.memberId)} moved to box ${JSON.stringify(boxId)} ` +
+                `of that dish, which their line accepts`,
+            );
+          }
+          delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
+        }
+      }
+    }
+
     // ⟳ 2026-09-05: trois tours, pas deux — une relance PARTIELLE (voir
     // `UNFED_RETRY_PARTIAL_BLOCK`) coûte une fraction d'un plan entier, et un
     // tour de plus vaut moins qu'un refus. La série s'arrête toujours dès
@@ -6374,7 +6516,7 @@ Deno.serve(async (req) => {
         // ⟳ 2026-09-05: la relance ne rend que les cellules nommées; la fusion
         // par parties (`retry_merge.ts`) les prend. Un plan entier rendu quand
         // même passe par la même voie: rien n'est perdu, seulement le temps.
-        { partial: true },
+        { partial: true, tableTerms: householdExclusionTerms.map((t) => t.token) },
       );
       if (instruction) {
         try {
@@ -6430,9 +6572,30 @@ Deno.serve(async (req) => {
               // ⛔ UN TOUR QUI N'AMÉLIORE RIEN — ni en entier ni par parties —
               // ARRÊTE LA SÉRIE. Insister sur un modèle qui vient de rendre pire
               // ou pareil dépense une minute pour la même réponse.
-              if (merge.cells.length === 0) break;
+              const baseDishCount: number = meal.dishes.length;
+              const rejected = (why: string) =>
+                console.info(JSON.stringify({
+                  tag: "keel.household_meal.unfed_retry_rejected",
+                  request_id: requestId,
+                  user_id: userId,
+                  attempt,
+                  rejected_by: why,
+                  dishes: [baseDishCount, retried.dishes.length],
+                  missing: [delivered.missing, after.missing],
+                  merge_cells: merge.cells,
+                  still_missing: after.mouths.flatMap((row) =>
+                    row.missing.slice(0, 3).map((m) => `${m.day}/${m.slot}:${m.cause}:${m.matched ?? ""}`)
+                  ).slice(0, 12),
+                }));
+              if (merge.cells.length === 0) {
+                rejected(retried.dishes.length < meal.dishes.length ? "dishes" : "no_cell");
+                break;
+              }
               const merged = mealsDelivered(deliveredViewOf(merge.meal), mouthCells);
-              if (!(merged.missing < delivered.missing)) break;
+              if (!(merged.missing < delivered.missing)) {
+                rejected("merge_no_gain");
+                break;
+              }
               meal = merge.meal;
               delivered = merged;
               unfedRetryAccepted += 1;
@@ -6588,6 +6751,7 @@ Deno.serve(async (req) => {
       retry_on: unfedRetryOn,
       restored: unfedRestored,
       restored_fallback: unfedRestoredFallback,
+      rehomed: unfedRehomed,
     }));
 
     // ══════════════════════════════════════════════════════════════════════
@@ -9069,6 +9233,7 @@ Deno.serve(async (req) => {
         retry_on: unfedRetryOn,
         restored: unfedRestored,
         restored_fallback: unfedRestoredFallback,
+        rehomed: unfedRehomed,
         rows: delivered.mouths
           .filter((m) => m.missing.length > 0)
           .map((m) => ({

@@ -2,6 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   mealsDelivered,
+  rehomeHeldOff,
   restoreHeldOff,
   unfedRetryInstruction,
 } from "./meals_delivered.ts";
@@ -266,7 +267,7 @@ Deno.test("CÂBLAGE — la relance est PARTIELLE dans le générateur", async ()
   const src = await generatorSource();
   const at = src.indexOf("const instruction = unfedRetryInstruction(");
   const call = src.slice(at, src.indexOf(");", at) + 2);
-  assert(/\{ partial: true \}/.test(call), "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call);
+  assert(/\{ partial: true, tableTerms: householdExclusionTerms/.test(call), "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call);
 });
 
 Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {
@@ -576,8 +577,8 @@ Deno.test("CÂBLAGE — la relance INSISTE, et elle s'arrête quand elle n'amél
     "la boucle n'a plus ses quatre sorties (rien à fusionner, fusion sans gain, " +
       "exception, instruction vide)\n" + block.slice(-400),
   );
-  assert(/if \(merge\.cells\.length === 0\) break;/.test(block), "la sortie « rien à fusionner » a disparu");
-  assert(/if \(!\(merged\.missing < delivered\.missing\)\) break;/.test(block), "la sortie « fusion sans gain » a disparu");
+  assert(/if \(merge\.cells\.length === 0\) \{\n\s*rejected\([^\n]*\);\n\s*break;/.test(block), "la sortie « rien à fusionner » a disparu, ou n'est plus journalisée");
+  assert(/if \(!\(merged\.missing < delivered\.missing\)\) \{\n\s*rejected\("merge_no_gain"\);\n\s*break;/.test(block), "la sortie « fusion sans gain » a disparu, ou n'est plus journalisée");
 });
 
 Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () => {
@@ -785,4 +786,119 @@ Deno.test("CÂBLAGE — le recours de la lane foyer passe une ceinture (régime 
   assert(/canJoin,\s*\);/.test(before), "le recours est appelé SANS ceinture: la bouche revient sur ce qu'elle évite");
   assert(/regimeBites/.test(before) && /dishBitesExclusion\(/.test(before), "la ceinture du recours ne lit pas le régime ET l'exclusion");
   assert(/exclusionBites: d\.exclusionBites/.test(src), "l'invariant ne reçoit plus les morsures d'exclusion: un plat ouvert nourrit la bouche dont la ligne le mord");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — LE RELOGEMENT (FC2 : Nora retirée de 13 boîtes de dinde alors
+// que la boîte de tofu existait sur chacun de ces plats)
+// ═══════════════════════════════════════════════════════════════════════════
+
+type RehomeDish = Parameters<typeof rehomeHeldOff>[0][number];
+function rehomeDish(over: Partial<RehomeDish> = {}): RehomeDish {
+  return {
+    day: "wed",
+    slot: "dinner",
+    memberId: null,
+    boxes: [
+      { id: "box_turkey", memberIds: [CLAIRE, MARC] },
+      { id: "box_tofu", memberIds: [] },
+    ],
+    ...over,
+  };
+}
+const row = (memberId: string, cause: "held_off_regime" | "held_off_exclusion" | "not_named" | "double" | "no_dish" = "held_off_regime") =>
+  ({ memberId, day: "wed", slot: "dinner", cause });
+
+Deno.test("RELOGEMENT — la bouche retirée va sur la boîte du même plat que sa ligne accepte", () => {
+  const dishes = [rehomeDish()];
+  const out = rehomeHeldOff(dishes, [row(LEA)], (_m, _d, box) => box.id === "box_tofu");
+  assertEquals(out.rehomed, 1);
+  assertEquals(out.rows, ["box_tofu"]);
+  assertEquals(dishes[0].boxes[1].memberIds, [LEA]);
+  assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC], "la boîte refusée n'est pas touchée");
+});
+
+Deno.test("RELOGEMENT — quand plusieurs boîtes conviennent, la plus nommée gagne ; à égalité, la première", () => {
+  const dishes = [rehomeDish({
+    boxes: [
+      { id: "box_a", memberIds: [CLAIRE] },
+      { id: "box_b", memberIds: [MARC, "m-tom"] },
+      { id: "box_c", memberIds: [LEA, "m-zoe"] },
+    ],
+  })];
+  const out = rehomeHeldOff(dishes, [row("m-nora", "held_off_exclusion")], () => true);
+  assertEquals(out.rows, ["box_b"]);
+  assertEquals(dishes[0].boxes[1].memberIds, [MARC, "m-tom", "m-nora"]);
+});
+
+Deno.test("RELOGEMENT — aucune boîte ne convient : la case reste manquante, rien n'est créé", () => {
+  const dishes = [rehomeDish()];
+  const out = rehomeHeldOff(dishes, [row(LEA)], () => false);
+  assertEquals(out.rehomed, 0);
+  assertEquals(out.rows, [null]);
+  assertEquals(dishes[0].boxes.length, 2, "le relogement ne compose jamais un contenant");
+  assertEquals(dishes[0].boxes.map((b) => b.memberIds.length), [2, 0]);
+});
+
+Deno.test("RELOGEMENT — un plat dédié à quelqu'un d'autre n'est pas sa table ; une autre case non plus", () => {
+  const dishes = [
+    rehomeDish({ memberId: MARC, boxes: [{ id: "box_marc", memberIds: [MARC] }] }),
+    rehomeDish({ day: "thu", boxes: [{ id: "box_thu", memberIds: [] }] }),
+  ];
+  const out = rehomeHeldOff(dishes, [row(LEA)], () => true);
+  assertEquals(out.rehomed, 0);
+  assertEquals(dishes.flatMap((d) => d.boxes.flatMap((b) => b.memberIds)), [MARC]);
+});
+
+Deno.test("RELOGEMENT — une bouche déjà nommée sur la case, une double et une case sans plat ne bougent pas", () => {
+  const dishes = [rehomeDish({ boxes: [{ id: "box_a", memberIds: [LEA] }, { id: "box_b", memberIds: [] }] })];
+  const out = rehomeHeldOff(dishes, [row(LEA), row(MARC, "double"), row(CLAIRE, "no_dish")], () => true);
+  assertEquals(out.rehomed, 0);
+  assertEquals(out.rows, [null, null, null]);
+  assertEquals(dishes[0].boxes[0].memberIds, [LEA]);
+});
+
+Deno.test("RELANCE — un mot que la TABLE évite change le plat pour tous, jamais une boîte à soi", () => {
+  const base = { name: "Paul", memberId: "m-paul", day: "wed", slot: "dinner", dish: "Poulet rôti",
+    cause: "held_off_exclusion" as const, via: "items" as const, preparationId: null, matched: "Poulet" };
+  const table = unfedRetryInstruction([base], { tableTerms: ["poulet"] }) ?? "";
+  assert(table.includes("this TABLE asked to avoid"), table);
+  assert(table.includes("for EVERY box of that meal"), table);
+  assert(table.includes("Do NOT write anyone a box of their own"), table);
+  assert(!table.includes("write them a box of their OWN"), "le remède de table redemande une boîte à soi:\n" + table);
+  // Le même mot évité par UNE bouche seulement garde la boîte d'échange.
+  const own = unfedRetryInstruction([base], { tableTerms: ["saumon"] }) ?? "";
+  assert(own.includes("write them a box of their OWN"), own);
+  assert(!own.includes("this TABLE asked"), own);
+  // Accent et casse : « Pâtes » ≠ « pates » pour la table ? Non — la comparaison plie les deux.
+  const folded = unfedRetryInstruction([{ ...base, matched: "Épinards" }], { tableTerms: ["epinards"] }) ?? "";
+  assert(folded.includes("this TABLE asked"), folded);
+});
+
+Deno.test("CÂBLAGE — le relogement précède la relance, et la relance connaît les mots de la table", async () => {
+  const src = await generatorSource();
+  const rehomeAt = src.indexOf("rehomeHeldOff(");
+  const loopAt = src.indexOf("const UNFED_RETRIES_MAX = 3;");
+  const swapAt = src.indexOf("let swap = swapPresence(");
+  assert(rehomeAt > -1, "la lane foyer n'appelle plus le relogement");
+  assert(swapAt < rehomeAt && rehomeAt < loopAt, "ordre attendu: relance du flagrant → relogement → boucle « personne sans repas »");
+  const rehomeBlock = src.slice(rehomeAt - 3000, rehomeAt);
+  assert(/scanRegimeSources\(/.test(rehomeBlock), "la ceinture du relogement ne lit plus le régime par BOÎTE");
+  assert(/surface: "ingredients"/.test(rehomeBlock), "la ceinture du relogement ne lit plus l'exclusion sur les items déclarés");
+  const loop = src.slice(loopAt, src.indexOf("LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE"));
+  assert(/tableTerms:/.test(loop), "la relance ne reçoit plus les mots que la table évite");
+  assert(/unfed_retry_rejected/.test(loop), "un tour rejeté n'est plus journalisé avec son motif");
+  assert((src.match(/rehomed: unfedRehomed,/g) || []).length === 2, "`rehomed` absent du journal ou de l'archive");
+});
+
+Deno.test("CÂBLAGE — la relance d'exclusion prend ses cellules réparées quand le plan entier ne passe pas", async () => {
+  const src = await generatorSource();
+  const start = src.indexOf("source: `${FN_NAME}.exclusion_retry`");
+  const end = src.indexOf('tag: "keel.household_meal.exclusion_belt"');
+  assert(start > -1 && end > start);
+  const block = src.slice(start, end);
+  assert(/mergeRetryCells\(\{/.test(block), "la relance d'exclusion rejette encore le plan entier sans rien garder");
+  assert(/exclusion_retry_rejected/.test(block), "le rejet de la relance d'exclusion n'est pas journalisé");
+  assert(/mealSourceText = retryResult;/.test(block), "la relance d'exclusion adopte le plan sans son texte source: les portions sont relues sur la réponse d'avant");
+  assert(/retry_attempts: exclusionRetryAttempts,/.test(src), "`retry_attempts` absent du journal exclusion_belt");
 });

@@ -140,7 +140,7 @@ Deno.test("CÂBLAGE — la fusion par cellule est la SECONDE voie d'acceptation,
   const branch = src.slice(merge, src.indexOf("unfedRetryMergedCells += merge.cells.length"));
   assert(!/mealSourceText = /.test(branch), "la fusion remplace le texte source: les portions par bouche liraient un autre plan");
   assert(/const merged = mealsDelivered\(deliveredViewOf\(merge\.meal\), mouthCells\);/.test(src), "le plan fusionné n'est pas recompté");
-  assert(/if \(!\(merged\.missing < delivered\.missing\)\) break;/.test(src), "une fusion qui n'améliore pas serait acceptée");
+  assert(/if \(!\(merged\.missing < delivered\.missing\)\) \{\n\s*rejected\("merge_no_gain"\);\n\s*break;/.test(src), "une fusion qui n'améliore pas serait acceptée, ou ne se journalise plus");
   assertEquals((src.match(/retry_merged_cells: unfedRetryMergedCells,/g) || []).length, 2, "les cellules fusionnées ne se comptent pas sur le journal ET l'archive");
 });
 

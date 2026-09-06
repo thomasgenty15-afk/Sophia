@@ -5114,7 +5114,7 @@ export function preparationReadyGrams(
  * déclarés. Le PLAT en produit une par casserole plus la sienne; une BOÎTE en
  * produit une par casserole que ses items citent, plus ses items.
  */
-interface RegimeScanSource {
+export interface RegimeScanSource {
   readonly prepId: string | null;
   readonly prose: readonly string[];
   readonly items: readonly DeclaredFood[];
@@ -5126,7 +5126,7 @@ interface RegimeScanSource {
  * besoin de le rappeler sur d'autres sources, et une seconde copie aurait
  * divergé au premier aliment ajouté — la cicatrice de ce dépôt.
  */
-function scanRegimeSources(
+export function scanRegimeSources(
   regime: DietaryRegime,
   sources: readonly RegimeScanSource[],
 ): {

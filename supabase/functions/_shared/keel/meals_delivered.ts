@@ -400,7 +400,18 @@ export const UNFED_RETRY_PARTIAL_BLOCK = [
 
 export function unfedRetryInstruction(
   rows: readonly UnfedRetryRow[],
-  options: { readonly partial?: boolean } = {},
+  options: {
+    readonly partial?: boolean;
+    /**
+     * ⟳ 2026-09-06 (FC4) — LES MOTS QUE LA TABLE ENTIÈRE ÉVITE. Une exclusion
+     * de table a retiré Paul, Claire et Léo de 7 plats au poulet ; la relance
+     * leur demandait « une boîte à eux, composant échangé » — trois boîtes de
+     * tofu à côté d'un poulet que personne ne mange. Quand le mot mordu est un
+     * mot de la TABLE, le remède est le plat lui-même : remplacer ce composant
+     * pour tout le monde, et jeter la casserole qui le portait.
+     */
+    readonly tableTerms?: readonly string[];
+  } = {},
 ): string | null {
   const clean = (rows ?? []).filter((r) =>
     r && String(r.name ?? "").trim() && String(r.memberId ?? "").trim()
@@ -426,6 +437,14 @@ export function unfedRetryInstruction(
       "preparations, and their cooking session and shopping lines",
   };
 
+  const fold = (v: string): string =>
+    v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const tableTerms = (options.tableTerms ?? []).map(fold).filter((t) => t.length > 0);
+  const tableAvoids = (matched: string | null): boolean => {
+    if (!matched) return false;
+    const m = fold(matched);
+    return tableTerms.some((t) => m === t || m.includes(t) || t.includes(m));
+  };
   const lines = clean.map((r) => {
     const where = `${r.day} ${r.slot}`;
     const dish = r.dish ? ` "${r.dish}"` : "";
@@ -466,6 +485,13 @@ export function unfedRetryInstruction(
         `Give that swapped component a preparation of its OWN (or cite none), ` +
         `cooked apart from the original; keep their box and its items exactly ` +
         `as they are, and change nothing else on that dish.`;
+    }
+    if (r.cause === "held_off_exclusion" && tableAvoids(r.matched ?? null)) {
+      return `- ${r.name} (${r.memberId}), ${where},${dish}: this TABLE asked to avoid ` +
+        `${JSON.stringify(r.matched)} -- nobody here eats it. Replace that component in the dish ` +
+        `itself, for EVERY box of that meal, with one of the same role that nobody at this table ` +
+        `avoids; drop the preparation that carried it if nothing else draws on it. Do NOT write ` +
+        `anyone a box of their own for this.`;
     }
     return `- ${r.name} (${r.memberId}), ${where},${dish}: ${remedy[r.cause]}.`;
   });
@@ -607,4 +633,92 @@ export function restoreHeldOff(
     rows[rows.length - 1] = "fallback";
   }
   return { restored, fallback, rows };
+}
+
+/**
+ * ⟳ 2026-09-06 — LE RELOGEMENT : LA BOÎTE QUI CONVIENT EXISTE DÉJÀ SUR CE PLAT.
+ *
+ * Mesuré (FC2) : Nora, végane, nommée par le modèle sur la boîte « dinde » de
+ * treize repas, retirée treize fois par la ceinture — alors que CHACUN de ces
+ * plats portait une boîte de tofu, à un nom, qui passait sa ligne. Trois
+ * relances n'ont rien rendu : « écris-lui une boîte à elle » à un modèle qui
+ * l'a déjà écrite. Le moteur sait faire ce geste-là seul, sans le modèle :
+ * déplacer le nom sur la boîte du même plat, à la même case, que sa ligne
+ * accepte. Aucune boîte n'est créée — composer un contenant reste au modèle.
+ *
+ * ⛔ `canJoin` EST LA CEINTURE DU RELOGEMENT, et elle est par BOÎTE : la
+ * surface d'une boîte (ses items, les casseroles qu'ils citent), pas le plat
+ * entier — sinon la boîte de tofu sous un titre « Poulet rôti » serait
+ * refusée avec le poulet. L'appelant la construit avec le même scan que la
+ * ceinture du parseur. Une bouche n'est jamais posée sur une boîte que
+ * `canJoin` refuse : fail-closed, la case reste manquante, comptée et dite.
+ *
+ * La boîte choisie est celle qui porte le plus de noms (la boîte de table
+ * d'abord) ; à égalité, la première. Un plat dédié à quelqu'un d'autre n'est
+ * pas sa table. Une bouche déjà nommée sur une boîte de la case n'est pas
+ * touchée.
+ */
+export type RehomeCanJoin = (
+  memberId: string,
+  dish: {
+    readonly day?: string | null;
+    readonly slot?: string | null;
+    readonly memberId?: string | null;
+  },
+  box: { readonly id: string; readonly memberIds: readonly string[] },
+) => boolean;
+
+export interface RehomeOutcome {
+  /** Bouches posées sur une boîte qui convient. */
+  readonly rehomed: number;
+  /** Par ligne de `rows`, dans l'ordre : la boîte choisie, ou `null`. */
+  readonly rows: readonly (string | null)[];
+}
+
+const REHOMEABLE: ReadonlySet<UnfedCause> = new Set<UnfedCause>([
+  "held_off_regime",
+  "held_off_exclusion",
+  "not_named",
+]);
+
+export function rehomeHeldOff(
+  dishes: readonly {
+    readonly day?: string | null;
+    readonly slot?: string | null;
+    readonly memberId?: string | null;
+    readonly boxes: readonly { readonly id: string; memberIds: string[] }[];
+  }[],
+  rows: readonly {
+    readonly memberId: string;
+    readonly day: string;
+    readonly slot: string;
+    readonly cause: UnfedCause;
+  }[],
+  canJoin: RehomeCanJoin,
+): RehomeOutcome {
+  let rehomed = 0;
+  const out: (string | null)[] = [];
+  for (const row of rows ?? []) {
+    out.push(null);
+    const memberId = String(row?.memberId ?? "").trim();
+    const day = String(row?.day ?? "").trim();
+    const slot = String(row?.slot ?? "").trim();
+    if (!memberId || !day || !slot || !REHOMEABLE.has(row.cause)) continue;
+    const table = dishes.filter((d) =>
+      !d.memberId && String(d.day ?? "") === day && String(d.slot ?? "") === slot
+    );
+    if (table.some((d) => d.boxes.some((b) => b.memberIds.includes(memberId)))) continue;
+    let target: { readonly id: string; memberIds: string[] } | null = null;
+    for (const dish of table) {
+      for (const box of dish.boxes) {
+        if (!canJoin(memberId, dish, box)) continue;
+        if (target === null || box.memberIds.length > target.memberIds.length) target = box;
+      }
+    }
+    if (target === null) continue;
+    target.memberIds.push(memberId);
+    rehomed++;
+    out[out.length - 1] = target.id;
+  }
+  return { rehomed, rows: out };
 }
