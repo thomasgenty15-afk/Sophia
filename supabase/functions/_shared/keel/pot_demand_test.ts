@@ -432,3 +432,41 @@ Deno.test("ARBITRAGE 1 — un bac à 0,5 kcal/g est borné par le PLANCHER de de
   });
   assert(dense.capBit === "none" || dense.capBit === "density" || dense.capBit === "factor_bound", dense.capBit);
 });
+
+// ⟳ 2026-09-06 — LA JOURNÉE « BAC COMMUN SEUL » DEVIENT MESURABLE (compteur, jamais un facteur)
+Deno.test("tub_estimate — une journée en bac seul est comptée depuis l'estimation, et reste `not_anchored` sans elle", () => {
+  const anchors = new Map<string, AnchorFactor>([[
+    "m_a thu",
+    anchor({ factor: 1, raw: null, reason: "common_pot_day", targetKcal: 2000, deliveredKcal: null, capGrams: null }),
+  ]]);
+  const days = [{
+    memberId: "m_a",
+    day: "thu",
+    kcal: null,
+    basis: "plan_quantities",
+    complete: false,
+    dishesCounted: 0,
+    dishesTotal: 3,
+    unattributedDishes: 0,
+    subject: "the_day",
+    slots: ["breakfast", "lunch", "dinner"],
+    ownSlots: [],
+    grams: 0,
+    maxMealGrams: 0,
+    gaps: ["common_pot"],
+  }] as never;
+  const without = unmetDemand(anchors, days, new Map());
+  assertEquals(without[0].cause, "not_anchored");
+  const withTub = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", 1400]]));
+  assertEquals(withTub[0].cause, "tub_estimate");
+  assertEquals(withTub[0].servedKcal, 1400);
+  assertEquals(withTub[0].unmetKcal, 600);
+  // Un bac illisible n'est pas un zéro : l'écart reste inconnu, la cause est dite.
+  const blind = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", null]]));
+  assertEquals(blind[0].cause, "tub_estimate");
+  assertEquals(blind[0].unmetKcal, null);
+  // Et une journée ANCRÉE n'est jamais remplacée par l'estimation.
+  const anchored = new Map(anchors); anchored.set("m_a thu", { ...anchors.get("m_a thu")!, reason: "anchored", raw: 1.2, deliveredKcal: 1600 });
+  const kept = unmetDemand(anchored, days, new Map(), new Map([["m_a thu", 100]]));
+  assert(kept[0].cause !== "tub_estimate");
+});

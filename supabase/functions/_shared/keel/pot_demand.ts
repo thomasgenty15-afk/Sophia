@@ -61,6 +61,17 @@ export const UNMET_CAUSES = Object.freeze(
     "both",
     /** Aucun ancrage n'a eu lieu: il n'y a pas de demande à confronter. */
     "not_anchored",
+    /**
+     * ⟳ 2026-09-06 — LA JOURNÉE « BAC COMMUN SEUL », ESTIMÉE POUR LE COMPTEUR.
+     * Mesuré sur le quatre (C03 02:10) : 14 journées-bouche sur 21 sortaient
+     * `not_anchored` parce que la bouche n'a mangé que dans des bacs — et le
+     * manque de trois personnes sur quatre était invisible au compteur. Ici le
+     * servi est Σ kcal des bacs de la journée / leurs mangeurs : une ESTIMATION,
+     * nommée, jamais un chiffre au nom de quelqu'un sur un couvercle (v4), et
+     * jamais un facteur — la règle du bac (`potFactorFor`) reste la seule à
+     * dimensionner. Le compteur dit « la table nourrit-elle », rien d'autre.
+     */
+    "tub_estimate",
   ] as const,
 );
 export type UnmetCause = (typeof UNMET_CAUSES)[number];
@@ -99,11 +110,33 @@ export function unmetDemand(
   anchors: ReadonlyMap<string, AnchorFactor>,
   days: readonly MouthDayEnergy[],
   potShrink: ReadonlyMap<string, number>,
+  /**
+   * ⟳ 2026-09-06 — le servi ESTIMÉ des journées « bac commun seul », clé
+   * `<memberId> <day>` (la clé des ancres) : Σ kcal des bacs de la journée
+   * divisée par leurs mangeurs, `null` quand un bac est illisible. Optionnel :
+   * sans lui, ces journées restent `not_anchored`, comme hier.
+   */
+  tubServed: ReadonlyMap<string, number | null> = new Map(),
 ): UnmetDemand[] {
   const out: UnmetDemand[] = [];
   for (const day of days) {
     const key = `${day.memberId} ${day.day ?? ""}`;
     const anchor = anchors.get(key);
+    if (
+      anchor !== undefined && anchor.reason === "common_pot_day" && anchor.targetKcal !== null &&
+      tubServed.has(key)
+    ) {
+      const served = tubServed.get(key) ?? null;
+      out.push({
+        memberId: day.memberId,
+        day: day.day,
+        wantedKcal: Math.round(anchor.targetKcal),
+        servedKcal: served === null ? null : Math.round(served),
+        unmetKcal: served === null ? null : Math.max(0, Math.round(anchor.targetKcal - served)),
+        cause: "tub_estimate",
+      });
+      continue;
+    }
     if (!anchor || anchor.targetKcal === null || anchor.raw === null) {
       out.push({
         memberId: day.memberId,
