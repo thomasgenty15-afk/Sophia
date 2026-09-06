@@ -424,6 +424,7 @@ import {
   MEAL_CAP_BITS,
   type AnchorFactor,
   type AnchorMouth,
+  DATED_NOTE_BOOST,
   householdAnchors,
   MEAL_STRUCTURE_STATES,
   type SlotExtraKcal,
@@ -8185,6 +8186,8 @@ Deno.serve(async (req) => {
     // ⟳ 2026-09-06 — hissé comme `lostSlots`: rempli dans le bloc, lu par le
     // journal et l'archive cent lignes plus bas.
     const lostByLine = { mouth_days: 0, slots: 0, kcal: 0, kcal_unknown: 0 };
+    // ⟳ 2026-09-06 — arbitrage 3 : combien de (bouche, jour) portent une note datée, et combien ont ancré.
+    const noteBoost = { member_days: 0, household_dated: 0, unknown_member: 0, applied: 0 };
     if (composition) {
       const dayEnergy = mouthDayEnergy({
         index: composition,
@@ -8296,7 +8299,31 @@ Deno.serve(async (req) => {
           lostLineKcalByKey.set(key, lost.kcal);
         }
       }
-      const anchors = householdAnchors(anchorMouthList, dayEnergy, coachCounting, lostLineKcalByKey);
+      // ⟳ 2026-09-06 — ARBITRAGE 3 : LA NOTE DATÉE D'UNE BOUCHE GROSSIT SA CIBLE CE
+      // JOUR-LÀ d'un cran fixe (`DATED_NOTE_BOOST`). « Léa danse le mardi » était
+      // servie au modèle et ne changeait pas la boîte du mardi (une phrase bouge
+      // les mots, pas les grammes) ; c'est l'ANCRE qui la fait grossir. Une note
+      // datée de la TABLE reste une phrase servie (comptée, pas appliquée).
+      const noteBoostByKey = new Map<string, number>();
+      for (const memo of memoFrom(memoConstraints)) {
+        const weekday = memo.when?.weekday ?? null;
+        if (!weekday) continue;
+        if (memo.subject === HOUSEHOLD_SUBJECT) {
+          noteBoost.household_dated += 1;
+          continue;
+        }
+        const mouth = anchorMouthList.find((m) => memberSubject(m.memberId) === memo.subject);
+        if (!mouth) {
+          noteBoost.unknown_member += 1;
+          continue;
+        }
+        noteBoostByKey.set(`${mouth.memberId} ${weekday}`, DATED_NOTE_BOOST);
+      }
+      noteBoost.member_days = noteBoostByKey.size;
+      const anchors = householdAnchors(anchorMouthList, dayEnergy, coachCounting, lostLineKcalByKey, noteBoostByKey);
+      noteBoost.applied = [...anchors.values()].filter((a) =>
+        a.noteBoost > 0 && (a.reason === "anchored" || a.reason === "clamped")
+      ).length;
       // ⟳ 2026-09-04 — L'ÉLECTION `best` A DISPARU. Elle gardait, par bouche, le
       // facteur ancré « le plus proche de 1 » parmi ses jours. Cette prudence
       // n'existait que parce qu'UN facteur servait toute la fenêtre: l'ancrage
@@ -9065,6 +9092,7 @@ Deno.serve(async (req) => {
       unmet_band: unmetBand,
       lost_slots: lostSlots,
       lost_by_line: lostByLine,
+      note_boost: noteBoost,
       densify: densifyCounts,
       extras_floored: extrasFloored,
       activity: activityAnswers,
@@ -9421,6 +9449,7 @@ Deno.serve(async (req) => {
         unmet_band: unmetBand,
         lost_slots: lostSlots,
         lost_by_line: lostByLine,
+        note_boost: noteBoost,
         densify: densifyCounts,
         extras_floored: extrasFloored,
         // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───

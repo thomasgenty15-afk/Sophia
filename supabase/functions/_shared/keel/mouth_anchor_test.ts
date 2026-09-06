@@ -14,6 +14,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  DATED_NOTE_BOOST,
   ANCHOR_FACTOR_MAX,
   MEAL_KCAL_PER_G_COMPOSED,
   MEAL_KCAL_PER_G_FLOOR,
@@ -1145,4 +1146,50 @@ Deno.test("householdAnchors passe les kcal perdus par clé `<memberId> <day>`, e
   assertEquals(out.get(`${IKU.memberId} thu`)?.lostLineKcal, 400);
   assertEquals(out.get(`${IKU.memberId} fri`)?.lostLineKcal, 0);
   assert((out.get(`${IKU.memberId} thu`)?.raw ?? 0) > (out.get(`${IKU.memberId} fri`)?.raw ?? 0));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — ARBITRAGE 3 : la note datée grossit la cible du jour d'un cran fixe
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("une note datée grossit la cible du jour de DATED_NOTE_BOOST, et l'ancre suit", () => {
+  const plain = anchorFactorFor(IKU, day({ memberId: "m_iku", kcal: 2000 }), "no_position");
+  const boosted = anchorFactorFor(IKU, day({ memberId: "m_iku", kcal: 2000 }), "no_position", 0, DATED_NOTE_BOOST);
+  assert(fired(plain.reason) && fired(boosted.reason), `${plain.reason} / ${boosted.reason}`);
+  assertEquals(boosted.noteBoost, DATED_NOTE_BOOST);
+  assertEquals(plain.noteBoost, 0);
+  const ratio = boosted.targetKcal! / plain.targetKcal!;
+  assert(Math.abs(ratio - (1 + DATED_NOTE_BOOST)) < 0.01, `cible ×${ratio.toFixed(3)}, attendu ×${1 + DATED_NOTE_BOOST}`);
+  assert(boosted.raw! > plain.raw!, "le facteur brut ne suit pas la cible grossie");
+});
+
+Deno.test("la fraction est FIXE : le quart est une décision, pas un calcul (2026-09-05, arbitrage 3)", () => {
+  assertEquals(DATED_NOTE_BOOST, 0.25);
+});
+
+Deno.test("la note datée s'ajoute AVANT les kcal perdus par la ligne, qui restent tels quels", () => {
+  const a = anchorFactorFor(IKU, day({ memberId: "m_iku", kcal: 2000 }), "no_position", 300, 0);
+  const b = anchorFactorFor(IKU, day({ memberId: "m_iku", kcal: 2000 }), "no_position", 300, DATED_NOTE_BOOST);
+  assertEquals(b.lostLineKcal, 300);
+  assert(Math.abs((b.targetKcal! - 300) - (a.targetKcal! - 300) * (1 + DATED_NOTE_BOOST)) < 2, `${a.targetKcal} → ${b.targetKcal}`);
+});
+
+Deno.test("householdAnchors porte la note par (bouche, jour) et rien d'autre", () => {
+  const days = [day({ memberId: "m_iku", day: "tue", kcal: 2000 }), day({ memberId: "m_iku", day: "wed", kcal: 2000 })];
+  const got = householdAnchors([IKU], days, "no_position", new Map(), new Map([["m_iku tue", DATED_NOTE_BOOST]]));
+  assertEquals(got.get("m_iku tue")!.noteBoost, DATED_NOTE_BOOST);
+  assertEquals(got.get("m_iku wed")!.noteBoost, 0);
+  assert(got.get("m_iku tue")!.targetKcal! > got.get("m_iku wed")!.targetKcal!);
+});
+
+Deno.test("CÂBLAGE — la lane foyer lit la note datée d'une bouche et la passe à l'ancre", async () => {
+  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  const at = src.indexOf("const noteBoostByKey = new Map<string, number>();");
+  assert(at > -1, "la lane foyer ne construit plus la note datée par (bouche, jour)");
+  const block = src.slice(at, src.indexOf("const anchors = householdAnchors(", at));
+  assert(/memoFrom\(memoConstraints\)/.test(block), "la note datée ne vient plus des mémos de la fiche");
+  assert(/when\?\.weekday/.test(block), "le jour de la note n'est plus lu sur `when.weekday`");
+  assert(/DATED_NOTE_BOOST/.test(block), "la fraction n'est plus la constante arbitrée");
+  assert(/householdAnchors\(anchorMouthList, dayEnergy, coachCounting, lostLineKcalByKey, noteBoostByKey\)/.test(src), "la note n'atteint plus `householdAnchors`");
+  assertEquals((src.match(/note_boost: noteBoost,/g) || []).length, 2, "`note_boost` absent du journal ou de l'archive");
 });

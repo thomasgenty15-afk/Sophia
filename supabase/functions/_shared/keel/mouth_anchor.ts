@@ -841,6 +841,17 @@ export interface AnchorMouth {
   conditionRefs: readonly string[];
 }
 
+/**
+ * ⟳ 2026-09-06 — ARBITRAGE 3 (2026-09-05) : UNE NOTE DATÉE FAIT GROSSIR LA PART
+ * D'UN CRAN FIXE. « Léa danse le mardi, il lui faut un vrai repas » arrivait au
+ * modèle (la ligne était servie, `notes served=1`) et la boîte du mardi ne
+ * changeait pas : une phrase bouge les mots, pas les grammes. Décision du
+ * propriétaire : ce jour-là, la cible de cette bouche augmente d'une fraction
+ * FIXE, et l'ancre fait le reste. Un quart : l'ordre de grandeur arbitré, à
+ * lire sur `note_boost.applied` avant d'y toucher.
+ */
+export const DATED_NOTE_BOOST = 0.25;
+
 export interface AnchorFactor {
   /** Ce qui est réellement multiplié. Raboté, jamais brut. */
   factor: number;
@@ -903,6 +914,8 @@ export interface AnchorFactor {
    * reste est compté `unmet`. 0 quand rien n'a été perdu par une ligne.
    */
   lostLineKcal: number;
+  /** ⟳ 2026-09-06 — la fraction de note datée appliquée à la cible (0 = aucune). */
+  noteBoost: number;
 }
 
 /**
@@ -1022,6 +1035,8 @@ export function anchorFactorFor(
    * qu'un plat a été retiré. `0` = rien de perdu (comportement d'avant).
    */
   lostLineKcal = 0,
+  /** ⟳ 2026-09-06 — fraction fixe d'une note datée pour (bouche, jour) ; voir `DATED_NOTE_BOOST`. */
+  noteBoost = 0,
 ): AnchorFactor {
   const target = mouthTargetKcal(mouth, coachCounting);
   // ⚠️ LU AVANT TOUTE SORTIE, ET RENDU SUR TOUTES. Le compteur du LOT ① dit ce
@@ -1041,6 +1056,7 @@ export function anchorFactorFor(
       structureState,
       extrasFloored: false,
       lostLineKcal: 0,
+      noteBoost: 0,
     };
   }
   // ⛔ L'EXPRESSION EST INCHANGÉE, OCTET POUR OCTET, ET SEULE L'ÉTIQUETTE SE
@@ -1065,6 +1081,7 @@ export function anchorFactorFor(
       structureState,
       extrasFloored: false,
       lostLineKcal: 0,
+      noteBoost: 0,
     };
   }
   // ⛔ LA GARDE PRINCIPALE — MAIS PAS SUR N'IMPORTE QUELLE LACUNE.
@@ -1118,6 +1135,7 @@ export function anchorFactorFor(
       // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
       extrasFloored: false,
       lostLineKcal: 0,
+      noteBoost: 0,
     };
   }
   // ⛔ LA CIBLE EST RÉDUITE À CE QUE LE PLAN PORTE POUR ELLE. Sans ça, un dîner
@@ -1180,7 +1198,11 @@ export function anchorFactorFor(
   const lostLine = Number.isFinite(lostLineKcal) && lostLineKcal > 0
     ? Math.round(lostLineKcal)
     : 0;
-  const effectiveTarget = (shared.total > 0 ? shared.total : target.kcal) + lostLine;
+  // ⟳ 2026-09-06 — la note datée grossit la cible du jour AVANT les kcal perdus
+  // par la ligne (qui se rajoutent tels quels) et avant les plafonds (qui
+  // bornent le résultat comme n'importe quelle cible).
+  const boost = Number.isFinite(noteBoost) && noteBoost > 0 ? noteBoost : 0;
+  const effectiveTarget = (shared.total > 0 ? shared.total : target.kcal) * (1 + boost) + lostLine;
   const raw = effectiveTarget / day.kcal;
   // ── LE PLAFOND DE VRAISEMBLANCE, PAR REPAS ET PAR CORPS ─────────────────
   // Le facteur est UN par bouche et s'applique à toutes ses parts: c'est donc
@@ -1235,6 +1257,7 @@ export function anchorFactorFor(
     structureState,
     extrasFloored,
     lostLineKcal: lostLine,
+    noteBoost: boost,
   };
 }
 
@@ -1252,6 +1275,8 @@ export function householdAnchors(
   coachCounting: CountingStance,
   /** ⟳ 2026-09-06 — `<memberId> <day>` → kcal perdus par la ligne ce jour-là. */
   lostLineKcalByKey: ReadonlyMap<string, number> = new Map(),
+  /** ⟳ 2026-09-06 — `<memberId> <day>` → fraction d'une note datée (`DATED_NOTE_BOOST`). */
+  noteBoostByKey: ReadonlyMap<string, number> = new Map(),
 ): Map<string, AnchorFactor> {
   const byMouth = new Map(mouths.map((m) => [m.memberId, m]));
   const out = new Map<string, AnchorFactor>();
@@ -1259,7 +1284,7 @@ export function householdAnchors(
     const mouth = byMouth.get(day.memberId);
     if (!mouth) continue;
     const key = `${day.memberId} ${day.day ?? ""}`;
-    out.set(key, anchorFactorFor(mouth, day, coachCounting, lostLineKcalByKey.get(key) ?? 0));
+    out.set(key, anchorFactorFor(mouth, day, coachCounting, lostLineKcalByKey.get(key) ?? 0, noteBoostByKey.get(key) ?? 0));
   }
   return out;
 }

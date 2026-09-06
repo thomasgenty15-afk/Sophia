@@ -41,6 +41,7 @@ function anchor(over: Partial<AnchorFactor> = {}): AnchorFactor {
     capBit: "none",
     structureState: "not_asked",
     extrasFloored: false,
+    noteBoost: 0,
     lostLineKcal: 0,
     ...over,
   };
