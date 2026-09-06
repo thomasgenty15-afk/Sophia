@@ -6342,6 +6342,7 @@ Deno.serve(async (req) => {
     });
     let swapRetryAttempts = 0;
     let swapRetryAccepted = 0;
+    let swapRetryRejectedBy: string | null = null;
     if (swap.counters.flagrant && !adoptingDraft && strictestRegime !== null) {
       const names = (ids: readonly string[]) =>
         ids.map((id) => String(nameOf.get(id) ?? "").trim()).filter(Boolean);
@@ -6382,17 +6383,36 @@ Deno.serve(async (req) => {
             // bouche perde un repas ni que la ceinture refuse davantage: la
             // relance ne doit pas acheter la viande des uns avec l'assiette
             // des autres.
-            if (
-              retried.dishes.length >= meal.dishes.length &&
-              after.counters.cells_carrying > swap.counters.cells_carrying &&
-              afterDelivered.missing <= delivered.missing &&
-              retried.regime_belt.refused <= meal.regime_belt.refused
-            ) {
+            // ⟳ 2026-09-06 — LE REJET SE DIT. Campagne du 05/09: trois relances du
+            // flagrant sur le foyer de cinq, aucune acceptée, aucun journal — on ne
+            // savait pas laquelle des quatre conditions refusait. Nommée et archivée.
+            const rejectedBy: string | null = !(retried.dishes.length >= meal.dishes.length)
+              ? "dishes"
+              : !(after.counters.cells_carrying > swap.counters.cells_carrying)
+              ? "carrying"
+              : !(afterDelivered.missing <= delivered.missing)
+              ? "missing"
+              : !(retried.regime_belt.refused <= meal.regime_belt.refused)
+              ? "refused"
+              : null;
+            if (rejectedBy === null) {
               meal = retried;
               mealSourceText = retryResult;
               delivered = afterDelivered;
               swap = after;
               swapRetryAccepted += 1;
+            } else {
+              swapRetryRejectedBy = rejectedBy;
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.swap_retry_rejected",
+                request_id: requestId,
+                user_id: userId,
+                rejected_by: rejectedBy,
+                dishes: [meal.dishes.length, retried.dishes.length],
+                cells_carrying: [swap.counters.cells_carrying, after.counters.cells_carrying],
+                missing: [delivered.missing, afterDelivered.missing],
+                refused: [meal.regime_belt.refused, retried.regime_belt.refused],
+              }));
             }
           }
         } catch (e) {
@@ -6412,6 +6432,7 @@ Deno.serve(async (req) => {
       absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
       retry_attempts: swapRetryAttempts,
       retry_accepted: swapRetryAccepted,
+      retry_rejected_by: swapRetryRejectedBy,
     }));
 
     const restorable = delivered.mouths
@@ -8718,6 +8739,7 @@ Deno.serve(async (req) => {
         absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
         retry_attempts: swapRetryAttempts,
         retry_accepted: swapRetryAccepted,
+      retry_rejected_by: swapRetryRejectedBy,
       },
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.

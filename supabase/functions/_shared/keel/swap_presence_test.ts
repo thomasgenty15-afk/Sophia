@@ -151,6 +151,9 @@ Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, a
   assert(/afterDelivered\.missing <= delivered\.missing/.test(src), "l'acceptation peut acheter la viande des uns avec l'assiette des autres");
   assert(/retried\.regime_belt\.refused <= meal\.regime_belt\.refused/.test(src), "l'acceptation laisse la ceinture refuser davantage");
   assert(/tag: "keel\.household_meal\.swap_presence"/.test(src), "le journal swap_presence a disparu");
+  // ⟳ 2026-09-06: une relance refusée dit laquelle des quatre conditions l'a refusée.
+  assert(/tag: "keel\.household_meal\.swap_retry_rejected"/.test(src), "le rejet de la relance du flagrant est muet");
+  assert(/retry_rejected_by: swapRetryRejectedBy,/.test(src), "le motif de rejet n'est pas archivé");
   assert(/swap: \{\s*\.\.\.swap\.counters,/.test(src), "generated_from.household.swap n'est plus archivé");
   // La relance swap précède la restauration du dernier recours: elle peut remplacer le plan.
   const swapAt = src.indexOf("let swap = swapPresence(");
