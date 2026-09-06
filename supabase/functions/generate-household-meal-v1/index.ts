@@ -271,6 +271,7 @@ import {
   densityFromComposition,
 } from "../_shared/keel/box_densify.ts";
 import { mergeRetryByCell, mergeRetryCells } from "../_shared/keel/retry_merge.ts";
+import { preferenceSplitRetryInstruction } from "../_shared/keel/preference_split_retry.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
 // un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
@@ -6555,6 +6556,158 @@ Deno.serve(async (req) => {
     }));
 
     // ═══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-06 — PRÉFÉRENCE CONTRE EXCLUSION : LA RELANCE (ASP4)
+    // ═══════════════════════════════════════════════════════════════════════
+    // Paul veut des asperges, Claire n'en veut pas ; le brief v31 est servi, le
+    // modèle promet dans son explication « un ajout séparé dans les boîtes de
+    // Paul » et n'en met dans aucune boîte. Une mesure (la même que l'archive,
+    // plus bas), une relance qui nomme la bouche, le mot et le plancher, et les
+    // cellules rendues AVEC le composant prises par parties — jamais une cellule
+    // où la boîte du refusant le porte, jamais une cellule qui coûte un repas.
+    const preferenceSplitCarriage = (m: ParsedMealForDelivery, splits: readonly PreferenceSplit[]) => {
+      const prepById = new Map(m.preparations.map((p) => [p.id, { id: p.id, title: p.title, method: p.method, ingredients: p.ingredients }]));
+      const termsOf = (term: string) =>
+        exclusionTermsFor({
+          items: [{ kind: "food.exclude", subject: "member:_", text: term } as never],
+          subject: "member:_",
+        });
+      const carryingCells = (memberId: string, terms: ReturnType<typeof exclusionTermsFor>): Set<string> => {
+        const out = new Set<string>();
+        for (const dish of m.dishes) {
+          for (const box of dish.boxes) {
+            if (!box.memberIds.includes(memberId)) continue;
+            const cited = box.items.filter((it) => it.preparationId).map((it) => ({ preparationId: it.preparationId as string }));
+            const bite = dishBitesExclusion({
+              dish: { title: "", method: "", ingredients: box.items.map((it) => ({ term: it.term })) },
+              uses: cited,
+              preparationById: prepById,
+              terms,
+              surface: "all",
+            });
+            if (bite.matched !== null) out.add(`${dish.day ?? ""}/${dish.slot ?? ""}`);
+          }
+        }
+        return out;
+      };
+      const rows = splits.map((split) => {
+        const terms = termsOf(split.term);
+        return {
+          split,
+          wanters: split.wants.map((w) => ({ ...w, cells: carryingCells(w.memberId, terms) })),
+          refusers: split.refuses.map((r) => ({ ...r, cells: carryingCells(r.memberId, terms) })),
+        };
+      });
+      const counts = { pairs: splits.length, wanters: 0, composed: 0, refuser_clean: 0, refuser_bitten: 0 };
+      for (const row of rows) {
+        for (const w of row.wanters) {
+          counts.wanters += 1;
+          if (w.cells.size > 0) counts.composed += 1;
+        }
+        for (const r of row.refusers) {
+          if (r.cells.size > 0) counts.refuser_bitten += 1;
+          else counts.refuser_clean += 1;
+        }
+      }
+      return { rows, counts };
+    };
+    let splitRetryAttempts = 0;
+    let splitRetryAccepted = 0;
+    let splitRetryMergedCells = 0;
+    let splitRetryRejectedBy: string | null = null;
+    // ⚠️ UNE SEULE RÈGLE DE PAIRES (`splitsFrom`, au site du prompt) : magasins + note
+    // fraîche (45375a74). La relance et l'archive lisent la même liste.
+    const allSplits = splitsFrom([...retainedDurable.items, ...retainedNextPlan, ...(noteBelt?.items ?? [])]);
+    if (allSplits.length > 0 && !adoptingDraft) {
+      const before = preferenceSplitCarriage(meal, allSplits);
+      const uncomposed = before.rows.flatMap((row) =>
+        row.wanters.filter((w) => w.cells.size === 0).map((w) => ({
+          term: row.split.term,
+          wanter: w.displayName || w.memberId,
+          wanterId: w.memberId,
+          refusers: row.refusers.map((r) => r.displayName || r.memberId),
+          refuserIds: row.refusers.map((r) => r.memberId),
+        }))
+      );
+      const instruction = preferenceSplitRetryInstruction(uncomposed, swap.counters.cells_checked);
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            built.systemPrompt + household.systemSuffix,
+            householdUserMessage(`\n\n${instruction}`),
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.preference_split_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          splitRetryAttempts += 1;
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = preferenceSplitCarriage(retried, allSplits);
+            // Les cellules où un demandeur porte ENFIN le composant, et où aucun
+            // refusant ne le porte dans la relance.
+            const refuserCells = new Set(after.rows.flatMap((row) => row.refusers.flatMap((r) => [...r.cells])));
+            const repaired = [...new Set(after.rows.flatMap((row) =>
+              row.wanters.flatMap((w) => {
+                const was = before.rows.find((b) => b.split.term === row.split.term)?.wanters.find((x) => x.memberId === w.memberId);
+                return [...w.cells].filter((c) => !(was?.cells.has(c)) && !refuserCells.has(c));
+              })
+            ))].sort();
+            const merge = mergeRetryCells({ base: meal, retry: retried, cells: repaired });
+            const mergedDelivered = merge.cells.length > 0 ? mealsDelivered(deliveredViewOf(merge.meal), mouthCells) : delivered;
+            const mergedCarriage = merge.cells.length > 0 ? preferenceSplitCarriage(merge.meal, allSplits) : before;
+            const rejectedBy: string | null = merge.cells.length === 0
+              ? "no_cell"
+              : !(mergedCarriage.counts.composed > before.counts.composed)
+              ? "composed"
+              : !(mergedDelivered.missing <= delivered.missing)
+              ? "unfed"
+              : null;
+            if (rejectedBy === null) {
+              meal = merge.meal;
+              delivered = mergedDelivered;
+              splitRetryAccepted += 1;
+              splitRetryMergedCells = merge.cells.length;
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.preference_split_retry_merged",
+                request_id: requestId,
+                user_id: userId,
+                cells: merge.cells,
+                composed: [before.counts.composed, mergedCarriage.counts.composed],
+                missing: [delivered.missing, mergedDelivered.missing],
+                imported_preparations: merge.importedPreparations,
+                shopping_added: merge.shoppingAdded,
+              }));
+            } else {
+              splitRetryRejectedBy = rejectedBy;
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.preference_split_retry_rejected",
+                request_id: requestId,
+                user_id: userId,
+                rejected_by: rejectedBy,
+                dishes: [meal.dishes.length, retried.dishes.length],
+                composed: [before.counts.composed, after.counts.composed, mergedCarriage.counts.composed],
+                refuser_bitten_after: after.counts.refuser_bitten,
+                repaired_cells: repaired,
+                merge_cells: merge.cells,
+                missing: [delivered.missing, mergedDelivered.missing],
+              }));
+            }
+          }
+        } catch (e) {
+          console.warn(JSON.stringify({ tag: "keel.household_meal.preference_split_retry_failed", request_id: requestId, error: String(e) }));
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-06 — LE RELOGEMENT : LA BOÎTE QUI CONVIENT EXISTE DÉJÀ (FC2)
     // ═══════════════════════════════════════════════════════════════════════
     // Nora, végane, nommée sur la boîte « dinde » de treize repas et retirée
@@ -9193,10 +9346,7 @@ Deno.serve(async (req) => {
     // citées). Le texte de la préférence est tokenisé comme une exclusion — même
     // tokenisation, même matcher — pour ne pas écrire un second moteur.
     const preferenceSplit = (() => {
-      // ⟳ les paires de la note FRAÎCHE entrent ici (et seulement ici) : « Léa n'aime
-      // pas, Marc adore » est mesuré sur le plan qu'elle annote, pas au suivant.
-      const allSplits = splitsFrom([...retainedDurable.items, ...retainedNextPlan, ...(noteBelt?.items ?? [])]);
-      const counts = {
+      const base = {
         pairs: allSplits.length,
         pairs_from_stores: preferenceSplits.length,
         pairs_fresh: Math.max(0, allSplits.length - preferenceSplits.length),
@@ -9204,48 +9354,23 @@ Deno.serve(async (req) => {
         composed: 0,
         refuser_clean: 0,
         refuser_bitten: 0,
+        retry_attempts: splitRetryAttempts,
+        retry_accepted: splitRetryAccepted,
+        retry_merged_cells: splitRetryMergedCells,
+        retry_rejected_by: splitRetryRejectedBy,
       };
-      if (allSplits.length === 0) return counts;
-      const prepById = new Map(meal.preparations.map((p) => [p.id, { id: p.id, title: p.title, method: p.method, ingredients: p.ingredients }]));
-      const boxCarries = (memberId: string, terms: ReturnType<typeof exclusionTermsFor>): boolean => {
-        for (const dish of meal.dishes) {
-          for (const box of dish.boxes) {
-            if (!box.memberIds.includes(memberId)) continue;
-            const cited = box.items.filter((it) => it.preparationId).map((it) => ({ preparationId: it.preparationId as string }));
-            const bite = dishBitesExclusion({
-              dish: { title: "", method: "", ingredients: box.items.map((it) => ({ term: it.term })) },
-              uses: cited,
-              preparationById: prepById,
-              terms,
-              surface: "all",
-            });
-            if (bite.matched !== null) return true;
-          }
-        }
-        return false;
-      };
-      for (const split of allSplits) {
-        const terms = exclusionTermsFor({
-          items: [{ kind: "food.exclude", subject: "member:_", text: split.term } as never],
-          subject: "member:_",
-        });
-        for (const w of split.wants) {
-          counts.wanters += 1;
-          if (boxCarries(w.memberId, terms)) counts.composed += 1;
-          else {
-            // ⚠️ DIT DANS `issues`, PAS SEULEMENT COMPTÉ : sur ASP4 (18:24) le modèle a
-            // ÉCRIT dans son explication « les asperges restent un ajout séparé dans
-            // les boîtes de Paul » et n'en a mis dans aucune boîte. La ligne est ce
-            // qu'une relance (lane des relances) et le lecteur peuvent voir.
-            issues.push(
-              `preference_split: "${split.term}" was asked for ${w.memberId} in a box of their own ` +
-                `and no box of theirs cites it -- the shared base avoided it for everyone`,
-            );
-          }
-        }
-        for (const r of split.refuses) {
-          if (boxCarries(r.memberId, terms)) counts.refuser_bitten += 1;
-          else counts.refuser_clean += 1;
+      if (allSplits.length === 0) return base;
+      // ⟳ 2026-09-06 — LA MÊME MESURE QUE LA RELANCE (`preferenceSplitCarriage`), sur la
+      // même liste de paires (`allSplits`, magasins + note fraîche).
+      const measured = preferenceSplitCarriage(meal, allSplits);
+      const counts = { ...base, ...measured.counts, pairs: allSplits.length };
+      for (const row of measured.rows) {
+        for (const w of row.wanters) {
+          if (w.cells.size > 0) continue;
+          issues.push(
+            `preference_split: "${row.split.term}" was asked for ${w.memberId} in a box of their own ` +
+              `and no box of theirs cites it -- the shared base avoided it for everyone`,
+          );
         }
       }
       console.log(JSON.stringify({ tag: "keel.household_meal.preference_split", user_id: userId, household_id: householdId, intent, ...counts }));
