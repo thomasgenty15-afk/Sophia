@@ -9137,6 +9137,16 @@ Deno.serve(async (req) => {
         for (const w of split.wants) {
           counts.wanters += 1;
           if (boxCarries(w.memberId, terms)) counts.composed += 1;
+          else {
+            // ⚠️ DIT DANS `issues`, PAS SEULEMENT COMPTÉ : sur ASP4 (18:24) le modèle a
+            // ÉCRIT dans son explication « les asperges restent un ajout séparé dans
+            // les boîtes de Paul » et n'en a mis dans aucune boîte. La ligne est ce
+            // qu'une relance (lane des relances) et le lecteur peuvent voir.
+            issues.push(
+              `preference_split: "${split.term}" was asked for ${w.memberId} in a box of their own ` +
+                `and no box of theirs cites it -- the shared base avoided it for everyone`,
+            );
+          }
         }
         for (const r of split.refuses) {
           if (boxCarries(r.memberId, terms)) counts.refuser_bitten += 1;
