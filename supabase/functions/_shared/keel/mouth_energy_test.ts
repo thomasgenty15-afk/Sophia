@@ -630,3 +630,34 @@ Deno.test("LOT 0 — le compteur d'attribution dit de combien `uses.servings` se
   assertEquals(gap.ratio, 10);
   assertEquals(gap.potsUnreadable, 0);
 });
+
+Deno.test("LOT 0 — un frais non résolu se juge contre la BOÎTE (casserole comprise), pas contre le frais seul", () => {
+  // 4 g d'un légume inconnu, borné par la bande de son groupe, à côté de 600 g de
+  // casserole à 1 kcal/g et 30 g de frais connu : ≈ 3 % de la boîte → lisible. Le
+  // même frais seul dans sa boîte → bien plus de 5 % → illisible, comme avant.
+  // ⚠️ Un frais composé du SEUL terme inconnu rend `no_ingredients` (rien de résolu
+  // à quoi accrocher une borne) : le cas réel a toujours un frais connu à côté.
+  // La bande de groupe d'un inconnu est LARGE (≈ 4,5 kcal/g au milieu sur ce banc) :
+  // 4 g suffisent à faire une garniture inconnue ; 20 g feraient 12 % de la boîte.
+  const leaves = { term: "mystery leaves", amount: 4, unit: "g" as const, state: "raw" as const, group: "non_starchy_veg" as const };
+  const known = { term: "plain food", amount: 30, unit: "g" as const, state: "raw" as const };
+  const withPot = boxKcalByItems(INDEX, {
+    day: "thu",
+    slot: "dinner",
+    method: "roast",
+    ingredients: [known, leaves],
+    uses: [{ preparationId: "pot", servings: 1 }],
+    boxes: [{ memberIds: [IKU], items: [{ grams: 600, preparationId: "pot" }, { grams: 34, preparationId: null }], legacyTotalGrams: null }],
+  }, potDensities(INDEX, [POT_1500]))!;
+  assertEquals(withPot[0].gap, null);
+  assert(withPot[0].kcal! >= 630 && withPot[0].kcal! <= 660, String(withPot[0].kcal));
+  const alone = boxKcalByItems(INDEX, {
+    day: "thu",
+    slot: "dinner",
+    method: "roast",
+    ingredients: [known, leaves],
+    uses: [],
+    boxes: [{ memberIds: [IKU], items: [{ grams: 34, preparationId: null }], legacyTotalGrams: null }],
+  }, new Map())!;
+  assertEquals(alone[0].gap, "dish_incomplete");
+});

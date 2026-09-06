@@ -50,6 +50,8 @@ import type { CompositionIndex } from "./food_composition.ts";
 import {
   type DishEnergy,
   dishEnergy,
+  dishEnergyAtTolerance,
+  UNRESOLVED_ENERGY_TOLERANCE,
   type EnergyIngredient,
   type EnergyPreparation,
   PLAN_ENERGY_BASIS,
@@ -399,8 +401,19 @@ export function boxKcalByItems(
   );
   const freshTotal = freshGrams.reduce((a, b) => a + b, 0);
   // Le frais du plat : ses ingrédients PROPRES, jamais ceux des casseroles.
+  //
+  // ⟳ 2026-09-06 — LA TOLÉRANCE SE JUGE SUR LA BOÎTE, PAS SUR LE FRAIS SEUL.
+  // `dishEnergy` refuse un plat dont les termes non résolus pèsent plus de 5 %
+  // de son énergie. Jugée sur le frais seul (une vinaigrette, « poulet » sans
+  // pièce, 60 g de galette), la borne mordait sur des boîtes dont la casserole
+  // faisait 90 % de l'énergie : 188–342 g/jour rendus illisibles sur les tirs
+  // du 06/09, alors que le pliage d'hier les diluait dans la casserole. On lit
+  // donc le frais à tolérance pleine (borné par les bandes de groupe), et la
+  // règle des 5 % s'applique à `casserole + frais` de CHAQUE boîte — même
+  // seuil, même bande, dénominateur juste. Un frais sans borne ni quantité
+  // reste illisible, comme avant.
   const own = dish.ingredients.length > 0
-    ? dishEnergy(index, { method: dish.method, ingredients: dish.ingredients })
+    ? dishEnergyAtTolerance(index, { method: dish.method, ingredients: dish.ingredients }, 1)
     : null;
   return dish.boxes.map((box, i) => {
     const grams = boxGramsOf(box);
@@ -419,7 +432,12 @@ export function boxKcalByItems(
     if (own !== null) {
       if (!own.complete || own.kcal === null) return { kcal: null, gap: "dish_incomplete" as const };
       const share = freshTotal > 0 ? freshGrams[i] / freshTotal : grams / totalGrams;
-      kcal += own.kcal * share;
+      const ownShare = own.kcal * share;
+      const boundedShare = (own.boundedKcal ?? 0) * share;
+      if (boundedShare > UNRESOLVED_ENERGY_TOLERANCE * (kcal + ownShare)) {
+        return { kcal: null, gap: "dish_incomplete" as const };
+      }
+      kcal += ownShare;
     }
     return { kcal, gap: null };
   });
