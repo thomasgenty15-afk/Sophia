@@ -8384,13 +8384,21 @@ Deno.serve(async (req) => {
       lines_unrewritable: 0,
     };
     {
+      // ⚠️ CE QUE LES BOÎTES VONT TIRER, PAS CE QU'ELLES TIRENT ENCORE : le
+      // dimensionnement vient APRÈS ce bloc et multiplie chaque boîte par son
+      // facteur. Mesuré sur FC4 (16:06) avec les grammes bruts : cinq
+      // casseroles que la croissance venait d'agrandir pour les boîtes
+      // dimensionnées ont été rétrécies sur les tirages d'AVANT, puis
+      // `capped_by_pot 3` — le rétrécissement défaisait la croissance. Même
+      // base que `neededPotFactor` : grammes × facteur résolu de la boîte.
       const drawnByPot = new Map<string, number>();
       for (const box of sizableBoxes) {
+        const factor = boxFactors.get(box.boxId)?.factor ?? 1;
         for (const it of box.items) {
           if (!it.preparationId) continue;
           const g = Number(it.grams);
           if (!Number.isFinite(g) || g <= 0) continue;
-          drawnByPot.set(it.preparationId, (drawnByPot.get(it.preparationId) ?? 0) + g);
+          drawnByPot.set(it.preparationId, (drawnByPot.get(it.preparationId) ?? 0) + g * factor);
         }
       }
       const unboxedUses = new Map<string, number>();
