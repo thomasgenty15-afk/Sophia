@@ -41,7 +41,7 @@ try:
   d=json.loads(sys.stdin.read()); print('   retained_items:', {k:d.get(k) for k in ('composition','served','unrouted','refused','other_subjects','craving')})
 except Exception: print('   (aucune ligne retained_items)')"
 grep -o '{"tag":"keel.household_meal.composition\b.*' "$LOG" | tail -1 | cut -c1-300 | sed 's/^/   /'
-echo "── fuites : terme exclu dans une boîte de la bouche exclue (heuristique de banc, sous-chaîne normalisée)"
+echo "── fuites : terme exclu dans les ITEMS d'une boîte de la bouche exclue (ou une casserole citée) — heuristique de banc"
 python3 - "$PLAN" "$C9/roster-quatre.json" "$ITEMS" <<'PY'
 import json,sys,unicodedata,re
 plan=json.load(open(sys.argv[1])); roster={r["member_id"]:r["first_name"] for r in json.load(open(sys.argv[2]))}
@@ -63,7 +63,12 @@ for it in items:
             hit = subj=="household" or any(f"member:{m}"==subj for m in mids)
             if not hit: continue
             checked+=1
-            btxt=norm(" ".join(str(i.get("term","")) for i in b.get("items") or []))+" "+dish_text(d)
+            # ⟳ 16:30 — la BOÎTE et les casseroles qu'elle cite, pas le titre du plat: un plat
+            # « Poulet, quinoa » dont la boîte de Nora ne porte que du tofu n'est pas une fuite.
+            cited=[i.get("preparation_id") for i in b.get("items") or [] if i.get("preparation_id")]
+            btxt=norm(" ".join(str(i.get("term","")) for i in b.get("items") or []))
+            for pid in cited:
+                p=preps.get(pid) or {}; btxt+=" "+norm(" ".join([p.get("title","")]+[i.get("term","") for i in p.get("items") or p.get("ingredients") or []]))
             if term in btxt:
                 leaks+=1; print(f"   ⛔ fuite: « {it['text']} » ({subj[:14]}) dans {d.get('day')}/{d.get('slot')} « {d.get('title')} » boîte {[roster.get(m,m[:6]) for m in mids]}")
 print(f"   boîtes vérifiées {checked} · fuites {leaks}")

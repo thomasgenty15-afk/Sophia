@@ -134,3 +134,27 @@ quand elle rend moins de plats et la relance par parties qui ne répare pas (FC4
 régime qui retire la végane de toutes ses boîtes (FC2), tentatives et motif de rejet au journal ;
 74 — les plafonds de pot qui empêchent de combler l'écart retrouvé, et les courses/casseroles qui
 ne rétrécissent pas après un retrait.
+
+## 8. ⟳ Le reste, rejoué à trois lanes (2026-09-06, 16 h 25 → 16 h 40, HEAD `6a104f86`)
+
+Trois lanes posées : les miennes (§6, §7), le rétrécissement des casseroles et des courses
+après un retrait (74, `a3c6af19`, `9cca3de1`), le relogement d'une bouche retirée sur la boîte du
+même plat que sa ligne accepte, les relances par parties avec le texte source adopté et les
+journaux de rejet (8a, `6a104f86`).
+
+| cas | avant tout (§2) | mes correctifs seuls (§6) | trois lanes |
+|---|---|---|---|
+| « Paul n'aime pas le poulet » | repli ×3, 300 g de poulet chez Paul | 0 poulet, 13 manquants (Nora, régime) | 0 poulet chez Paul, Nora 12 boîtes propres, 10 manquants = aléas du modèle (4 cases sans plat, 6 régime) |
+| « la table exclut poulet, saumon, thon » | 12–20 boîtes de saumon/poulet servies | 0 servi, **21 cases manquantes** | 24 morsures, **18 bouches relogées**, **0 servi, 0 manquant par exclusion**, pots retirés 2, courses rabotées ; énergie 51–63 % (bande du témoin) |
+| « Nora végane n'aime pas le tofu » | remise sur la dinde et le poisson, 31 % | 11 boîtes propres, 51 % (le modèle avait composé des lentilles) | 0 violation, mais **12 cases manquantes** : aucune boîte acceptable à reloger (la sienne porte du tofu, les autres de la dinde), 2 relances ne recomposent pas de composant végane sans tofu ; 4 % |
+
+**Ce qui est réglé** : un retour ne fait plus servir ce qu'il exclut, ne remet plus une bouche
+sur ce qu'elle évite ni sur ce que son régime interdit, ne fait plus rétrécir la cible en silence,
+et ne laisse plus cuire ni acheter une casserole que plus personne ne tire. L'exclusion de table
+(le cas le plus courant) est nourrie proprement.
+
+**Ce qui reste ouvert, nommé** : la bouche dont la ligne exclut son SEUL composant possible sur
+la table (la végane sans tofu) — le retrait est juste, le relogement n'a rien à offrir, et la
+relance ne compose pas encore l'alternative (lentilles, pois chiches). C'est un levier de relance
+(dire au modèle QUEL composant composer pour cette bouche), pas de ceinture. En attendant, le plan
+se refuse (`mouth_unfed`) plutôt que de la servir avec la dinde.
