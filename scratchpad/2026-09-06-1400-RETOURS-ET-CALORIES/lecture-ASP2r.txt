@@ -1,0 +1,17 @@
+keel.household_meal.draft_note_belt: —
+keel.household_meal.exclusion_belt: {"terms": 0, "terms_unallocated": 1, "note_items": 0, "note_refusal": null, "bites_before": 0, "retried": false, "bites_after": 0, "retry_attempts": 0, "retry_merged_cells": 0, "retry_rejected_by": null, "mouths": 1, "checked": 4, "kept": 4, "refused": 0, "bites": 2, "separated": 2, "not_separated": 0, "box_scoped": 4}
+keel.household_meal.preference_split: {"intent": "replace_current", "pairs": 1, "wanters": 1, "composed": 1, "refuser_clean": 1, "refuser_bitten": 0}
+keel.household_meal.meals_delivered: {"mouths": 5, "expected": 50, "fed": 50, "missing": 0, "missing_before": 0, "held_off_regime": 0, "held_off_exclusion": 0, "not_named": 0, "double": 0, "no_dish": 0, "cells_without_dish": 0, "missing_rows": [], "unplaced_dishes": 0, "retried": false, "retry_attempts": 0, "retry_accepted": 0, "retry_merged_cells": 0, "retry_on": {}, "restored": 0, "restored_fallback": 0, "rehomed": 0}
+keel/draft_note_classify: —
+
+plats: 12 · casseroles: 5 · casseroles aux asperges: ['Asperges rôties']
+-- mon lunch · Tofu, quinoa, tomates, concombre et herbes · via ['plat', 'casserole:Asperges rôties'] · member_id=? · boîtes=2
+     boîte ['Claire', 'Léa', 'Tom', 'Zoé']: asperges=non · [{"preparation_id": "prep_quinoa", "term": "quinoa cuit", "grams": 910}, {"preparation_id": "prep_tofu", "term": "tofu rôti", "grams": 683}]
+     boîte ['Marc']: asperges=OUI · [{"preparation_id": "prep_quinoa", "term": "quinoa cuit", "grams": 264}, {"preparation_id": "prep_tofu", "term": "tofu rôti", "grams": 198}, {"preparation_id": 
+-- tue dinner · Lentilles, courgette, poivron, lait de coco et riz · via ['plat', 'casserole:Asperges rôties'] · member_id=? · boîtes=2
+     boîte ['Claire', 'Léa', 'Tom', 'Zoé']: asperges=non · [{"preparation_id": "prep_lentil_curry", "term": "lentilles et légumes au curry", "grams": 1566}]
+     boîte ['Marc']: asperges=OUI · [{"preparation_id": "prep_lentil_curry", "term": "lentilles et légumes au curry", "grams": 440}, {"preparation_id": "prep_asparagus", "term": "asperges rôties",
+
+qui reçoit des asperges: {'Marc': 2}
+issues (asperges/avoid): ['"Tofu, quinoa, tomates, concombre et herbes" (mon) eats from "Asperges rôties", cooked on sun -- after the meal', '"Lentilles, courgette, poivron, lait de coco et riz" (tue) eats from "Asperges rôties", cooked on sun -- after the meal']
+explication: {"lines": ["J’ai gardé toutes les propositions végétales et le dîner du lundi suit ainsi naturellement la version végétarienne demandée.", "Les asperges sont préparées à part et ajoutées seulement dans les boîtes qui les incluent, tandis que la base commune reste inchangée."], "refusal": null}

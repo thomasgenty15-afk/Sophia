@@ -176,3 +176,44 @@ ligne »).
 qu'une bouche évite, plus aucune case manquante par exclusion, des casseroles et des courses qui
 suivent un retrait, et une cible qui ne rétrécit plus en silence. Ce qui reste est de la variance
 du modèle (cases sans plat, ~30 points d'énergie entre deux témoins), à mesurer par campagne.
+
+## 10. ⟳ Un retour à deux bouches : « Léa n'aime pas trop les asperges mais Marc adore, tu peux faire deux versions du plat ? » (18 h, foyer de cinq, deux tirs réels)
+
+| étape | ce qui se passe |
+|---|---|
+| **Mémoire** | la note est classée juste : `food.exclude « les asperges » @Léa` et `food.prefer « les asperges » @Marc` ; la demande « deux versions » est un `skipped` (une consigne de composition, pas un souvenir) ; l'accusé dit « Léa : « les asperges » · Marc : « les asperges » » — **il ne dit pas qui veut et qui ne veut pas** (défaut de copie) |
+| **Le plan composé avec la note** | la note n'agit que par le prompt (C6, connu) : le modèle met les asperges dans la casserole commune « Légumes rôtis aux asperges et courgettes », servie à **tous les cinq, Léa comprise**, sur les quatre déjeuners-dîners ; son explication affirme « deux façons de servir, les courgettes peuvent remplacer » — **rien de tel dans les boîtes**. La demande n'est pas honorée sur le plan qu'elle visait, et l'explication le masque |
+| **Le plan suivant** | les deux lignes sont servies (`composition 2`) ; **plus une asperge nulle part** : l'exclusion de Léa est honorée en évitant l'aliment pour toute la table, la préférence de Marc n'a aucun effet visible. La boîte d'échange (une base commune, le composant qui sépare par boîte) existe pour les régimes et les exclusions, mais le modèle ne compose pas « la version de Marc » de lui-même |
+
+**Ce qu'il faudrait :** (1) que les exclusions d'une note mordent **le plan qu'elle annote** (classer avant la ceinture, pas après l'écriture) ; (2) quand une bouche préfère ce qu'une autre exclut, demander explicitement au modèle le composant séparé par boîte (la boîte d'échange) plutôt que d'éviter l'aliment pour tous ; (3) un accusé qui dit « Léa : pas d'asperges · Marc : plus d'asperges ».
+
+## 11. ⟳ Les trois points corrigés, et le cas Léa/Marc rejoué (18 h 30 – 19 h, HEAD 22ab729c)
+
+Trois lanes, trois commits sur la même branche, dans l'ordre : 74 a posé `5fa06ef6` puis `0085e2da` (point 2 : quand une bouche veut ce qu'une autre refuse, le brief demande le composant séparé par boîte, compteur `preference_split`, et l'écart entre l'explication et les boîtes est dit dans `issues`) ; 8a a posé `2901b046` (point 3 : l'accusé dit le sens — « Léa : à éviter — « les asperges » · Marc : à servir plus souvent — « les asperges » », FR + EN) ; moi `22ab729c` (point 1 : la note est classée **avant** le plan qu'elle annote).
+
+**Le point 1, en une ligne :** le classifieur de la note (`classifyDraftNoteEarly`) part sans `await` juste avant l'appel principal, dans les deux lanes ; sa réponse est lue après le parse par le même lecteur que la persistance (`draftNoteBeltItems`) et ses items — durables et encart, avec leur `subject` — rejoignent le magasin structuré dans `beltItems`, que la ceinture lit pour la table et pour chaque bouche. Zéro latence ajoutée (< 25 s en parallèle de minutes). La persistance nominale garde son propre appel avec les aliments du plan écrit (c'est là que « laquelle ? » compte) ; seul le site du refus du foyer réutilise la réponse précoce. Compteurs : `keel.household_meal.draft_note_belt`, `note_items`/`note_refusal` dans les compteurs de ceinture. Épingles : `draft_note_belt_wiring_test.ts` (ordre, lecture, `beltItems`, compteur, site de réutilisation — chaque moitié retirée rougit).
+
+**Tir ASP1r** — même foyer de cinq (qa-scope-20260905), même note « Léa n'aime pas trop les asperges mais Marc adore, tu peux faire deux versions du plat ? », 3 jours demandés, HTTP 200 en 166 s ([plan-ASP1r-note-avant-ceinture.json](plan-ASP1r-note-avant-ceinture.json), [lecture-ASP1r.txt](lecture-ASP1r.txt)) :
+
+| | ASP1 (avant, §10) | ASP1r (après) |
+|---|---|---|
+| ce que la ceinture reçoit de la note | rien (`draft_note_belt` n'existe pas ; `exclusion_belt` muet, 0 terme) | `items 2 · durable 2 · exclude 1 · prefer 1 · refusal null` ; `exclusion_belt.note_items 2` |
+| asperges à Léa | **6 fois sur 6** (la casserole « Légumes rôtis aux asperges » citée par toutes les boîtes, Léa comprise) | **0** : la ceinture mord (`bites 1`, `mouths 1`), Léa est retirée de la boîte du « Tofu, asperges, pommes de terre » (`issues` le dit), puis la relance des cases manquantes (`missing_before 1 → missing 0`, `retry_on {held_off_exclusion: 1}`) lui compose **sa boîte** : tofu, pommes de terre, haricots — sans asperge |
+| asperges à Marc | 6/6, comme tout le monde | 1 (le dîner du lundi), comme Claire, Tom et Zoé — la préférence n'a pas encore d'effet propre sur ce plan-là (`preference_split` : pas de ligne, les paires du bloc de 74 lisent les magasins, vides à cet instant — extension à `beltItems` convenue avec 74, après ce tir) |
+| l'explication | affirme « deux façons de servir » — **fausse**, une seule boîte pour tous | « une version sans asperges et une version qui les met en avant » — **vraie** : deux boîtes, la sienne sans |
+| l'accusé | « Léa : « les asperges » · Marc : « les asperges » » (sans le sens) | « Léa : à éviter — « les asperges » · Marc : à servir plus souvent — « les asperges » » |
+| mémoire | 2 durables écrites | 2 durables écrites, 0 question (`clarify_proposed 0`) |
+
+Ce qui reste vrai et n'est pas réparé par ce tir : la « version de Marc » n'est pas encore une version **avec plus** d'asperges — c'est la version commune. Le brief de 74 (v31) ne s'arme que sur des paires déjà en magasin ; sur un brouillon annoté, la paire n'existe que dans `beltItems`, après l'appel principal. Armer le prompt avec la note fraîche coûterait la latence du classifieur sur chaque plan annoté : nous avons choisi de ne pas le faire, et de laisser le prompt à la note verbatim (`draftNoteInstruction`), qui a suffi ici pour que le modèle sépare la boîte de Léa.
+
+**Tir ASP2r** — le plan suivant, sans note, la mémoire portant les deux lignes (HEAD 22ab729c, les trois lanes) : HTTP 200 ([plan-ASP2r-plan-suivant-trois-lanes.json](plan-ASP2r-plan-suivant-trois-lanes.json), [lecture-ASP2r.txt](lecture-ASP2r.txt)).
+
+| | ASP2 (avant, §10) | ASP2r (après) |
+|---|---|---|
+| la paire vue par le brief | rien | `preference_split {pairs 1, wanters 1, composed 1, refuser_clean 1, refuser_bitten 0}` |
+| la boîte d'échange | n'existe pas : **plus une asperge nulle part**, l'exclusion honorée en évitant l'aliment pour tous | une casserole à part, « Asperges rôties », citée **seulement** par la boîte de Marc, à deux repas (déjeuner de lundi, dîner de mardi) ; la base commune (quinoa-tofu, curry de lentilles) reste la même pour les cinq |
+| asperges à Léa / aux autres | 0 / 0 | 0 / 0 (`exclusion_belt`: `bites 2 · separated 2 · not_separated 0`) |
+| asperges à Marc | 0 | **2** |
+| l'explication | — | « Les asperges sont préparées à part et ajoutées seulement dans les boîtes qui les incluent, tandis que la base commune reste inchangée » — vraie, boîte par boîte |
+
+**Bilan des trois points sur le cas Léa/Marc :** (1) l'exclusion mord le plan annoté (Léa : 6 → 0 asperges, sa propre boîte) ; (2) au plan suivant, la préférence de Marc devient une casserole à part servie dans sa seule boîte, deux fois, sans qu'aucune autre bouche la reçoive ; (3) l'accusé dit qui évite et qui veut. Ce que ce cas ne mesure pas encore : la même paire **sur le plan annoté lui-même** (les paires du brief lisent les magasins ; sur ASP1r, Marc a eu la version commune, une fois) — 74 étend le compteur à `beltItems`, et le brief garde la note verbatim. Deux tirs, un foyer : c'est un cas, pas une campagne ; la variance du modèle reste ce qu'elle est (§9).
