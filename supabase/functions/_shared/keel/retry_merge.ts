@@ -81,10 +81,14 @@ export interface MergeOutcome {
 const cellKey = (d: { day: string | null; slot: string | null }): string =>
   `${d.day ?? ""}/${d.slot ?? ""}`;
 
-function missingCells(delivered: MealsDelivered): Set<string> {
-  const out = new Set<string>();
+/** Par cellule, COMBIEN de bouches y manquent. */
+function missingByCell(delivered: MealsDelivered): Map<string, number> {
+  const out = new Map<string, number>();
   for (const mouth of delivered.mouths) {
-    for (const m of mouth.missing) out.add(`${m.day}/${m.slot}`);
+    for (const m of mouth.missing) {
+      const key = `${m.day}/${m.slot}`;
+      out.set(key, (out.get(key) ?? 0) + 1);
+    }
   }
   return out;
 }
@@ -118,10 +122,19 @@ export function mergeRetryByCell(args: {
   before: MealsDelivered;
   after: MealsDelivered;
 }): MergeOutcome {
-  const wasMissing = missingCells(args.before);
-  const stillMissing = missingCells(args.after);
+  // ⟳ 2026-09-06 — UNE CELLULE OÙ MOINS DE BOUCHES MANQUENT EST PRISE, même si
+  // quelqu'un y manque encore. Mesuré (FD2): le lundi soir manquait à QUATRE
+  // (aucun plat) ; la relance l'a composé avec la végane retirée d'un plat au
+  // poulet — trois nourris sur quatre, et la fusion exigeait zéro manquant :
+  // rien pris, lundi soir toujours vide pour tout le monde. Le reste de la
+  // boucle (relogement, tour suivant, dernier recours) s'occupe du quatrième.
+  const before = missingByCell(args.before);
+  const after = missingByCell(args.after);
   const retryCells = new Set(args.retry.dishes.map(cellKey));
-  const cells = [...wasMissing].filter((c) => !stillMissing.has(c) && retryCells.has(c)).sort();
+  const cells = [...before.entries()]
+    .filter(([c, n]) => retryCells.has(c) && (after.get(c) ?? 0) < n)
+    .map(([c]) => c)
+    .sort();
   return mergeRetryCells({ base: args.base, retry: args.retry, cells });
 }
 

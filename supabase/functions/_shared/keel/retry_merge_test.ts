@@ -210,3 +210,34 @@ Deno.test("une session vidée par l'élagage disparaît; la casserole importée 
   assertEquals(out.sessionsImported, 1);
   assertEquals(out.meal.cooking_sessions.find((s) => s.day === "fri")!.preparationIds, ["prep_tofu"]);
 });
+
+// ⟳ 2026-09-06 (FD2) — une cellule où MOINS de bouches manquent est prise, même incomplète.
+Deno.test("⛔ UNE CELLULE VIDE POUR QUATRE, RENDUE NOURRIE POUR TROIS, EST PRISE", () => {
+  // Base: samedi soir sans aucun plat (quatre manquants, `no_dish`) ; dimanche midi nourri.
+  const b = meal({
+    dishes: [dish("sun", "lunch", "Lentilles, carottes", [{ id: "b_sun", memberIds: [CLAIRE, LEA, ZOE], items: [{ term: "lentilles", grams: 300, preparationId: "prep_lentils" }] }], ["prep_lentils"])],
+    preparations: [prep("prep_lentils", "Lentilles", "sun")],
+    cooking_sessions: [{ day: "sun", preparationIds: ["prep_lentils"], runThrough: "", totalMinutes: 30 }] as never,
+    shopping_list: [{ term: "lentilles", quantity: "500 g", aisle: "dry" }] as never,
+  });
+  // Relance: samedi soir composé, Léa retirée (régime) — deux nourries sur trois.
+  const r = meal({
+    dishes: [dish("sat", "dinner", "Poulet, riz", [{ id: "b_sat", memberIds: [CLAIRE, ZOE], items: [{ term: "poulet", grams: 300, preparationId: "prep_chicken" }] }], ["prep_chicken"], [{ memberId: LEA, boxId: "b_sat" }])],
+    preparations: [prep("prep_chicken", "Poulet rôti", "sat")],
+    cooking_sessions: [{ day: "sat", preparationIds: ["prep_chicken"], runThrough: "", totalMinutes: 40 }] as never,
+    shopping_list: [{ term: "poulet rôti", quantity: "500 g", aisle: "meat" }] as never,
+  });
+  const before = mealsDelivered(view(b), MOUTHS), after = mealsDelivered(view(r), MOUTHS);
+  assertEquals(before.missing, 3, "prémisse: samedi soir manque aux trois");
+  const out = mergeRetryByCell({ base: b, retry: r, before, after });
+  assertEquals(out.cells, ["sat/dinner"], "la cellule passée de trois manquants à un n'est pas prise");
+  const merged = mealsDelivered(view(out.meal), MOUTHS);
+  assertEquals(merged.missing, 1, JSON.stringify(merged.mouths));
+});
+
+Deno.test("une cellule où AUTANT de bouches manquent n'est pas prise", () => {
+  const b = meal({ dishes: [dish("sat", "dinner", "Poulet, riz", [{ id: "b_sat", memberIds: [CLAIRE, ZOE], items: [{ term: "poulet", grams: 300, preparationId: null }] }], [], [{ memberId: LEA, boxId: "b_sat" }])] });
+  const r = meal({ dishes: [dish("sat", "dinner", "Dinde, riz", [{ id: "b_sat2", memberIds: [CLAIRE, ZOE], items: [{ term: "dinde", grams: 300, preparationId: null }] }], [], [{ memberId: LEA, boxId: "b_sat2" }])] });
+  const out = mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+  assertEquals(out.cells, []);
+});

@@ -348,6 +348,8 @@ export function mealsDelivered(
 
 /** Ce que la relance a besoin de dire — la ligne, avec un PRÉNOM. */
 export interface UnfedRetryRow {
+  /** ⟳ 2026-09-06 — la boîte dont la ceinture l'a retirée, quand il y en a une. */
+  readonly boxId?: string | null;
   readonly name: string;
   readonly memberId: string;
   readonly day: string;
@@ -485,6 +487,23 @@ export function unfedRetryInstruction(
         `Give that swapped component a preparation of its OWN (or cite none), ` +
         `cooked apart from the original; keep their box and its items exactly ` +
         `as they are, and change nothing else on that dish.`;
+    }
+    // ⟳ 2026-09-06 (FD8) — LA BOÎTE EXISTE ET C'EST SON ITEM QUI EST ÉVITÉ. Nora,
+    // végane qui n'aime pas le tofu : sa boîte de tofu existait sur douze plats,
+    // retirée douze fois ; « écris-lui une boîte à elle » rendait… du tofu.
+    // On nomme la boîte, l'item, et ce qui doit le remplacer : un composant du
+    // même rôle qui passe AUSSI sa ligne déclarée.
+    if (
+      r.cause === "held_off_exclusion" && r.via === "items" && r.boxId &&
+      r.matched && !tableAvoids(r.matched ?? null)
+    ) {
+      return `- ${r.name} (${r.memberId}), ${where},${dish}: their box ` +
+        `${JSON.stringify(r.boxId)} is already there, but it carries ` +
+        `${JSON.stringify(r.matched)}, which they asked to avoid. Keep that box and ` +
+        `replace that one item with a component of the same role that they do eat ` +
+        `and that follows their declared line (a legume or another plant protein ` +
+        `where tofu is refused, for instance); its preparation cooked apart from ` +
+        `the original. Change nothing else on that dish.`;
     }
     if (r.cause === "held_off_exclusion" && tableAvoids(r.matched ?? null)) {
       return `- ${r.name} (${r.memberId}), ${where},${dish}: this TABLE asked to avoid ` +

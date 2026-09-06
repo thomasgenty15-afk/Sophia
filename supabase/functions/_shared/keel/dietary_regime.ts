@@ -752,6 +752,7 @@ function regimeTermsFor(regime: DietaryRegime): ForbiddenTerm[] {
 function scanProse(
   text: string,
   terms: readonly ForbiddenTerm[],
+  declaredAnalogueTokens: ReadonlySet<string> = new Set(),
 ): DietaryRegimeScan {
   const hits = findForbiddenMatches(text, terms);
   if (hits.length === 0) return emptyScan();
@@ -783,6 +784,17 @@ function scanProse(
     // portées ne peuvent pas se recouvrir sur un cas connu, mais si ça arrivait,
     // « c'est un aliment végétal » est plus informatif que « c'est un récipient ».
     if (spans.some(([s, e]) => hit.index >= s && end <= e)) {
+      silenced.push(found);
+      continue;
+    }
+    // ⟳ 2026-09-06 — LE MOT NU D'UN ANALOGUE DÉCLARÉ. Mesuré (FD2, 6 goûters
+    // sur 6): les items disaient « yaourt de soja », la méthode « verser le
+    // yaourt dans un bol » — et « yaourt » mordait la végane, qui restait sans
+    // goûter six jours. Le plat a DÉCLARÉ son yaourt comme du soja: le même
+    // mot, nu, dans sa prose, désigne ce yaourt-là. Seuls les jetons que les
+    // items ont déclarés en analogue sont éteints — « bouillon de poulet »
+    // dans la même méthode mord toujours.
+    if (declaredAnalogueTokens.has(hit.token)) {
       silenced.push(found);
       continue;
     }
@@ -840,8 +852,18 @@ export function scanDietaryRegime(
   const needles = regimeTermsFor(regime);
   const out = emptyScan();
 
+  // ⟳ 2026-09-06 — les jetons que les ITEMS déclarent sous une forme végétale
+  // (« yaourt de soja » déclare « yaourt ») : leur mot nu dans la prose de la
+  // même source est ce même aliment, et ne mord pas (voir `scanProse`).
+  const declaredAnalogueTokens = new Set<string>();
+  for (const item of [...(fields.terms ?? []), ...(fields.items ?? []).map((i) => i?.term)]) {
+    const text = String(item ?? "");
+    if (!text || !isPlantAnalogue(text)) continue;
+    for (const hit of findForbiddenMatches(text, needles)) declaredAnalogueTokens.add(hit.token);
+  }
+
   for (const text of fields.prose ?? []) {
-    const scan = scanProse(String(text ?? ""), needles);
+    const scan = scanProse(String(text ?? ""), needles, declaredAnalogueTokens);
     out.breaches.push(...scan.breaches);
     out.silencedByPlantAnalogue.push(...scan.silencedByPlantAnalogue);
     // ⚠️ LA TROISIÈME LISTE SE FUSIONNE AUSSI, et son oubli est exactement ce

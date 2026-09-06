@@ -6474,6 +6474,15 @@ Deno.serve(async (req) => {
             if (rehome.rows[i]) acc[r.cause] = (acc[r.cause] ?? 0) + 1;
             return acc;
           }, {}),
+          // ⟳ 2026-09-06 — et pour chaque ligne NON relogée, ce que la case offrait:
+          // aucun plat de table, aucune boîte, ou des boîtes que la ceinture refuse.
+          not_rehomed: rehomeRows.flatMap((r, i) => {
+            if (rehome.rows[i]) return [];
+            const table = mealNow.dishes.filter((d) => !d.memberId && d.day === r.day && d.slot === r.slot);
+            const boxes = table.flatMap((d) => d.boxes.map((b) => b.id));
+            const why = table.length === 0 ? "no_table_dish" : boxes.length === 0 ? "no_box" : "no_box_fits";
+            return [`${r.day}/${r.slot}:${r.cause}:${why}:${boxes.length}`];
+          }).slice(0, 24),
         }));
         if (rehome.rehomed > 0) {
           for (const [i, r] of rehomeRows.entries()) {
@@ -6511,6 +6520,7 @@ Deno.serve(async (req) => {
             via: miss.via,
             preparationId: miss.preparationId,
             matched: miss.matched,
+            boxId: miss.boxId,
           }))
         ),
         // ⟳ 2026-09-05: la relance ne rend que les cellules nommées; la fusion
@@ -6588,7 +6598,9 @@ Deno.serve(async (req) => {
                   ).slice(0, 12),
                 }));
               if (merge.cells.length === 0) {
-                rejected(retried.dishes.length < meal.dishes.length ? "dishes" : "no_cell");
+                // ⚠️ Une relance PARTIELLE rend toujours moins de plats: ce n'est pas
+                // un motif. Le motif est « aucune cellule n'y gagne ».
+                rejected("no_cell");
                 break;
               }
               const merged = mealsDelivered(deliveredViewOf(merge.meal), mouthCells);
@@ -6743,6 +6755,11 @@ Deno.serve(async (req) => {
       missing_before: unfedBefore,
       ...delivered.byCause,
       cells_without_dish: delivered.cellsWithoutDish,
+      // ⟳ 2026-09-06 — LES CASES, PAS SEULEMENT LES COMPTES. « held_off_regime 6 »
+      // ne disait pas que c'étaient six goûters au yaourt de soja (FD2).
+      missing_rows: delivered.mouths.flatMap((row) =>
+        row.missing.map((m) => `${m.day}/${m.slot}:${m.cause}:${m.matched ?? ""}:${row.memberId.slice(0, 4)}`)
+      ).slice(0, 24),
       unplaced_dishes: delivered.unplacedDishes,
       retried: unfedRetryAccepted > 0,
       retry_attempts: unfedRetryAttempts,

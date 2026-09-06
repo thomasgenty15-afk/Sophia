@@ -582,3 +582,38 @@ Deno.test("⛔ LE COMPTEUR EST BRANCHÉ SUR LES QUATRE VOIES, pas sur une", () =
     assertEquals(scan.silencedBySpelling.length, 1, nom);
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — LE MOT NU D'UN ANALOGUE DÉCLARÉ (FD2 : six goûters sans la végane)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("l'analogue déclaré dans les items éteint son mot nu dans la prose du même plat", () => {
+  const scan = scanDietaryRegime("vegan", {
+    prose: ["Yaourt de soja, poire et graines", "Verser le yaourt dans un bol et ajouter la poire."],
+    items: [{ term: "yaourt de soja", group: "legumes" }, { term: "poire", group: "other_fruit" }],
+  });
+  assertEquals(scan.breaches, [], "« yaourt » nu, après « yaourt de soja » déclaré, mordait la végane");
+  assert(scan.silencedByPlantAnalogue.length >= 2, JSON.stringify(scan));
+});
+
+Deno.test("sans analogue déclaré, le mot nu de la prose mord toujours", () => {
+  const scan = scanDietaryRegime("vegan", {
+    prose: ["Verser le yaourt dans un bol."],
+    items: [{ term: "poire", group: "other_fruit" }],
+  });
+  assertEquals(scan.breaches.length, 1, JSON.stringify(scan));
+  assertEquals(scan.breaches[0].token, "yaourt");
+});
+
+Deno.test("un analogue déclaré n'éteint QUE son jeton : le bouillon de poulet de la même méthode mord", () => {
+  const scan = scanDietaryRegime("vegan", {
+    prose: ["Verser le yaourt, puis mouiller au bouillon de poulet."],
+    items: [{ term: "yaourt de soja", group: "legumes" }],
+  });
+  assertEquals(scan.breaches.map((b) => b.token), ["poulet"], JSON.stringify(scan));
+});
+
+Deno.test("le mot nu déclaré par un `terms` (sans groupe) est éteint aussi", () => {
+  const scan = scanDietaryRegime("vegan", { prose: ["Verser le lait sur les flocons."], terms: ["lait d'avoine"] });
+  assertEquals(scan.breaches, [], JSON.stringify(scan));
+});

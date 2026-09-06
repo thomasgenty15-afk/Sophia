@@ -902,3 +902,16 @@ Deno.test("CÂBLAGE — la relance d'exclusion prend ses cellules réparées qua
   assert(/mealSourceText = retryResult;/.test(block), "la relance d'exclusion adopte le plan sans son texte source: les portions sont relues sur la réponse d'avant");
   assert(/retry_attempts: exclusionRetryAttempts,/.test(src), "`retry_attempts` absent du journal exclusion_belt");
 });
+
+Deno.test("RELANCE — la boîte existe et porte l'item évité : on remplace l'item, on ne réécrit pas la boîte", () => {
+  const row = { name: "Nora", memberId: "m-nora", day: "wed", slot: "dinner", dish: "Dinde, riz",
+    cause: "held_off_exclusion" as const, via: "items" as const, boxId: "box_wed_dinner_nora", preparationId: null, matched: "tofu" };
+  const text = unfedRetryInstruction([row]) ?? "";
+  assert(text.includes('"box_wed_dinner_nora" is already there'), text);
+  assert(text.includes('carries "tofu"'), text);
+  assert(text.includes("follows their declared line"), "le remplaçant doit passer aussi son régime:\n" + text);
+  assert(!text.includes("write them a box of their OWN"), "on redemande une boîte qui existe:\n" + text);
+  // Sans boîte enregistrée, le remède générique reste.
+  const generic = unfedRetryInstruction([{ ...row, boxId: null }]) ?? "";
+  assert(generic.includes("write them a box of their OWN"), generic);
+});
