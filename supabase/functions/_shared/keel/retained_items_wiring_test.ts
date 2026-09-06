@@ -284,11 +284,9 @@ function assertReadPrecedesReaders(
     routed !== -1,
     `lane ${lane}: plus aucun appel à \`routeRetainedItems\`.`,
   );
-  const patch = src.indexOf("...retainedLogistics.patch");
-  assert(
-    patch !== -1,
-    `lane ${lane}: le correctif logistique n'est plus appliqué.`,
-  );
+  // ⟳ 2026-09-06 — ARBITRAGE 6: le correctif logistique (`logisticsOverlayFor`) est
+  // RETIRÉ des deux lanes (0/0 en campagne). L'ordre lecture → lecteurs reste épinglé
+  // sur les lecteurs vivants (composition, envies, voix).
   for (const anchor of anchors) {
     const reader = anchor.at(src);
     assert(
@@ -296,12 +294,6 @@ function assertReadPrecedesReaders(
       `LANE ${lane.toUpperCase()} — LA LECTURE DU MAGASIN EST PASSÉE SOUS ` +
         `\`${anchor.label}\`. Le correctif arrive après son lecteur: il ne ` +
         `change plus que la TRACE, et la trace dira le contraire du prompt.`,
-    );
-    assert(
-      patch < reader,
-      `LANE ${lane.toUpperCase()} — LE CORRECTIF \`logistics.set\` EST POSÉ ` +
-        `APRÈS \`${anchor.label}\`. Le plan est composé sur l'ancienne cuisine ` +
-        `pendant que la trace annonce la neuve.`,
     );
   }
 }
@@ -365,28 +357,6 @@ function blankArg(
     throw new Error(`argument ${argIndex} absent de ${callee}(`);
   }
   return src.slice(0, span.start) + replacement + src.slice(span.end);
-}
-
-const PATCH_BLOCK =
-  /if \(Object\.keys\(retainedLogistics\.patch\)\.length > 0\) \{[\s\S]*?\n    \}\n/;
-
-/**
- * DÉPLACE LE CORRECTIF LOGISTIQUE SOUS SON LECTEUR — la régression EXACTE que
- * l'assertion d'ordre existe pour attraper. Elle compile: c'est ce qui la rend
- * dangereuse, et c'est pour ça qu'aucun `deno check` ne la verra jamais.
- */
-function movePatchUnder(anchor: string): (src: string) => string {
-  return (src) => {
-    const m = src.match(PATCH_BLOCK);
-    if (m === null) throw new Error("bloc de correctif logistique introuvable");
-    const without = src.replace(m[0], "");
-    const at = without.indexOf(anchor);
-    if (at === -1) {
-      throw new Error(`ancre introuvable pour le déplacement: ${anchor}`);
-    }
-    const cut = at + anchor.length;
-    return `${without.slice(0, cut)}\n${m[0]}${without.slice(cut)}`;
-  };
 }
 
 /** La mutation EXACTE du vérificateur: le routage reçoit une liste vide. */
@@ -517,32 +487,18 @@ const MEAL: Lane = {
         "c'est le SEUL bloc d'envies de cette lane, donc leur unique lecteur.",
     );
 
-    // ── DESTINATION 3 · LES SIX MOMENTS ──────────────────────────────────
-    const rhythm = between(src, "const eatingRhythm =", "const declaredAway =");
-    assert(
-      rhythm.includes("retainedRhythm.absent"),
-      "LANE MEAL — un moment déclaré ABSENT n'est plus retiré de la grille: " +
-        "la personne dit « je ne déjeune pas », c'est écrit en base, affiché à " +
-        "l'écran, et sans le moindre effet.",
-    );
-    assert(
-      rhythm.includes("retainedRhythm.present"),
-      "LANE MEAL — un moment déclaré PRÉSENT n'est plus ajouté à la grille: " +
-        "un créneau absent d'ici n'existe nulle part dans le plan.",
-    );
+    // ── DESTINATION 3 · LES SIX MOMENTS — ⟳ 2026-09-06, ARBITRAGE 6 ──────
+    // Les lecteurs `rhythmOverlayFor` / `logisticsOverlayFor` ont rendu 0/0
+    // sur toute la campagne du 05/09 : ils sont RETIRÉS. L'épingle est
+    // désormais leur ABSENCE.
+    assert(!src.includes("rhythmOverlayFor("), "LANE MEAL — le lecteur de rythme retiré est revenu");
+    assert(!src.includes("logisticsOverlayFor("), "LANE MEAL — le lecteur logistique retiré est revenu");
   },
   cuts: [
     EMPTY_STORE,
     DROP_NEXT_PLAN,
     EMPTY_SPEAKS_FOR,
     CHANNEL_LIE_RETURNS,
-    {
-      name: "le correctif logistique passe sous `parseEatingRhythm`",
-      expects: ORDER_BITES,
-      apply: movePatchUnder(
-        "const bySlot = new Map<EatingOccasion, EatingOccasionSlot>();",
-      ),
-    },
     {
       name: "le 1ᵉʳ des trois `readFoodPreferences` perd le magasin",
       expects: "ne reçoit plus le magasin structuré",
@@ -572,20 +528,6 @@ const MEAL: Lane = {
       name: "les envies retenues ne rejoignent plus `preferences`",
       expects: "ne rejoignent plus `preferences`",
       apply: (src) => src.replace("...retainedCravings.lines,", ""),
-    },
-    {
-      // ⚠️ TOUTES LES OCCURRENCES, pas la boucle seule: la garde de vacuité
-      // (`retainedRhythm.absent.length === 0`) mentionne le symbole elle aussi,
-      // et une mutation qui ne retirerait que la boucle laisserait l'assertion
-      // verte sur un rythme entièrement débranché.
-      name: "un moment déclaré ABSENT ne se retire plus de la grille",
-      expects: "n'est plus retiré de la grille",
-      apply: (src) => src.replaceAll("retainedRhythm.absent", "[]"),
-    },
-    {
-      name: "un moment déclaré PRÉSENT ne s'ajoute plus à la grille",
-      expects: "n'est plus ajouté à la grille",
-      apply: (src) => src.replaceAll("retainedRhythm.present", "[]"),
     },
   ],
 };
@@ -724,13 +666,6 @@ const HOUSEHOLD: Lane = {
     EMPTY_STORE,
     DROP_NEXT_PLAN,
     EMPTY_SPEAKS_FOR,
-    {
-      name: "le correctif logistique passe sous `const pc`",
-      expects: ORDER_BITES,
-      apply: movePatchUnder(
-        "const pc = goalRow.practical_constraints as Record<string, unknown> | null;",
-      ),
-    },
     {
       // ⟳ 2026-09-04 — LA COUPE VISE MAINTENANT LE ROSTER, pas une liste
       // unique. `mouths: []` est la forme exacte de la régression: le lecteur

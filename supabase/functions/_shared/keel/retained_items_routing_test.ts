@@ -3,10 +3,8 @@ import {
   compositionLinesByMouth,
   compositionLinesFor,
   cravingLinesFor,
-  logisticsOverlayFor,
   portionAdjustExclusionFacts,
   portionAdjustsFor,
-  rhythmOverlayFor,
   routedItemCount,
   routeRetainedItems,
   routingTrace,
@@ -326,138 +324,6 @@ Deno.test("le groupage ne fabrique aucun nombre pour une portion", () => {
 
 // ===========================================================================
 // ③ `rhythm.set` → LES SIX MOMENTS
-// ===========================================================================
-
-Deno.test("le rythme sort dans l'ordre des six moments, pas d'arrivée", () => {
-  const overlay = rhythmOverlayFor({
-    items: [
-      rhythmSet({ occasion: "snack_pm", present: true }),
-      rhythmSet({ occasion: "breakfast", present: true }),
-      rhythmSet({ occasion: "dinner", present: false }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.present, ["breakfast", "snack_pm"]);
-  assertEquals(overlay.absent, ["dinner"]);
-  // La liste de sortie est un sous-ensemble ORDONNÉ des six moments du socle.
-  const order = [...overlay.present, ...overlay.absent].map((o) =>
-    RHYTHM_OCCASIONS.indexOf(o)
-  );
-  assert(order.every((n) => n >= 0));
-});
-
-Deno.test("sur un même moment, la déclaration la plus récente gagne", () => {
-  const overlay = rhythmOverlayFor({
-    items: [
-      rhythmSet({ occasion: "before_bed", present: true, at: "2026-08-10" }),
-      rhythmSet({ occasion: "before_bed", present: false, at: "2026-08-12" }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.present, []);
-  assertEquals(overlay.absent, ["before_bed"]);
-});
-
-Deno.test("une bouche nommée l'emporte sur `household`, même plus ancienne", () => {
-  const overlay = rhythmOverlayFor({
-    items: [
-      rhythmSet({ occasion: "snack_am", present: false, at: "2026-08-15" }),
-      rhythmSet({
-        occasion: "snack_am",
-        present: true,
-        at: "2026-08-01",
-        subject: `member:${ADULT}`,
-      }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT, `member:${ADULT}`],
-  });
-  assertEquals(overlay.present, ["snack_am"]);
-  assertEquals(overlay.absent, []);
-});
-
-Deno.test("un moment déclaré pour une AUTRE bouche est compté, pas appliqué", () => {
-  const foreign = rhythmSet({
-    occasion: "lunch",
-    present: false,
-    subject: `member:${MINOR}`,
-  });
-  const overlay = rhythmOverlayFor({
-    items: [foreign],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.present, []);
-  assertEquals(overlay.absent, []);
-  assertEquals(overlay.otherSubjects.length, 1);
-});
-
-// ===========================================================================
-// ④ `logistics.set` → `practical_constraints`
-// ===========================================================================
-
-Deno.test("le correctif porte les clés de la COLONNE, `cook_days` compris", () => {
-  const overlay = logisticsOverlayFor({
-    items: [
-      logisticsSet({ field: "cook_days", value: ["mon", "wed"] }),
-      logisticsSet({ field: "cooking_time_min", value: 45 }),
-      logisticsSet({ field: "recipe_difficulty", value: "simple" }),
-      logisticsSet({ field: "variety", value: "repeat" }),
-      logisticsSet({ field: "budget_amount", value: 80 }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.patch, {
-    cook_days: ["mon", "wed"],
-    cooking_time_min: 45,
-    recipe_difficulty: "simple",
-    variety: "repeat",
-    budget_amount: 80,
-  });
-  // ⚠️ La faute déjà commise dans ce dépôt, épinglée: `cooking_days` n'existe
-  // pas, et un correctif qui l'écrirait serait silencieusement ignoré par
-  // `readCookingCapacity`.
-  assert(!("cooking_days" in overlay.patch));
-});
-
-Deno.test("sur un même champ, la déclaration la plus récente gagne", () => {
-  const overlay = logisticsOverlayFor({
-    items: [
-      logisticsSet({ field: "cook_days", value: ["mon"], at: "2026-08-01" }),
-      logisticsSet({
-        field: "cook_days",
-        value: ["tue", "wed"],
-        at: "2026-08-17",
-      }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.patch.cook_days, ["tue", "wed"]);
-});
-
-Deno.test("une cuisine déclarée pour une bouche nommée ne réécrit pas la maison", () => {
-  const overlay = logisticsOverlayFor({
-    items: [
-      logisticsSet({
-        field: "cooking_time_min",
-        value: 15,
-        subject: `member:${ADULT}`,
-      }),
-    ],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(overlay.patch, {});
-  assertEquals(overlay.otherSubjects.length, 1);
-});
-
-Deno.test("aucun item de cuisine: le correctif est vide, donc sans effet", () => {
-  const overlay = logisticsOverlayFor({
-    items: [written("food.exclude")],
-    speaksFor: [HOUSEHOLD_SUBJECT],
-  });
-  assertEquals(Object.keys(overlay.patch).length, 0);
-});
-
-// ===========================================================================
-// ⑤ `food.*` / `method.*` → LA CONSIGNE DE COMPOSITION
 // ===========================================================================
 
 Deno.test("les consignes écrites passent devant, sans date; le reste est daté", () => {

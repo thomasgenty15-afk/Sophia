@@ -55,9 +55,7 @@ import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
 import {
   compositionLinesByMouth,
   cravingLinesFor,
-  logisticsOverlayFor,
   portionAdjustsFor,
-  rhythmOverlayFor,
   routeRetainedItems,
   routingTrace,
 } from "../_shared/keel/retained_items_routing.ts";
@@ -2974,20 +2972,12 @@ Deno.serve(async (req) => {
     const retainedSpeaksFor = ownerSubject
       ? [HOUSEHOLD_SUBJECT, ownerSubject]
       : [HOUSEHOLD_SUBJECT];
-    const retainedLogistics = logisticsOverlayFor({
-      items: routedRetained.logistics,
-      speaksFor: retainedSpeaksFor,
-    });
-    if (Object.keys(retainedLogistics.patch).length > 0) {
-      goalRow.practical_constraints = {
-        ...(goalRow.practical_constraints ?? {}) as Record<string, unknown>,
-        ...retainedLogistics.patch,
-      };
-    }
-    const retainedRhythm = rhythmOverlayFor({
-      items: routedRetained.rhythm,
-      speaksFor: retainedSpeaksFor,
-    });
+    // ⟳ 2026-09-06 — ARBITRAGE 6 : les lecteurs `rhythmOverlayFor` /
+    // `logisticsOverlayFor` sont RETIRÉS. Compteurs `rhythm_served` /
+    // `logistics_served` à 0/0 sur toute la campagne du 05/09 (et depuis le
+    // lot C) ; les familles `rhythm.set` / `logistics.set` restent classées
+    // (`routedRetained`) et visibles sur la carte, mais n'atteignent plus le
+    // plan par ce chemin. Une ligne `logistics.set` en base meurt d'elle-même.
     // ══════════════════════════════════════════════════════════════════════
     // ⟳ 2026-09-04 — LA COMPOSITION N'A PLUS D'AUDIENCE: ELLE A UN ROSTER
     // ══════════════════════════════════════════════════════════════════════
@@ -3208,8 +3198,6 @@ Deno.serve(async (req) => {
       refused: retainedDurable.refused.total,
       legacy_notes: retainedDurable.legacyNotes.length,
       other_subjects: retainedComposition.otherSubjects.length +
-        retainedLogistics.otherSubjects.length +
-        retainedRhythm.otherSubjects.length +
         retainedCravings.otherSubjects.length,
       // ══ LOT C · LE COMPTEUR DE FIN DE VIE DE DEUX FAMILLES ══════════════
       //
@@ -3225,8 +3213,6 @@ Deno.serve(async (req) => {
       //
       // ⛔ IL COMPTE CE QUI A GAGNÉ, pas ce qui a été lu: une ligne écartée
       // parce qu'elle parle d'une autre bouche est déjà dans `other_subjects`.
-      rhythm_served: retainedRhythm.served,
-      logistics_served: retainedLogistics.served,
       // ⚠️ LE COMPTEUR A CHANGÉ DE SENS AU LOT 1G, ET C'EST VOLONTAIRE.
       // Il valait `portion_unapplied` — le nombre d'ajustements que
       // l'enveloppe NE recevait pas. Le laisser tel quel maintenant que le
@@ -3381,8 +3367,6 @@ Deno.serve(async (req) => {
           ...members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
         ]).map((o) => o.slot),
       );
-      for (const occasion of retainedRhythm.present) bySlot.add(occasion);
-      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
       return bySlot.size > 0
         ? EATING_OCCASIONS.filter((s) => bySlot.has(s))
         : [...DEFAULT_EATING_RHYTHM.map((o) => o.slot)];
@@ -3419,7 +3403,7 @@ Deno.serve(async (req) => {
         declaredSlots: m.eatingSlots === null
           ? houseDeclaredSlots
           : m.eatingSlots.map((o) => o.slot),
-        blockedSlots: retainedRhythm.absent,
+        blockedSlots: [],
       });
       structureByMember.set(m.memberId, structure);
       structureTally[structure.reason] += 1;
@@ -3460,21 +3444,7 @@ Deno.serve(async (req) => {
       // doit le retirer de la grille du plan — le glisser dans le tableau
       // d'entrée de `parseEatingRhythm` ne saurait qu'en AJOUTER, et un
       // « plus de goûter » n'aurait alors aucun effet.
-      if (
-        retainedRhythm.present.length === 0 && retainedRhythm.absent.length === 0
-      ) {
-        return union;
-      }
-      const bySlot = new Map<EatingOccasion, EatingOccasionSlot>();
-      for (const entry of union) bySlot.set(entry.slot, entry);
-      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
-      for (const occasion of retainedRhythm.present) {
-        // La taille n'est PAS inventée: un `rhythm.set` dit qu'un moment
-        // existe, jamais quelle taille il fait. `size: null` est ce que
-        // `parseEatingRhythm` rend d'un moment déclaré sans taille.
-        if (!bySlot.has(occasion)) bySlot.set(occasion, { slot: occasion, size: null });
-      }
-      return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
+      return union;
     })();
     // ══════════════════════════════════════════════════════════════════════
     // « JE CUISINE LA VEILLE » — LA FENÊTRE RECULE D'UN JOUR, ICI ET NULLE

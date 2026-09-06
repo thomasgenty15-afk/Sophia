@@ -31,7 +31,6 @@ import type { MemberAgeState } from "./household.ts";
 import { questionsFor } from "./plan_feedback.ts";
 import { cookingStyleStepFrom } from "./plan_feedback_retained.ts";
 import {
-  logisticsOverlayFor,
   routeRetainedItems,
 } from "./retained_items_routing.ts";
 import { buildMealPrompt } from "./meal_generation.ts";

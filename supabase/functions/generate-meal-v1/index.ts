@@ -55,9 +55,7 @@ import {
   type CompositionLines,
   compositionLinesFor,
   cravingLinesFor,
-  logisticsOverlayFor,
   portionAdjustsFor,
-  rhythmOverlayFor,
   routeRetainedItems,
   routingTrace,
 } from "../_shared/keel/retained_items_routing.ts";
@@ -1443,20 +1441,12 @@ Deno.serve(async (req) => {
     // ce que rien ici ne prouve, et « Poulet pour Zoé » ne se résout pas par un
     // prénom.
     const retainedSpeaksFor = [HOUSEHOLD_SUBJECT];
-    const retainedLogistics = logisticsOverlayFor({
-      items: routedRetained.logistics,
-      speaksFor: retainedSpeaksFor,
-    });
-    if (Object.keys(retainedLogistics.patch).length > 0) {
-      goalRow.practical_constraints = {
-        ...(goalRow.practical_constraints ?? {}) as Record<string, unknown>,
-        ...retainedLogistics.patch,
-      };
-    }
-    const retainedRhythm = rhythmOverlayFor({
-      items: routedRetained.rhythm,
-      speaksFor: retainedSpeaksFor,
-    });
+    // ⟳ 2026-09-06 — ARBITRAGE 6 : les lecteurs `rhythmOverlayFor` /
+    // `logisticsOverlayFor` sont RETIRÉS. Compteurs `rhythm_served` /
+    // `logistics_served` à 0/0 sur toute la campagne du 05/09 (et depuis le
+    // lot C) ; les familles `rhythm.set` / `logistics.set` restent classées
+    // (`routedRetained`) et visibles sur la carte, mais n'atteignent plus le
+    // plan par ce chemin. Une ligne `logistics.set` en base meurt d'elle-même.
     const retainedComposition = compositionLinesFor({
       items: routedRetained.composition,
       speaksFor: retainedSpeaksFor,
@@ -1501,8 +1491,6 @@ Deno.serve(async (req) => {
       refused: retainedDurable.refused.total,
       legacy_notes: retainedDurable.legacyNotes.length,
       other_subjects: retainedComposition.otherSubjects.length +
-        retainedLogistics.otherSubjects.length +
-        retainedRhythm.otherSubjects.length +
         retainedCravings.otherSubjects.length,
       // ══ LOT C · LE COMPTEUR DE FIN DE VIE DE DEUX FAMILLES ══════════════
       //
@@ -1518,8 +1506,6 @@ Deno.serve(async (req) => {
       //
       // ⛔ IL COMPTE CE QUI A GAGNÉ, pas ce qui a été lu: une ligne écartée
       // parce qu'elle parle d'une autre bouche est déjà dans `other_subjects`.
-      rhythm_served: retainedRhythm.served,
-      logistics_served: retainedLogistics.served,
       // ⛔ `next_plan_channel` A ÉTÉ RETIRÉ ICI, PAS CORRIGÉ (lot 1J). Il valait
       // `householdId ? "household" : "none"` et séparait « aucun canal » de
       // « canal vide ». Le déménagement (§7.2) a supprimé le premier cas: un
@@ -1548,24 +1534,7 @@ Deno.serve(async (req) => {
       // LOT 1C — `rhythm.set` CORRIGE les six moments. Rien à corriger ⇒ la
       // valeur d'avant ce lot, au slot près: c'est ce qui rend l'ajout additif
       // et non régressif pour toute la base d'aujourd'hui.
-      if (
-        retainedRhythm.present.length === 0 && retainedRhythm.absent.length === 0
-      ) {
-        return declared;
-      }
-      const bySlot = new Map<EatingOccasion, EatingOccasionSlot>();
-      for (const entry of declared) bySlot.set(entry.slot, entry);
-      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
-      for (const occasion of retainedRhythm.present) {
-        // ⚠️ LA TAILLE DÉJÀ DÉCLARÉE EST CONSERVÉE, et on n'en invente aucune:
-        // un `rhythm.set` dit qu'un moment EXISTE, il ne dit rien de sa
-        // taille. `size: null` est exactement ce que `parseEatingRhythm` rend
-        // d'un moment déclaré sans taille.
-        if (!bySlot.has(occasion)) bySlot.set(occasion, { slot: occasion, size: null });
-      }
-      // L'ORDRE DE LA JOURNÉE, jamais l'ordre d'arrivée — même geste que la
-      // fusion des absences plus bas (`EATING_OCCASIONS.filter`).
-      return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
+      return declared;
     })();
 
     // ══ LA JOURNÉE DÉJÀ DÉPENSÉE SORT DE LA FENÊTRE ═══════════════════════
