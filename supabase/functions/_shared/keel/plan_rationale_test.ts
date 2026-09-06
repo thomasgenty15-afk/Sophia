@@ -2339,3 +2339,25 @@ Deno.test("LA RATIONALE chiffre le ratio partiel: « garde la sienne à 3 repas 
   assert(lines(null, "fr").includes("Le reste de la table garde la sienne."), lines(null, "fr"));
   assert(lines({ cells: 3, checked: 8 }, "en").includes("The rest of the table keeps theirs at 3 main meals out of 8."), lines({ cells: 3, checked: 8 }, "en"));
 });
+
+Deno.test("LOT 3 — les jours de cuisine déclarés sont DITS comme un choix, dans les deux langues ; hors fenêtre, l'écart est nommé", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookingPlan: { sessions: 1, runs: 1, cookDays: ["sun"], unusedRuns: 1, notes: ["cook_days_declared", "runs_capped_by_sessions"] },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(lines, locale === "fr" ? "Tu cuisines" : "You cook on", locale);
+    assertStringIncludes(lines, locale === "fr" ? "pas ailleurs" : "nowhere else", locale);
+    const out = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookingPlan: { sessions: 3, runs: 2, cookDays: ["sun", "tue", "thu"], unusedRuns: 0, notes: ["cook_days_out_of_window"] },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(out, locale === "fr" ? "ne tombent pas dans ces jours" : "do not fall within these days", locale);
+  }
+});

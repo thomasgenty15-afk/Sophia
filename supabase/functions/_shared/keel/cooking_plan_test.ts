@@ -444,3 +444,68 @@ Deno.test("A2 — MUTATION: on ne SORT jamais du plafond dur, quoi qu'on demande
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT 3 (2026-09-06) — LES JOURS DE CUISINE DÉCLARÉS PLACENT LES SESSIONS
+// ---------------------------------------------------------------------------
+//
+// M13 (duo, campagne du 05/09) déclarait le dimanche et recevait dim/mar/jeu
+// sans un mot. Ces tests tiennent la règle ; la mutation « ignorer
+// declaredCookDays » rougit les trois premiers.
+
+Deno.test("LOT 3 — « je cuisine le dimanche » pose UNE session, le dimanche, même quand le style en poserait trois", () => {
+  const out = plan({ declaredCookDays: ["sun"] });
+  assertEquals(out.sessions, 1);
+  assertEquals(out.cookDays, ["sun"]);
+  assert(out.notes.includes("cook_days_declared"));
+  // Les courses suivent la règle du LOT C : pas plus souvent qu'on ne cuisine.
+  assertEquals(out.runs, 1);
+  assert(out.notes.includes("runs_capped_by_sessions"));
+  // Et une session unique avec congélateur ouvre les barquettes au congélateur.
+  assertEquals(out.usesFreezer, true);
+  assertEquals(out.sessionMinutes, Math.min(240, 60 * 2));
+});
+
+Deno.test("LOT 3 — deux jours déclarés = deux sessions, dans l'ordre de la FENÊTRE, pas de la saisie", () => {
+  const out = plan({ declaredCookDays: ["thu", "sun"] });
+  assertEquals(out.sessions, 2);
+  assertEquals(out.cookDays, ["sun", "thu"]);
+  assertEquals(out.runs, 2);
+  assert(!out.notes.includes("runs_capped_by_sessions"));
+});
+
+Deno.test("LOT 3 — quatre jours déclarés sont bornés au maximum de sessions, et c'est dit", () => {
+  const out = plan({ declaredCookDays: ["mon", "wed", "fri", "sat"] });
+  assertEquals(out.sessions, 3);
+  assertEquals(out.cookDays, ["mon", "wed", "fri"]);
+  assert(out.notes.includes("cook_days_declared"));
+});
+
+Deno.test("LOT 3 — un jour déclaré HORS fenêtre ne dérègle rien : la dérivation s'applique, et l'écart est nommé", () => {
+  const out = plan({ windowDays: ["mon", "tue", "wed"], daysToEat: 3, leadDay: false, declaredCookDays: ["sun"] });
+  const derived = plan({ windowDays: ["mon", "tue", "wed"], daysToEat: 3, leadDay: false });
+  assertEquals(out.sessions, derived.sessions);
+  assertEquals(out.cookDays, derived.cookDays);
+  assert(out.notes.includes("cook_days_out_of_window"));
+  assert(!out.notes.includes("cook_days_declared"));
+});
+
+Deno.test("LOT 3 — sans jour déclaré, la dérivation d'hier est rendue octet pour octet", () => {
+  assertEquals(plan({ declaredCookDays: [] }), plan({}));
+  assertEquals(plan({ declaredCookDays: ["dimanche", "lundi"] }), plan({}), "un jeton inconnu est ignoré, pas deviné");
+});
+
+Deno.test("LOT 3 — `resolveCookingCapacity` fait ENTRER les jours déclarés dans la dérivation au lieu de les remplacer", () => {
+  const out = resolveCookingCapacity({
+    declared: { cookDays: ["sun"], cookingTimeMin: null, recipeDifficulty: null, variety: null, budgetAmount: null },
+    style: "balanced",
+    runs: 2,
+    freezer: true,
+    windowDays: WITH_LEAD,
+    leadDay: true,
+    daysToEat: 7,
+  });
+  assertEquals(out.cookDays, ["sun"]);
+  assertEquals(out.plan?.sessions, 1);
+  assert(out.plan?.notes.includes("cook_days_declared"));
+});

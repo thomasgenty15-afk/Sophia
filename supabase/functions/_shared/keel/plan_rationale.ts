@@ -714,6 +714,15 @@ const COPY = {
       `Tu avais prévu ${asked} courses ; le plan n'en organise que ${runs}, ` +
       `une par session de cuisine — on ne va pas au magasin plus souvent qu'on ` +
       `ne cuisine. Rien ne t'empêche d'y retourner pour du frais.`,
+    // ── ⟳ LOT 3 · LES JOURS DE CUISINE DÉCLARÉS ────────────────────────────
+    // Un fait de la maison redit tel quel : la personne a nommé ses jours, le
+    // plan les respecte, et le style n'a pas son mot à dire sur le calendrier.
+    cookDaysDeclared: (days: string) =>
+      `Tu cuisines ${days} : le plan pose ses sessions ces jours-là, et pas ` +
+      `ailleurs.`,
+    cookDaysOutOfWindow: () =>
+      `Les jours de cuisine que tu as donnés ne tombent pas dans ces jours-là : ` +
+      `le plan pose ses sessions autrement.`,
     cookDayBeforeTonight: (day: string) =>
       `Tout est cuisiné ce soir, ${day} : le plan commence un jour plus tôt, ` +
       `et rien ne se mange ce jour-là.`,
@@ -961,6 +970,12 @@ const COPY = {
       `You planned ${asked} shops; the plan organises ${runs}, one per cooking ` +
       `session — nobody shops more often than they cook. You can still go ` +
       `back for fresh food.`,
+    cookDaysDeclared: (days: string) =>
+      `You cook on ${days}: the plan sets its sessions on those days, and ` +
+      `nowhere else.`,
+    cookDaysOutOfWindow: () =>
+      `The cooking days you gave do not fall within these days: the plan sets ` +
+      `its sessions differently.`,
     cookDayBeforeTonight: (day: string) =>
       `Everything is cooked tonight, ${day}: the plan starts a day earlier, ` +
       `and nothing is eaten on that day.`,
@@ -1354,6 +1369,13 @@ export function explainPlanChoices(input: {
       lines.push(
         copy.styleCapsSessions(cooking.sessions + cooking.unusedRuns, cooking.sessions),
       );
+    }
+    // ⟳ LOT 3 — les jours déclarés sont dits comme un CHOIX, à côté du calendrier.
+    if (cooking.notes.includes("cook_days_declared") && cooking.cookDays.length > 0) {
+      lines.push(copy.cookDaysDeclared(renderDays(cooking.cookDays, input.locale)));
+    }
+    if (cooking.notes.includes("cook_days_out_of_window")) {
+      lines.push(copy.cookDaysOutOfWindow());
     }
     if (cooking.notes.includes("days_cap_sessions")) {
       lines.push(copy.daysCapSessions(cooking.sessions));

@@ -1,4 +1,4 @@
-import { type DayToken } from "./tokens.ts";
+import { DAY_TOKENS, type DayToken } from "./tokens.ts";
 
 // ===========================================================================
 // P2 · « COMMENT VOULEZ-VOUS CUISINER ? » ET « COMBIEN DE COURSES ? »
@@ -175,7 +175,14 @@ export type CookingPlanNote =
    * le plan les a ramenées. On ne va pas au magasin plus souvent qu'on ne
    * cuisine: c'est l'invariant `runs <= sessions`, tranché par l'utilisateur.
    */
-  | "runs_capped_by_sessions";
+  | "runs_capped_by_sessions"
+  /**
+   * ⟳ LOT 3 (2026-09-06) — des jours de cuisine DÉCLARÉS tombent dans la fenêtre :
+   * ils placent les sessions et en fixent le nombre ; le style ne les déplace pas.
+   */
+  | "cook_days_declared"
+  /** ⟳ LOT 3 — des jours déclarés, mais aucun dans la fenêtre : la dérivation s'applique, et c'est dit. */
+  | "cook_days_out_of_window";
 
 export interface CookingPlan {
   /** Combien de fois on cuisine. `1..MAX_COOKING_SESSIONS`. */
@@ -280,6 +287,18 @@ export function deriveCookingPlan(input: {
   windowDays: readonly DayToken[];
   leadDay: boolean;
   daysToEat: number;
+  /**
+   * ⟳ LOT 3 (2026-09-06) — LES JOURS QUE LA PERSONNE A DONNÉS (« les jours où vous
+   * cuisinez », `practical_constraints.cook_days`). Optionnel : un appelant qui
+   * ne les porte pas obtient la dérivation d'hier, octet pour octet.
+   *
+   * ⛔ D2.4 EST RENVERSÉ ICI, ET LA RAISON EST MESURÉE. La dérivation avait
+   * remplacé les jours déclarés parce que « l'écran écrit `[]` » ; M13 (duo,
+   * 05/09) déclarait le dimanche et recevait trois sessions dim/mar/jeu sans
+   * qu'une phrase le dise. Un jour déclaré est un fait de la maison, pas une
+   * suggestion : il place la session, et tout écart est nommé.
+   */
+  declaredCookDays?: readonly string[];
 }): CookingPlan {
   const profile = COOKING_STYLE_PROFILE[input.style];
   if (!profile) {
@@ -318,6 +337,29 @@ export function deriveCookingPlan(input: {
     wanted = eaten;
     notes.push("days_cap_sessions");
   }
+  // ⟳ LOT 3 — les jours déclarés, dans l'ordre de la fenêtre, dédoublonnés.
+  const declared = [
+    ...new Set(
+      (input.declaredCookDays ?? []).filter((d) => (DAY_TOKENS as readonly string[]).includes(d)),
+    ),
+  ] as DayToken[];
+  const declaredInWindow = input.windowDays.filter((d, i, all) =>
+    declared.includes(d) && all.indexOf(d) === i
+  );
+  let useDeclared = false;
+  if (declared.length > 0) {
+    if (declaredInWindow.length > 0) {
+      useDeclared = true;
+      notes.push("cook_days_declared");
+      wanted = Math.min(declaredInWindow.length, MAX_COOKING_SESSIONS);
+      if (wanted > eaten) {
+        wanted = eaten;
+        if (!notes.includes("days_cap_sessions")) notes.push("days_cap_sessions");
+      }
+    } else {
+      notes.push("cook_days_out_of_window");
+    }
+  }
   const sessions = Math.max(1, wanted);
 
   // ── ③ LES COURSES, BORNÉES PAR LES SESSIONS ⟳ LOT C ────────────────────
@@ -346,12 +388,12 @@ export function deriveCookingPlan(input: {
   // ── ④ LES JOURS ─────────────────────────────────────────────────────────
   const days = [...input.windowDays];
   const lead = input.leadDay && days.length > 0 ? 1 : 0;
-  const cookDays: DayToken[] = [];
+  const derivedCookDays: DayToken[] = [];
   for (let i = 0; i < sessions; i++) {
     // La PREMIÈRE session est au rang 0 — la veille quand il y en a une.
     const index = i === 0 ? 0 : lead + Math.floor((i * eaten) / sessions);
     const token = days[Math.min(index, days.length - 1)];
-    if (token !== undefined && !cookDays.includes(token)) cookDays.push(token);
+    if (token !== undefined && !derivedCookDays.includes(token)) derivedCookDays.push(token);
   }
 
   // ── ⑤ LES MINUTES ───────────────────────────────────────────────────────
@@ -363,6 +405,8 @@ export function deriveCookingPlan(input: {
   //
   // Une seule session doit tenir toute la fenêtre: elle a le droit d'être
   // longue, et le dire évite que le modèle rende trois plats en 30 minutes.
+  // ⟳ LOT 3 — déclarés dans la fenêtre : ce sont eux, bornés au nombre de sessions.
+  const cookDays: DayToken[] = useDeclared ? declaredInWindow.slice(0, sessions) : derivedCookDays;
   const sessionMinutes = sessions === 1
     ? Math.min(240, profile.minutes * 2)
     : profile.minutes;
@@ -535,6 +579,9 @@ export function resolveCookingCapacity(input: {
   }
   const plan = deriveCookingPlan({
     style: input.style,
+    // ⟳ LOT 3 — les jours déclarés ENTRENT dans la dérivation au lieu d'être
+    // remplacés par elle (voir `deriveCookingPlan`, et D2.4 renversé).
+    declaredCookDays: input.declared.cookDays,
     runs: input.runs,
     freezer: input.freezer,
     windowDays: input.windowDays,
