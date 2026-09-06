@@ -122,6 +122,22 @@ export function mergeRetryByCell(args: {
   const stillMissing = missingCells(args.after);
   const retryCells = new Set(args.retry.dishes.map(cellKey));
   const cells = [...wasMissing].filter((c) => !stillMissing.has(c) && retryCells.has(c)).sort();
+  return mergeRetryCells({ base: args.base, retry: args.retry, cells });
+}
+
+/**
+ * ⟳ 2026-09-06 — LA FUSION PAR CELLULES, SANS L'INVARIANT. La lane solo n'a pas
+ * de `mealsDelivered`; ses trous sont `empty_slots`. Les cellules à prendre lui
+ * sont données telles quelles. Même contrat: pur, casseroles importées,
+ * sessions, courses, élagage de ce qui est remplacé.
+ */
+export function mergeRetryCells(args: {
+  base: GeneratedMeal;
+  retry: GeneratedMeal;
+  cells: readonly string[];
+}): MergeOutcome {
+  const retryCells = new Set(args.retry.dishes.map(cellKey));
+  const cells = [...new Set(args.cells)].filter((c) => retryCells.has(c)).sort();
   if (cells.length === 0) {
     return {
       meal: args.base,
@@ -264,4 +280,23 @@ export function mergeRetryByCell(args: {
     shoppingPruned,
     shoppingConflicts,
   };
+}
+
+/** La consigne de relance des cases vides (solo): ne rendre QUE ces repas. */
+export function emptySlotsRetryInstruction(
+  cases: readonly { readonly day: string; readonly slot: string }[],
+): string | null {
+  const cells = [...new Set(cases.map((c) => `${c.day} ${c.slot}`))];
+  if (cells.length === 0) return null;
+  return [
+    "⛔ SOME MEALS ARE MISSING FROM THE PLAN. These day/slot cells have no dish at all:",
+    ...cells.map((c) => `- ${c}`),
+    "Write them now. RETURN ONLY THESE MEALS, in the same JSON shape:",
+    "- \"dishes\" holds ONLY the dishes of these cells;",
+    "- \"preparations\" holds ONLY what they cite, as FULL recipes (title, method,",
+    "  ingredients with quantities, cook_on);",
+    "- \"cooking_sessions\" and \"shopping_list\" hold only what these need.",
+    "Do NOT rewrite the other meals, do NOT shorten the plan, and do NOT mention",
+    "any of this in a \"why\".",
+  ].join("\n");
 }

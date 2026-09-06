@@ -106,6 +106,10 @@ import {
 // fausse, et une explication fausse est pire que pas d'explication.
 import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
 import {
+  emptySlotsRetryInstruction,
+  mergeRetryCells,
+} from "../_shared/keel/retry_merge.ts";
+import {
   EXPLANATION_SCHEMA_BLOCK_SOLO,
   extractExplanation,
   gatePlanExplanation,
@@ -3235,6 +3239,57 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // ⟳ 2026-09-06 — LES CASES VIDES SE RELANCENT. Campagne du 05/09: un solo
+    // rendait 5 repas non composés sur 6 jours (puis 1), un foyer 2 jours sur 6;
+    // la rationale le disait, rien ne le comblait (`fillPlanComposition` ne
+    // remplit que la composition des plats existants). Une relance PARTIELLE
+    // (ne rendre que ces repas) fusionnée par cellule; compté même à zéro.
+    const emptySlotsRetry = { before: meal.empty_slots.length, attempts: 0, filled: 0 };
+    if (meal.empty_slots.length > 0 && !adoptingDraft) {
+      const instruction = emptySlotsRetryInstruction(meal.empty_slots);
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            soloSystemPrompt,
+            mealUserMessage(`\n\n${instruction}`),
+            0.6, true, [], "auto",
+            {
+              source: `${FN_NAME}.empty_slots_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          emptySlotsRetry.attempts += 1;
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const wanted = meal.empty_slots.map((c) => `${c.day}/${c.slot}`);
+            const merge = mergeRetryCells({ base: meal, retry: retried, cells: wanted });
+            if (merge.cells.length > 0) {
+              const filled = new Set(merge.cells);
+              meal = merge.meal;
+              meal.empty_slots = meal.empty_slots.filter((c) => !filled.has(`${c.day}/${c.slot}`));
+              emptySlotsRetry.filled = merge.cells.length;
+            }
+          }
+        } catch (error) {
+          console.warn(JSON.stringify({
+            tag: "keel.meal.empty_slots_retry_failed",
+            request_id: requestId,
+            error: readableErrorMessage(error),
+          }));
+        }
+      }
+    }
+    console.info(JSON.stringify({
+      tag: "keel.meal.empty_slots_retry",
+      request_id: requestId,
+      user_id: userId,
+      ...emptySlotsRetry,
+      after: meal.empty_slots.length,
+    }));
     let measured = measure(meal);
     let correctionTokens: string[] = [];
     let correctionRetried = false;

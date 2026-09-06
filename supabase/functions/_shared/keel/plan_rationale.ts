@@ -420,7 +420,8 @@ export interface PlanRationaleFacts {
             | "held_off_regime"
             | "held_off_exclusion"
             | "not_named"
-            | "double";
+            | "double"
+            | "no_dish";
           readonly restored: boolean;
           /** ⟳ 2026-09-04 — remise sur la boîte de TABLE parce que la sienne a été jetée. */
           readonly fallback?: boolean;
@@ -879,6 +880,7 @@ const COPY = {
       held_off_exclusion: "le plat contient un aliment noté comme évité",
       not_named: "aucune boîte ne porte ce nom",
       double: "ce nom est sur deux boîtes du même repas",
+      no_dish: "aucun plat n'était prévu à ce repas",
     } as Record<string, string>,
     // ⛔ PLUS DE « c'était ça ou pas de repas »: un repas ÉTAIT composé, et une
     // relance en avait parfois composé un meilleur. On dit le geste, pas une
@@ -1085,6 +1087,7 @@ const COPY = {
       held_off_exclusion: "the dish carries a food noted as avoided",
       not_named: "no box carries that name",
       double: "that name is on two boxes of the same meal",
+      no_dish: "no dish was planned for that meal",
     } as Record<string, string>,
     mealRestored: (name: string, where: string) =>
       `${name} keeps their share ${where}: the dish carries a food noted as avoided.`,

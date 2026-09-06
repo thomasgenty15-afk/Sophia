@@ -134,10 +134,11 @@ async function soloSource(): Promise<string> {
   return await Deno.readTextFile(new URL("../../generate-meal-v1/index.ts", import.meta.url));
 }
 
-Deno.test("SOLO — le système porte le bloc, les TROIS appels modèle le reçoivent", async () => {
+Deno.test("SOLO — le système porte le bloc, les QUATRE appels modèle le reçoivent", async () => {
   const src = await soloSource();
   assert(src.includes("EXPLANATION_SCHEMA_BLOCK_SOLO.join("), "le bloc n'est pas ajouté au système");
-  assertEquals((src.match(/soloSystemPrompt,\n/g) || []).length, 3, "les trois appels doivent recevoir le même système");
+  // ⟳ 2026-09-06: quatre appels (plan, ancre protéique, cases vides, composition).
+  assertEquals((src.match(/soloSystemPrompt,\n/g) || []).length, 4, "les quatre appels doivent recevoir le même système");
   assert(!/built\.systemPrompt,\n/.test(src), "un appel reçoit encore le système sans le bloc");
 });
 

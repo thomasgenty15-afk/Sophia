@@ -48,6 +48,11 @@ export const UNFED_CAUSES = [
   "held_off_exclusion",
   "not_named",
   "double",
+  // ⟳ 2026-09-06 — AUCUN PLAT À CE REPAS. Campagne du 05/09: un plan de 6 jours
+  // composé sur 2 (M10) rendait « personne sans repas », parce qu'une case
+  // vide n'était qu'un trou compté à part. Elle est un manque pour chaque
+  // bouche qui y mange: la relance sait le combler, le refus sait le dire.
+  "no_dish",
 ] as const;
 export type UnfedCause = (typeof UNFED_CAUSES)[number];
 
@@ -161,6 +166,7 @@ export function mealsDelivered(
     held_off_exclusion: 0,
     not_named: 0,
     double: 0,
+    no_dish: 0,
   };
   const emptyCells = new Set<string>();
   const rows: {
@@ -185,9 +191,25 @@ export function mealsDelivered(
       if (!day || !slot) continue;
       const here = byCell.get(cellKey(day, slot)) ?? [];
       if (here.length === 0) {
-        // ⚠️ COMPTÉE UNE FOIS PAR CASE, PAS UNE FOIS PAR BOUCHE. Une case vide
-        // est UN trou du plan, pas cinq.
+        // ⚠️ LE TROU EST COMPTÉ UNE FOIS PAR CASE (`cells_without_dish`) — et,
+        // depuis le 2026-09-06, aussi comme un MANQUE par bouche (`no_dish`):
+        // c'est ce que la relance comble et ce que le refus nomme.
         emptyCells.add(cellKey(day, slot));
+        row.expected++;
+        expected++;
+        row.missing.push({
+          memberId,
+          day,
+          slot,
+          cause: "no_dish",
+          boxId: null,
+          dish: null,
+          via: null,
+          preparationId: null,
+          matched: null,
+        });
+        byCause.no_dish++;
+        missing++;
         continue;
       }
 
@@ -383,6 +405,10 @@ export function unfedRetryInstruction(
       "nobody put them on a box of that meal -- name them on exactly one box of it",
     double:
       "they are named on two boxes of that meal -- name them on ONE box only",
+    no_dish:
+      "NO dish at all was planned for that meal -- write one for that day and " +
+      "slot, with boxes naming everyone who eats then (them included), its " +
+      "preparations, and their cooking session and shopping lines",
   };
 
   const lines = clean.map((r) => {

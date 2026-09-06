@@ -146,12 +146,20 @@ Deno.test("⛔ SUR DEUX BOÎTES d'un même repas: deux contenants pour une perso
   assertEquals(out.allFed, false);
 });
 
-Deno.test("une case SANS aucun plat n'est pas un repas manqué: c'est un trou du plan", () => {
-  const out = mealsDelivered([dish()], mouths([CLAIRE], [WED_DINNER, THU_DINNER]));
-  assertEquals(out.expected, 1, "la case sans plat a été comptée comme attendue");
-  assertEquals(out.missing, 0);
-  assertEquals(out.cellsWithoutDish, 1);
-  assertEquals(out.allFed, true);
+Deno.test("⟳ une case SANS aucun plat est un TROU du plan (compté une fois) ET un manque `no_dish` pour chaque bouche qui y mange", () => {
+  // ⟳ 2026-09-06 — campagne du 05/09: un plan de 6 jours composé sur 2 rendait
+  // « personne sans repas » (24 cases sans plat hors de `missing`). Le trou
+  // reste compté une fois par case; chaque bouche y est aussi manquante, avec
+  // une cause que la relance sait combler et que le refus sait nommer.
+  const out = mealsDelivered([dish()], mouths([CLAIRE, MARC], [WED_DINNER, THU_DINNER]));
+  assertEquals(out.cellsWithoutDish, 1, "le trou est compté UNE fois, pas une par bouche");
+  assertEquals(out.expected, 4);
+  assertEquals(out.fed, 2);
+  assertEquals(out.missing, 2);
+  assertEquals(out.byCause.no_dish, 2);
+  assertEquals(out.allFed, false);
+  const claire = out.mouths.find((m) => m.memberId === CLAIRE)!;
+  assertEquals(claire.missing, [{ memberId: CLAIRE, day: "thu", slot: "dinner", cause: "no_dish", boxId: null, dish: null, via: null, preparationId: null, matched: null }]);
 });
 
 Deno.test("une bouche ABSENTE à une case n'y est pas attendue", () => {
@@ -173,7 +181,10 @@ Deno.test("un plat sans jour ou sans moment est compté à part, jamais nourriss
   ], mouths([CLAIRE]));
   assertEquals(out.unplacedDishes, 2);
   assertEquals(out.cellsWithoutDish, 1);
-  assertEquals(out.expected, 0);
+  // ⟳ 2026-09-06: la case sans plat est attendue et manquante (`no_dish`).
+  assertEquals(out.expected, 1);
+  assertEquals(out.missing, 1);
+  assertEquals(out.byCause.no_dish, 1);
 });
 
 Deno.test("PROPRIÉTÉ — attendu = nourri + manquant, sur chaque bouche et sur le total", () => {
@@ -666,4 +677,13 @@ Deno.test("⛔ UN PLAT SANS BOÎTE NE NOURRIT PAS LA BOUCHE DONT LA LIGNE LE MOR
   assertEquals(withRice.missing, 0);
   // Et sans `regimeBites` (lecteur ancien), la règle d'hier: tout le monde.
   assertEquals(mealsDelivered([dish({ boxes: [] })], table).missing, 0);
+});
+
+Deno.test("⟳ LA RELANCE nomme la case sans plat comme un repas à ÉCRIRE, boîtes comprises", () => {
+  const text = unfedRetryInstruction([
+    { name: "Claire", memberId: CLAIRE, day: "thu", slot: "dinner", cause: "no_dish", dish: null },
+  ]);
+  assert(text !== null);
+  assert(text.includes("NO dish at all was planned for that meal"), text);
+  assert(text.includes("with boxes naming everyone who eats then"), text);
 });
