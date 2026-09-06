@@ -88,6 +88,13 @@ export interface DeliveredDish {
    * le monde.
    */
   readonly regimeBites?: readonly string[];
+  /**
+   * ⟳ 2026-09-06 — les bouches dont une EXCLUSION mord ce plat. Un plat
+   * ouvert (sans boîte) ne nourrit pas une bouche qui y figure : mesuré
+   * FB4/FB4r, le saumon exclu par la table partait chez tout le monde parce
+   * que les boîtes vidées par la ceinture rendaient le plat « de la maison ».
+   */
+  readonly exclusionBites?: readonly string[];
 }
 
 /** Une bouche, et les cases où elle mange ICI sur cette fenêtre. */
@@ -251,14 +258,22 @@ export function mealsDelivered(
       //    ceinture par boîte n'a rien pu retirer; l'invariant le voit ici.
       const open = table.filter((d) => d.boxes.length === 0);
       const openSafe = open.filter((d) =>
-        regime === null || !(d.regimeBites ?? []).includes(regime)
+        (regime === null || !(d.regimeBites ?? []).includes(regime)) &&
+        !(d.exclusionBites ?? []).includes(memberId)
       );
       if (openSafe.length > 0) {
         row.fed++;
         fed++;
         continue;
       }
-      const openBites = open.length > 0;
+      // ⟳ 2026-09-06 — un plat ouvert qui mord: le RÉGIME prime, sinon c'est
+      // le dégoût qui a fermé la case (et il a son propre recours).
+      const openBites = open.some((d) =>
+        regime !== null && (d.regimeBites ?? []).includes(regime)
+      );
+      const openTasteBites = open.some((d) =>
+        (d.exclusionBites ?? []).includes(memberId)
+      );
 
       let lids = 0;
       for (const d of table) {
@@ -292,7 +307,7 @@ export function mealsDelivered(
         const byTaste = held.find((h) => h.cause === "exclusion");
         const chosen = byRegime ?? byTaste ?? null;
         if (byRegime || openBites) cause = "held_off_regime";
-        else if (byTaste) cause = "held_off_exclusion";
+        else if (byTaste || openTasteBites) cause = "held_off_exclusion";
         else cause = "not_named";
         if (chosen) {
           boxId = chosen.boxId;
@@ -504,6 +519,32 @@ export interface RestoreOutcome {
   readonly rows: readonly ("restored" | "fallback" | "none")[];
 }
 
+/**
+ * ⟳ 2026-09-06 — CE QUE LE RECOURS N'A PLUS LE DROIT DE FAIRE.
+ *
+ * Mesuré (banc « un retour et les calories ») : Paul, qui n'aime pas le poulet,
+ * REMIS sur trois boîtes à 300 g de poulet rôti (`restored_fallback: 3`) ; et
+ * Nora, VÉGANE, qui n'aime pas le tofu, remise sur neuf boîtes de chili de
+ * dinde et de poisson. Le recours remettait la bouche « sur la boîte qui porte
+ * ce qu'elle évite » — sans regarder ce que la boîte porte, ni son régime.
+ *
+ * `canJoin(memberId, dish, box)` est la ceinture du recours : l'appelant y
+ * met le test de sa ligne (exclusion) ET de son régime sur la boîte visée.
+ * Une boîte que la bouche ne peut pas rejoindre laisse la ligne `none` : la
+ * case reste MANQUANTE, comptée, dite — plutôt que nourrie sur le papier.
+ * Sans `canJoin`, comportement d'avant (les tests de forme le gardent).
+ */
+export type RestoreCanJoin = (
+  memberId: string,
+  dish: {
+    readonly day?: string | null;
+    readonly slot?: string | null;
+    readonly memberId?: string | null;
+    readonly boxes: readonly { readonly id: string; memberIds: string[] }[];
+  },
+  box: { readonly id: string; memberIds: string[] },
+) => boolean;
+
 export function restoreHeldOff(
   dishes: readonly {
     readonly day?: string | null;
@@ -517,6 +558,7 @@ export function restoreHeldOff(
     readonly day?: string | null;
     readonly slot?: string | null;
   }[],
+  canJoin: RestoreCanJoin = () => true,
 ): RestoreOutcome {
   let restored = 0;
   let fallback = 0;
@@ -532,6 +574,11 @@ export function restoreHeldOff(
         if (box.id !== boxId) continue;
         found = true;
         if (box.memberIds.includes(memberId)) continue;
+        // ⛔ LA BOÎTE DONT LA CEINTURE L'A RETIRÉE PORTE CE QU'ELLE ÉVITE — par
+        // construction. Elle n'y revient que si l'appelant dit que c'est
+        // tenable (jamais pour un régime ; pour un goût, seulement si la boîte
+        // ne porte plus le terme, par exemple après une relance par parties).
+        if (!canJoin(memberId, dish, box)) continue;
         box.memberIds.push(memberId);
         restored++;
         rows[rows.length - 1] = "restored";
@@ -548,6 +595,9 @@ export function restoreHeldOff(
       if (String(dish.day ?? "") !== day || String(dish.slot ?? "") !== slot) continue;
       for (const box of dish.boxes) {
         if (box.memberIds.includes(memberId)) { target = null; break; }
+        // ⟳ 2026-09-06 — une boîte de table qui porte ce que la bouche évite,
+        // ou ce que son régime interdit, n'est pas un recours: on la saute.
+        if (!canJoin(memberId, dish, box)) continue;
         if (target === null || box.memberIds.length > target.memberIds.length) target = box;
       }
     }

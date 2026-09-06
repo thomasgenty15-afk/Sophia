@@ -705,3 +705,84 @@ Deno.test("⟳ LA RELANCE d'une case SANS boîte demande un plat à elle ou des 
   assert(text.includes("or put boxes on that dish"), text);
   assert(!text.includes("write them a box of their OWN on that dish"), "l'ancien remède (une boîte sur un plat sans boîtes) est resservi");
 });
+
+
+// ===========================================================================
+// ⟳ 2026-09-06 — UN RETOUR ET LES CALORIES (banc FB, quatre bouches)
+// ===========================================================================
+
+Deno.test("⛔ UN PLAT SANS BOÎTE NE NOURRIT PAS LA BOUCHE DONT L'EXCLUSION LE MORD", () => {
+  // Mesuré FB4/FB4r: « on n'aime pas le saumon » (table) ⇒ la ceinture retire
+  // TOUTES les bouches de la boîte, la boîte est jetée, le plat devient
+  // « ouvert » — et un plat ouvert nourrissait tout le monde. Le saumon exclu
+  // partait chez tous, avec `missing: 0`.
+  const out = mealsDelivered(
+    [dish({ title: "Saumon, couscous", boxes: [], exclusionBites: [CLAIRE, MARC, LEA] })],
+    mouths([CLAIRE, MARC, LEA]),
+  );
+  assertEquals(out.fed, 0);
+  assertEquals(out.missing, 3);
+  assertEquals(out.byCause.held_off_exclusion, 3);
+  assertEquals(out.byCause.held_off_regime, 0);
+  // Et une bouche que le plat ne mord pas est nourrie par lui.
+  const some = mealsDelivered(
+    [dish({ boxes: [], exclusionBites: [LEA] })],
+    mouths([CLAIRE, LEA]),
+  );
+  assertEquals(some.fed, 1);
+  assertEquals(some.missing, 1);
+  assertEquals(some.mouths.find((m) => m.memberId === LEA)?.missing[0]?.cause, "held_off_exclusion");
+});
+
+Deno.test("⛔ LE DERNIER RECOURS NE REMET PAS LA BOUCHE SUR CE QU'ELLE ÉVITE (canJoin)", () => {
+  // Mesuré FB2: Paul (poulet exclu) remis sur SA boîte à 300 g de poulet;
+  // FB8: Nora VÉGANE (tofu exclu) remise sur la boîte de table au chili de
+  // dinde. Avec la ceinture du recours, la ligne reste `none`: la case est
+  // manquante, comptée, dite — pas nourrie sur le papier.
+  const own = { id: "box_paul", memberIds: [] as string[] };
+  const table = { id: "box_table", memberIds: [MARC, LEA] };
+  const dishes = [{ day: "wed", slot: "dinner", memberId: null, boxes: [own, table] }];
+  // Sans ceinture: comportement d'avant (remis sur sa boîte).
+  const before = restoreHeldOff(dishes, [{ memberId: CLAIRE, boxId: "box_paul", day: "wed", slot: "dinner" }]);
+  assertEquals(before.rows, ["restored"]);
+  own.memberIds.length = 0;
+  // Avec ceinture: la boîte porte ce qu'elle évite ⇒ `none`, rien de poussé.
+  const after = restoreHeldOff(
+    dishes,
+    [{ memberId: CLAIRE, boxId: "box_paul", day: "wed", slot: "dinner" }],
+    () => false,
+  );
+  assertEquals(after.rows, ["none"]);
+  assertEquals(after.restored + after.fallback, 0);
+  assertEquals(own.memberIds, []);
+  assertEquals(table.memberIds, [MARC, LEA]);
+  // Boîte jetée + boîte de table qui mord ⇒ pas de repli non plus.
+  const dropped = restoreHeldOff(
+    [{ day: "wed", slot: "dinner", memberId: null, boxes: [table] }],
+    [{ memberId: CLAIRE, boxId: "box_gone", day: "wed", slot: "dinner" }],
+    (_m, _d, box) => box.id !== "box_table",
+  );
+  assertEquals(dropped.rows, ["none"]);
+  assertEquals(table.memberIds, [MARC, LEA]);
+  // Et une boîte de table qui NE mord PAS reste un recours.
+  const safe = { id: "box_safe", memberIds: [MARC] };
+  const ok = restoreHeldOff(
+    [{ day: "wed", slot: "dinner", memberId: null, boxes: [safe] }],
+    [{ memberId: CLAIRE, boxId: "box_gone", day: "wed", slot: "dinner" }],
+    (_m, _d, box) => box.id === "box_safe",
+  );
+  assertEquals(ok.rows, ["fallback"]);
+  assertEquals(safe.memberIds, [MARC, CLAIRE]);
+});
+
+Deno.test("CÂBLAGE — le recours de la lane foyer passe une ceinture (régime ET exclusion)", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  const at = src.indexOf("const outcome = restoreHeldOff(");
+  assert(at > 0, "le recours a disparu");
+  const before = src.slice(Math.max(0, at - 2600), at + 400);
+  assert(/canJoin,\s*\);/.test(before), "le recours est appelé SANS ceinture: la bouche revient sur ce qu'elle évite");
+  assert(/regimeBites/.test(before) && /dishBitesExclusion\(/.test(before), "la ceinture du recours ne lit pas le régime ET l'exclusion");
+  assert(/exclusionBites: d\.exclusionBites/.test(src), "l'invariant ne reçoit plus les morsures d'exclusion: un plat ouvert nourrit la bouche dont la ligne le mord");
+});

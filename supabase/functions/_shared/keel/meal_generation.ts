@@ -800,6 +800,19 @@ export interface GeneratedDish {
    */
   regimeBites: DietaryRegime[];
   /**
+   * ⟳ 2026-09-06 — LES BOUCHES DONT UNE EXCLUSION MORD LA SURFACE DU PLAT
+   * (titre, ingrédients, casseroles citées), qu'elles aient une boîte ou non.
+   *
+   * Mesuré (banc « un retour et les calories », FB4/FB4r) : un plat au saumon
+   * dont TOUTES les bouches sont retirées par la ceinture n'a plus de boîte —
+   * et un plat sans boîte « nourrit tout le monde » pour l'invariant. Le
+   * retrait rendait donc le plat OUVERT, c'est-à-dire servi à tous. Ce champ
+   * est le dénominateur qui manque : l'invariant s'en sert pour ne pas compter
+   * comme nourrie une bouche dont la ligne mord un plat ouvert. Interne, ne
+   * part pas en base (comme `heldOff` et `regimeBites`).
+   */
+  exclusionBites: string[];
+  /**
    * LOT C — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
    *
    * ⛔ `null` EST LE CAS NOMINAL, et il ne veut PAS dire « on ne sait pas ». La
@@ -7469,6 +7482,7 @@ export function parseGeneratedMeal(
     const heldOffByExclusion = new Set(
       boxHeldOff.filter((h) => h.cause === "exclusion").map((h) => h.memberId),
     );
+    const dishExclusionBites: string[] = [];
     for (const [memberId, terms] of mouthExclusions) {
       const bite = dishBitesExclusion({
         dish: { title, method, ingredients },
@@ -7478,6 +7492,10 @@ export function parseGeneratedMeal(
         surface: "ingredients",
       });
       if (bite.matched === null) continue;
+      // ⟳ 2026-09-06 — enregistré AVANT la garde `declaredABox` : un plat sans
+      // boîte mord quand même, et c'est justement lui que l'invariant sert à
+      // tout le monde (voir `exclusionBites`).
+      dishExclusionBites.push(memberId);
       if (!declaredABox) continue;
       exclusionBelt.bites++;
       if (heldOffByExclusion.has(memberId)) exclusionBelt.not_separated++;
@@ -7681,6 +7699,7 @@ export function parseGeneratedMeal(
       // recopie pas, la base n'en voit rien.
       heldOff: boxHeldOff,
       regimeBites: dishRegimeBites,
+      exclusionBites: dishExclusionBites,
       memberId,
       sameDay,
     });

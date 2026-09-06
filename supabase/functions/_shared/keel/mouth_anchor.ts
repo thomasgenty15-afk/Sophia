@@ -891,6 +891,18 @@ export interface AnchorFactor {
    * porte et se rend partout.
    */
   extrasFloored: boolean;
+  /**
+   * ⟳ 2026-09-06 — LES KCAL D'UN MOMENT PERDU PAR LA LIGNE, remis dans la cible.
+   *
+   * Mesuré (banc « un retour et les calories », FB3) : Nora, végane, qui
+   * n'aime pas le yaourt de soja, perd ses petits-déjeuners et passe de 61 % à
+   * 44 % de sa cible — et aucun compteur ne la distingue, parce que la cible
+   * du jour suit `ownSlots` : un moment qu'elle n'a plus n'est plus demandé.
+   * Ici la part de ce moment reste DEMANDÉE à ses autres boîtes du jour ; le
+   * facteur monte, le plafond mord ou la densification comble, et ce qui
+   * reste est compté `unmet`. 0 quand rien n'a été perdu par une ligne.
+   */
+  lostLineKcal: number;
 }
 
 /**
@@ -1002,6 +1014,14 @@ export function anchorFactorFor(
   mouth: AnchorMouth,
   day: MouthDayEnergy | null,
   coachCounting: CountingStance,
+  /**
+   * ⟳ 2026-09-06 — les kcal des moments que la LIGNE de cette bouche lui a
+   * retirés ce jour-là (exclusion ou régime, cases encore manquantes après
+   * relance et recours), valorisés par `lostSlotEnergy`. Ils s'AJOUTENT à la
+   * cible réduite aux moments restants : la journée ne rétrécit pas parce
+   * qu'un plat a été retiré. `0` = rien de perdu (comportement d'avant).
+   */
+  lostLineKcal = 0,
 ): AnchorFactor {
   const target = mouthTargetKcal(mouth, coachCounting);
   // ⚠️ LU AVANT TOUTE SORTIE, ET RENDU SUR TOUTES. Le compteur du LOT ① dit ce
@@ -1020,6 +1040,7 @@ export function anchorFactorFor(
       capBit: "none",
       structureState,
       extrasFloored: false,
+      lostLineKcal: 0,
     };
   }
   // ⛔ L'EXPRESSION EST INCHANGÉE, OCTET POUR OCTET, ET SEULE L'ÉTIQUETTE SE
@@ -1043,6 +1064,7 @@ export function anchorFactorFor(
       capBit: "none",
       structureState,
       extrasFloored: false,
+      lostLineKcal: 0,
     };
   }
   // ⛔ LA GARDE PRINCIPALE — MAIS PAS SUR N'IMPORTE QUELLE LACUNE.
@@ -1095,6 +1117,7 @@ export function anchorFactorFor(
       structureState,
       // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
       extrasFloored: false,
+      lostLineKcal: 0,
     };
   }
   // ⛔ LA CIBLE EST RÉDUITE À CE QUE LE PLAN PORTE POUR ELLE. Sans ça, un dîner
@@ -1154,7 +1177,10 @@ export function anchorFactorFor(
   // ⚠️ LE REPLI `whole <= 0` EST CELUI DE `dayCoverageOf`, ET IL SIGNIFIE LA
   // MÊME CHOSE: aucun moment reconnu de part et d'autre ⇒ on ne réduit rien,
   // plutôt que de rendre zéro et de faire diviser par zéro l'appelant.
-  const effectiveTarget = shared.total > 0 ? shared.total : target.kcal;
+  const lostLine = Number.isFinite(lostLineKcal) && lostLineKcal > 0
+    ? Math.round(lostLineKcal)
+    : 0;
+  const effectiveTarget = (shared.total > 0 ? shared.total : target.kcal) + lostLine;
   const raw = effectiveTarget / day.kcal;
   // ── LE PLAFOND DE VRAISEMBLANCE, PAR REPAS ET PAR CORPS ─────────────────
   // Le facteur est UN par bouche et s'applique à toutes ses parts: c'est donc
@@ -1208,6 +1234,7 @@ export function anchorFactorFor(
     capBit,
     structureState,
     extrasFloored,
+    lostLineKcal: lostLine,
   };
 }
 
@@ -1223,13 +1250,16 @@ export function householdAnchors(
   mouths: readonly AnchorMouth[],
   days: readonly MouthDayEnergy[],
   coachCounting: CountingStance,
+  /** ⟳ 2026-09-06 — `<memberId> <day>` → kcal perdus par la ligne ce jour-là. */
+  lostLineKcalByKey: ReadonlyMap<string, number> = new Map(),
 ): Map<string, AnchorFactor> {
   const byMouth = new Map(mouths.map((m) => [m.memberId, m]));
   const out = new Map<string, AnchorFactor>();
   for (const day of days) {
     const mouth = byMouth.get(day.memberId);
     if (!mouth) continue;
-    out.set(`${day.memberId} ${day.day ?? ""}`, anchorFactorFor(mouth, day, coachCounting));
+    const key = `${day.memberId} ${day.day ?? ""}`;
+    out.set(key, anchorFactorFor(mouth, day, coachCounting, lostLineKcalByKey.get(key) ?? 0));
   }
   return out;
 }

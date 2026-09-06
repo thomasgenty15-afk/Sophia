@@ -1113,3 +1113,36 @@ Deno.test("ARBITRAGE 1 — plus dense que 1,35 n'est JAMAIS borné plus serré q
 Deno.test("épinglage — MEAL_KCAL_PER_G_FLOOR vaut 1,0 (sous quoi une assiette se densifie au lieu de grossir)", () => {
   assertEquals(MEAL_KCAL_PER_G_FLOOR, 1.0);
 });
+
+
+// ===========================================================================
+// ⟳ 2026-09-06 — UN MOMENT PERDU PAR LA LIGNE GARDE SA PART DANS LA CIBLE
+// ===========================================================================
+
+Deno.test("⛔ un moment perdu par la ligne ne rétrécit pas la journée: sa part est REDEMANDÉE aux boîtes restantes", () => {
+  // Mesuré FB3: Nora (végane) sans son yaourt de soja perd le petit-déjeuner,
+  // et sa cible suit `ownSlots` — 44 % de sa cible sans qu'un compteur bouge.
+  const d = day({ memberId: IKU.memberId, slots: ["dinner", "lunch"], ownSlots: ["dinner", "lunch"], kcal: 1200 });
+  const without = anchorFactorFor(IKU, d, "no_position");
+  const withLost = anchorFactorFor(IKU, d, "no_position", 500);
+  assert(without.raw !== null && withLost.raw !== null);
+  assertEquals(withLost.lostLineKcal, 500);
+  assertEquals(without.lostLineKcal, 0);
+  assertEquals(withLost.targetKcal, (without.targetKcal ?? 0) + 500);
+  assert(withLost.raw > without.raw, "la part perdue n'est pas redemandée");
+  // 0, négatif, NaN: comportement d'avant, à l'identique.
+  for (const z of [0, -50, Number.NaN]) {
+    const same = anchorFactorFor(IKU, d, "no_position", z);
+    assertEquals(same.raw, without.raw);
+    assertEquals(same.lostLineKcal, 0);
+  }
+});
+
+Deno.test("householdAnchors passe les kcal perdus par clé `<memberId> <day>`, et rien aux autres", () => {
+  const d1 = day({ memberId: IKU.memberId, day: "thu", slots: ["dinner"], ownSlots: ["dinner"], kcal: 700 });
+  const d2 = day({ memberId: IKU.memberId, day: "fri", slots: ["dinner"], ownSlots: ["dinner"], kcal: 700 });
+  const out = householdAnchors([IKU], [d1, d2], "no_position", new Map([[`${IKU.memberId} thu`, 400]]));
+  assertEquals(out.get(`${IKU.memberId} thu`)?.lostLineKcal, 400);
+  assertEquals(out.get(`${IKU.memberId} fri`)?.lostLineKcal, 0);
+  assert((out.get(`${IKU.memberId} thu`)?.raw ?? 0) > (out.get(`${IKU.memberId} fri`)?.raw ?? 0));
+});

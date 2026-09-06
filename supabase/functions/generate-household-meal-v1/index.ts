@@ -5613,12 +5613,33 @@ Deno.serve(async (req) => {
      * fait rendre `[]` — « on ne sait pas pour qui » n'est pas « pour tout le
      * monde ».
      */
+    /**
+     * ⟳ 2026-09-06 — CE QUE LA TABLE ÉVITE S'APPLIQUE À CHAQUE BOUCHE.
+     *
+     * Mesuré (banc « un retour et les calories », FB1r/FB4/FB4r, 4 tirs sur 4) :
+     * « on n'aime pas le saumon » (`subject: household`) n'atteignait la
+     * ceinture par bouche pour PERSONNE (`mouths: 0`) ; seule une relance
+     * modèle la tenait, refusée à chaque fois ⇒ 8 à 12 boîtes de saumon servies
+     * à tous, le plan le disant lui-même dans `issues`. Une règle de la table
+     * est la règle de chacune de ses bouches : ses termes rejoignent ceux de
+     * chaque bouche, et le retrait du couvercle, la relance par parties et le
+     * recours (avec sa ceinture) font le reste. La relance « surface all » du
+     * foyer reste, en amont, pour les plats que le modèle n'a ventilés pour
+     * personne.
+     */
+    const householdExclusionTerms = exclusionTermsFor({
+      items: routedRetained.composition,
+      subject: HOUSEHOLD_SUBJECT,
+    });
     const memberExclusionTerms = members.map((m) => ({
       memberId: m.memberId,
-      terms: exclusionTermsFor({
-        items: routedRetained.composition,
-        subject: memberSubject(m.memberId) ?? "",
-      }),
+      terms: [
+        ...exclusionTermsFor({
+          items: routedRetained.composition,
+          subject: memberSubject(m.memberId) ?? "",
+        }),
+        ...householdExclusionTerms,
+      ],
     }));
     const parseArgs = {
       // ⛔ LE PARSEUR EN A BESOIN AUSSI, et pour deux gardes distinctes: un
@@ -5949,10 +5970,6 @@ Deno.serve(async (req) => {
     // Là-bas un faux positif coûte le repas de quelqu'un, donc on ne lit que
     // les ingrédients déclarés. Ici il coûte un appel modèle — et rater une
     // morsure coûte plus cher que d'en inventer une.
-    const householdExclusionTerms = exclusionTermsFor({
-      items: routedRetained.composition,
-      subject: HOUSEHOLD_SUBJECT,
-    });
     /**
      * ⛔ UN PLAT QUE PERSONNE NE SE VOIT ATTRIBUER EST UN PLAT DE LA MAISON.
      *
@@ -5970,6 +5987,9 @@ Deno.serve(async (req) => {
      * CHACUN — c'est l'inverse de l'axe 3, qui interdit d'appliquer la règle
      * d'une bouche à un plat QU'ELLE NE MANGE PAS.
      */
+    // ⚠️ Depuis le 2026-09-06 les termes de chaque bouche PORTENT déjà ceux de
+    // la table: l'union les répète. Sans effet sur la détection (la première
+    // morsure suffit), et la forme littérale est celle que le test épingle.
     const unallocatedTerms = [
       ...householdExclusionTerms,
       ...memberExclusionTerms.flatMap((m) => m.terms),
@@ -6155,6 +6175,10 @@ Deno.serve(async (req) => {
         // ⟳ 2026-09-05 (R2-D): le plat sans boîte ne nourrit pas la bouche
         // dont la ligne le mord — l'invariant lit les morsures de la ceinture.
         regimeBites: d.regimeBites,
+        // ⟳ 2026-09-06 — et pas non plus celle dont l'EXCLUSION le mord: un
+        // plat au saumon vidé de ses boîtes par la ceinture devenait « de la
+        // maison » et nourrissait tout le monde (FB4/FB4r).
+        exclusionBites: d.exclusionBites,
       }));
     const swapViewOf = (m: ParsedMealForDelivery) =>
       m.dishes.map((d) => ({
@@ -6444,9 +6468,47 @@ Deno.serve(async (req) => {
     if (restorable.length > 0) {
       // ⟳ 2026-09-04: `day`/`slot` passés pour le repli sur la boîte de TABLE
       // quand la boîte enregistrée a été jetée (voir `RestoreOutcome.fallback`).
+      // ⟳ 2026-09-06 — LA CEINTURE DU RECOURS. Une bouche ne revient sur une
+      // boîte que si ni sa ligne (exclusion de la table ou la sienne) ni son
+      // régime ne mordent la SURFACE de ce plat (titre, ingrédients, casseroles
+      // citées). Mesuré: Paul remis sur 300 g de poulet, Nora végane remise sur
+      // du chili de dinde. Grossier exprès (le plat entier, pas la boîte):
+      // fail-closed, la case reste manquante, comptée et dite.
+      const termsOfMouth = new Map(
+        memberExclusionTerms.map((m) => [m.memberId, m.terms]),
+      );
+      const regimeOfMouth = new Map(
+        members.map((m) => [m.memberId, m.diet ?? null]),
+      );
+      const restorePrepById = new Map(
+        meal.preparations.map((p) => [p.id, p]),
+      ) as never;
+      const canJoin = (
+        memberId: string,
+        dish: { readonly day?: string | null; readonly slot?: string | null; readonly memberId?: string | null },
+      ): boolean => {
+        const parsed = meal.dishes.find((d) => d === (dish as unknown)) ??
+          meal.dishes.find((d) =>
+            d.day === (dish.day ?? null) && d.slot === (dish.slot ?? null) &&
+            (d.memberId ?? null) === (dish.memberId ?? null)
+          );
+        if (!parsed) return false;
+        const regime = regimeOfMouth.get(memberId) ?? null;
+        if (regime && (parsed.regimeBites as readonly string[]).includes(regime)) return false;
+        const terms = termsOfMouth.get(memberId) ?? [];
+        if (terms.length === 0) return true;
+        return dishBitesExclusion({
+          dish: { title: parsed.title, method: parsed.method, ingredients: parsed.ingredients },
+          uses: (parsed.uses ?? []).map((u) => ({ preparationId: u.preparationId })),
+          preparationById: restorePrepById,
+          terms,
+          surface: "ingredients",
+        }).matched === null;
+      };
       const outcome = restoreHeldOff(
         meal.dishes,
         restorable.map((m) => ({ memberId: m.memberId, boxId: m.boxId, day: m.day, slot: m.slot })),
+        canJoin,
       );
       unfedRestored = outcome.restored;
       unfedRestoredFallback = outcome.fallback;
@@ -6462,7 +6524,8 @@ Deno.serve(async (req) => {
             : fate === "restored"
             ? `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} kept on the shared box although ` +
               `it carries what they avoid`
-            : `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} could not be put back on any box`,
+            : `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} could not be put back on any ` +
+              `box that respects their line -- the meal stays missing rather than served with what they avoid`,
         );
       }
       restoredFate = new Map(restorable.map((m, i) => [`${m.memberId}/${m.day}/${m.slot}`, outcome.rows[i] ?? "none"]));
@@ -7870,6 +7933,9 @@ Deno.serve(async (req) => {
     let dayEnergyRows: readonly MouthDayEnergy[] = [];
     let mouthAnchors: ReadonlyMap<string, AnchorFactor> = new Map();
     const anchorMouths = new Map<string, AnchorMouth>();
+    // ⟳ 2026-09-06 — hissé comme `lostSlots`: rempli dans le bloc, lu par le
+    // journal et l'archive cent lignes plus bas.
+    const lostByLine = { mouth_days: 0, slots: 0, kcal: 0, kcal_unknown: 0 };
     if (composition) {
       const dayEnergy = mouthDayEnergy({
         index: composition,
@@ -7942,7 +8008,46 @@ Deno.serve(async (req) => {
           slotExtraKcal: extrasFor(m.memberId),
       }));
       for (const mouth of anchorMouthList) anchorMouths.set(mouth.memberId, mouth);
-      const anchors = householdAnchors(anchorMouthList, dayEnergy, coachCounting);
+      // ⟳ 2026-09-06 — LES MOMENTS PERDUS PAR LA LIGNE GARDENT LEUR PART.
+      //
+      // Mesuré (banc « un retour et les calories », FB3): une bouche dont un
+      // plat est retiré par sa ligne voit sa cible du jour suivre `ownSlots`,
+      // donc la journée amputée n'est jamais « sous le besoin ». Les cases
+      // `held_off_*` encore manquantes après relance et recours sont valorisées
+      // par `lostSlotEnergy` (l'instrument de 7a561f2f, sur la cible PLEINE)
+      // et remises dans la cible de la bouche ce jour-là.
+      const lostLineKcalByKey = new Map<string, number>();
+      {
+        const lostSlotsByKey = new Map<string, Set<string>>();
+        for (const row of delivered.mouths) {
+          for (const miss of row.missing) {
+            if (miss.cause !== "held_off_exclusion" && miss.cause !== "held_off_regime") continue;
+            const key = `${row.memberId} ${miss.day}`;
+            const set = lostSlotsByKey.get(key) ?? new Set<string>();
+            set.add(miss.slot);
+            lostSlotsByKey.set(key, set);
+          }
+        }
+        for (const [key, slots] of lostSlotsByKey) {
+          const mouth = anchorMouths.get(key.split(" ")[0]);
+          if (mouth === undefined) continue;
+          const lost = lostSlotEnergy({
+            mouth,
+            coachCounting,
+            mySlots: [],
+            tableSlots: [...slots],
+          });
+          lostByLine.mouth_days += 1;
+          lostByLine.slots += lost.lostSlots.length;
+          if (lost.kcal === null) {
+            lostByLine.kcal_unknown += 1;
+            continue;
+          }
+          lostByLine.kcal += lost.kcal;
+          lostLineKcalByKey.set(key, lost.kcal);
+        }
+      }
+      const anchors = householdAnchors(anchorMouthList, dayEnergy, coachCounting, lostLineKcalByKey);
       // ⟳ 2026-09-04 — L'ÉLECTION `best` A DISPARU. Elle gardait, par bouche, le
       // facteur ancré « le plus proche de 1 » parmi ses jours. Cette prudence
       // n'existait que parce qu'UN facteur servait toute la fenêtre: l'ancrage
@@ -8519,6 +8624,7 @@ Deno.serve(async (req) => {
       unmet: unmetCauses,
       unmet_band: unmetBand,
       lost_slots: lostSlots,
+      lost_by_line: lostByLine,
       densify: densifyCounts,
       extras_floored: extrasFloored,
       activity: activityAnswers,
@@ -8869,6 +8975,7 @@ Deno.serve(async (req) => {
         unmet: unmetCauses,
         unmet_band: unmetBand,
         lost_slots: lostSlots,
+        lost_by_line: lostByLine,
         densify: densifyCounts,
         extras_floored: extrasFloored,
         // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───

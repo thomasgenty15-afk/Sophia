@@ -354,3 +354,19 @@ Deno.test("⛔ UN PLAT QUE PERSONNE NE SE VOIT ATTRIBUER passe la ligne de CHACU
       "retirerait un aliment à toute la table",
   );
 });
+
+
+Deno.test("⟳ 2026-09-06 — CE QUE LA TABLE ÉVITE EST LA LIGNE DE CHAQUE BOUCHE (ceinture par bouche)", async () => {
+  // Mesuré (FB1r, FB4, FB4r — 4 tirs sur 4): « on n'aime pas le saumon »
+  // n'atteignait la ceinture par bouche pour PERSONNE (`mouths: 0`), seule une
+  // relance modèle la tenait, refusée à chaque fois, et le saumon partait chez
+  // tout le monde. Les termes de la table rejoignent ceux de chaque bouche.
+  const src = (await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  )).replace(/\/\*[\s\S]*?\*\//g, "");
+  const at = src.indexOf("const memberExclusionTerms = members.map(");
+  assert(at > 0);
+  const block = src.slice(at, at + 500);
+  assert(/\.\.\.householdExclusionTerms,/.test(block), "les termes de la table ne rejoignent plus ceux de chaque bouche: une exclusion de table redevient une consigne de prompt");
+  assert(src.indexOf("const householdExclusionTerms = exclusionTermsFor(") < at, "les termes de la table sont calculés APRÈS ceux des bouches");
+});
