@@ -1184,7 +1184,9 @@ Deno.test("householdAnchors porte la note par (bouche, jour) et rien d'autre", (
 
 Deno.test("CÂBLAGE — la lane foyer lit la note datée d'une bouche et la passe à l'ancre", async () => {
   const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
-  const at = src.indexOf("const noteBoostByKey = new Map<string, number>();");
+  // ⟳ la table est HISSÉE hors du bloc d'ancrage (le bac la lit aussi, arbitrage 3
+  // par le bac) : on cherche l'affectation, avec ou sans `const`.
+  const at = src.indexOf("noteBoostByKey = new Map<string, number>();");
   assert(at > -1, "la lane foyer ne construit plus la note datée par (bouche, jour)");
   const block = src.slice(at, src.indexOf("const anchors = householdAnchors(", at));
   assert(/memoFrom\(memoConstraints\)/.test(block), "la note datée ne vient plus des mémos de la fiche");

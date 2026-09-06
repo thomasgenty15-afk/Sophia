@@ -412,6 +412,18 @@ Deno.test("un pot déjà plus petit que ses tirages grossit de l'écart ENTIER, 
   assertEquals(neededPotFactor(meals, anchors, new Map([["p", 0]])).get("p"), 1);
 });
 
+// ⟳ ARBITRAGE 3 (2026-09-06) — le cran d'une note datée passe aussi par le bac.
+Deno.test("ARBITRAGE 3 — un mangeur avec une note datée grossit la SOMME du bac de sa part × 1,25, pas celle des autres", () => {
+  const base = potFactorFor({ slot: "lunch", grams: 1000, deliveredKcal: 1000, eaters: [eater({ memberId: "a" }), eater({ memberId: "b" })], coachCounting: "no_position" });
+  const boosted = potFactorFor({ slot: "lunch", grams: 1000, deliveredKcal: 1000, eaters: [{ ...eater({ memberId: "a" }), noteBoost: 0.25 }, eater({ memberId: "b" })], coachCounting: "no_position" });
+  assert(base.raw !== null && boosted.raw !== null);
+  // Deux corps identiques : la somme passe de 2 parts à 2,25 parts.
+  assert(Math.abs(boosted.raw! / base.raw! - 2.25 / 2) < 1e-9, `${boosted.raw} / ${base.raw}`);
+  // Un cran nul ou absent ne change rien.
+  const zero = potFactorFor({ slot: "lunch", grams: 1000, deliveredKcal: 1000, eaters: [{ ...eater({ memberId: "a" }), noteBoost: 0 }, eater({ memberId: "b" })], coachCounting: "no_position" });
+  assertEquals(zero.raw, base.raw);
+});
+
 // ⟳ ARBITRAGE 1 (2026-09-06) — le plafond du BAC suit la densité mesurée du bac.
 Deno.test("ARBITRAGE 1 — un bac à 0,5 kcal/g est borné par le PLANCHER de densité, pas par 1,35, et ça se compte", () => {
   const got = potFactorFor({

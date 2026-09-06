@@ -238,6 +238,14 @@ export interface PotFactor {
 /** Un mangeur de ce bac, et ce que sa journée porte. */
 export interface PotEater {
   mouth: AnchorMouth;
+  /**
+   * ⟳ ARBITRAGE 3 (2026-09-06) — LE CRAN D'UNE NOTE DATÉE, PAR LE BAC. « Claire a
+   * du sport le mardi soir » grossit sa part ce jour-là ; côté ancre (a5d1b636)
+   * le cran est inerte pour une bouche qui mange en bac (`common_pot_day`,
+   * 14/28 sur le quatre : `note_boost.applied 0`). Ici il entre dans la SOMME
+   * des besoins du bac — sa part, pas celle des autres. `0` ou absent = rien.
+   */
+  noteBoost?: number;
   /** TOUS ses moments de ce jour-là (`MouthDayEnergy.slots`). Le dénominateur. */
   daySlots: readonly string[];
 }
@@ -300,7 +308,9 @@ export function potFactorFor(args: {
     // Un moment sans poids reconnu ne se réduit pas: on ne sait pas ce qu'il
     // vaut dans sa journée, donc on ne prétend pas le savoir pour la casserole.
     if (mealKcal === undefined || !(mealKcal > 0)) return nothing("pot_mouth_unknown");
-    needed += mealKcal;
+    // ⟳ ARBITRAGE 3 — le cran de la note datée de CE mangeur, sur SA part.
+    const boost = Number.isFinite(eater.noteBoost) && (eater.noteBoost ?? 0) > 0 ? (eater.noteBoost as number) : 0;
+    needed += mealKcal * (1 + boost);
     // ⟳ 2026-09-04: le plafond de masse du bac est la somme de ce que porte le
     // besoin de chaque bouche — ⟳ ARBITRAGE 1 (2026-09-06) : à la densité
     // MESURÉE du bac (ce qu'il livre par gramme), bornée entre le plancher de

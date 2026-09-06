@@ -8187,7 +8187,9 @@ Deno.serve(async (req) => {
     // journal et l'archive cent lignes plus bas.
     const lostByLine = { mouth_days: 0, slots: 0, kcal: 0, kcal_unknown: 0 };
     // ⟳ 2026-09-06 — arbitrage 3 : combien de (bouche, jour) portent une note datée, et combien ont ancré.
-    const noteBoost = { member_days: 0, household_dated: 0, unknown_member: 0, applied: 0 };
+    const noteBoost = { member_days: 0, household_dated: 0, unknown_member: 0, applied: 0, applied_pot: 0 };
+    // ⟳ ARBITRAGE 3 — hissée : le bloc du BAC (plus bas) la lit aussi, pour le cran par mangeur.
+    let noteBoostByKey = new Map<string, number>();
     if (composition) {
       const dayEnergy = mouthDayEnergy({
         index: composition,
@@ -8304,7 +8306,7 @@ Deno.serve(async (req) => {
       // servie au modèle et ne changeait pas la boîte du mardi (une phrase bouge
       // les mots, pas les grammes) ; c'est l'ANCRE qui la fait grossir. Une note
       // datée de la TABLE reste une phrase servie (comptée, pas appliquée).
-      const noteBoostByKey = new Map<string, number>();
+      noteBoostByKey = new Map<string, number>();
       for (const memo of memoFrom(memoConstraints)) {
         const weekday = memo.when?.weekday ?? null;
         if (!weekday) continue;
@@ -8446,9 +8448,11 @@ Deno.serve(async (req) => {
             return mouth === undefined ? null : {
               mouth,
               daySlots: daySlots.get(`${memberId} ${box.day ?? ""}`) ?? [],
+              // ⟳ ARBITRAGE 3 — le cran de la note datée de CE mangeur, par le bac.
+              noteBoost: noteBoostByKey.get(`${memberId} ${box.day ?? ""}`) ?? 0,
             };
           })
-          .filter((e): e is { mouth: AnchorMouth; daySlots: readonly string[] } => e !== null);
+          .filter((e): e is { mouth: AnchorMouth; daySlots: readonly string[]; noteBoost: number } => e !== null);
         // ⛔ FAIL-CLOSED: une bouche du couvercle qu'on ne sait pas lire fait
         // s'abstenir le bac ENTIER. Servir la somme de trois besoins quand on
         // n'en connaît que deux, c'est sous-remplir en ayant l'air d'avoir
@@ -8464,6 +8468,9 @@ Deno.serve(async (req) => {
           });
         potReasons[pot.reason] += 1;
         potCap[pot.capBit] = (potCap[pot.capBit] ?? 0) + 1;
+        if ((pot.reason === "pot_sized" || pot.reason === "pot_clamped") && eaters.some((e) => e.noteBoost > 0)) {
+          noteBoost.applied_pot += 1;
+        }
         if (pot.factor !== 1) potFactors.set(box.boxId, pot.factor);
       }
     }
