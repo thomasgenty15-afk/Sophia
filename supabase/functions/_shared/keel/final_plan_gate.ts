@@ -36,10 +36,30 @@
  * ⛔ UNE CAUSE À ZÉRO DONT LE DÉNOMINATEUR EST À ZÉRO NE VEUT PAS DIRE
  * « PROPRE » : elle veut dire « JAMAIS ÉVALUÉE ». C'est la cicatrice n° 1 de
  * ce dépôt — « un lot désarmé ressemble trait pour trait à un lot qui
- * marche ». `counters.checked` porte les onze dénominateurs pour que la
+ * marche ». `counters.checked` porte les douze dénominateurs pour que la
  * différence se LISE, et le premier test de ce module est la CASE QUI PASSE :
- * zéro refus ET onze dénominateurs strictement positifs. Une garde qui refuse
+ * zéro refus ET douze dénominateurs strictement positifs. Une garde qui refuse
  * tout ressemble aussi à une garde qui marche.
+ *
+ * ── L'ÉNERGIE SERVIE : ON MESURE, ON NE MORD PAS ─────────────────────────
+ * Le moteur a CESSÉ de redimensionner les portions : l'ancre des bouches, la
+ * densification des boîtes et les deux passes de croissance des casseroles
+ * sont devenues des MESURES, et les grammes servis sont exactement ceux que le
+ * modèle a composés — on arrête de rattraper après coup une composition
+ * fausse, on fait en sorte que la composition tombe juste. Le prix de cette
+ * décision est connu et CHIFFRÉ : un plan ne nourrit que 65 à 72 % de sa
+ * propre enveloppe énergétique, même dans le cas SANS contrainte, et c'est le
+ * redimensionnement d'après-coup qui cachait ce trou. Le retirer rend l'écart
+ * réel — et un écart réel que personne ne mesure, c'est un faux chiffre
+ * remplacé par du silence.
+ *
+ * `mouth_energy_short` dit cet écart, et rien de plus. ⛔ CE MODULE NE
+ * RECALCULE PAS LES KILOCALORIES : elles demandent l'index de composition, qui
+ * n'est PAS dans le payload persisté. L'appelant MESURE (`ctx.energy`), la
+ * garde COMPARE et RAPPORTE. Et elle COMPTE au lieu de refuser dans les TROIS
+ * politiques : sous-nourrir est une question de QUALITÉ DE COMPOSITION, pas une
+ * incohérence du plan, et refuser un plan pour ça priverait des gens de dîner
+ * sur un seuil que personne n'a encore calibré.
  *
  * ── LA SÉVÉRITÉ N'EST PAS DANS LE MODULE, ELLE EST DANS LA POLITIQUE ─────
  * Trois politiques livrées (`LOT_1` compte tout, `LOT_2` refuse le noyau,
@@ -194,6 +214,16 @@ export interface GateContext {
     readonly cells: readonly { readonly day: string; readonly slot: string }[];
   }[];
   /**
+   * L'énergie SERVIE contre l'enveloppe, par bouche, MESURÉE PAR L'APPELANT.
+   * `null` = pas mesurable ici (index de composition absent) — et le compteur
+   * le DIT, au lieu de rendre un zéro qui ressemblerait à « tout va bien ».
+   */
+  readonly energy: readonly {
+    readonly memberId: string;
+    readonly envelopeKcal: number;
+    readonly deliveredKcal: number;
+  }[] | null;
+  /**
    * Le contrat de boîtes du foyer. `null` = les boîtes ne SONT PAS le contrat
    * (solo, ou foyer qui mange à la même table) — et alors les deux causes de
    * boîte ne sont PAS évaluées, ce que `checked.boxed_dishes` fait voir.
@@ -220,13 +250,14 @@ export interface GateContext {
 // ---------------------------------------------------------------------------
 
 /**
- * LES 21 CAUSES. Liste FERMÉE, orthographe exacte, ordre d'évaluation.
+ * LES 22 CAUSES. Liste FERMÉE, orthographe exacte, ordre d'évaluation.
  *
  * ⚠️ ELLES SE LISENT PAR FAMILLE, et chaque famille a son dénominateur :
  * références (`uses`, `box_items`, `session_ids`), fenêtre cuite
  * (`cooked_pairs`), sessions, cases et bouches (`cells`, `mouth_cells`),
  * boîtes (`boxed_dishes`), courses (`shopping_lines`, `perishable_lines`,
- * `ingredient_terms`), interdits (`table_dishes`, `boxed_dishes`).
+ * `ingredient_terms`), interdits (`table_dishes`, `boxed_dishes`), énergie
+ * servie (`energy_mouths`).
  */
 export const FINAL_GATE_CAUSES = [
   // ── références pendantes ────────────────────────────────────────────────
@@ -257,8 +288,23 @@ export const FINAL_GATE_CAUSES = [
   "title_promises_missing_preparation",
   "regime_forbidden_component",
   "house_rule_served",
+  // ── l'énergie servie ────────────────────────────────────────────────────
+  "mouth_energy_short",
 ] as const;
 export type FinalGateCause = typeof FINAL_GATE_CAUSES[number];
+
+/**
+ * LE SEUIL DE LA BOUCHE SOUS-NOURRIE : servi < enveloppe × ce ratio.
+ *
+ * ⚠️ 0,9 EST UN PROVISOIRE, À CALIBRER PAR LA PREMIÈRE CAMPAGNE RÉELLE. Aucun
+ * chiffre mesuré ne le justifie encore : il est posé pour que la MESURE
+ * commence, pas pour trancher. Il est EXPORTÉ exactement pour ça — un test
+ * l'épingle, et un commit ultérieur le déplace DÉLIBÉRÉMENT, à la vue de tous,
+ * au lieu de bouger un littéral enfoui au milieu d'une fonction. Et tant que
+ * `mouth_energy_short` est en `count` (les trois politiques livrées), un seuil
+ * faux coûte un CHIFFRE, jamais un plan.
+ */
+export const ENERGY_SHORT_RATIO = 0.9;
 
 /**
  * TROIS SÉVÉRITÉS, PAS DEUX.
@@ -321,8 +367,12 @@ export interface GateRepair {
 }
 
 /**
- * LES ONZE DÉNOMINATEURS. Voir l'en-tête : une cause à zéro dont le
- * dénominateur est à zéro n'est pas propre, elle n'a pas tourné.
+ * LES DOUZE DÉNOMINATEURS, PLUS UN TÉMOIN. Voir l'en-tête : une cause à zéro
+ * dont le dénominateur est à zéro n'est pas propre, elle n'a pas tourné.
+ *
+ * ⚠️ `energy_unmeasured` N'EST PAS UN DÉNOMINATEUR, c'est le témoin de ce qui
+ * a échappé à celui de l'énergie : on l'attend à ZÉRO sur un cas propre, et
+ * c'est `energy_mouths` — lui — qui doit être strictement positif.
  */
 export interface FinalGateChecked {
   /** Entrées `dishes[].uses[]` regardées. */
@@ -346,6 +396,19 @@ export interface FinalGateChecked {
   readonly table_dishes: number;
   /** Plats portant au moins une boîte. */
   readonly boxed_dishes: number;
+  /**
+   * Lignes d'énergie RÉELLEMENT comparées (enveloppe finie et > 0). C'EST LE
+   * DÉNOMINATEUR : `mouth_energy_short: 0` avec `energy_mouths: 0` veut dire
+   * « JAMAIS ÉVALUÉE », jamais « toutes les bouches sont nourries ».
+   */
+  readonly energy_mouths: number;
+  /**
+   * Bouches présentes mais NON mesurables : enveloppe absente, nulle, négative
+   * ou non finie — plus, quand `ctx.energy` vaut `null`, TOUTES les bouches du
+   * contexte. C'est ce qui empêche l'absence de mesure de se lire comme une
+   * mesure propre.
+   */
+  readonly energy_unmeasured: number;
 }
 
 export interface FinalGateCounters {
@@ -405,17 +468,27 @@ export const FINAL_GATE_POLICY_LOT_2: Readonly<Record<FinalGateCause, GateSeveri
     box_item_dangling: "repair",
     session_cites_unknown: "repair",
     title_promises_missing_preparation: "repair",
+    // ⛔ ÉCRIT, PAS HÉRITÉ DU DÉFAUT — parce que c'est un ARBITRAGE, pas un
+    // oubli. Sous-nourrir une bouche est une question de QUALITÉ DE
+    // COMPOSITION, pas une incohérence du plan : refuser là-dessus priverait
+    // des gens de dîner sur un seuil (`ENERGY_SHORT_RATIO`) que personne n'a
+    // encore calibré. On compte, on regarde la campagne, puis on tranche.
+    mouth_energy_short: "count",
   });
 
 /**
  * LOT 3 — LES COURSES MORDENT AUSSI. C'est le défaut ② (le poisson acheté
  * trois jours trop tôt) et l'ingrédient qu'aucune ligne n'achète.
+ *
+ * `mouth_energy_short` reste en `count` ici aussi, pour la raison écrite au
+ * lot 2 : le seuil n'est pas calibré.
  */
 export const FINAL_GATE_POLICY_LOT_3: Readonly<Record<FinalGateCause, GateSeverity>> =
   policyOf({
     ...FINAL_GATE_POLICY_LOT_2,
     perishable_bought_too_early: "refuse",
     ingredient_not_bought: "refuse",
+    mouth_energy_short: "count",
   });
 
 // ---------------------------------------------------------------------------
@@ -517,6 +590,23 @@ function covers(have: string, needle: string): boolean {
   if (!have || !needle) return false;
   if (have === needle) return true;
   return have.length >= 3 && needle.includes(have);
+}
+
+/**
+ * `1620` → `1 620`. ESPACE ASCII ORDINAIRE, et une implémentation locale :
+ * `toLocaleString` dépend de l'ICU du runtime, donc du poste — ce module est
+ * PUR et déterministe, un `detail` ne doit pas changer selon la machine.
+ */
+function spacedInt(value: number): string {
+  const rounded = Math.round(value);
+  const sign = rounded < 0 ? "-" : "";
+  const digits = String(Math.abs(rounded));
+  let out = "";
+  for (let i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 === 0) out += " ";
+    out += digits[i];
+  }
+  return sign + out;
 }
 
 function asFoodGroup(value: unknown): FoodGroupRef | null {
@@ -1282,6 +1372,45 @@ export function finalPlanGate(plan: GatePlan, ctx: GateContext): FinalGateOutcom
     });
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // ⑦ L'ÉNERGIE SERVIE — l'écart que le redimensionnement cachait
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ ON NE RECALCULE RIEN. Les kilocalories demandent l'index de composition,
+  // qui n'est pas dans le payload persisté : le chemin d'ADOPTION ne l'aura
+  // jamais. L'appelant MESURE, ce bloc COMPARE. Quand il n'a pas pu mesurer
+  // (`ctx.energy === null`), on ne rend PAS un zéro rassurant : on compte les
+  // bouches en `energy_unmeasured`, et le dénominateur reste à zéro.
+  let energyMouths = 0;
+  let energyUnmeasured = 0;
+  const energyRows = ctx.energy ?? null;
+  if (energyRows === null) {
+    energyUnmeasured = (ctx.mouths ?? []).length;
+  } else {
+    for (const row of energyRows) {
+      const envelope = Number(row?.envelopeKcal);
+      const delivered = Number(row?.deliveredKcal);
+      // Une enveloppe absente, nulle, négative ou non finie ne se DIVISE pas —
+      // et une ligne qu'on ne peut pas comparer n'est pas une ligne propre :
+      // elle n'entre pas au dénominateur, elle entre au témoin.
+      if (
+        !Number.isFinite(envelope) || envelope <= 0 || !Number.isFinite(delivered)
+      ) {
+        energyUnmeasured++;
+        continue;
+      }
+      energyMouths++;
+      if (delivered >= envelope * ENERGY_SHORT_RATIO) continue;
+      const percent = Math.round((delivered / envelope) * 100);
+      refuse("mouth_energy_short", {
+        member_id: String(row?.memberId ?? "") || null,
+        detail: `${String(row?.memberId ?? "(bouche sans nom)")}: ${
+          spacedInt(delivered)
+        } kcal servies pour ${spacedInt(envelope)} attendues (${percent} %)`,
+      });
+    }
+  }
+
   const counters: FinalGateCounters = {
     checked: {
       uses: usesChecked,
@@ -1295,6 +1424,8 @@ export function finalPlanGate(plan: GatePlan, ctx: GateContext): FinalGateOutcom
       ingredient_terms: usedTerms.size,
       table_dishes: tableDishes,
       boxed_dishes: boxedDishes,
+      energy_mouths: energyMouths,
+      energy_unmeasured: energyUnmeasured,
     },
     refusals_by_cause: byCause,
     repairs_by_kind: byKind,

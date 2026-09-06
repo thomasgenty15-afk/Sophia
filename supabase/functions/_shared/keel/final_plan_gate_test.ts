@@ -1,10 +1,10 @@
 // ══════════════════════════════════════════════════════════════════════════
 // LA GARDE FINALE DU PLAN — ce que ces épreuves tiennent.
 //
-//   1. LE CAS QUI PASSE, EN PREMIER. Zéro refus ET onze dénominateurs > 0.
+//   1. LE CAS QUI PASSE, EN PREMIER. Zéro refus ET douze dénominateurs > 0.
 //      C'est la garde anti-motif du dépôt : une garde qui refuse tout, et une
 //      garde qui n'évalue rien, ressemblent toutes deux à une garde qui
-//      marche. Sans cette épreuve, les vingt et une suivantes ne prouvent rien.
+//      marche. Sans cette épreuve, les vingt-deux suivantes ne prouvent rien.
 //   2. UNE ÉPREUVE PAR CAUSE, par déformation MINIMALE du cas propre — et à
 //      chaque fois on vérifie qu'AUCUNE AUTRE cause ne part. Une garde qui
 //      allume trois voyants pour un défaut est illisible en production.
@@ -21,6 +21,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   applyFinalGateRepairs,
+  ENERGY_SHORT_RATIO,
   FINAL_GATE_CAUSES,
   FINAL_GATE_POLICY_LOT_1,
   FINAL_GATE_POLICY_LOT_2,
@@ -73,7 +74,7 @@ function gateWith(
 }
 
 /**
- * ⛔ ON ÉPINGLE LES VINGT ET UNE CAUSES, PAS SEULEMENT CELLE QU'ON ATTEND.
+ * ⛔ ON ÉPINGLE LES VINGT-DEUX CAUSES, PAS SEULEMENT CELLE QU'ON ATTEND.
  * Une assertion sur la seule cause visée laisserait passer une garde qui en
  * allume trois : le bruit d'une garde est ce qui la fait débrancher.
  */
@@ -96,7 +97,7 @@ function assertCauses(
 // ① LE CAS QUI PASSE — d'abord, toujours
 // ---------------------------------------------------------------------------
 
-Deno.test("le plan propre du foyer ne déclenche AUCUNE des 21 causes", () => {
+Deno.test("le plan propre du foyer ne déclenche AUCUNE des 22 causes", () => {
   const outcome = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
   assertCauses(outcome, {});
   assertEquals(outcome.refusals.length, 0);
@@ -104,13 +105,17 @@ Deno.test("le plan propre du foyer ne déclenche AUCUNE des 21 causes", () => {
   assertEquals(outcome.ok, true);
 });
 
-Deno.test("le cas propre a fait TOURNER les onze dénominateurs (aucun à zéro)", () => {
+Deno.test("le cas propre a fait TOURNER les douze dénominateurs (aucun à zéro)", () => {
   const { checked } = finalPlanGate(
     CLEAN_HOUSEHOLD_PLAN,
     CLEAN_HOUSEHOLD_CONTEXT,
   ).counters;
   // ⛔ SANS CETTE ÉPREUVE, la précédente serait vraie d'une garde débranchée.
+  // `energy_unmeasured` est le SEUL champ de `checked` qui n'est pas un
+  // dénominateur : c'est le témoin de ce qui a échappé à la mesure, et sur un
+  // cas propre il vaut zéro. L'exclure ici est ce qui lui donne son sens.
   for (const [name, value] of Object.entries(checked)) {
+    if (name === "energy_unmeasured") continue;
     assert(value > 0, `dénominateur « ${name} » à zéro : la règle n'a pas tourné`);
   }
   // Les valeurs exactes, pour que la déformation d'un cas se voie.
@@ -125,6 +130,9 @@ Deno.test("le cas propre a fait TOURNER les onze dénominateurs (aucun à zéro)
   assertEquals(checked.ingredient_terms, 10);
   assertEquals(checked.table_dishes, 1);
   assertEquals(checked.boxed_dishes, 2);
+  // Les quatre bouches ont été COMPARÉES, et aucune n'a échappé à la mesure.
+  assertEquals(checked.energy_mouths, 4);
+  assertEquals(checked.energy_unmeasured, 0);
 });
 
 Deno.test("le plan solo passe, et les boîtes n'y sont JAMAIS réclamées", () => {
@@ -462,6 +470,119 @@ Deno.test("title_promises_missing_preparation : un plat qui CITE sa casserole ne
 });
 
 // ---------------------------------------------------------------------------
+// ⑧ bis L'ÉNERGIE SERVIE — l'écart que le redimensionnement cachait
+//
+// Le moteur ne redimensionne plus : les grammes servis sont ceux que le modèle
+// a composés, et les plans ne nourrissent que 65 à 72 % de leur enveloppe. La
+// garde ne recalcule RIEN — l'appelant mesure, elle compare — et elle COMPTE,
+// elle ne refuse pas : le seuil n'est pas calibré, et un plan refusé est un
+// dîner en moins.
+// ---------------------------------------------------------------------------
+
+Deno.test("mouth_energy_short : une bouche sous le ratio, et elle seule", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.energy = [
+      { memberId: PAUL, envelopeKcal: 2250, deliveredKcal: 1620 },
+      { memberId: CLAIRE, envelopeKcal: 2050, deliveredKcal: 1975 },
+      { memberId: LEO, envelopeKcal: 1850, deliveredKcal: 1790 },
+      { memberId: NORA, envelopeKcal: 1600, deliveredKcal: 1560 },
+    ];
+  });
+  assertCauses(outcome, { mouth_energy_short: 1 });
+  assertEquals(outcome.counters.checked.energy_mouths, 4);
+  assertEquals(outcome.counters.checked.energy_unmeasured, 0);
+  const row = outcome.refusals[0];
+  assertEquals(row.member_id, PAUL);
+  assertEquals(row.term, null);
+  assertEquals(row.dish, null);
+  // Les DEUX nombres et le pourcentage : un compteur qui ne dit que « court »
+  // n'apprend rien sur l'ampleur, qui est justement ce qu'on veut calibrer.
+  assertEquals(
+    row.detail,
+    `${PAUL}: 1 620 kcal servies pour 2 250 attendues (72 %)`,
+  );
+});
+
+Deno.test("mouth_energy_short : EXACTEMENT au ratio ne mord pas, un kcal dessous mord", () => {
+  const exact = gateWith((_plan, ctx) => {
+    ctx.energy = [
+      { memberId: PAUL, envelopeKcal: 2000, deliveredKcal: 2000 * ENERGY_SHORT_RATIO },
+    ];
+  });
+  assertCauses(exact, {});
+  assertEquals(exact.counters.checked.energy_mouths, 1);
+
+  // La moitié qui rend la précédente lisible : sans elle, « ne mord pas »
+  // serait aussi vrai d'une règle débranchée.
+  const under = gateWith((_plan, ctx) => {
+    ctx.energy = [
+      {
+        memberId: PAUL,
+        envelopeKcal: 2000,
+        deliveredKcal: 2000 * ENERGY_SHORT_RATIO - 1,
+      },
+    ];
+  });
+  assertCauses(under, { mouth_energy_short: 1 });
+});
+
+Deno.test("ctx.energy à null : rien ne mord, et le compteur DIT que rien n'a été mesuré", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.energy = null;
+  });
+  assertCauses(outcome, {});
+  // ⛔ LA MOITIÉ QUI COMPTE : zéro refus AVEC un dénominateur à zéro veut dire
+  // « jamais évaluée », et `energy_unmeasured` est ce qui le rend lisible.
+  assertEquals(outcome.counters.checked.energy_mouths, 0);
+  assertEquals(
+    outcome.counters.checked.energy_unmeasured,
+    CLEAN_HOUSEHOLD_CONTEXT.mouths.length,
+  );
+  assertEquals(outcome.counters.checked.energy_unmeasured, 4);
+});
+
+Deno.test("une enveloppe à 0, NaN ou négative ne divise rien et ne refuse rien", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.energy = [
+      { memberId: PAUL, envelopeKcal: 0, deliveredKcal: 1200 },
+      { memberId: CLAIRE, envelopeKcal: Number.NaN, deliveredKcal: 1200 },
+      { memberId: LEO, envelopeKcal: -2000, deliveredKcal: 1200 },
+      { memberId: NORA, envelopeKcal: 1600, deliveredKcal: 1560 },
+    ];
+  });
+  assertCauses(outcome, {});
+  // Les trois lignes fautives ne gonflent PAS le dénominateur : elles vont au
+  // témoin. Les compter comme évaluées ferait passer une donnée absente pour
+  // une bouche correctement nourrie.
+  assertEquals(outcome.counters.checked.energy_mouths, 1);
+  assertEquals(outcome.counters.checked.energy_unmeasured, 3);
+});
+
+Deno.test("mouth_energy_short ne fait PAS tomber le plan, aux trois lots", () => {
+  for (
+    const policy of [
+      FINAL_GATE_POLICY_LOT_1,
+      FINAL_GATE_POLICY_LOT_2,
+      FINAL_GATE_POLICY_LOT_3,
+    ]
+  ) {
+    const plan = planCopy();
+    const ctx = contextCopy();
+    ctx.policy = { ...policy };
+    ctx.energy = [
+      { memberId: PAUL, envelopeKcal: 2250, deliveredKcal: 1620 },
+      { memberId: CLAIRE, envelopeKcal: 2050, deliveredKcal: 1975 },
+      { memberId: LEO, envelopeKcal: 1850, deliveredKcal: 1790 },
+      { memberId: NORA, envelopeKcal: 1600, deliveredKcal: 1560 },
+    ];
+    const outcome = finalPlanGate(plan as GatePlan, ctx as GateContext);
+    assertEquals(outcome.counters.refusals_by_cause.mouth_energy_short, 1);
+    assertEquals(outcome.refusals[0].severity, "count");
+    assertEquals(outcome.ok, true, "sous-nourrir se COMPTE, ça ne refuse pas");
+  }
+});
+
+// ---------------------------------------------------------------------------
 // ⑨ LES RÉPARATIONS
 // ---------------------------------------------------------------------------
 
@@ -565,6 +686,17 @@ Deno.test("politiques : les sévérités épinglées, une par une", () => {
   assertEquals(FINAL_GATE_POLICY_LOT_3.perishable_bought_too_early, "refuse");
   assertEquals(FINAL_GATE_POLICY_LOT_3.ingredient_not_bought, "refuse");
   assertEquals(FINAL_GATE_POLICY_LOT_3.uses_dangling, "repair");
+  // ⛔ LES TROIS, NOMMÉMENT. `mouth_energy_short` compte partout, y compris là
+  // où tout le reste mord : c'est un arbitrage, pas un défaut de la liste.
+  assertEquals(FINAL_GATE_POLICY_LOT_1.mouth_energy_short, "count");
+  assertEquals(FINAL_GATE_POLICY_LOT_2.mouth_energy_short, "count");
+  assertEquals(FINAL_GATE_POLICY_LOT_3.mouth_energy_short, "count");
+});
+
+Deno.test("ENERGY_SHORT_RATIO vaut 0,9 — provisoire, épinglé pour qu'on le déplace exprès", () => {
+  // Le seuil n'est calibré par aucune campagne : il est exporté et épinglé
+  // pour qu'un futur commit le bouge DÉLIBÉRÉMENT, pas par glissement.
+  assertEquals(ENERGY_SHORT_RATIO, 0.9);
 });
 
 Deno.test("LOT_1 ne porte AUCUN « refuse » — c'est le lot d'observation", () => {
@@ -575,7 +707,7 @@ Deno.test("LOT_1 ne porte AUCUN « refuse » — c'est le lot d'observation", ()
       `« ${cause} » mord sous LOT_1, qui ne doit rien refuser`,
     );
   }
-  // Et les trois politiques couvrent les 21 causes, sans trou.
+  // Et les trois politiques couvrent les 22 causes, sans trou.
   for (const cause of FINAL_GATE_CAUSES) {
     assert(FINAL_GATE_POLICY_LOT_2[cause] !== undefined);
     assert(FINAL_GATE_POLICY_LOT_3[cause] !== undefined);

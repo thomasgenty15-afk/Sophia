@@ -24,7 +24,11 @@
  * · une exclusion de table (« champignons ») qu'aucun plat ne sert ;
  * · une exclusion de bouche (« coriandre ») pour Nora ;
  * · une règle de maison (« nutella ») ;
- * · un garde-manger (« huile d'olive »).
+ * · un garde-manger (« huile d'olive ») ;
+ * · QUATRE LIGNES D'ÉNERGIE RÉELLES, une par bouche, toutes AU-DESSUS du
+ *   ratio. Un `ctx.energy` vide passerait aussi — et ne prouverait rien : ce
+ *   serait une case qui passe parce que la règle n'a pas tourné, exactement ce
+ *   que l'en-tête de la garde interdit.
  * Une garde qu'on ne fait tourner que sur des vocabulaires VIDES ne prouve
  * rien : elle rend le même zéro qu'une garde débranchée.
  *
@@ -266,6 +270,14 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
     { memberId: LEO, regime: null, cells: [...HOUSEHOLD_CELLS] },
     { memberId: NORA, regime: "vegetarian", cells: [...HOUSEHOLD_CELLS] },
   ],
+  // Servi ≥ 90 % de l'enveloppe pour les quatre : la règle TOURNE (dénominateur
+  // à 4) et ne mord pas. Les ratios sont 97 %, 96 %, 97 % et 98 %.
+  energy: [
+    { memberId: PAUL, envelopeKcal: 2450, deliveredKcal: 2380 },
+    { memberId: CLAIRE, envelopeKcal: 2050, deliveredKcal: 1975 },
+    { memberId: LEO, envelopeKcal: 1850, deliveredKcal: 1790 },
+    { memberId: NORA, envelopeKcal: 1600, deliveredKcal: 1560 },
+  ],
   boxContract: { expected: 8, roster: [PAUL, CLAIRE, LEO, NORA] },
   exclusions: {
     // Armée, et elle ne mord pas : aucun plat ne sert de champignons.
@@ -351,6 +363,9 @@ export const SOLO_CONTEXT: GateContext = {
   mouths: [
     { memberId: SOLO, regime: null, cells: [{ day: "sun", slot: "breakfast" }] },
   ],
+  // Une ligne RÉELLE, au-dessus du ratio (96 %) : le solo aussi doit faire
+  // tourner la règle, sinon son cas propre serait propre par vacuité.
+  energy: [{ memberId: SOLO, envelopeKcal: 2100, deliveredKcal: 2020 }],
   boxContract: null,
   exclusions: { table: [], byMember: [] },
   strictestRegime: null,
