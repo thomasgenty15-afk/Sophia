@@ -144,7 +144,12 @@ import {
 // ⛔ IL PREND LE VERDICT, PAS LE TEXTE. `body.draft_note` brut rouvrirait dans
 // un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
 // interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
-import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import {
+  classifyAndPersistDraftNote,
+  classifyDraftNoteEarly,
+  type DraftNoteEarlyClassification,
+  draftNoteBeltItems,
+} from "../_shared/keel/draft_note_classify_io.ts";
 import {
   foodTermsOf,
   planVocabularyOf,
@@ -2040,6 +2045,11 @@ Deno.serve(async (req) => {
     // la garde d'entrée dans un second appel. Le type ferme la porte, et
     // remplacer cette variable par une chaîne ne compilerait pas.
     let draftNoteVerdict: DraftNoteVerdict | null = null;
+    // ⟳ 2026-09-06 — LA NOTE EST CLASSÉE AVANT LE PLAN, en parallèle de
+    // l'appel principal, pour que ses exclusions mordent le plan qu'elle
+    // annote (cas Léa/Marc : « Léa n'aime pas les asperges » ne servait à rien
+    // pour CE plan, et tout au plan suivant). `null` = pas de note.
+    let draftNoteEarly: Promise<DraftNoteEarlyClassification> | null = null;
     if (hasDraftNote(body.draft_note)) {
       const note = readDraftNote({
         raw: body.draft_note,
@@ -2516,6 +2526,25 @@ Deno.serve(async (req) => {
     // le texte ACCEPTÉ (après relance) est gardé pour en lire la clé.
     const soloSystemPrompt = built.systemPrompt + "\n\n" +
       EXPLANATION_SCHEMA_BLOCK_SOLO.join("\n");
+    // ⟳ 2026-09-06 — LE CLASSIFIEUR DE LA NOTE PART ICI, SANS `await`, en
+    // parallèle de l'appel principal, POUR LA CEINTURE de ce plan. ⚠️ Sur cette
+    // lane la persistance (plus bas) garde SON appel, avec les aliments du plan
+    // écrit (`planVocabularyOf`) : c'est la lane où la question « laquelle ? »
+    // compte, et une réponse obtenue sans cette liste ne doit pas être écrite
+    // comme si le modèle l'avait eue. Deux appels donc, pour deux questions.
+    // (Pas le `if (draftNoteVerdict !== null) {` de la persistance : c'est
+    // ce bloc-là que `draft_note_classify_wiring_test.ts` ampute pour prouver
+    // que son épingle mord, et il doit rester le premier à porter ce nom.)
+    draftNoteEarly = draftNoteVerdict === null
+      ? null
+      : classifyDraftNoteEarly({
+        userId,
+        note: draftNoteVerdict,
+        members: [],
+        contentLocale: built.contentLocale,
+        planFoods: [],
+        requestId,
+      });
     let mealSourceText = "";
     let result: unknown;
     try {
@@ -2751,12 +2780,29 @@ Deno.serve(async (req) => {
     // UNE relance qui nomme le plat et la raison — puis, si la morsure survit,
     // le plat est RETIRÉ et sa case redevient un trou (`empty_slots`), que la
     // relance des cases vides recompose. Jamais servi, jamais compté.
+    // ⟳ 2026-09-06 — LA NOTE FRAÎCHE MORD AUSSI (voir le lancement, plus haut).
+    const noteBelt = draftNoteEarly === null
+      ? null
+      : draftNoteBeltItems(await draftNoteEarly, {
+        note: draftNoteVerdict as DraftNoteVerdict,
+        today: todayDate,
+        targetWeek: startsOn,
+        members: [],
+        planFoods: [],
+      });
+    const beltItems = [
+      ...routedRetained.composition,
+      ...(noteBelt?.items ?? []),
+    ];
     const soloExclusionTerms = exclusionTermsFor({
-      items: routedRetained.composition,
+      items: beltItems,
       subject: HOUSEHOLD_SUBJECT,
     });
     const soloExclusionBelt = {
       terms: soloExclusionTerms.length,
+      // ⟳ 2026-09-06 — ce que la note FRAÎCHE a apporté à la ceinture.
+      note_items: noteBelt?.items.length ?? 0,
+      note_refusal: noteBelt?.refusal ?? null,
       bites_before: 0,
       retried: false,
       bites_after: 0,
@@ -4872,6 +4918,8 @@ Deno.serve(async (req) => {
         planFoods: planVocabularyOf(dishesWritten, preparationsWritten),
         source: "draft_note",
         requestId,
+        // ⛔ PAS DE `classified` ICI, EXPRÈS (2026-09-06) : l'appel précoce n'a
+        // pas eu `planFoods`, celui-ci les a. Voir le lancement, plus haut.
       });
     }
 

@@ -71,6 +71,7 @@ import {
   notifySafetyNotWritten,
 } from "./memory_clarification_io.ts";
 import type { RecapKept } from "./memory_recap.ts";
+import type { RetainedItem } from "./retained_item.ts";
 // ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
 // de plan EST une allergie: elle part dans une table qui a sa ceinture.
 import { safetyOf } from "./draft_note_safety.ts";
@@ -182,6 +183,178 @@ export type DraftNoteLlmRunner = (
 ) => Promise<unknown>;
 
 // ===========================================================================
+// LA CLASSIFICATION PRÉCOCE — le MÊME appel, lancé AVANT le plan, pour la
+// ceinture — 2026-09-06
+// ===========================================================================
+
+/**
+ * CE QUE LE MODÈLE A RENDU, et rien d'écrit.
+ *
+ * Mesuré (cas Léa/Marc, tirs ASP1/ASP2 du 2026-09-06) : la note « Léa n'aime
+ * pas les asperges » n'était qu'une phrase de prompt pour le plan qu'elle
+ * annotait. Classée APRÈS l'écriture, son exclusion n'atteignait la ceinture
+ * par bouche qu'au plan SUIVANT — la ceinture ne lit que `retained_items`
+ * déjà en base, et la note n'y était pas encore. Le plan annoté servait donc
+ * les asperges à Léa, avec une explication qui disait le contraire.
+ *
+ * Le remède n'est pas un second appel : c'est le MÊME appel, lancé en
+ * parallèle de la génération principale (qui dure des minutes ; celui-ci
+ * moins de 25 s). `draftNoteBeltItems` en tire ce que la ceinture peut mordre ;
+ * `classifyAndPersistDraftNote({ classified })` l'écrit après le plan, sans
+ * rappeler le modèle. Un échec est nommé et PORTÉ : la ceinture n'a alors rien
+ * de plus, et la persistance rend exactement le refus qu'elle rendait avant.
+ */
+export type DraftNoteEarlyClassification =
+  | { readonly ok: true; readonly model: string; readonly raw: unknown }
+  | {
+    readonly ok: false;
+    readonly model: string;
+    readonly reason: "bad_args" | "no_note" | "model_unavailable";
+  };
+
+function usableOf(note: DraftNoteVerdict | null | undefined): string {
+  return typeof note?.usable === "string" ? note.usable.trim() : "";
+}
+
+/**
+ * L'APPEL, ET SEULEMENT LUI. Ni `admin`, ni écriture : ce qui sort est une
+ * réponse brute, à lire avec `readDraftNoteClassification` (par
+ * `draftNoteBeltItems` ou par la persistance).
+ *
+ * @param planFoods les aliments du plan annoté. Lancé AVANT le plan, l'appelant
+ *   n'en a pas : `[]` est sa réponse, et le prompt dit alors au modèle qu'il
+ *   n'a pas le droit de demander « laquelle ? ».
+ */
+export async function classifyDraftNoteEarly(args: {
+  userId: string;
+  note: DraftNoteVerdict;
+  members: readonly DraftNoteMember[];
+  contentLocale: string;
+  planFoods: readonly string[];
+  requestId?: string;
+  /** ⚠️ Test seulement. Ne change PAS le modèle demandé. */
+  run?: DraftNoteLlmRunner;
+}): Promise<DraftNoteEarlyClassification> {
+  // ⛔ APPELÉ HORS DE TOUTE BRANCHE, ET AVANT TOUT REFUS.
+  const model = keelGenerationModel();
+  const userId = String(args?.userId ?? "").trim();
+  if (!userId || !Array.isArray(args?.members)) {
+    warn("bad_args", { user_id: userId, model });
+    return { ok: false, model, reason: "bad_args" };
+  }
+  const usable = usableOf(args.note);
+  if (usable === "") {
+    warn("no_note", { user_id: userId, model });
+    return { ok: false, model, reason: "no_note" };
+  }
+  const systemPrompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const userPrompt = buildDraftNoteClassifyPrompt({
+    note: usable,
+    contentLocale: args.contentLocale,
+    members: args.members,
+    planFoods: args.planFoods,
+  });
+
+  // ── L'APPEL. UN ÉCHEC EST NOMMÉ ET COMPTÉ, JAMAIS AVALÉ ─────────────────
+  try {
+    const raw = args.run
+      ? await args.run(systemPrompt, userPrompt, {
+        model,
+        requestId: args.requestId,
+        userId,
+      })
+      : await generateWithGemini(systemPrompt, userPrompt, 0, true, [], "auto", {
+        requestId: args.requestId,
+        userId,
+        source: DRAFT_NOTE_CLASSIFY_SOURCE,
+        model,
+        forceInitialModel: true,
+        httpTimeoutMs: DRAFT_NOTE_CLASSIFY_TIMEOUT_MS,
+        maxRetries: 1,
+      });
+    return { ok: true, model, raw };
+  } catch (error) {
+    warn("model_unavailable", {
+      user_id: userId,
+      model,
+      error: messageOf(error),
+    });
+    return { ok: false, model, reason: "model_unavailable" };
+  }
+}
+
+/** Ce que la ceinture a reçu de la note, pour le compteur de la lane. */
+export interface DraftNoteBeltItems {
+  readonly items: readonly RetainedItem[];
+  /** `retained_items` durables (porte ①). */
+  readonly durable: number;
+  /** L'encart « pour le prochain plan » — et le prochain plan, c'est celui-ci. */
+  readonly nextPlan: number;
+  readonly exclude: number;
+  readonly prefer: number;
+  /** `null` quand la réponse s'est lue ; sinon le motif, celui de la persistance. */
+  readonly refusal: string | null;
+}
+
+const NO_BELT_ITEMS: DraftNoteBeltItems = {
+  items: [],
+  durable: 0,
+  nextPlan: 0,
+  exclude: 0,
+  prefer: 0,
+  refusal: null,
+};
+
+/**
+ * LES ITEMS QUE LA CEINTURE PEUT MORDRE DANS LE PLAN ANNOTÉ.
+ *
+ * Les durables (« Léa n'aime pas les asperges ») ET ceux de l'encart (« pas
+ * de poisson cette semaine ») : l'encart vise le prochain plan, et le prochain
+ * plan est celui qu'on est en train de composer. Les deux portent leur
+ * `subject` (`household` ou `member:<uuid>`) : c'est lui que
+ * `exclusionTermsFor` lit, bouche par bouche.
+ *
+ * Même lecteur que la persistance, mêmes arguments : ce qui mord ici est
+ * exactement ce qui sera écrit après le plan — pas une lecture à côté.
+ */
+export function draftNoteBeltItems(
+  classified: DraftNoteEarlyClassification,
+  args: {
+    note: DraftNoteVerdict;
+    today: string;
+    targetWeek: string;
+    members: readonly DraftNoteMember[];
+    planFoods: readonly string[];
+    now?: string;
+  },
+): DraftNoteBeltItems {
+  if (!classified.ok) return { ...NO_BELT_ITEMS, refusal: classified.reason };
+  const outcome = readDraftNoteClassification({
+    raw: classified.raw,
+    today: args.today,
+    targetWeek: args.targetWeek,
+    members: args.members,
+    note: usableOf(args.note),
+    writtenAt: args.now ?? new Date().toISOString(),
+    planFoods: args.planFoods,
+  });
+  if (!outcome.ok) {
+    return { ...NO_BELT_ITEMS, refusal: outcome.refusal ?? "unreadable_payload" };
+  }
+  const durable = outcome.classification.preferences.items;
+  const nextPlan = outcome.classification.nextPlan.entries.map((e) => e.item);
+  const items = [...durable, ...nextPlan];
+  return {
+    items,
+    durable: durable.length,
+    nextPlan: nextPlan.length,
+    exclude: items.filter((i) => i.kind === "food.exclude").length,
+    prefer: items.filter((i) => i.kind === "food.prefer").length,
+    refusal: null,
+  };
+}
+
+// ===========================================================================
 // LE POINT D'ENTRÉE — celui que les deux générateurs appellent
 // ===========================================================================
 
@@ -198,6 +371,14 @@ export type DraftNoteLlmRunner = (
  * @param now l'INSTANT de l'écriture (ISO). Par défaut l'horloge de ce module
  *   — c'est de l'I/O, il en a une. Un test le passe pour le figer. C'est
  *   contre lui que `validated_at` se compare (règle de vie de l'encart).
+ * @param classified la réponse de `classifyDraftNoteEarly`, quand l'appelant
+ *   l'a lancée AVANT le plan pour la ceinture (2026-09-06). Le modèle n'est
+ *   alors PAS rappelé : ce qui est écrit est ce qui a mordu. ⚠️ Ne la passer
+ *   que si `members`/`planFoods`/`contentLocale` sont ceux de l'appel précoce —
+ *   le lecteur les reçoit d'ici, et une liste d'aliments différente rendrait
+ *   la question « laquelle ? » possible à la lecture alors que le modèle n'y
+ *   avait pas droit. La lane solo, qui passe les aliments du plan écrit, ne la
+ *   passe donc pas.
  */
 export async function classifyAndPersistDraftNote(args: {
   admin: MinimalClient;
@@ -241,9 +422,13 @@ export async function classifyAndPersistDraftNote(args: {
   now?: string;
   /** ⚠️ Test seulement. Ne change PAS le modèle demandé — voir le type. */
   run?: DraftNoteLlmRunner;
+  classified?: DraftNoteEarlyClassification;
 }): Promise<DraftNoteClassifyResult> {
-  // ⛔ APPELÉ HORS DE TOUTE BRANCHE, ET AVANT TOUT REFUS.
-  const model = keelGenerationModel();
+  // ⛔ LE MODÈLE QUI SERAIT DEMANDÉ, pour les refus d'AVANT l'appel. Le modèle
+  // RÉELLEMENT demandé est celui de `classified` (2026-09-06) : c'est lui que
+  // le résultat rend, et `classifyDraftNoteEarly` l'appelle hors de toute
+  // branche.
+  const modelIfAsked = keelGenerationModel();
 
   // Les deux « rien ne s'est passé », nommés une fois pour tous les refus.
   const NO_CLARIFICATION = { asked: false, reason: null, id: null } as const;
@@ -258,7 +443,7 @@ export async function classifyAndPersistDraftNote(args: {
   };
   const empty = EMPTY_DRAFT_NOTE_CLASSIFICATION;
   const bail = (reason: DraftNoteClassifyReason): DraftNoteClassifyResult => {
-    warn(reason, { user_id: String(args?.userId ?? ""), model });
+    warn(reason, { user_id: String(args?.userId ?? ""), model: modelIfAsked });
     return {
       ok: false,
       reason,
@@ -266,7 +451,7 @@ export async function classifyAndPersistDraftNote(args: {
       kept: 0,
       refused: 0,
       classification: empty,
-      model,
+      model: modelIfAsked,
       write: null,
       safety: noSafety,
       clarification: NO_CLARIFICATION,
@@ -283,41 +468,24 @@ export async function classifyAndPersistDraftNote(args: {
     : "";
   if (usable === "") return bail("no_note");
 
-  const systemPrompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  const userPrompt = buildDraftNoteClassifyPrompt({
-    note: usable,
-    contentLocale: args.contentLocale,
+  // ── L'APPEL — ou sa réponse déjà obtenue AVANT le plan (2026-09-06) ──────
+  // Un refus du précoce a déjà été journalisé par lui : on le RAPPORTE, on ne
+  // le compte pas deux fois.
+  const classified = args.classified ?? await classifyDraftNoteEarly({
+    userId,
+    note: args.note,
     members: args.members,
+    contentLocale: args.contentLocale,
     planFoods: args.planFoods,
+    requestId: args.requestId,
+    run: args.run,
   });
-
-  // ── L'APPEL. UN ÉCHEC EST NOMMÉ ET COMPTÉ, JAMAIS AVALÉ ─────────────────
-  let raw: unknown;
-  try {
-    raw = args.run
-      ? await args.run(systemPrompt, userPrompt, {
-        model,
-        requestId: args.requestId,
-        userId,
-      })
-      : await generateWithGemini(systemPrompt, userPrompt, 0, true, [], "auto", {
-        requestId: args.requestId,
-        userId,
-        source: DRAFT_NOTE_CLASSIFY_SOURCE,
-        model,
-        forceInitialModel: true,
-        httpTimeoutMs: DRAFT_NOTE_CLASSIFY_TIMEOUT_MS,
-        maxRetries: 1,
-      });
-  } catch (error) {
-    warn("model_unavailable", {
-      user_id: userId,
-      model,
-      error: messageOf(error),
-    });
+  // ⚠️ LE MODÈLE RÉELLEMENT DEMANDÉ — celui de l'appel, précoce ou non.
+  const model = classified.model;
+  if (!classified.ok) {
     return {
       ok: false,
-      reason: "model_unavailable",
+      reason: classified.reason,
       proposed: 0,
       kept: 0,
       refused: 0,
@@ -329,6 +497,7 @@ export async function classifyAndPersistDraftNote(args: {
       notice: NO_NOTICE,
     };
   }
+  const raw = classified.raw;
 
   const outcome = readDraftNoteClassification({
     raw,

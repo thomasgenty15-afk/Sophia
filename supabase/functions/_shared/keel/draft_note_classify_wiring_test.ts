@@ -211,8 +211,22 @@ function blockSpan(src: string, header: string): Span {
 // ---------------------------------------------------------------------------
 
 const CALLEE = "classifyAndPersistDraftNote";
-const IMPORT_LINE =
+// ⟳ 2026-09-06 — L'IMPORT PORTE AUSSI LE PRÉCOCE (`classifyDraftNoteEarly`,
+// `draftNoteBeltItems`) : la note est classée AVANT le plan pour la ceinture.
+// La ligne reste épinglée ENTIÈRE : retirer l'un des quatre noms rougit.
+const IMPORT_LINE_GENERATOR = [
+  "import {",
+  "  classifyAndPersistDraftNote,",
+  "  classifyDraftNoteEarly,",
+  "  type DraftNoteEarlyClassification,",
+  "  draftNoteBeltItems,",
+  '} from "../_shared/keel/draft_note_classify_io.ts";',
+].join("\n");
+// Le bilan n'a pas de plan à ceinturer : il n'importe que la persistance.
+const IMPORT_LINE_FEEDBACK =
   'import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";';
+const importLineFor = (lane: string): string =>
+  lane === "feedback" ? IMPORT_LINE_FEEDBACK : IMPORT_LINE_GENERATOR;
 const CALL_HEADER = "if (draftNoteVerdict !== null) {";
 const VERDICT_DECL = "let draftNoteVerdict: DraftNoteVerdict | null = null;";
 const VERDICT_ASSIGN = "draftNoteVerdict = note;";
@@ -255,7 +269,7 @@ function callFields(src: string, lane: string, from = 0): Map<string, string> {
 function assertWiredCommon(src: string, lane: string): void {
   // ── ① LE MODULE EST IMPORTÉ ────────────────────────────────────────────
   assert(
-    src.includes(IMPORT_LINE),
+    src.includes(importLineFor(lane)),
     `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR N'EST PLUS IMPORTÉ. ` +
       `\`draft_note_classify_io.ts\` redevient un module sans appelant: ` +
       `41 tests verts, un run modèle réel à 200, et zéro effet sur le ` +
@@ -565,7 +579,7 @@ const CUTS: readonly Cut[] = [
   {
     name: "l'import du classifieur disparaît",
     expects: "N'EST PLUS IMPORTÉ",
-    apply: (src) => src.replace(IMPORT_LINE, ""),
+    apply: (src) => src.replace(IMPORT_LINE_GENERATOR, ""),
   },
   {
     // ⚠️ L'ANCRE EST LA SORTIE D'APERÇU LA PLUS BASSE. Placé au-dessus d'elle,
@@ -782,7 +796,7 @@ const FEEDBACK: Lane = {
   rel: "keel-plan-feedback-v1/index.ts",
   assertWired(src) {
     assert(
-      src.includes(IMPORT_LINE),
+      src.includes(IMPORT_LINE_FEEDBACK),
       "LANE FEEDBACK — LE CLASSIFIEUR N'EST PLUS IMPORTÉ. Le champ libre du " +
         "bilan (`anything_else`) redevient une colonne qu'on écrit et que " +
         "personne ne lit: sept réponses par plan, rangées, jamais rangeantes.",
@@ -887,7 +901,7 @@ const FEEDBACK: Lane = {
       // cherchée: la mutation serait INOPÉRANTE et le rouge n'arriverait
       // jamais — la cicatrice « un audit d'appelants doit retirer les
       // commentaires », dans l'autre sens.
-      apply: (src) => src.replace(IMPORT_LINE, ""),
+      apply: (src) => src.replace(IMPORT_LINE_FEEDBACK, ""),
     },
     {
       // ⚠️ ON DÉPLACE L'APPEL, ON NE SUPPRIME PAS LA GARDE. Retirer

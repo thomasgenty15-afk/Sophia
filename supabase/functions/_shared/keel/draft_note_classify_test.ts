@@ -48,11 +48,13 @@ import {
 } from "./draft_note_classify.ts";
 import {
   classifyAndPersistDraftNote,
+  classifyDraftNoteEarly,
+  draftNoteBeltItems,
   DRAFT_NOTE_CLASSIFY_SOURCE,
   DRAFT_NOTE_CLASSIFY_TIMEOUT_MS,
 } from "./draft_note_classify_io.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
-import { canProduce, defaultScopeFor } from "./retained_item.ts";
+import { canProduce, defaultScopeFor, HOUSEHOLD_SUBJECT } from "./retained_item.ts";
 import { KEEL_GENERATION_MODEL_DEFAULT } from "./generation_model.ts";
 
 // ---------------------------------------------------------------------------
@@ -1585,4 +1587,130 @@ Deno.test("⑤ PORTÉE — ⟳ banc SC3 : « je suis végétarienne » est nomm�
   assert(line, "la règle SCOPE a perdu son « ONLY »");
   assert(/NEVER "scope" for "I am vegetarian", "je suis végétarienne"/.test(line!), line);
   assert(/has said it for good/.test(line!), line);
+});
+
+// ===========================================================================
+// ⟳ 2026-09-06 — LE PRÉCOCE : la note classée AVANT le plan, pour la ceinture
+// ===========================================================================
+
+function earlyArgs(trace: Trace, lists: Record<string, unknown> = FULL_LISTS) {
+  return {
+    userId: USER,
+    note: usable(),
+    members: [],
+    contentLocale: "fr-FR",
+    planFoods: [],
+    run: runnerReturning(lists, trace),
+  };
+}
+
+Deno.test("PRÉCOCE ① — la réponse obtenue AVANT le plan est écrite APRÈS, sans second appel", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const early = await classifyDraftNoteEarly(earlyArgs(trace));
+  assert(early.ok, "l'appel précoce a échoué");
+  assertEquals(trace.models.length, 1, "un appel, pour le précoce");
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    planFoods: [],
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning(FULL_LISTS, trace),
+    classified: early,
+  });
+  // ⛔ LE MODÈLE N'EST PAS RAPPELÉ: c'est toute la raison du découpage.
+  assertEquals(trace.models.length, 1, "la persistance a RAPPELÉ le modèle");
+  assert(res.ok, `persistance refusée: ${res.reason}`);
+  assertEquals(res.model, early.model);
+  assertEquals(res.classification.preferences.items.length, 1);
+  assertEquals(res.classification.nextPlan.entries.length, 1);
+  assert(trace.rpcs.length > 0, "rien n'a été écrit");
+});
+
+Deno.test("PRÉCOCE ② — la ceinture lit les durables ET l'encart, avec leur sujet", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const early = await classifyDraftNoteEarly(earlyArgs(trace));
+  const belt = draftNoteBeltItems(early, {
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    planFoods: [],
+    now: NOW,
+  });
+  assertEquals(belt.refusal, null);
+  assertEquals({ durable: belt.durable, nextPlan: belt.nextPlan, exclude: belt.exclude, prefer: belt.prefer }, { durable: 1, nextPlan: 1, exclude: 1, prefer: 0 });
+  assertEquals(
+    belt.items.map((i) => [i.kind, i.text, i.subject]),
+    [["food.exclude", "pas de poisson", HOUSEHOLD_SUBJECT], ["craving", "des fajitas", HOUSEHOLD_SUBJECT]],
+  );
+  // Rien n'a été écrit: la ceinture LIT, la persistance ÉCRIT.
+  assertEquals(trace.rpcs, []);
+});
+
+Deno.test("PRÉCOCE ③ — un modèle indisponible est PORTÉ: ceinture vide, refus nommé, aucun rappel", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const early = await classifyDraftNoteEarly({
+    ...earlyArgs(trace),
+    run: () => Promise.reject(new Error("boom")),
+  });
+  assert(!early.ok && early.reason === "model_unavailable");
+  const belt = draftNoteBeltItems(early, { note: usable(), today: TODAY, targetWeek: PLAN_STARTS_ON, members: [], planFoods: [], now: NOW });
+  assertEquals(belt.items, []);
+  assertEquals(belt.refusal, "model_unavailable");
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    planFoods: [],
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning(FULL_LISTS, trace),
+    classified: early,
+  });
+  assertEquals(res.ok, false);
+  assertEquals(res.reason, "model_unavailable");
+  assertEquals(trace.models, [], "la persistance a rappelé un modèle que le précoce avait déclaré indisponible");
+  assertEquals(trace.rpcs, []);
+});
+
+Deno.test("PRÉCOCE ④ — une réponse illisible laisse la ceinture vide, et le dit", () => {
+  const belt = draftNoteBeltItems({ ok: true, model: "m", raw: "pas du json" }, {
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    planFoods: [],
+    now: NOW,
+  });
+  assertEquals(belt.items, []);
+  assert(typeof belt.refusal === "string" && belt.refusal.length > 0, "le refus n'est pas nommé");
+});
+
+Deno.test("PRÉCOCE ⑤ — sans `classified`, la persistance appelle elle-même, une fois (le chemin d'avant)", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning(FULL_LISTS, trace),
+  });
+  assert(res.ok);
+  assertEquals(trace.models.length, 1);
 });
