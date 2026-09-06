@@ -5049,10 +5049,15 @@ Deno.serve(async (req) => {
     // à table. Une paire où la même bouche veut et refuse n'en est pas une ;
     // une exclusion de TABLE n'en est pas une non plus (personne ne peut le
     // porter). Rapport 0f §10.
-    const preferenceSplits: PreferenceSplit[] = (() => {
+    // Une seule écriture de la règle des paires, deux lectures : le PROMPT lit les
+    // magasins (durable + prochain plan) ; le COMPTEUR d'après ceinture y ajoute les
+    // items de la NOTE FRAÎCHE (`noteBelt`, classée avant le plan depuis 22ab729c) —
+    // sans attendre le classifieur avant les blocs (≤ 25 s), la note est déjà
+    // verbatim dans le prompt.
+    const splitsFrom = (items: readonly RetainedItem[]): PreferenceSplit[] => {
       const nameOf = new Map(platedMembers.map((m) => [m.memberId, m.displayName]));
       const byTerm = new Map<string, { term: string; wants: Set<string>; refuses: Set<string> }>();
-      for (const item of [...retainedDurable.items, ...retainedNextPlan]) {
+      for (const item of items) {
         if (item.kind !== "food.prefer" && item.kind !== "food.exclude") continue;
         const subject = String(item.subject ?? "");
         if (!subject.startsWith("member:")) continue;
@@ -5077,7 +5082,8 @@ Deno.serve(async (req) => {
         });
       }
       return out;
-    })();
+    };
+    const preferenceSplits: PreferenceSplit[] = splitsFrom([...retainedDurable.items, ...retainedNextPlan]);
     const household = buildHouseholdPromptBlocks({
       preferenceSplits,
       // ══════════════════════════════════════════════════════════════════
@@ -9187,8 +9193,19 @@ Deno.serve(async (req) => {
     // citées). Le texte de la préférence est tokenisé comme une exclusion — même
     // tokenisation, même matcher — pour ne pas écrire un second moteur.
     const preferenceSplit = (() => {
-      const counts = { pairs: preferenceSplits.length, wanters: 0, composed: 0, refuser_clean: 0, refuser_bitten: 0 };
-      if (preferenceSplits.length === 0) return counts;
+      // ⟳ les paires de la note FRAÎCHE entrent ici (et seulement ici) : « Léa n'aime
+      // pas, Marc adore » est mesuré sur le plan qu'elle annote, pas au suivant.
+      const allSplits = splitsFrom([...retainedDurable.items, ...retainedNextPlan, ...(noteBelt?.items ?? [])]);
+      const counts = {
+        pairs: allSplits.length,
+        pairs_from_stores: preferenceSplits.length,
+        pairs_fresh: Math.max(0, allSplits.length - preferenceSplits.length),
+        wanters: 0,
+        composed: 0,
+        refuser_clean: 0,
+        refuser_bitten: 0,
+      };
+      if (allSplits.length === 0) return counts;
       const prepById = new Map(meal.preparations.map((p) => [p.id, { id: p.id, title: p.title, method: p.method, ingredients: p.ingredients }]));
       const boxCarries = (memberId: string, terms: ReturnType<typeof exclusionTermsFor>): boolean => {
         for (const dish of meal.dishes) {
@@ -9207,7 +9224,7 @@ Deno.serve(async (req) => {
         }
         return false;
       };
-      for (const split of preferenceSplits) {
+      for (const split of allSplits) {
         const terms = exclusionTermsFor({
           items: [{ kind: "food.exclude", subject: "member:_", text: split.term } as never],
           subject: "member:_",
