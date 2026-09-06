@@ -4,6 +4,7 @@ import {
   EXPLANATION_MAX_LINES,
   extractExplanation,
   gatePlanExplanation,
+  reconcileExplanationAfterMerge,
 } from "./plan_explanation.ts";
 import { HOUSEHOLD_PROMPT_VERSION } from "./household_meal_generation.ts";
 
@@ -188,4 +189,50 @@ Deno.test("⚠️ LE MILLÉSIME DU PROMPT DIT CE LOT", () => {
   // partie a vu une consigne que l'autre n'a jamais reçue — et la comparaison
   // que le millésime existe pour permettre deviendrait fausse sans rien casser.
   assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+});
+
+import { assert } from "jsr:@std/assert@1";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — l'explication après une fusion par parties sur un terme (ASP6)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("après une fusion sur « asperges », la ligne périmée de la base tombe et celle de la relance entre", () => {
+  const out = reconcileExplanationAfterMerge({
+    base: ["Les bases restent végétales.", "Les asperges n'ont pas été retenues cette semaine."],
+    retry: ["Les asperges sont ajoutées seulement dans la boîte de Paul.", "Le poulet reste séparé."],
+    terms: ["asperges"],
+  });
+  assertEquals(out.dropped, 1);
+  assertEquals(out.added, 1);
+  assertEquals(out.lines, ["Les bases restent végétales.", "Les asperges sont ajoutées seulement dans la boîte de Paul."]);
+});
+
+Deno.test("accents, casse et singulier : « Asperge » nomme « asperges »", () => {
+  const out = reconcileExplanationAfterMerge({
+    base: ["Une ASPERGE rôtie n'était pas prévue."],
+    retry: [],
+    terms: ["Aspèrges"],
+  });
+  assertEquals(out.dropped, 1);
+  assertEquals(out.lines, []);
+});
+
+Deno.test("sans terme, rien ne bouge ; le plafond de huit lignes tient", () => {
+  const base = ["a", "b"];
+  assertEquals(reconcileExplanationAfterMerge({ base, retry: ["x asperges"], terms: [] }).lines, base);
+  const seven = Array.from({ length: 7 }, (_, i) => `ligne ${i}`);
+  const out = reconcileExplanationAfterMerge({ base: seven, retry: ["asperges un", "asperges deux"], terms: ["asperges"] });
+  assertEquals(out.lines.length, 8);
+  assertEquals(out.added, 1);
+});
+
+Deno.test("CÂBLAGE — la lane foyer réconcilie l'explication après une fusion « préférence contre exclusion »", async () => {
+  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  assert(/mergedExplanationRetries\.push\(\{ text: retryResult, terms: /.test(src), "la fusion n'enregistre plus le texte de la relance et ses termes");
+  assert(/reconcileExplanationAfterMerge\(\{/.test(src), "l'explication n'est plus réconciliée après une fusion");
+  const at = src.indexOf("reconcileExplanationAfterMerge({");
+  const site = src.indexOf('tag: "keel.household_meal.plan_explanation"');
+  assert(at > -1 && site > at, "la réconciliation ne précède plus le journal de l'explication");
+  assert(/merged_dropped: explanationMerge\.dropped,/.test(src) && /merged_added: explanationMerge\.added,/.test(src), "le journal ne compte pas ce que la fusion a retiré et ajouté");
 });

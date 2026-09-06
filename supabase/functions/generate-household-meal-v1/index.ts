@@ -248,6 +248,7 @@ import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.t
 import {
   extractExplanation,
   gatePlanExplanation,
+  reconcileExplanationAfterMerge,
 } from "../_shared/keel/plan_explanation.ts";
 // ══ PERSONNE SANS REPAS — l'invariant, sa relance, son dernier recours ══════
 //
@@ -6614,6 +6615,9 @@ Deno.serve(async (req) => {
     let splitRetryAccepted = 0;
     let splitRetryMergedCells = 0;
     let splitRetryRejectedBy: string | null = null;
+    // ⟳ 2026-09-06 (ASP6) — le texte des relances fusionnées par parties, et leurs termes :
+    // l'explication du plan de base est périmée sur ces mots (voir `reconcileExplanationAfterMerge`).
+    const mergedExplanationRetries: { text: string; terms: string[] }[] = [];
     // ⚠️ UNE SEULE RÈGLE DE PAIRES (`splitsFrom`, au site du prompt) : magasins + note
     // fraîche (45375a74). La relance et l'archive lisent la même liste.
     const allSplits = splitsFrom([...retainedDurable.items, ...retainedNextPlan, ...(noteBelt?.items ?? [])]);
@@ -6675,6 +6679,7 @@ Deno.serve(async (req) => {
               delivered = mergedDelivered;
               splitRetryAccepted += 1;
               splitRetryMergedCells = merge.cells.length;
+              mergedExplanationRetries.push({ text: retryResult, terms: uncomposed.map((u) => u.term) });
               console.info(JSON.stringify({
                 tag: "keel.household_meal.preference_split_retry_merged",
                 request_id: requestId,
@@ -7523,7 +7528,7 @@ Deno.serve(async (req) => {
     // ⚠️ LA GARDE JETTE LE BLOC ENTIER, jamais la ligne fautive: ce qui reste a
     // été écrit EN SUPPOSANT ce qu'on retirerait. Le motif est nommé, compté, et
     // les phrases déterministes sortent comme avant — elles sont le plancher.
-    const explanation = gatePlanExplanation({
+    const explanationBase = gatePlanExplanation({
       raw: extractExplanation(mealSourceText),
       // Les prénoms de la table, pour la garde d'adjacence. Ce n'est PAS « pas
       // de prénom »: le bloc doit pouvoir dire « les raviolis de Léa ».
@@ -7533,6 +7538,23 @@ Deno.serve(async (req) => {
       // regarde le moins qui garderait l'ancienne.
       houseRuleLabels: householdSplit.houseRuleLabels,
     });
+    // ⟳ 2026-09-06 (ASP6) — APRÈS UNE FUSION PAR PARTIES SUR UN TERME, l'explication
+    // de la base contredisait le plan (« les asperges n'ont pas été retenues » sous
+    // trois boîtes d'asperges). Les lignes périmées tombent, celles de la relance
+    // qui nomment le terme entrent — chacune passée par la même porte.
+    const explanationMerge = mergedExplanationRetries.reduce(
+      (acc, r) => {
+        const retried = gatePlanExplanation({
+          raw: extractExplanation(r.text),
+          names: platedMembers.map((m) => m.displayName),
+          houseRuleLabels: householdSplit.houseRuleLabels,
+        });
+        const out = reconcileExplanationAfterMerge({ base: acc.lines, retry: retried.lines, terms: r.terms });
+        return { lines: [...out.lines], dropped: acc.dropped + out.dropped, added: acc.added + out.added };
+      },
+      { lines: [...explanationBase.lines], dropped: 0, added: 0 },
+    );
+    const explanation = { ...explanationBase, lines: explanationMerge.lines };
     if (explanation.refused !== null) {
       issues.push(`plan_explanation_refused: ${explanation.refused}`);
     }
@@ -7552,6 +7574,8 @@ Deno.serve(async (req) => {
       declared: explanation.declared,
       kept: explanation.lines.length,
       refused: explanation.refused,
+      merged_dropped: explanationMerge.dropped,
+      merged_added: explanationMerge.added,
     }));
 
     // ── LES PORTIONS, RÉCONCILIÉES AVEC LE FOYER RÉEL ───────────────────

@@ -28,7 +28,14 @@ async function laneSource(): Promise<string> {
 Deno.test("câblage — la garde est appelée UNE fois, sur le texte du modèle", async () => {
   const code = await laneSource();
   const appels = [...code.matchAll(/gatePlanExplanation\(/g)];
-  assertEquals(appels.length, 1, "une seule garde, ou deux verdicts divergents");
+  // ⟳ 2026-09-06 (ASP6) — DEUX appels, et pas un de plus : la base (`mealSourceText`)
+  // et, dans la réconciliation après une fusion par parties, le texte de CHAQUE
+  // relance fusionnée (`r.text`) — même porte, mêmes prénoms, mêmes libellés.
+  // Un troisième site serait un second verdict sur le même texte.
+  assertEquals(appels.length, 2, "une garde pour la base, une pour la relance fusionnée — ni plus ni moins");
+  const second = code.slice(appels[1].index ?? 0, (appels[1].index ?? 0) + 400);
+  assertEquals(/raw: extractExplanation\(r\.text\)/.test(second), true, "la seconde garde ne lit pas le texte de la relance fusionnée");
+  assertEquals(/reconcileExplanationAfterMerge\(/.test(code.slice(appels[1].index ?? 0)), true, "la seconde garde ne sert pas la réconciliation");
   // ⛔ `mealSourceText`, JAMAIS `result`. Une relance remplace `meal`; lire
   // `result` jugerait la réponse d'AVANT — la faute est déjà mesurée sur
   // `extractMemberPortions`, vingt lignes plus loin dans le même fichier.

@@ -294,3 +294,55 @@ export function extractExplanation(rawJsonText: string): unknown {
     return null;
   }
 }
+
+/**
+ * ⟳ 2026-09-06 — L'EXPLICATION APRÈS UNE FUSION PAR PARTIES SUR UN TERME.
+ *
+ * Mesuré (ASP6) : la relance « préférence contre exclusion » a mis les asperges
+ * dans la boîte de Paul à trois repas — et l'explication servie était celle du
+ * plan de BASE : « Les asperges n'ont pas été retenues cette semaine ». Deux
+ * blocs qui se contredisent (checklist, point 43). Le texte source d'une fusion
+ * par parties reste celui de la base (ses lecteurs ne sont pas par plat) ; ses
+ * lignes sur le terme fusionné, elles, sont périmées.
+ *
+ * Règle : les lignes de la base qui NOMMENT un terme fusionné tombent ; les
+ * lignes de la relance qui le nomment entrent, à leur place, dans le plafond.
+ * Comparaison pliée (accents, casse), sur le mot et son singulier grossier
+ * (« asperges » ↔ « asperge »). Une ligne qui ne nomme aucun terme ne bouge pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export interface MergedExplanation {
+  readonly lines: readonly string[];
+  readonly dropped: number;
+  readonly added: number;
+}
+
+function foldForTerm(v: string): string {
+  return v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function mentionsAny(line: string, terms: readonly string[]): boolean {
+  const hay = foldForTerm(line);
+  return terms.some((t) => {
+    const needle = foldForTerm(t).trim();
+    if (needle.length < 3) return false;
+    const stem = needle.endsWith("s") ? needle.slice(0, -1) : needle;
+    return hay.includes(needle) || hay.includes(stem);
+  });
+}
+
+export function reconcileExplanationAfterMerge(args: {
+  readonly base: readonly string[];
+  readonly retry: readonly string[];
+  readonly terms: readonly string[];
+}): MergedExplanation {
+  const terms = (args.terms ?? []).map((t) => String(t ?? "").trim()).filter(Boolean);
+  if (terms.length === 0) return { lines: [...args.base], dropped: 0, added: 0 };
+  const kept = args.base.filter((l) => !mentionsAny(l, terms));
+  const dropped = args.base.length - kept.length;
+  const incoming = args.retry.filter((l) => mentionsAny(l, terms) && !kept.includes(l));
+  const room = Math.max(0, EXPLANATION_MAX_LINES - kept.length);
+  const added = incoming.slice(0, room);
+  return { lines: [...kept, ...added], dropped, added: added.length };
+}
