@@ -1224,11 +1224,15 @@ export function anchorFactorFor(
   ];
   const wholeWeight = wholeSlots.reduce((n, slot) => n + slotWeight(slot), 0);
   const biggestWeight = Math.max(0, ...wholeSlots.map(slotWeight));
-  const biggestMealKcal = shared.bySlot.size > 0
+  // ⟳ 2026-09-06 (N3c) — LE PLAFOND VOIT LE CRAN AUSSI. `shared.bySlot` est la
+  // répartition de la cible SANS la note ; borner le plus gros repas sur elle
+  // reprenait d'une main ce que la note donnait de l'autre (Claire, mardi :
+  // cible 790 avec le cran, boîte rabotée à 659 kcal par le plafond).
+  const biggestMealKcal = (shared.bySlot.size > 0
     ? Math.max(0, ...shared.bySlot.values())
     : wholeWeight > 0
     ? effectiveTarget * (biggestWeight / wholeWeight)
-    : 0;
+    : 0) * (shared.bySlot.size > 0 ? 1 + boost : 1);
   // ⟳ ARBITRAGE 1 — à la densité MESURÉE de ce que la bouche a livré, bornée
   // par le physique ; 1,35 seulement quand les grammes ne se lisent pas.
   const cap = mealMassCapFor({

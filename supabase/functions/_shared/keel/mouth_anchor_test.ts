@@ -1195,3 +1195,13 @@ Deno.test("CÂBLAGE — la lane foyer lit la note datée d'une bouche et la pass
   assert(/householdAnchors\(anchorMouthList, dayEnergy, coachCounting, lostLineKcalByKey, noteBoostByKey\)/.test(src), "la note n'atteint plus `householdAnchors`");
   assertEquals((src.match(/note_boost: noteBoost,/g) || []).length, 2, "`note_boost` absent du journal ou de l'archive");
 });
+
+Deno.test("le plafond de masse suit le cran de la note : la part boostée n'est pas reprise par le plafond", () => {
+  // Une boîte lourde et peu dense (physicalMax < raw) : le plafond décide du facteur.
+  const heavy = { memberId: "m_iku", kcal: 1200, grams: 1500, maxMealGrams: 900, slots: ["dinner"], ownSlots: ["dinner"] };
+  const plain = anchorFactorFor(IKU, day(heavy), "no_position");
+  const boosted = anchorFactorFor(IKU, day(heavy), "no_position", 0, DATED_NOTE_BOOST);
+  assert(plain.capGrams !== null && boosted.capGrams !== null, JSON.stringify([plain, boosted]));
+  assert(boosted.capGrams! > plain.capGrams!, `plafond ${plain.capGrams} → ${boosted.capGrams}: le cran n'ouvre pas le plafond`);
+  assert(boosted.factor >= plain.factor, `${plain.factor} → ${boosted.factor}`);
+});
