@@ -562,6 +562,12 @@ function readCookingCapacity(pc: Record<string, unknown> | null): {
 }
 
 Deno.serve(async (req) => {
+  // ── LOT 0 (2026-09-06) · LE TEMPS MUR — voir l'en-tête du même bloc dans
+  // `generate-household-meal-v1/index.ts`: la durée de bout en bout de cette
+  // fonction n'était mesurée nulle part, et c'est elle que l'hébergeur coupe.
+  const wallT0 = performance.now();
+  const wallMs = () => Math.round(performance.now() - wallT0);
+
   const requestId = getRequestId(req);
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsError = enforceCors(req);
@@ -4538,7 +4544,246 @@ Deno.serve(async (req) => {
       ...foodGroups,
     }));
 
+    // ── LOT 0 (2026-09-06) · MÊME GESTE QUE SUR LA LANE DU FOYER ──────────
+    //
+    // Le payload écrit se construisait en argument de la RPC, plus bas que le
+    // retour de l'aperçu: un `intent: "draft"` sortait sans que cet objet ait
+    // jamais existé. Le hisser ici ne change rien au comportement et donne au
+    // brouillon persisté l'objet EXACT que la base reçoit — voir l'en-tête du
+    // même bloc dans `generate-household-meal-v1/index.ts`.
+    const writePayload = {
+    // ⟳ A1 (2026-09-03) — LA VEILLE VOYAGE DANS LE PAYLOAD, pas dans un
+    // paramètre: ajouter un argument à `write_student_meal_plan` créerait
+    // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
+    // composition. La RPC en tire ses deux bornes, sa boucle de
+    // chevauchement, sa troncature et `scope` (`20260903170000`).
+    //
+    // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
+    // `withCookDayBefore` a le dernier mot — une veille possible au
+    // calendrier peut être refusée par la fenêtre, et écrire `1` sur une
+    // fenêtre qui n'a pas reculé ferait une ligne dont le premier jour
+    // mangé n'existe pas.
+    lead_days: cookOnlyDay === null ? 0 : 1,
+    mode,
+    meal_slot: slot,
+    servings,
+    household_id: householdId,
+    // Toujours explicite, même hors foyer: ce générateur ne produit QUE
+    // des plans personnels, et le dire ici évite qu'un défaut silencieux
+    // le range un jour ailleurs.
+    plan_kind: "personal",
+    context,
+    preferences,
+    pantry,
+    dishes: dishesWritten,
+    preparations: preparationsWritten,
+    cooking_sessions: mealSessionsPayload(meal),
+    shopping_list: mealShoppingPayload(meal),
+    // LA MÊME EXPRESSION QUE CELLE QUI A ÉCRIT LE PROMPT. Elle valait
+    // `String(goalRow.content_locale ?? "en")`: une SECONDE expression,
+    // sur une AUTRE colonne, qui écrivait « en » d'un texte français —
+    // et un tag de 2 lettres là où R2 demande du BCP-47.
+    content_locale: built.contentLocale,
+    // ── LOT 18 · LES QUATRE COMPTEURS, SUR LA LIGNE DU PLAN ─────────
+    // ⛔ PAS DANS `generated_from`. Le voisin `box_sizing` de la lane
+    // foyer écrit noir sur blanc que ce champ ne sort QUE hors `draft`,
+    // et que toute vérification en situation réelle se fait en `draft`.
+    // Deux colonnes dédiées sont écrites sur CHAQUE plan persisté.
+    //
+    // ④ `composition_unknowns` est le SEUL chiffre qui dise si le lot
+    // réussit: il doit BAISSER semaine après semaine. La vue
+    // `composition_fill_weekly` est là pour qu'on le regarde.
+    //
+    // ⛔ V0-B-bis — LES DEUX CLÉS PEUVENT VALOIR `null`, et c'est le
+    // point: `null` = « personne n'a mesuré », qui n'est PAS zéro. La
+    // RPC `write_student_meal_plan` laisse passer l'absence depuis la
+    // migration 20260821231500 — avant elle, un `null` envoyé d'ici
+    // ressortait en `0` / `{}` côté base, et le correctif aurait été
+    // invisible.
+    ...compositionFillColumns(compositionFill),
+    generated_from: {
+      // ⟳ A1 — LE TIMING RESTE SUR LA LIGNE. Un journal de runtime
+      // s'efface; le plan reste. Sans cette clé, « pourquoi ce plan
+      // commence-t-il un jour plus tôt » (ou « pourquoi n'a-t-il pas eu
+      // sa veille ») n'est comptable en SQL nulle part, et un lot
+      // débranché serait indiscernable d'un lot qui marche.
+      timing: planTiming,
+      coach_id: doctrine.coachId,
+      doctrine_version: doctrine.doctrine?.version ?? null,
+      doctrine_reason: doctrine.reason,
+      // ── O7 · D'OÙ VIENT CE COACH ─────────────────────────────────
+      // Écrit SEULEMENT sur un repli, pour que le plan d'un titulaire qui
+      // a son propre coach reste byte-identique à ce qu'il était. Sans
+      // cette clé, « ce plan suit la méthode d'un coach que cette personne
+      // n'a jamais rencontré » n'est lisible nulle part — et c'est
+      // exactement la question qu'on se pose en relisant le plan d'un
+      // secondaire.
+      ...(resolvedDoctrine.viaHousehold
+        ? {
+          doctrine_via_household: true,
+          doctrine_owner_user_id: resolvedDoctrine.ownerUserId,
+        }
+        : {}),
+      belief_keys: beliefKeys,
+      goal: String(goalRow.goal ?? "health"),
+      prompt_version: MEAL_PROMPT_VERSION,
+      intent,
+      // ── C3 ① · À QUEL TITRE CE PLAN A ÉTÉ PRODUIT ────────────────
+      // ÉCRIT TOUJOURS, y compris sur le cas nominal: une clé qui
+      // n'apparaîtrait qu'au moment du trou ne se distinguerait pas d'un
+      // lot débranché. C'est ce qui rend la question ouverte n°1
+      // comptable en SQL au lieu de rester une hypothèse — et elle est
+      // écrite ICI, sur la ligne, parce qu'un journal de runtime
+      // s'efface alors que le plan reste.
+      access,
+      // La panne de résolution du foyer, TRACÉE. Sans elle, un plan
+      // orphelin est indiscernable du plan d'une personne qui n'a
+      // simplement pas de foyer.
+      ...(householdLookupFailed ? { household_lookup_failed: true } : {}),
+      // ── FF-053 · CE SOUS QUOI CE PLAN A ÉTÉ COMPOSÉ ───────────────
+      // La grille de l'écran doit expliquer chaque case vide. Renvoyer
+      // ces deux lectures dans la RÉPONSE ne suffit pas: au premier
+      // rafraîchissement, le plan est relu depuis cette ligne et les
+      // explications disparaîtraient — la grille expliquerait les cases
+      // pendant une minute, puis se tairait.
+      //
+      // Écrites ICI, elles disent ce qui était vrai AU MOMENT DE LA
+      // COMPOSITION, et c'est la bonne sémantique: un plan montre les
+      // contraintes sous lesquelles il a été fait, pas celles
+      // d'aujourd'hui. Un élève qui retire son shaker demain doit
+      // toujours comprendre pourquoi son plan de la semaine n'a pas de
+      // petit-déjeuner.
+      fixed_intakes: fixedIntakes.map((i) => ({
+        food_ref: i.foodRef,
+        label: i.label,
+        amount: i.amount,
+        unit: i.unit,
+        slot: i.placement === "at_slot" ? i.slot : null,
+        replaces_meal: i.placement === "at_slot" ? i.replacesMeal : false,
+        days: i.days,
+      })),
+      day_properties: dayProperties.map((d) => ({
+        day: d.day,
+        properties: d.properties,
+      })),
+      // ── CE QUI A MORDU, ÉCRIT SUR LA LIGNE ────────────────────────
+      // Les `issues` ne partaient que dans la RÉPONSE HTTP, donc elles
+      // mouraient avec elle: un plan qui garde un lot six jours, ou dont
+      // la session déborde le temps déclaré, était écrit en base sans
+      // aucune trace du motif. Le contrôle existait et personne ne
+      // pouvait le lire — c'est-à-dire qu'il n'existait pas.
+      issues: [...issues, ...meal.issues],
+      // ── POURQUOI CES JOURS-LÀ, SUR LA LIGNE ─────────────────────
+      //
+      // Renvoyer ces phrases dans la RÉPONSE ne suffit pas: au premier
+      // rafraîchissement, le plan est relu depuis cette ligne et
+      // l'explication disparaîtrait — l'écran expliquerait le calendrier
+      // pendant une minute, puis se tairait. Même raisonnement mot pour
+      // mot que `fixed_intakes` et `day_properties` ci-dessus.
+      //
+      // ⚠️ AUCUNE MIGRATION: `generated_from` est déjà `jsonb`.
+      //
+      // ÉCRIT MÊME VIDE, avec son motif: une clé absente ne se distingue
+      // pas d'un lot débranché, et ce dépôt paie en boucle la garde
+      // construite puis silencieusement débranchée.
+      rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+  explanation: { lines: explanation.lines, refusal: explanation.refused },
+      // FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Même
+      // arbitrage: sans la trace, « je t'avais demandé des burgers » n'a
+      // plus de réponse trois jours plus tard.
+      request_report: { lines: reportLines, refusal: reportRefusal },
+      // FF-037 — CE QUE L'ANCRE A COÛTÉ ET RAPPORTÉ, SUR LA LIGNE.
+      // Le §10 de la fiche demande deux chiffres: la part de repas
+      // principaux sans ancre, et la part de relances qui règlent
+      // vraiment le problème. Le second n'est lisible qu'ici: une
+      // relance dont on ne garde pas la trace est une relance qu'on
+      // paiera sans jamais savoir si elle sert.
+      protein_anchor_retry: proteinAnchorRetry,
+      protein_anchor_missing: meal.protein_anchor_missing,
+      // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT, SUR LA LIGNE ────
+      // À côté des `issues` et pas à leur place: une case vide se
+      // COMPTE (« combien de plans sortent troués, et sur quel
+      // moment »), et une chaîne de prose ne se compte pas. Mesuré le
+      // 2026-08-12: les cinq petits-déjeuners d'un plan de foyer tombés
+      // d'un coup, et rien en base pour le dire autrement qu'en relisant
+      // les plats un par un.
+      empty_slots: meal.empty_slots,
+      // ══════════════════════════════════════════════════════════════
+      // LOT 2 — LE COMMENTAIRE DU JOUR J, COMPTÉ. C'EST CE QUI EMPÊCHE
+      // LE LOT D'ÊTRE DÉSARMÉ EN SILENCE.
+      // ══════════════════════════════════════════════════════════════
+      //
+      // ⛔ `same_day` EST DÉCLARÉ PAR LE MODÈLE. On ne peut donc pas
+      // SAVOIR d'avance à quelle fréquence il le remplit — seulement le
+      // mesurer. Sans ces quatre nombres, un modèle qui ignorerait la
+      // consigne rendrait `same_day: null` partout, aucun bandeau ne
+      // s'afficherait, et le lot ressemblerait trait pour trait à un lot
+      // qui marche: la carte d'un plat dirait exactement ce qu'elle
+      // disait avant.
+      //
+      // `declared/dishes` est le taux de service; `invalid` dit que le
+      // modèle a essayé un jeton hors liste (à resserrer dans le prompt);
+      // `minutes_missing` que le geste est nommé sans sa durée.
+      //
+      // ÉCRIT MÊME À ZÉRO, comme `dish_owners` sur la lane foyer: une clé
+      // absente ne se distingue pas d'un lot débranché.
+      same_day: meal.same_day_counts,
+      // ══════════════════════════════════════════════════════════════
+      // ④ — LE COMPTEUR DU NOM, ET IL FERME UN ZÉRO AMBIGU.
+      // ══════════════════════════════════════════════════════════════
+      //
+      // ⛔ CE QU'IL CORRIGE, ET C'EST EXACTEMENT LE PIÈGE DU VOISIN
+      // `same_day`. `dishes[].name` est DÉCLARÉ PAR LE MODÈLE, et le
+      // parseur partagé le REFUSE dans trois cas (trop long, vide,
+      // recopie du titre) — voir `DISH_NAME_MAX_CHARS`. Un nom refusé
+      // s'écrit `null` en base, c'est-à-dire la MÊME valeur qu'un nom
+      // jamais déclaré. Sans ces trois nombres, « 40 % des plats n'ont
+      // pas de nom » ne dit pas s'il faut resserrer le prompt ou
+      // desserrer la garde: le zéro est ambigu, et un lot désarmé
+      // ressemble trait pour trait à un lot qui marche.
+      //
+      // ⚠️ LE COMPTEUR EXISTAIT DÉJÀ — `parseGeneratedMeal` le calcule
+      // pour LES DEUX lanes depuis L7 ③ — et seule la lane FOYER
+      // l'archivait. Ce n'est donc pas un calcul neuf, c'est un lecteur
+      // qui manquait: la moitié débranchée que ce dépôt paie en boucle.
+      // Le commentaire de `generate-household-meal-v1` qui disait « son
+      // fichier n'appartient pas à ce lot » est désormais périmé.
+      //
+      // `declared === kept + refused` est vérifiable de l'extérieur, sur
+      // la ligne, sans relire un seul plat.
+      //
+      // ÉCRIT MÊME À ZÉRO, comme `same_day` juste au-dessus: une clé
+      // absente ne se distingue pas d'un lot débranché.
+      names: meal.name_counts,
+      // ⟳ LOT `L17-0` — LES DEUX POPULATIONS DU GROUPE DÉCLARÉ. Les
+      // trois premiers nombres disent si le modèle obéit, `persisted` dit
+      // ce que la ligne porte VRAIMENT. L'écart entre `valid` et
+      // `persisted` valait 100 % avant ce lot — 242 déclarés, 0 en base —
+      // et rien ne le rendait visible.
+      food_groups: foodGroups,
+      // ── LOT 4 · LES GRAMMES, COMPTÉS SUR CETTE LANE AUSSI ──────────
+      // La MÊME expression que celle rendue sur l'aperçu, quinze lignes
+      // plus haut: deux comptages divergeraient au premier champ ajouté,
+      // et la mesure d'un brouillon cesserait de prédire celle d'un plan.
+      ...boxTrace,
+      // FF-027 — la provenance de l'adaptation, archivée avec la
+      // composition. C'est ce qui rend « la faim persiste malgré deux
+      // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur
+      // l'élève. Le décompte est archivé ici; il n'est pas entré dans le
+      // prompt.
+      ...hungerSignalProvenance(hungerSignal),
+    },
+    };
+
     if (isDraft) {
+      console.log(JSON.stringify({
+        tag: "keel.meal.wall",
+        user_id: userId,
+        request_id: requestId,
+        intent,
+        outcome: "draft",
+        wall_ms: wallMs(),
+      }));
       return jsonResponse(req, {
         ok: true,
         draft: true,
@@ -4622,229 +4867,7 @@ Deno.serve(async (req) => {
         p_starts_on: startsOn,
         p_duration_days: durationDays,
         p_replaces: replaces,
-        p_payload: {
-          // ⟳ A1 (2026-09-03) — LA VEILLE VOYAGE DANS LE PAYLOAD, pas dans un
-          // paramètre: ajouter un argument à `write_student_meal_plan` créerait
-          // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
-          // composition. La RPC en tire ses deux bornes, sa boucle de
-          // chevauchement, sa troncature et `scope` (`20260903170000`).
-          //
-          // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
-          // `withCookDayBefore` a le dernier mot — une veille possible au
-          // calendrier peut être refusée par la fenêtre, et écrire `1` sur une
-          // fenêtre qui n'a pas reculé ferait une ligne dont le premier jour
-          // mangé n'existe pas.
-          lead_days: cookOnlyDay === null ? 0 : 1,
-          mode,
-          meal_slot: slot,
-          servings,
-          household_id: householdId,
-          // Toujours explicite, même hors foyer: ce générateur ne produit QUE
-          // des plans personnels, et le dire ici évite qu'un défaut silencieux
-          // le range un jour ailleurs.
-          plan_kind: "personal",
-          context,
-          preferences,
-          pantry,
-          dishes: dishesWritten,
-          preparations: preparationsWritten,
-          cooking_sessions: mealSessionsPayload(meal),
-          shopping_list: mealShoppingPayload(meal),
-          // LA MÊME EXPRESSION QUE CELLE QUI A ÉCRIT LE PROMPT. Elle valait
-          // `String(goalRow.content_locale ?? "en")`: une SECONDE expression,
-          // sur une AUTRE colonne, qui écrivait « en » d'un texte français —
-          // et un tag de 2 lettres là où R2 demande du BCP-47.
-          content_locale: built.contentLocale,
-          // ── LOT 18 · LES QUATRE COMPTEURS, SUR LA LIGNE DU PLAN ─────────
-          // ⛔ PAS DANS `generated_from`. Le voisin `box_sizing` de la lane
-          // foyer écrit noir sur blanc que ce champ ne sort QUE hors `draft`,
-          // et que toute vérification en situation réelle se fait en `draft`.
-          // Deux colonnes dédiées sont écrites sur CHAQUE plan persisté.
-          //
-          // ④ `composition_unknowns` est le SEUL chiffre qui dise si le lot
-          // réussit: il doit BAISSER semaine après semaine. La vue
-          // `composition_fill_weekly` est là pour qu'on le regarde.
-          //
-          // ⛔ V0-B-bis — LES DEUX CLÉS PEUVENT VALOIR `null`, et c'est le
-          // point: `null` = « personne n'a mesuré », qui n'est PAS zéro. La
-          // RPC `write_student_meal_plan` laisse passer l'absence depuis la
-          // migration 20260821231500 — avant elle, un `null` envoyé d'ici
-          // ressortait en `0` / `{}` côté base, et le correctif aurait été
-          // invisible.
-          ...compositionFillColumns(compositionFill),
-          generated_from: {
-            // ⟳ A1 — LE TIMING RESTE SUR LA LIGNE. Un journal de runtime
-            // s'efface; le plan reste. Sans cette clé, « pourquoi ce plan
-            // commence-t-il un jour plus tôt » (ou « pourquoi n'a-t-il pas eu
-            // sa veille ») n'est comptable en SQL nulle part, et un lot
-            // débranché serait indiscernable d'un lot qui marche.
-            timing: planTiming,
-            coach_id: doctrine.coachId,
-            doctrine_version: doctrine.doctrine?.version ?? null,
-            doctrine_reason: doctrine.reason,
-            // ── O7 · D'OÙ VIENT CE COACH ─────────────────────────────────
-            // Écrit SEULEMENT sur un repli, pour que le plan d'un titulaire qui
-            // a son propre coach reste byte-identique à ce qu'il était. Sans
-            // cette clé, « ce plan suit la méthode d'un coach que cette personne
-            // n'a jamais rencontré » n'est lisible nulle part — et c'est
-            // exactement la question qu'on se pose en relisant le plan d'un
-            // secondaire.
-            ...(resolvedDoctrine.viaHousehold
-              ? {
-                doctrine_via_household: true,
-                doctrine_owner_user_id: resolvedDoctrine.ownerUserId,
-              }
-              : {}),
-            belief_keys: beliefKeys,
-            goal: String(goalRow.goal ?? "health"),
-            prompt_version: MEAL_PROMPT_VERSION,
-            intent,
-            // ── C3 ① · À QUEL TITRE CE PLAN A ÉTÉ PRODUIT ────────────────
-            // ÉCRIT TOUJOURS, y compris sur le cas nominal: une clé qui
-            // n'apparaîtrait qu'au moment du trou ne se distinguerait pas d'un
-            // lot débranché. C'est ce qui rend la question ouverte n°1
-            // comptable en SQL au lieu de rester une hypothèse — et elle est
-            // écrite ICI, sur la ligne, parce qu'un journal de runtime
-            // s'efface alors que le plan reste.
-            access,
-            // La panne de résolution du foyer, TRACÉE. Sans elle, un plan
-            // orphelin est indiscernable du plan d'une personne qui n'a
-            // simplement pas de foyer.
-            ...(householdLookupFailed ? { household_lookup_failed: true } : {}),
-            // ── FF-053 · CE SOUS QUOI CE PLAN A ÉTÉ COMPOSÉ ───────────────
-            // La grille de l'écran doit expliquer chaque case vide. Renvoyer
-            // ces deux lectures dans la RÉPONSE ne suffit pas: au premier
-            // rafraîchissement, le plan est relu depuis cette ligne et les
-            // explications disparaîtraient — la grille expliquerait les cases
-            // pendant une minute, puis se tairait.
-            //
-            // Écrites ICI, elles disent ce qui était vrai AU MOMENT DE LA
-            // COMPOSITION, et c'est la bonne sémantique: un plan montre les
-            // contraintes sous lesquelles il a été fait, pas celles
-            // d'aujourd'hui. Un élève qui retire son shaker demain doit
-            // toujours comprendre pourquoi son plan de la semaine n'a pas de
-            // petit-déjeuner.
-            fixed_intakes: fixedIntakes.map((i) => ({
-              food_ref: i.foodRef,
-              label: i.label,
-              amount: i.amount,
-              unit: i.unit,
-              slot: i.placement === "at_slot" ? i.slot : null,
-              replaces_meal: i.placement === "at_slot" ? i.replacesMeal : false,
-              days: i.days,
-            })),
-            day_properties: dayProperties.map((d) => ({
-              day: d.day,
-              properties: d.properties,
-            })),
-            // ── CE QUI A MORDU, ÉCRIT SUR LA LIGNE ────────────────────────
-            // Les `issues` ne partaient que dans la RÉPONSE HTTP, donc elles
-            // mouraient avec elle: un plan qui garde un lot six jours, ou dont
-            // la session déborde le temps déclaré, était écrit en base sans
-            // aucune trace du motif. Le contrôle existait et personne ne
-            // pouvait le lire — c'est-à-dire qu'il n'existait pas.
-            issues: [...issues, ...meal.issues],
-            // ── POURQUOI CES JOURS-LÀ, SUR LA LIGNE ─────────────────────
-            //
-            // Renvoyer ces phrases dans la RÉPONSE ne suffit pas: au premier
-            // rafraîchissement, le plan est relu depuis cette ligne et
-            // l'explication disparaîtrait — l'écran expliquerait le calendrier
-            // pendant une minute, puis se tairait. Même raisonnement mot pour
-            // mot que `fixed_intakes` et `day_properties` ci-dessus.
-            //
-            // ⚠️ AUCUNE MIGRATION: `generated_from` est déjà `jsonb`.
-            //
-            // ÉCRIT MÊME VIDE, avec son motif: une clé absente ne se distingue
-            // pas d'un lot débranché, et ce dépôt paie en boucle la garde
-            // construite puis silencieusement débranchée.
-            rationale: { lines: rationaleLines, refusal: rationaleRefusal },
-        explanation: { lines: explanation.lines, refusal: explanation.refused },
-            // FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Même
-            // arbitrage: sans la trace, « je t'avais demandé des burgers » n'a
-            // plus de réponse trois jours plus tard.
-            request_report: { lines: reportLines, refusal: reportRefusal },
-            // FF-037 — CE QUE L'ANCRE A COÛTÉ ET RAPPORTÉ, SUR LA LIGNE.
-            // Le §10 de la fiche demande deux chiffres: la part de repas
-            // principaux sans ancre, et la part de relances qui règlent
-            // vraiment le problème. Le second n'est lisible qu'ici: une
-            // relance dont on ne garde pas la trace est une relance qu'on
-            // paiera sans jamais savoir si elle sert.
-            protein_anchor_retry: proteinAnchorRetry,
-            protein_anchor_missing: meal.protein_anchor_missing,
-            // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT, SUR LA LIGNE ────
-            // À côté des `issues` et pas à leur place: une case vide se
-            // COMPTE (« combien de plans sortent troués, et sur quel
-            // moment »), et une chaîne de prose ne se compte pas. Mesuré le
-            // 2026-08-12: les cinq petits-déjeuners d'un plan de foyer tombés
-            // d'un coup, et rien en base pour le dire autrement qu'en relisant
-            // les plats un par un.
-            empty_slots: meal.empty_slots,
-            // ══════════════════════════════════════════════════════════════
-            // LOT 2 — LE COMMENTAIRE DU JOUR J, COMPTÉ. C'EST CE QUI EMPÊCHE
-            // LE LOT D'ÊTRE DÉSARMÉ EN SILENCE.
-            // ══════════════════════════════════════════════════════════════
-            //
-            // ⛔ `same_day` EST DÉCLARÉ PAR LE MODÈLE. On ne peut donc pas
-            // SAVOIR d'avance à quelle fréquence il le remplit — seulement le
-            // mesurer. Sans ces quatre nombres, un modèle qui ignorerait la
-            // consigne rendrait `same_day: null` partout, aucun bandeau ne
-            // s'afficherait, et le lot ressemblerait trait pour trait à un lot
-            // qui marche: la carte d'un plat dirait exactement ce qu'elle
-            // disait avant.
-            //
-            // `declared/dishes` est le taux de service; `invalid` dit que le
-            // modèle a essayé un jeton hors liste (à resserrer dans le prompt);
-            // `minutes_missing` que le geste est nommé sans sa durée.
-            //
-            // ÉCRIT MÊME À ZÉRO, comme `dish_owners` sur la lane foyer: une clé
-            // absente ne se distingue pas d'un lot débranché.
-            same_day: meal.same_day_counts,
-            // ══════════════════════════════════════════════════════════════
-            // ④ — LE COMPTEUR DU NOM, ET IL FERME UN ZÉRO AMBIGU.
-            // ══════════════════════════════════════════════════════════════
-            //
-            // ⛔ CE QU'IL CORRIGE, ET C'EST EXACTEMENT LE PIÈGE DU VOISIN
-            // `same_day`. `dishes[].name` est DÉCLARÉ PAR LE MODÈLE, et le
-            // parseur partagé le REFUSE dans trois cas (trop long, vide,
-            // recopie du titre) — voir `DISH_NAME_MAX_CHARS`. Un nom refusé
-            // s'écrit `null` en base, c'est-à-dire la MÊME valeur qu'un nom
-            // jamais déclaré. Sans ces trois nombres, « 40 % des plats n'ont
-            // pas de nom » ne dit pas s'il faut resserrer le prompt ou
-            // desserrer la garde: le zéro est ambigu, et un lot désarmé
-            // ressemble trait pour trait à un lot qui marche.
-            //
-            // ⚠️ LE COMPTEUR EXISTAIT DÉJÀ — `parseGeneratedMeal` le calcule
-            // pour LES DEUX lanes depuis L7 ③ — et seule la lane FOYER
-            // l'archivait. Ce n'est donc pas un calcul neuf, c'est un lecteur
-            // qui manquait: la moitié débranchée que ce dépôt paie en boucle.
-            // Le commentaire de `generate-household-meal-v1` qui disait « son
-            // fichier n'appartient pas à ce lot » est désormais périmé.
-            //
-            // `declared === kept + refused` est vérifiable de l'extérieur, sur
-            // la ligne, sans relire un seul plat.
-            //
-            // ÉCRIT MÊME À ZÉRO, comme `same_day` juste au-dessus: une clé
-            // absente ne se distingue pas d'un lot débranché.
-            names: meal.name_counts,
-            // ⟳ LOT `L17-0` — LES DEUX POPULATIONS DU GROUPE DÉCLARÉ. Les
-            // trois premiers nombres disent si le modèle obéit, `persisted` dit
-            // ce que la ligne porte VRAIMENT. L'écart entre `valid` et
-            // `persisted` valait 100 % avant ce lot — 242 déclarés, 0 en base —
-            // et rien ne le rendait visible.
-            food_groups: foodGroups,
-            // ── LOT 4 · LES GRAMMES, COMPTÉS SUR CETTE LANE AUSSI ──────────
-            // La MÊME expression que celle rendue sur l'aperçu, quinze lignes
-            // plus haut: deux comptages divergeraient au premier champ ajouté,
-            // et la mesure d'un brouillon cesserait de prédire celle d'un plan.
-            ...boxTrace,
-            // FF-027 — la provenance de l'adaptation, archivée avec la
-            // composition. C'est ce qui rend « la faim persiste malgré deux
-            // adaptations » (§10) lisible sans qu'aucun compteur ne vive sur
-            // l'élève. Le décompte est archivé ici; il n'est pas entré dans le
-            // prompt.
-            ...hungerSignalProvenance(hungerSignal),
-          },
-        },
+        p_payload: writePayload,
       },
     );
     const writtenRow = (Array.isArray(writtenRows) ? writtenRows[0] : writtenRows) as
@@ -4961,6 +4984,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log(JSON.stringify({
+      tag: "keel.meal.wall",
+      user_id: userId,
+      request_id: requestId,
+      intent,
+      outcome: "written",
+      wall_ms: wallMs(),
+    }));
     return jsonResponse(req, {
       ok: true,
       meal: written,

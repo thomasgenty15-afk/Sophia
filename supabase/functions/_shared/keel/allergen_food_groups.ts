@@ -99,6 +99,56 @@ export function foodGroupsCoveredBy(
   return null;
 }
 
+/**
+ * ⛔ LA TABLE DU DESSUS RÉPOND À L'AUTRE QUESTION. Mesuré au premier run réel
+ * (2026-09-06, V1, foyer de cinq, une allergie `peanut`) : la ceinture a REFUSÉ
+ * LE PLAN ENTIER — `draft_not_composed`, zéro plat — parce que le modèle avait
+ * écrit `group = "nuts_seeds"` sur des graines de courge et des noix.
+ *
+ * `ALLERGEN_FOOD_GROUPS` dit « substituer VERS ce groupe peut-il mettre
+ * l'allergène dans l'assiette ? ». Sa réponse doit être large: sur-bloquer y
+ * coûte une escalade vers le coach, et c'est récupérable.
+ *
+ * Ici la question est l'inverse, et le coût aussi: « ce groupe, écrit par le
+ * modèle, GARANTIT-il l'allergène ? ». Sur-bloquer coûte le plan entier — et
+ * une garde qui refuse tout ressemble exactement à une garde qui marche.
+ *
+ * Donc une seconde table, étroite, et l'implication doit être VRAIE:
+ *
+ *   · `eggs` ⇒ œuf. Toujours.
+ *   · `dairy_*` ⇒ lait. Toujours.
+ *   · `shellfish`, `fatty_fish`, `white_fish`, `tofu_tempeh`, `alcohol`,
+ *     `legumes` ⇒ leur allergène. Toujours.
+ *
+ * Et ce qui en est ABSENT l'est nommément, parce que l'implication est fausse:
+ *
+ *   · `nuts_seeds` : une graine de courge n'est pas une arachide, et le groupe
+ *     ne les distingue pas. C'est le cas qui a tué le run V1.
+ *   · `whole_grain` / `refined_grain` : le riz et le maïs sont des céréales
+ *     sans gluten.
+ *   · `red_meat` / `poultry` pour `pork` : un bœuf n'est pas un porc.
+ *
+ * Pour ceux-là, la garde de TEXTE reste la première et la seule ligne — elle
+ * lit le mot, qui lui distingue « cacahuète » de « graine de courge ». Ce
+ * fichier ne prétend pas la remplacer: il ferme le trou où l'orthographe seule
+ * décidait, là où le groupe suffit à trancher.
+ */
+export const ALLERGEN_IMPLIED_BY_GROUP: Readonly<
+  Record<string, readonly string[]>
+> = {
+  eggs: ["egg", "eggs"],
+  dairy_yogurt: ["milk", "dairy", "casein", "lactose"],
+  dairy_cheese: ["milk", "dairy", "casein", "lactose"],
+  fatty_fish: ["fish"],
+  white_fish: ["fish"],
+  shellfish: ["shellfish", "crustacean", "mollusc"],
+  tofu_tempeh: ["soy", "soya"],
+  alcohol: ["alcohol"],
+  legumes: ["legume", "legumes"],
+  red_meat: ["red_meat", "meat"],
+  poultry: ["meat"],
+};
+
 /** Un ingrédient tel que le parseur le rend: un mot, et parfois son groupe. */
 export interface GroupedIngredient {
   readonly term: string;
@@ -146,23 +196,17 @@ export function allergenGroupViolations(
   bearers: readonly GroupedFoodBearer[],
   constraints: readonly StudentSafetyConstraint[],
 ): AllergenGroupViolation[] {
-  // Le repli du groupe vers les contraintes, calculé une fois.
-  const blockedGroups = new Map<string, { id: string; ref: string }[]>();
+  // Les slugs déclarés par les contraintes BLOQUANTES, une fois.
+  const blockedRefs = new Map<string, string>(); // slug -> constraintId
   for (const constraint of constraints ?? []) {
     if (!constraint || !isBeltBlockingSeverity(constraint.severity)) continue;
-    const refs = [constraint.allergenRef, constraint.substanceRef]
-      .filter((ref): ref is string => Boolean(ref && ref.trim()));
-    for (const ref of refs) {
-      const groups = foodGroupsCoveredBy(ref);
-      if (groups === null) continue;
-      for (const group of groups) {
-        const rows = blockedGroups.get(group) ?? [];
-        rows.push({ id: constraint.id, ref: normalizeSlug(ref) });
-        blockedGroups.set(group, rows);
-      }
+    for (const ref of [constraint.allergenRef, constraint.substanceRef]) {
+      const slug = normalizeSlug(String(ref ?? ""));
+      if (!slug || blockedRefs.has(slug)) continue;
+      blockedRefs.set(slug, constraint.id);
     }
   }
-  if (blockedGroups.size === 0) return [];
+  if (blockedRefs.size === 0) return [];
 
   const out: AllergenGroupViolation[] = [];
   const seen = new Set<string>();
@@ -170,16 +214,21 @@ export function allergenGroupViolations(
     for (const ing of bearer?.ingredients ?? []) {
       const group = groupOf(ing);
       if (!group) continue;
-      for (const rule of blockedGroups.get(group) ?? []) {
+      // ⛔ L'IMPLICATION, PAS LA CONTENANCE. Voir l'en-tête d'
+      // `ALLERGEN_IMPLIED_BY_GROUP`: un groupe qui « peut contenir » ne dit
+      // rien de ce plat-ci, et refuser dessus coûte le plan entier.
+      for (const implied of ALLERGEN_IMPLIED_BY_GROUP[group] ?? []) {
+        const constraintId = blockedRefs.get(implied);
+        if (!constraintId) continue;
         const term = String(ing.term ?? "").trim();
         // Une occurrence = une morsure, par (règle, porteur, mot): le même
         // groupe cité deux fois dans le même plat reste UN constat.
-        const key = `${rule.id} | ${bearer.title} | ${term} | ${group}`;
+        const key = `${constraintId} | ${bearer.title} | ${term} | ${group}`;
         if (seen.has(key)) continue;
         seen.add(key);
         out.push({
-          constraintId: rule.id,
-          allergenRef: rule.ref,
+          constraintId,
+          allergenRef: implied,
           foodGroup: group,
           term,
           bearer: String(bearer?.title ?? ""),

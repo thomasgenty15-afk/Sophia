@@ -124,3 +124,58 @@ Deno.test("STRUCTURE ⑧ la table couvre les groupes du lait et des fruits à co
   assertEquals(foodGroupsCoveredBy("peanut"), ["nuts_seeds"]);
   assertEquals(foodGroupsCoveredBy(""), null);
 });
+
+
+// ── LE CAS QUI A TUÉ LE PREMIER RUN RÉEL (V1, 2026-09-06) ──────────────────
+//
+// Foyer de cinq, une allergie `peanut`. Le modèle a écrit `nuts_seeds` sur des
+// graines de courge et des noix; la ceinture, câblée sur la table de
+// CONTENANCE, a refusé le plan entier (`draft_not_composed`, zéro plat). Une
+// graine de courge n'est pas une arachide, et le groupe ne les distingue pas:
+// c'est au mot de trancher, donc à la garde de TEXTE.
+
+Deno.test("STRUCTURE ⑨ `nuts_seeds` n'implique pas l'arachide — le plan vit", () => {
+  const seeds = {
+    title: "Flocons d'avoine, yaourt, poire et graines",
+    ingredients: [
+      { term: "graines de courge", group: "nuts_seeds" },
+      { term: "noix", group: "nuts_seeds" },
+    ],
+  };
+  const peanut = constraint({ id: "cp", allergenRef: "peanut" });
+  assertEquals(allergenGroupViolations([seeds], [peanut]).length, 0);
+  // Et la table de CONTENANCE, elle, continue de répondre oui — c'est son
+  // travail, pour une autre question (la substitution).
+  assertEquals(foodGroupsCoveredBy("peanut"), ["nuts_seeds"]);
+});
+
+Deno.test("STRUCTURE ⑩ une céréale n'implique pas le gluten", () => {
+  const rice = {
+    title: "Riz, tofu et courgettes",
+    ingredients: [{ term: "riz", group: "whole_grain" }],
+  };
+  assertEquals(
+    allergenGroupViolations([rice], [constraint({ id: "cg", allergenRef: "gluten" })])
+      .length,
+    0,
+  );
+});
+
+Deno.test("STRUCTURE ⑪ les implications VRAIES mordent toujours", () => {
+  const cases: [string, string, string][] = [
+    ["eggs", "egg", "œufs"],
+    ["dairy_cheese", "milk", "fromage"],
+    ["white_fish", "fish", "colin"],
+    ["shellfish", "crustacean", "crevettes"],
+    ["tofu_tempeh", "soy", "tofu"],
+    ["legumes", "legume", "lentilles"],
+  ];
+  for (const [group, ref, term] of cases) {
+    const bites = allergenGroupViolations(
+      [{ title: "Plat", ingredients: [{ term, group }] }],
+      [constraint({ id: "c", allergenRef: ref })],
+    );
+    assertEquals(bites.length, 1, `${group} devrait impliquer ${ref}`);
+    assertEquals(bites[0].foodGroup, group);
+  }
+});
