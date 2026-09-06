@@ -8116,52 +8116,81 @@ Deno.serve(async (req) => {
     // mange en restes; une casserole trop petite fait manquer quelqu'un. Le
     // rabot à la baisse reste au plafond de récipient (§③), qui sait ce que la
     // production vaut.
-    const potGrowth = neededPotFactor(
+    // ⟳ 2026-09-06 — MARGE ET SECONDE PASSE. Mesure finale de la nuit: le plafond
+    // de récipient mordait encore 4–5 journées-bouche par foyer APRÈS la
+    // croissance sur la masse. La croissance visait exactement la somme des
+    // boîtes; les arrondis de `scaleIngredients` (5 g, unités, cuillères) et les
+    // lignes non mises à l'échelle la laissaient un peu en dessous, et le
+    // dimensionnement rabotait. Une marge de 5 % (sous la tolérance de 10 % du
+    // plafond) et une seconde passe sur la masse regrammée; `passes` et
+    // `short_after` disent ce qu'il en reste.
+    const POT_GROWTH_MARGIN = 1.05;
+    const POT_GROWTH_PASSES = 2;
+    const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0, passes: 0, short_after: 0 };
+    let potGrowth: Map<string, number> = new Map();
+    for (let pass = 1; pass <= POT_GROWTH_PASSES; pass++) {
+      growth.passes = pass;
+      potGrowth = neededPotFactor(
+        sizableBoxes.map((box) => ({
+          shares: [{ key: box.boxId, grams: box.items.reduce((n, it) => n + (it.grams ?? 0), 0) }],
+          uses: box.uses,
+        })),
+        // ⚠️ `neededPotFactor` LIT `raw ?? factor` SUR UNE TABLE D'ANCRES. On lui
+        // passe donc les facteurs RÉSOLUS déguisés en ancres, clés par `boxId` —
+        // la même clé que `shares[].key` ci-dessus. Son prorata par casserole est
+        // celui de `sizeBoxesFromTarget`, et il n'est pas réécrit.
+        new Map(
+          [...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }]),
+        ),
+        // ⟳ 2026-09-05: la MASSE du pot (regrammée juste avant), pour que la
+        // croissance rattrape l'écart initial entre pot et tirages, pas
+        // seulement le surplus d'ancrage. Nulle quand le référentiel manque.
+        new Map(meal.preparations.map((prep) => [
+          prep.id,
+          composition ? preparationReadyGrams(prep.ingredients, composition) : null,
+        ])),
+      );
+      for (const prep of meal.preparations) {
+        const rawFactor = potGrowth.get(prep.id) ?? 1;
+        if (!(rawFactor > 1)) continue;
+        const factor = rawFactor * POT_GROWTH_MARGIN;
+        const grown = scaleIngredients(
+          prep.ingredients,
+          factor,
+          undefined,
+          // ⛔ LE PLAFOND EST CELUI D'UNE CASSEROLE, PAS D'UNE ASSIETTE. 500 g
+          // bornent une portion absurde; sur un lot cuisiné pour quatre, le kilo
+          // est nominal — et la borne d'assiette y raboterait la production.
+          MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade),
+        );
+        if (grown.changed === 0) continue;
+        growth.scaled++;
+        growth.capped += grown.capped.length;
+        prep.ingredients.splice(0, prep.ingredients.length, ...grown.items);
+      }
+      // ⟳ 2026-09-05 — REGRAMMER APRÈS AVOIR GROSSI. `scaleIngredients` remet
+      // `gramsRaw` à null PAR CONTRAT (« c'est le résolveur qui sait le faire »,
+      // portion_scaling.ts) et personne ne le refaisait: mesuré sur C03, 13
+      // lignes de casserole sur 16 sans grammes crus après croissance, les trois
+      // qui survivaient étant celles d'un pot non grossi. Tout lecteur strict du
+      // champ (`preparationReadyGrams`, le plafond de pot) lisait du vide. Le
+      // premier `regramMeal` tourne avant la croissance; celui-ci la suit.
+      growth.regrammed += growth.scaled > 0 ? regramMeal(meal, composition) : 0;
+      if (![...potGrowth.values()].some((f) => f > 1.02)) break;
+    }
+    // Ce qu'il reste APRÈS la dernière passe, sur la masse regrammée.
+    potGrowth = neededPotFactor(
       sizableBoxes.map((box) => ({
         shares: [{ key: box.boxId, grams: box.items.reduce((n, it) => n + (it.grams ?? 0), 0) }],
         uses: box.uses,
       })),
-      // ⚠️ `neededPotFactor` LIT `raw ?? factor` SUR UNE TABLE D'ANCRES. On lui
-      // passe donc les facteurs RÉSOLUS déguisés en ancres, clés par `boxId` —
-      // la même clé que `shares[].key` ci-dessus. Son prorata par casserole est
-      // celui de `sizeBoxesFromTarget`, et il n'est pas réécrit.
-      new Map(
-        [...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }]),
-      ),
-      // ⟳ 2026-09-05: la MASSE du pot (regrammée juste avant), pour que la
-      // croissance rattrape l'écart initial entre pot et tirages, pas
-      // seulement le surplus d'ancrage. Nulle quand le référentiel manque.
+      new Map([...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }])),
       new Map(meal.preparations.map((prep) => [
         prep.id,
         composition ? preparationReadyGrams(prep.ingredients, composition) : null,
       ])),
     );
-    const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0 };
-    for (const prep of meal.preparations) {
-      const factor = potGrowth.get(prep.id) ?? 1;
-      if (!(factor > 1)) continue;
-      const grown = scaleIngredients(
-        prep.ingredients,
-        factor,
-        undefined,
-        // ⛔ LE PLAFOND EST CELUI D'UNE CASSEROLE, PAS D'UNE ASSIETTE. 500 g
-        // bornent une portion absurde; sur un lot cuisiné pour quatre, le kilo
-        // est nominal — et la borne d'assiette y raboterait la production.
-        MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade),
-      );
-      if (grown.changed === 0) continue;
-      growth.scaled++;
-      growth.capped += grown.capped.length;
-      prep.ingredients.splice(0, prep.ingredients.length, ...grown.items);
-    }
-    // ⟳ 2026-09-05 — REGRAMMER APRÈS AVOIR GROSSI. `scaleIngredients` remet
-    // `gramsRaw` à null PAR CONTRAT (« c'est le résolveur qui sait le faire »,
-    // portion_scaling.ts) et personne ne le refaisait: mesuré sur C03, 13
-    // lignes de casserole sur 16 sans grammes crus après croissance, les trois
-    // qui survivaient étant celles d'un pot non grossi. Tout lecteur strict du
-    // champ (`preparationReadyGrams`, le plafond de pot) lisait du vide. Le
-    // premier `regramMeal` tourne avant la croissance; celui-ci la suit.
-    growth.regrammed = growth.scaled > 0 ? regramMeal(meal, composition) : 0;
+    growth.short_after = [...potGrowth.values()].filter((f) => f > 1.02).length;
     if (growth.scaled > 0 && meal.shopping_list.length > 0) {
       // ⚠️ LES COURSES SUIVENT AU FACTEUR MOYEN DES CASSEROLES QUI ONT GROSSI.
       // Une attribution ligne-à-casserole n'existe pas dans ce plan
