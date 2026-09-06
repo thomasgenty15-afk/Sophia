@@ -687,3 +687,10 @@ Deno.test("⟳ LA RELANCE nomme la case sans plat comme un repas à ÉCRIRE, bo�
   assert(text.includes("NO dish at all was planned for that meal"), text);
   assert(text.includes("with boxes naming everyone who eats then"), text);
 });
+
+Deno.test("CÂBLAGE — les moments passés du jour entamé ne sont pas des cases attendues, et le plafond par ingrédient lit les tirages", async () => {
+  const src = await generatorSource();
+  assert(/const spentSlotsToday = new Set<string>\(/.test(src), "les moments passés ne sont plus retirés des cellules");
+  assert(/spentSlotsToday\.has\(String\(c\.slot\)\)/.test(src), "le filtre des cellules a disparu");
+  assert(/MAX_SINGLE_INGREDIENT_G \* Math\.max\(1, prep\.servingsMade, drawsByPot\.get\(prep\.id\) \?\? 0\)/.test(src), "le plafond par ingrédient relit servingsMade seul");
+});

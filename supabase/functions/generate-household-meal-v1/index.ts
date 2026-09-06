@@ -6145,6 +6145,17 @@ Deno.serve(async (req) => {
     const houseRhythmForCells = eatingRhythm.length > 0
       ? eatingRhythm
       : DEFAULT_EATING_RHYTHM;
+    // ⟳ 2026-09-06 — LES MOMENTS PASSÉS DU JOUR ENTAMÉ NE SONT PAS DES CASES.
+    // Tir M05 r2: depuis que la case sans plat est un manque (`no_dish`), le
+    // petit-déjeuner et le déjeuner d'un plan fait à 13 h comptaient neuf
+    // manques et trois relances pour rien. Ce que le plan a retiré exprès
+    // (`unservableToday.passed`, `heldForShopping`) n'est attendu de personne.
+    const spentSlotsToday = new Set<string>(
+      startsOn === todayDate
+        ? [...unservableToday.passed, ...unservableToday.heldForShopping].map(String)
+        : [],
+    );
+    const firstDayToken = daysToFill[0] ?? null;
     const mouthCells = platedMembers.map((m) => ({
       memberId: m.memberId,
       // ⟳ 2026-09-05: le régime de la bouche voyage avec ses cellules — c'est
@@ -6155,7 +6166,9 @@ Deno.serve(async (req) => {
         away: m.away.effective,
         rhythm: m.eatingSlots ?? houseRhythmForCells,
         windowDays: daysToFill,
-      }),
+      }).filter((c) =>
+        !(spentSlotsToday.size > 0 && c.day === firstDayToken && spentSlotsToday.has(String(c.slot)))
+      ),
     }));
     // ⚠️ `ReturnType` ET PAS `typeof meal`: `meal` est un `let` réassigné par
     // les relances, et son type inféré ne traverse pas la fermeture.
@@ -8127,6 +8140,17 @@ Deno.serve(async (req) => {
     const POT_GROWTH_MARGIN = 1.05;
     const POT_GROWTH_PASSES = 2;
     const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0, passes: 0, short_after: 0 };
+    // ⟳ 2026-09-06 (tir M05 r2: `capped 4`, `pot_ceiling 7`): le plafond par
+    // ingrédient (500 g × parts) lisait `servingsMade` du MODÈLE — 4 parts
+    // écrites pour un pot que douze boîtes tirent. Le nombre de tirages réels
+    // borne aussi: un pot tiré douze fois a droit à douze parts.
+    const drawsByPot = new Map<string, number>();
+    for (const box of sizableBoxes) {
+      for (const it of box.items) {
+        if (!it.preparationId) continue;
+        drawsByPot.set(it.preparationId, (drawsByPot.get(it.preparationId) ?? 0) + Math.max(1, box.memberIds.length));
+      }
+    }
     let potGrowth: Map<string, number> = new Map();
     for (let pass = 1; pass <= POT_GROWTH_PASSES; pass++) {
       growth.passes = pass;
@@ -8161,7 +8185,7 @@ Deno.serve(async (req) => {
           // ⛔ LE PLAFOND EST CELUI D'UNE CASSEROLE, PAS D'UNE ASSIETTE. 500 g
           // bornent une portion absurde; sur un lot cuisiné pour quatre, le kilo
           // est nominal — et la borne d'assiette y raboterait la production.
-          MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade),
+          MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade, drawsByPot.get(prep.id) ?? 0),
         );
         if (grown.changed === 0) continue;
         growth.scaled++;
