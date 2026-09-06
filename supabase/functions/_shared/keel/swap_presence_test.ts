@@ -160,7 +160,8 @@ Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, a
 
 Deno.test("CÂBLAGE — v28: l'échappatoire « nothing clashes » nomme la sortie, à côté de la clé \"boxes\"", async () => {
   const src = await Deno.readTextFile(new URL("./household_meal_generation.ts", import.meta.url));
-  assert(/HOUSEHOLD_PROMPT_VERSION = "v(28|29|[3-9]\\d)_/.test(src), "version");
+  const version = src.match(/HOUSEHOLD_PROMPT_VERSION = "v(\d+)_/);
+  assert(version !== null && Number(version[1]) >= 28, "version");
   assert(src.includes("That preparation is NEVER cited by the box of the person that line binds"), "v29: à qui ne PAS servir le composant");
   const at = src.indexOf("If nothing clashes, everyone shares the same one -- but nothing clashing");
   assert(at > -1, "la phrase v28 a disparu");

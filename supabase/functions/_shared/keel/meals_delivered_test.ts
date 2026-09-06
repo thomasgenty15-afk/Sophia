@@ -694,3 +694,14 @@ Deno.test("CÂBLAGE — les moments passés du jour entamé ne sont pas des case
   assert(/spentSlotsToday\.has\(String\(c\.slot\)\)/.test(src), "le filtre des cellules a disparu");
   assert(/MAX_SINGLE_INGREDIENT_G \* Math\.max\(1, prep\.servingsMade, drawsByPot\.get\(prep\.id\) \?\? 0\)/.test(src), "le plafond par ingrédient relit servingsMade seul");
 });
+
+Deno.test("⟳ LA RELANCE d'une case SANS boîte demande un plat à elle ou des boîtes, pas « une boîte sur ce plat »", () => {
+  const text = unfedRetryInstruction([
+    { name: "Nora", memberId: LEA, day: "sun", slot: "breakfast", cause: "held_off_regime", dish: "Œufs, pain complet et tomates", via: null, preparationId: null, matched: "œufs" },
+  ]);
+  assert(text !== null);
+  assert(text.includes("that meal has NO boxes"), text);
+  assert(text.includes("a dish of their OWN at that day and slot"), text);
+  assert(text.includes("or put boxes on that dish"), text);
+  assert(!text.includes("write them a box of their OWN on that dish"), "l'ancien remède (une boîte sur un plat sans boîtes) est resservi");
+});

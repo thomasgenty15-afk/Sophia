@@ -635,7 +635,7 @@ import {
 // distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
 // le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
 // `explanation.asked` sépare les deux dernières.
-export const HOUSEHOLD_PROMPT_VERSION = "v29_the_style_reaches_the_brief";
+export const HOUSEHOLD_PROMPT_VERSION = "v30_every_meal_follows_the_line";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1406,6 +1406,15 @@ function boxSchemaBlock(
     "That preparation is NEVER cited by the box of the person that line binds:",
     "their box cites its own preparation (the tofu, the beans) and nothing that",
     "carries what their line refuses.",
+    // ⟳ v30 — mesuré (campagne du 05/09, M06): dix petits-déjeuners et goûters
+    // sans la végane. Ces repas n'ont pas de boîtes; la règle de la boîte
+    // d'échange ne les couvrait pas, et « œufs pour tout le monde » la laissait
+    // sans rien. La ligne la plus stricte gouverne la base de CHAQUE repas.
+    "This holds at EVERY meal, breakfast and snacks included. A breakfast or a",
+    "snack the table shares follows the strictest line too (oats with plant milk,",
+    "fruit, bread); eggs, dairy, ham for the others go in a box of theirs or a",
+    "dish of their own -- never in the one dish everyone eats. Nobody bound by",
+    "that line is left without a breakfast or a snack.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
     // déclaration sur douze runs — et un test de ce fichier interdit désormais

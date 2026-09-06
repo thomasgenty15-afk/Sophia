@@ -607,7 +607,7 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v29_the_style_reaches_the_brief");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v30_every_meal_follows_the_line");
 });
 
 // ---------------------------------------------------------------------------

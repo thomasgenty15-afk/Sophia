@@ -414,6 +414,23 @@ export function unfedRetryInstruction(
   const lines = clean.map((r) => {
     const where = `${r.day} ${r.slot}`;
     const dish = r.dish ? ` "${r.dish}"` : "";
+    // ── ⟳ 2026-09-06 — LA CASE SANS BOÎTE (petit-déjeuner, goûter) ──────────
+    // M06: dix retraits de la végane sur des « Œufs, pain complet et tomates »
+    // sans boîtes; « écris-lui une boîte sur ce plat » ne convenait pas à un
+    // repas que le modèle n'a jamais mis en boîtes. On lui dit les deux voies.
+    if (
+      (r.cause === "held_off_regime" || r.cause === "held_off_exclusion") &&
+      r.via === null && r.dish
+    ) {
+      const refuses = r.cause === "held_off_regime"
+        ? "their declared line refuses"
+        : "they asked to avoid";
+      return `- ${r.name} (${r.memberId}), ${where},${dish}: that meal has NO ` +
+        `boxes and its dish carries what ${refuses}. Give them a dish of their ` +
+        `OWN at that day and slot (\"for_member_id\": their id) that follows ` +
+        `their line -- or put boxes on that dish, with theirs carrying a ` +
+        `replacement of the same role. Change nothing else.`;
+    }
     // ── ⟳ 2026-09-04 — LE LIEN FAUTIF EST NOMMÉ, PAS LA BOÎTE ──────────────
     // Sur 60 refus sur 89 mesurés, la boîte EXISTAIT et ses items étaient
     // propres: c'est l'item qui citait la préparation du poulet. Demander
