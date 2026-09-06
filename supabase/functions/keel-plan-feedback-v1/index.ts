@@ -600,6 +600,7 @@ Deno.serve(async (req) => {
             // personne. Les fondre dirait le contraire du modèle (§2.4).
             kind: item.kind === "portion.adjust" ? "setting" : "preference",
             who: feedbackWhoOf(item.subject, feedbackMembers),
+            sense: item.kind,
           });
         }
       }

@@ -331,3 +331,52 @@ Deno.test("⟳ 2026-09-05 — la bulle « je n'ai pas pu enregistrer » nomme la
   // Rien à dire = pas de bulle.
   assertEquals(buildSafetyNotWrittenNotice({ failed: [], language: "fr" }), null);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — L'ACCUSÉ DIT LE SENS (cas « Léa n'aime pas les asperges, Marc adore »)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ deux bouches, le même mot, deux sens : l'accusé dit qui veut et qui ne veut pas", () => {
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "les asperges", until: null, kind: "preference", who: "Léa", sense: "food.exclude" },
+      { text: "les asperges", until: null, kind: "preference", who: "Marc", sense: "food.prefer" },
+    ],
+    language: "fr",
+  }) ?? "";
+  assert(out.includes("Léa : à éviter — « les asperges »"), out);
+  assert(out.includes("Marc : à servir plus souvent — « les asperges »"), out);
+  const en = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "asparagus", until: null, kind: "preference", who: "Léa", sense: "food.exclude" },
+      { text: "asparagus", until: null, kind: "preference", who: "Marc", sense: "food.prefer" },
+    ],
+    language: "en",
+  }) ?? "";
+  assert(en.includes("Léa : to avoid — \u201casparagus\u201d"), en);
+  assert(en.includes("Marc : to serve more often — \u201casparagus\u201d"), en);
+});
+
+Deno.test("sans sens (une note, un réglage) la ligne reste telle qu'avant ; un sens inconnu ne fabrique rien", () => {
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "danse le mardi soir", until: null, kind: "note", who: "Léa" },
+      { text: "moins de sel", until: null, kind: "preference", who: null, sense: "rhythm.set" },
+    ],
+    language: "fr",
+  }) ?? "";
+  assert(out.includes("· Léa : « danse le mardi soir »"), out);
+  assert(out.includes("· « moins de sel »"), out);
+  assert(!out.includes(" — «"), "un sens inconnu a fabriqué un mot:\n" + out);
+});
+
+Deno.test("CÂBLAGE — les deux producteurs d'un accusé de préférence passent le sens", async () => {
+  const io = await Deno.readTextFile(new URL("./draft_note_classify_io.ts", import.meta.url));
+  const fb = await Deno.readTextFile(new URL("../../keel-plan-feedback-v1/index.ts", import.meta.url));
+  assert(/kind: "preference",\n\s*who: whoOf\(item\.subject\),\n\s*sense: item\.kind,/.test(io), "la classification de note n'annonce plus le sens d'une préférence");
+  assert(/kind: "next_plan",\n\s*who: whoOf\(entry\.item\.subject\),\n\s*sense: entry\.item\.kind,/.test(io), "l'encart n'annonce plus le sens");
+  assert(/sense: item\.kind,/.test(fb), "le retour de plan n'annonce plus le sens d'une préférence");
+});

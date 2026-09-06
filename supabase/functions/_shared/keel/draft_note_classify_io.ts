@@ -558,6 +558,7 @@ export async function classifyAndPersistDraftNote(args: {
           until: null,
           kind: "preference",
           who: whoOf(item.subject),
+          sense: item.kind,
         });
       }
     }
@@ -578,6 +579,7 @@ export async function classifyAndPersistDraftNote(args: {
           until: null,
           kind: "next_plan",
           who: whoOf(entry.item.subject),
+          sense: entry.item.kind,
         });
       }
     }

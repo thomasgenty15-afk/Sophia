@@ -86,6 +86,14 @@ export interface RecapKept {
   readonly kind: "preference" | "note" | "next_plan" | "setting";
   /** Le prénom de la bouche, ou `null` = toute la table. */
   readonly who: string | null;
+  /**
+   * ⟳ 2026-09-06 — LE SENS DE LA LIGNE, EN MOTS. Mesuré (cas Léa/Marc) : « Léa :
+   * « les asperges » · Marc : « les asperges » » — la note était classée juste
+   * (exclusion chez Léa, préférence chez Marc) et l'accusé ne disait pas qui
+   * veut et qui ne veut pas. La famille retenue (`RetainedKind`) est rendue en
+   * mots avant la citation ; `null`/absent = comme avant (une note, un réglage).
+   */
+  readonly sense?: string | null;
 }
 
 const COPY = {
@@ -117,6 +125,14 @@ const COPY = {
     keptNote: "J'ai retenu ça :",
     keptSetting: "J'ai ajusté un réglage :",
     keptFor: (who: string) => ` pour ${who}`,
+    senses: {
+      "food.exclude": "à éviter",
+      "food.prefer": "à servir plus souvent",
+      "method.avoid": "pas préparé comme ça",
+      "method.prefer": "plutôt préparé comme ça",
+      "portion.adjust": "la part",
+      craving: "une envie",
+    } as Record<string, string>,
   },
   en: {
     safetyOne: (what: string) => `I've recorded ${what}.`,
@@ -143,6 +159,14 @@ const COPY = {
     // deux côtés — une ligne anglaise citée « comme ça » se lit comme un
     // copier-coller raté, sur le message qui annonce une allergie.
     quote: (t: string) => `\u201c${t}\u201d`,
+    senses: {
+      "food.exclude": "to avoid",
+      "food.prefer": "to serve more often",
+      "method.avoid": "not cooked that way",
+      "method.prefer": "rather cooked that way",
+      "portion.adjust": "the portion",
+      craving: "a craving",
+    } as Record<string, string>,
   },
 } as const;
 
@@ -219,11 +243,16 @@ export function buildMemoryRecap(args: {
       // apparaître dans le même bloc, et une intro « pour Tom » suivie d'une
       // ligne qui parle de Léa serait un fait faux, pas une approximation.
       const head = who ? `· ${who} :` : "·";
+      // ⟳ 2026-09-06 — le sens avant la citation : « Léa : à éviter — « les
+      // asperges » · Marc : à servir plus souvent — « les asperges » ». Un sens
+      // inconnu ne fabrique pas de mot (même règle que `kinds`).
+      const sense = copy.senses[String(k.sense ?? "")] ?? "";
+      const body = sense ? `${sense} — ${copy.quote(text)}` : copy.quote(text);
       // §6 de la nomenclature: « avec sa date d'expiration affichée ». Une
       // règle dont la date ne se voit pas se découvre morte un lundi matin.
       return until
-        ? `${head} ${copy.quote(text)} (${copy.until(until)})`
-        : `${head} ${copy.quote(text)}`;
+        ? `${head} ${body} (${copy.until(until)})`
+        : `${head} ${body}`;
     });
     blocks.push([INTRO[destination], ...lines].join("\n"));
   }
