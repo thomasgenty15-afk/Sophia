@@ -105,6 +105,11 @@ import {
 // serveur. Jamais demandée au modèle: une jolie phrase inventée peut être
 // fausse, et une explication fausse est pire que pas d'explication.
 import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
+import {
+  EXPLANATION_SCHEMA_BLOCK_SOLO,
+  extractExplanation,
+  gatePlanExplanation,
+} from "../_shared/keel/plan_explanation.ts";
 // FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Module livré, vert,
 // et sans aucun appelant depuis le 2026-08-13; c'est le mode d'échec n°1 du
 // dépôt. Les quatre portes vivent DANS le module, pas ici.
@@ -2522,10 +2527,18 @@ Deno.serve(async (req) => {
       appendContentLanguageBlock(
         `${built.userMessage}${draftNoteSuffix}${hungerSuffix}${extra}`,
         built.contentLocale,
-        MEAL_TRANSLATABLE_FIELDS,
+        // ⟳ 2026-09-06: le champ `explanation` est traduisible ICI (la lane le
+        // demande), pas dans le tronc (qui ne le porte pas).
+        [...MEAL_TRANSLATABLE_FIELDS, "explanation[]"],
         MEAL_TOKEN_FIELDS,
       );
 
+    // ⟳ 2026-09-06 — L'EXPLICATION IA, SUR LA LANE SOLO AUSSI (campagne du
+    // 05/09 : elle n'existait que sur le foyer). Le bloc s'ajoute au système ;
+    // le texte ACCEPTÉ (après relance) est gardé pour en lire la clé.
+    const soloSystemPrompt = built.systemPrompt + "\n\n" +
+      EXPLANATION_SCHEMA_BLOCK_SOLO.join("\n");
+    let mealSourceText = "";
     let result: unknown;
     try {
       result = await generateWithGemini(
@@ -2534,7 +2547,7 @@ Deno.serve(async (req) => {
         // plus contraignante (la raison est écrite dans
         // `household_meal_generation.ts`, qui applique la même règle à ses
         // règles de maison).
-        built.systemPrompt,
+        soloSystemPrompt,
         mealUserMessage(""),
         0.6, true, [], "auto",
         // LE MODÈLE DE COMPOSITION, pas celui du chat. Voir `generation_model.ts`:
@@ -2676,6 +2689,7 @@ Deno.serve(async (req) => {
     let meal: GeneratedMeal;
     try {
       meal = parseGeneratedMeal(result, parseArgs);
+      mealSourceText = typeof result === "string" ? result : "";
     } catch (error) {
       return jsonResponse(req, {
         error: "meal_unparseable",
@@ -2708,7 +2722,7 @@ Deno.serve(async (req) => {
       const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
       try {
         const retryResult = await generateWithGemini(
-          built.systemPrompt,
+          soloSystemPrompt,
           mealUserMessage(`\n\n${retryInstruction}`),
           0.6,
           true,
@@ -2725,6 +2739,7 @@ Deno.serve(async (req) => {
             retried.protein_anchor_missing.length < anchorMissingBefore
           ) {
             meal = retried;
+            mealSourceText = retryResult;
             proteinAnchorRetry = true;
           }
         }
@@ -3260,7 +3275,7 @@ Deno.serve(async (req) => {
       if (instruction && !adoptingDraft) {
         try {
           const retryResult = await generateWithGemini(
-            built.systemPrompt,
+            soloSystemPrompt,
             mealUserMessage(`\n\n${instruction}`),
             0.6,
             true,
@@ -3364,6 +3379,7 @@ Deno.serve(async (req) => {
               better && !flipped
             ) {
               meal = retried;
+              mealSourceText = retryResult;
               measured = after;
               correctionRetried = true;
             }
@@ -4018,6 +4034,22 @@ Deno.serve(async (req) => {
     // reprise en a besoin avant l'appel modèle; le recopier ici en ferait une
     // troisième copie de la même liste.
 
+    // ⟳ 2026-09-06 — CE QUE LE MODÈLE A DÛ TRANCHER, lu par la même porte que
+    // le foyer (`gatePlanExplanation`): huit lignes au plus, jamais un chiffre.
+    const explanation = gatePlanExplanation({
+      raw: extractExplanation(mealSourceText),
+      names: [],
+      houseRuleLabels: [],
+    });
+    console.log(JSON.stringify({
+      tag: "keel.meal.plan_explanation",
+      user_id: userId,
+      intent,
+      asked: true,
+      declared: explanation.declared,
+      kept: explanation.lines.length,
+      refused: explanation.refused,
+    }));
     let rationaleLines: string[] = [];
     let rationaleRefusal: string | null = null;
     try {
@@ -4350,6 +4382,7 @@ Deno.serve(async (req) => {
         // referait ce verdict le referait faux, et il le referait en silence.
         timing: planTiming,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+        explanation: { lines: explanation.lines, refusal: explanation.refused },
         request_report: { lines: reportLines, refusal: reportRefusal },
         dishes: dishesWritten,
         preparations: preparationsWritten,
@@ -4533,6 +4566,7 @@ Deno.serve(async (req) => {
             // pas d'un lot débranché, et ce dépôt paie en boucle la garde
             // construite puis silencieusement débranchée.
             rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+        explanation: { lines: explanation.lines, refusal: explanation.refused },
             // FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Même
             // arbitrage: sans la trace, « je t'avais demandé des burgers » n'a
             // plus de réponse trois jours plus tard.
@@ -4761,6 +4795,7 @@ Deno.serve(async (req) => {
       // ⛔ Aucun miroir de ces gabarits n'existera côté écran: une garde en
       // double diverge.
       rationale: { lines: rationaleLines, refusal: rationaleRefusal },
+        explanation: { lines: explanation.lines, refusal: explanation.refused },
       // FF-061 — ce qui a été fait de ce qui avait été demandé.
       request_report: { lines: reportLines, refusal: reportRefusal },
       retired_plan_id: writtenRow?.retired_plan_id ?? null,

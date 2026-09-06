@@ -109,7 +109,9 @@ Deno.test("⛔ L'ORDRE — les faits sont calculés AVANT l'appel modèle", asyn
   assert(hisse < modele, "les faits doivent être hissés au-dessus du modèle");
 });
 
-Deno.test("la langue est étendue au champ, sur CETTE lane seulement", async () => {
+// ⟳ 2026-09-06: la lane solo déclare le champ dans SON appel (section SOLO plus
+// bas); le TRONC, lui, ne le porte toujours pas — la clause tient.
+Deno.test("la langue est étendue au champ, dans les lanes qui le demandent, jamais dans le tronc", async () => {
   const code = await laneSource();
   assert(
     code.includes('[...MEAL_TRANSLATABLE_FIELDS, "explanation[]"]'),
@@ -125,4 +127,25 @@ Deno.test("la langue est étendue au champ, sur CETTE lane seulement", async () 
     trunk.indexOf("export const MEAL_TRANSLATABLE_FIELDS"),
   ).slice(0, 900);
   assert(!liste.includes("explanation"), "le tronc ne doit pas la porter");
+});
+
+// ═══ LA LANE SOLO (2026-09-06) — campagne du 05/09 : aucune explication IA pour une personne seule ═══
+async function soloSource(): Promise<string> {
+  return await Deno.readTextFile(new URL("../../generate-meal-v1/index.ts", import.meta.url));
+}
+
+Deno.test("SOLO — le système porte le bloc, les TROIS appels modèle le reçoivent", async () => {
+  const src = await soloSource();
+  assert(src.includes("EXPLANATION_SCHEMA_BLOCK_SOLO.join("), "le bloc n'est pas ajouté au système");
+  assertEquals((src.match(/soloSystemPrompt,\n/g) || []).length, 3, "les trois appels doivent recevoir le même système");
+  assert(!/built\.systemPrompt,\n/.test(src), "un appel reçoit encore le système sans le bloc");
+});
+
+Deno.test("SOLO — la garde lit le texte ACCEPTÉ (après relance), et les trois sorties portent le bloc", async () => {
+  const src = await soloSource();
+  assert(/const explanation = gatePlanExplanation\(\{\s*raw: extractExplanation\(mealSourceText\)/.test(src));
+  assertEquals((src.match(/mealSourceText = retryResult;/g) || []).length, 2, "les deux relances doivent remplacer le texte lu");
+  assertEquals((src.match(/explanation: \{ lines: explanation\.lines, refusal: explanation\.refused \}/g) || []).length, 3);
+  assert(src.includes('[...MEAL_TRANSLATABLE_FIELDS, "explanation[]"]'), "le champ doit être traduisible sur cette lane");
+  assert(src.includes('tag: "keel.meal.plan_explanation"'), "le compteur doit sortir même à zéro");
 });

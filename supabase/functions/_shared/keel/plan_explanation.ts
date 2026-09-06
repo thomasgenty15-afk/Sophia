@@ -59,6 +59,33 @@ import { FORBIDDEN_PORTION_TERMS } from "./household_portions.ts";
 export const EXPLANATION_MAX_LINES = 8;
 
 /**
+ * ⟳ 2026-09-06 — LA LANE SOLO AUSSI. Campagne du 05/09 : `explanation` n'existait
+ * que sur le foyer ; une personne seule n'avait jamais une ligne du modèle sur ce
+ * qu'il avait dû trancher (la demande répétée de l'utilisateur). Même contrat que
+ * le bloc du foyer (`EXPLANATION_SCHEMA_BLOCK`, household_meal_generation.ts) :
+ * huit lignes au plus, un arbitrage par ligne, jamais un chiffre ni le calendrier.
+ */
+export const EXPLANATION_SCHEMA_BLOCK_SOLO = [
+  "== ONE MORE OUTPUT FIELD: WHAT YOU HAD TO WEIGH UP ==",
+  "Add ONE more top-level key to the JSON you return:",
+  '  "explanation": [ "<one short line>", ... ]',
+  "At most 8 lines, one sentence each, in the CONTENT LANGUAGE named at the",
+  "end of the user message.",
+  "Write a line ONLY where you had to CHOOSE between two things this person",
+  "asked for, or between a wish and the direction this plan follows: a craving",
+  "that pulls against that direction, a dish they asked for that carries food",
+  "they avoid, a habit that does not fit the cooking time they gave. Say what",
+  "you did, and in a few words why it is a reasonable choice for this week --",
+  "half information, half education.",
+  'If you had nothing to weigh up, return "explanation": [].',
+  "Never invent a tension to fill the list.",
+  "NEVER in these lines: a calorie, gram or kilo figure; their weight, body,",
+  "goal, diet, allergy or medical line; a coach rule (not yours to explain).",
+  "The calendar -- which days, which cooking session, which shop -- is",
+  "explained by the app in fixed sentences under your text. Do not restate it.",
+] as const;
+
+/**
  * ⚠️ UNE BORNE PAR LIGNE, PARCE QUE LE PLAFOND DE LIGNES NE BORNE RIEN.
  * Huit paragraphes tiennent en huit lignes. 220 caractères est une phrase
  * longue et lisible; au-delà, ce n'est plus « une ligne ».
