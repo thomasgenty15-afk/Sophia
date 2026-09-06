@@ -458,17 +458,21 @@ Deno.test("tub_estimate — une journée en bac seul est comptée depuis l'estim
   }] as never;
   const without = unmetDemand(anchors, days, new Map());
   assertEquals(without[0].cause, "not_anchored");
-  const withTub = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", 1400]]));
+  // ⟳ le besoin comparé est celui des MOMENTS COUVERTS par les bacs (1 500 ici pour
+  // déjeuner + dîner), pas la journée entière (2 000) : le petit-déjeuner mangé à
+  // table n'est la dette d'aucun bac.
+  const withTub = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", { servedKcal: 1400, wantedKcal: 1500 }]]));
   assertEquals(withTub[0].cause, "tub_estimate");
   assertEquals(withTub[0].servedKcal, 1400);
-  assertEquals(withTub[0].unmetKcal, 600);
+  assertEquals(withTub[0].wantedKcal, 1500);
+  assertEquals(withTub[0].unmetKcal, 100);
   // Un bac illisible n'est pas un zéro : l'écart reste inconnu, la cause est dite.
-  const blind = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", null]]));
+  const blind = unmetDemand(anchors, days, new Map(), new Map([["m_a thu", { servedKcal: null, wantedKcal: 1500 }]]));
   assertEquals(blind[0].cause, "tub_estimate");
   assertEquals(blind[0].unmetKcal, null);
   // Et une journée ANCRÉE n'est jamais remplacée par l'estimation.
   const anchored = new Map(anchors); anchored.set("m_a thu", { ...anchors.get("m_a thu")!, reason: "anchored", raw: 1.2, deliveredKcal: 1600 });
-  const kept = unmetDemand(anchored, days, new Map(), new Map([["m_a thu", 100]]));
+  const kept = unmetDemand(anchored, days, new Map(), new Map([["m_a thu", { servedKcal: 100, wantedKcal: 1500 }]]));
   assert(kept[0].cause !== "tub_estimate");
 });
 

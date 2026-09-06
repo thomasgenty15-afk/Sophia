@@ -419,6 +419,7 @@ import {
 // que le corps DEMANDE, et le second REMPLACE le facteur relatif quand il tire.
 // ══════════════════════════════════════════════════════════════════════════
 import {
+  slotPlanTargets,
   ANCHOR_REASONS,
   MEAL_CAP_BITS,
   type AnchorFactor,
@@ -8820,8 +8821,16 @@ Deno.serve(async (req) => {
     // rend `null`, jamais zéro. Jamais un chiffre au nom de quelqu'un sur un
     // couvercle (v4), jamais un facteur : `unmetDemand` ne s'en sert que pour
     // la cause `tub_estimate`, sur les journées `common_pot_day`.
-    const tubServed = new Map<string, number | null>();
+    const tubServed = new Map<string, { servedKcal: number | null; wantedKcal: number }>();
     if (composition) {
+      // ⟳ 2026-09-06 (FC4 16:50) — LE BESOIN COMPARÉ EST CELUI DES MOMENTS QUE LES
+      // BACS COUVRENT. Comparer à la journée entière faisait lire 18/18 journées
+      // sous le besoin là où les bacs étaient à 85–92 % de leurs moments : le
+      // petit-déjeuner et les collations mangés à table n'ont de boîte pour
+      // personne, et ne sont la dette d'aucun bac. Même part que la règle du bac
+      // (`slotPlanTargets`, cible d'entretien comme `potFactorFor`).
+      const tubKcal = new Map<string, number | null>();
+      const tubSlots = new Map<string, Set<string>>();
       const sizedBoxes = boxEnergies({
         index: composition,
         dishes: meal.dishes.map((dish) => ({
@@ -8843,13 +8852,33 @@ Deno.serve(async (req) => {
         if (box.memberIds.length < 2) continue;
         for (const memberId of box.memberIds) {
           const key = `${memberId} ${box.day ?? ""}`;
-          const prev = tubServed.get(key);
+          if (box.slot !== null) {
+            const set = tubSlots.get(key) ?? new Set<string>();
+            set.add(box.slot);
+            tubSlots.set(key, set);
+          }
+          const prev = tubKcal.get(key);
           if (prev === null) continue;
-          tubServed.set(
-            key,
-            box.kcal === null ? null : (prev ?? 0) + box.kcal / box.memberIds.length,
-          );
+          tubKcal.set(key, box.kcal === null ? null : (prev ?? 0) + box.kcal / box.memberIds.length);
         }
+      }
+      const daySlotsByKey = new Map<string, readonly string[]>();
+      for (const row of dayEnergyRows) daySlotsByKey.set(`${row.memberId} ${row.day ?? ""}`, row.slots);
+      for (const [key, servedKcal] of tubKcal) {
+        const memberId = key.slice(0, key.indexOf(" "));
+        const mouth = anchorMouths.get(memberId);
+        if (mouth === undefined) continue;
+        const target = mouthTargetKcal({ ...mouth, direction: null }, coachCounting).kcal;
+        if (target === null) continue;
+        const covered = [...(tubSlots.get(key) ?? [])];
+        const wanted = slotPlanTargets({
+          targetKcal: target,
+          coveredSlots: covered,
+          wholeSlots: [...mouth.declaredSlots, ...(daySlotsByKey.get(key) ?? [])],
+          slotExtraKcal: mouth.slotExtraKcal,
+        }).total;
+        if (!(wanted > 0)) continue;
+        tubServed.set(key, { servedKcal, wantedKcal: wanted });
       }
     }
     const unmet = unmetDemand(mouthAnchors, dayEnergyRows, potShrink, tubServed);

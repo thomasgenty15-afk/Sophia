@@ -113,10 +113,14 @@ export function unmetDemand(
   /**
    * ⟳ 2026-09-06 — le servi ESTIMÉ des journées « bac commun seul », clé
    * `<memberId> <day>` (la clé des ancres) : Σ kcal des bacs de la journée
-   * divisée par leurs mangeurs, `null` quand un bac est illisible. Optionnel :
-   * sans lui, ces journées restent `not_anchored`, comme hier.
+   * divisée par leurs mangeurs (`null` quand un bac est illisible), et le
+   * BESOIN DES MOMENTS QUE CES BACS COUVRENT — pas la journée entière : un
+   * petit-déjeuner mangé à table, sans boîte pour personne, n'est la dette
+   * d'aucun bac (mesuré sur FC4 : la cible de journée faisait lire 18/18
+   * journées sous le besoin là où les bacs étaient à 85–92 % de leurs moments).
+   * Optionnel : sans lui, ces journées restent `not_anchored`, comme hier.
    */
-  tubServed: ReadonlyMap<string, number | null> = new Map(),
+  tubServed: ReadonlyMap<string, { servedKcal: number | null; wantedKcal: number }> = new Map(),
 ): UnmetDemand[] {
   const out: UnmetDemand[] = [];
   for (const day of days) {
@@ -126,13 +130,14 @@ export function unmetDemand(
       anchor !== undefined && anchor.reason === "common_pot_day" && anchor.targetKcal !== null &&
       tubServed.has(key)
     ) {
-      const served = tubServed.get(key) ?? null;
+      const tub = tubServed.get(key)!;
+      const served = tub.servedKcal;
       out.push({
         memberId: day.memberId,
         day: day.day,
-        wantedKcal: Math.round(anchor.targetKcal),
+        wantedKcal: Math.round(tub.wantedKcal),
         servedKcal: served === null ? null : Math.round(served),
-        unmetKcal: served === null ? null : Math.max(0, Math.round(anchor.targetKcal - served)),
+        unmetKcal: served === null ? null : Math.max(0, Math.round(tub.wantedKcal - served)),
         cause: "tub_estimate",
       });
       continue;
