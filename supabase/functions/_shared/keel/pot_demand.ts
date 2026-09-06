@@ -424,3 +424,43 @@ export function neededPotFactor(
   }
   return out;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-06 — LE MOMENT PERDU D'UNE BOUCHE EST COMPTÉ, PAS EFFACÉ
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mesuré (banc « un retour et les calories », 0f, FB3) : « Nora n'aime pas le
+// yaourt de soja » → le modèle obéit, Nora n'a plus de collation, et sa CIBLE
+// suit ses moments restants (`ownSlots`) : elle tombe à 44 % de son besoin
+// (témoin 61 %) sans qu'aucun compteur ne la distingue. La réduction de la
+// cible aux moments couverts est juste pour un plat que PERSONNE ne met en
+// boîte (mangé à table, attribué à personne) ; elle est un silence quand la
+// table sert ce moment aux autres et pas à elle.
+//
+// Ici on COMPTE : les moments que la table sert ce jour-là (un contenant chez
+// n'importe qui) et que cette bouche n'a pas, valorisés sur sa cible PLEINE.
+// Aucun dimensionnement ne change — grossir ses autres boîtes ou relancer
+// sera une décision prise sur ce compteur, pas avant lui.
+//
+// PURE: no I/O, no clock, no randomness.
+export function lostSlotEnergy(args: {
+  mouth: AnchorMouth;
+  coachCounting: CountingStance;
+  /** Les moments où CETTE bouche a un contenant (à son nom ou en bac). */
+  mySlots: readonly string[];
+  /** Les moments où la table sert un contenant à quelqu'un, ce jour-là. */
+  tableSlots: readonly string[];
+}): { lostSlots: string[]; kcal: number | null } {
+  const mine = new Set(args.mySlots);
+  const lostSlots = [...new Set(args.tableSlots)].filter((s) => !mine.has(s)).sort();
+  if (lostSlots.length === 0) return { lostSlots, kcal: 0 };
+  const target = mouthTargetKcal({ ...args.mouth, direction: null }, args.coachCounting).kcal;
+  if (target === null) return { lostSlots, kcal: null };
+  const shared = slotPlanTargets({
+    targetKcal: target,
+    coveredSlots: lostSlots,
+    wholeSlots: [...args.mouth.declaredSlots, ...args.tableSlots],
+    slotExtraKcal: args.mouth.slotExtraKcal,
+  });
+  return { lostSlots, kcal: Math.round(shared.total) };
+}

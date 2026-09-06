@@ -446,6 +446,7 @@ import {
   UNMET_CAUSES,
   type UnmetCause,
   unmetDemand,
+  lostSlotEnergy,
 } from "../_shared/keel/pot_demand.ts";
 import {
   MAX_SINGLE_INGREDIENT_G,
@@ -8352,6 +8353,36 @@ Deno.serve(async (req) => {
       if (row.unmetKcal < 200) unmetBand.lt_200 += 1;
       else unmetBand.gte_200 += 1;
     }
+    // ⟳ 2026-09-06 — LE MOMENT PERDU D'UNE BOUCHE EST COMPTÉ (banc 0f, FB3) :
+    // les moments que la table sert ce jour-là et que cette bouche n'a pas,
+    // valorisés sur sa cible pleine. Un histogramme, jamais un kcal nominatif.
+    // Seules les bouches qui ont AU MOINS un contenant ce jour-là entrent :
+    // une bouche sans rien du tout est déjà `meals_delivered.missing` ou absente.
+    const lostSlots = { mouth_days: 0, slots: 0, kcal_lt_200: 0, kcal_gte_200: 0, kcal_unknown: 0 };
+    {
+      const tableSlotsByDay = new Map<string, Set<string>>();
+      for (const row of dayEnergyRows) {
+        const set = tableSlotsByDay.get(row.day ?? "") ?? new Set<string>();
+        for (const slot of row.slots) set.add(slot);
+        tableSlotsByDay.set(row.day ?? "", set);
+      }
+      for (const row of dayEnergyRows) {
+        const mouth = anchorMouths.get(row.memberId);
+        if (mouth === undefined) continue;
+        const lost = lostSlotEnergy({
+          mouth,
+          coachCounting,
+          mySlots: row.slots,
+          tableSlots: [...(tableSlotsByDay.get(row.day ?? "") ?? [])],
+        });
+        if (lost.lostSlots.length === 0) continue;
+        lostSlots.mouth_days += 1;
+        lostSlots.slots += lost.lostSlots.length;
+        if (lost.kcal === null) lostSlots.kcal_unknown += 1;
+        else if (lost.kcal < 200) lostSlots.kcal_lt_200 += 1;
+        else lostSlots.kcal_gte_200 += 1;
+      }
+    }
     // ── ⟳ 2026-09-04 — DENSIFIER DANS LA BOÎTE, quand le plafond a mordu ──────
     // Le plafond de masse a raison de ne pas servir plus de volume; mais
     // personne ne faisait l'autre geste. À masse constante, des grammes passent
@@ -8487,6 +8518,7 @@ Deno.serve(async (req) => {
       pot_growth: growth,
       unmet: unmetCauses,
       unmet_band: unmetBand,
+      lost_slots: lostSlots,
       densify: densifyCounts,
       extras_floored: extrasFloored,
       activity: activityAnswers,
@@ -8836,6 +8868,7 @@ Deno.serve(async (req) => {
         // Histogrammes de motifs, comme leurs voisins: aucun kcal par bouche.
         unmet: unmetCauses,
         unmet_band: unmetBand,
+        lost_slots: lostSlots,
         densify: densifyCounts,
         extras_floored: extrasFloored,
         // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───

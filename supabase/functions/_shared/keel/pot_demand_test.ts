@@ -20,7 +20,7 @@ import {
   slotPlanTargets,
 } from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
-import {
+import { lostSlotEnergy,
   neededPotFactor,
   POT_REASONS,
   potFactorFor,
@@ -469,4 +469,21 @@ Deno.test("tub_estimate — une journée en bac seul est comptée depuis l'estim
   const anchored = new Map(anchors); anchored.set("m_a thu", { ...anchors.get("m_a thu")!, reason: "anchored", raw: 1.2, deliveredKcal: 1600 });
   const kept = unmetDemand(anchored, days, new Map(), new Map([["m_a thu", 100]]));
   assert(kept[0].cause !== "tub_estimate");
+});
+
+// ⟳ 2026-09-06 — LE MOMENT PERDU D'UNE BOUCHE EST COMPTÉ (banc 0f, FB3)
+Deno.test("lostSlotEnergy — un moment que la table sert et que la bouche n'a pas vaut sa part de la cible PLEINE", () => {
+  const e = eater({ memberId: "a" });
+  const none = lostSlotEnergy({ mouth: e.mouth, coachCounting: "no_position", mySlots: ["breakfast", "lunch", "dinner"], tableSlots: ["breakfast", "lunch", "dinner"] });
+  assertEquals(none.lostSlots, []);
+  assertEquals(none.kcal, 0);
+  const lost = lostSlotEnergy({ mouth: e.mouth, coachCounting: "no_position", mySlots: ["breakfast", "lunch"], tableSlots: ["breakfast", "lunch", "dinner"] });
+  assertEquals(lost.lostSlots, ["dinner"]);
+  const target = mouthTargetKcal({ ...e.mouth, direction: null }, "no_position").kcal!;
+  const expected = slotPlanTargets({ targetKcal: target, coveredSlots: ["dinner"], wholeSlots: [...e.mouth.declaredSlots, "breakfast", "lunch", "dinner"], slotExtraKcal: e.mouth.slotExtraKcal }).total;
+  assertEquals(lost.kcal, Math.round(expected));
+  assert(lost.kcal! > 0);
+  // Un moment que PERSONNE ne sert n'est pas perdu : rien ne le distingue d'un plat mangé à table.
+  const nobody = lostSlotEnergy({ mouth: e.mouth, coachCounting: "no_position", mySlots: ["breakfast"], tableSlots: ["breakfast"] });
+  assertEquals(nobody.kcal, 0);
 });
