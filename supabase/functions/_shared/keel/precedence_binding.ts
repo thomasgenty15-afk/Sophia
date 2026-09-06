@@ -110,6 +110,10 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // repas, petits-déjeuners et goûters compris. Le bloc d'arbitrage ne bouge pas.
   v30_every_meal_follows_the_line:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-06 — v31 : le bloc « ONE PERSON WANTS WHAT ANOTHER REFUSES » (paires
+  // prefer@X / exclude@Y). L'empreinte est celle du texte d'arbitrage servi.
+  v31_one_wants_what_another_refuses:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

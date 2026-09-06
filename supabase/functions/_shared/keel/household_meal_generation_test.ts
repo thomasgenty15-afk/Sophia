@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import {
+  assertStringIncludes, assert, assertEquals } from "jsr:@std/assert@1";
 
 import type { PortionMember } from "./household_portions.ts";
 import { householdDietBlock } from "./household_diet.ts";
@@ -1870,7 +1871,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
   // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
   // bas tient l'identité du `userSuffix` sans les faits.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v30_every_meal_follows_the_line");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
 });
 
 // ===========================================================================
@@ -2502,4 +2503,52 @@ Deno.test("⛔ LE BLOC REND UNE DIRECTION, JAMAIS UN OBJECTIF", () => {
       assert(!userSuffix.includes(forbidden), `${forbidden} dans le bloc`);
     }
   }
+});
+
+
+// ⟳ 2026-09-06 — QUAND UNE BOUCHE VEUT CE QU'UNE AUTRE REFUSE (rapport 0f §10)
+Deno.test("préférence contre exclusion — le bloc nomme la paire et demande le composant séparé par boîte ; absent sans paire", () => {
+  const presence = resolveWindowPresence({
+    members: [
+      { memberId: "m-dad", displayName: "Marc", away: parseMemberAway([]) },
+      { memberId: "m-son", displayName: "Tom", away: parseMemberAway([]) },
+    ],
+    rhythm: [{ slot: "lunch", size: null }, { slot: "dinner", size: null }],
+    windowDays: ["mon", "tue"],
+  });
+  const base = {
+    ruleHolders: [],
+    traditions: [],
+    daysInWindow: ["mon", "tue"],
+    members: [DAD, SON],
+    envyLine: null,
+    restrictions: [],
+    presence,
+    merge: null,
+    cooking: "one_dish" as const, divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
+    kitchenEquipment: null,
+    unmerge: null,
+    dietBlock: "",
+    notes: [],
+    voices: [],
+  };
+  const without = buildHouseholdPromptBlocks(base).userSuffix;
+  assert(!without.includes("ONE PERSON WANTS WHAT ANOTHER REFUSES"), "sans paire, pas de bloc");
+  const withSplit = buildHouseholdPromptBlocks({
+    ...base,
+    preferenceSplits: [{ term: "les asperges", wants: [{ memberId: "m-dad", displayName: "Marc" }], refuses: [{ memberId: "m-son", displayName: "Tom" }] }],
+  }).userSuffix;
+  assertStringIncludes(withSplit, "== ONE PERSON WANTS WHAT ANOTHER REFUSES ==");
+  assertStringIncludes(withSplit, 'Marc want(s) "les asperges"; Tom keep(s) it off the plate.');
+  assertStringIncludes(withSplit, "cited only by the box of Marc");
+  assertStringIncludes(withSplit, "never by the box of Tom");
+  // Le bloc ne dit jamais « évite-le pour tous » : c'est la faute qu'il corrige.
+  assertStringIncludes(withSplit, "Do NOT settle these by dropping the food for the whole table");
+  // Et le reste du prompt est celui d'avant, au caractère près, hors du bloc.
+  const squeeze = (t: string) => t.replace(/\n{2,}/g, "\n").trim();
+  assertEquals(
+    squeeze(withSplit.replace(/== ONE PERSON WANTS WHAT ANOTHER REFUSES ==[\s\S]*?two boxes: the component lives in the box of the person who wants it\.\n?/, "")),
+    squeeze(without),
+  );
 });

@@ -1136,7 +1136,7 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v30_every_meal_follows_the_line");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
 });
 
 // ---------------------------------------------------------------------------

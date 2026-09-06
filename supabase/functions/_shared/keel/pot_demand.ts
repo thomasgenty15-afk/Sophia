@@ -315,8 +315,11 @@ export function potFactorFor(args: {
     // besoin de chaque bouche — ⟳ ARBITRAGE 1 (2026-09-06) : à la densité
     // MESURÉE du bac (ce qu'il livre par gramme), bornée entre le plancher de
     // densité et 1,35 (`mealMassCapFor`, et pourquoi le kilo ne revient pas).
+    // ⟳ ARBITRAGE 3 (suite, N3d) — le plafond VOIT le cran : borner le repas à
+    // sa part sans le cran reprenait d'une main ce que la note donnait de l'autre
+    // (3 bacs bornés `density` sur N3d). Même geste que 6f9385d3 côté ancre.
     const cap = mealMassCapFor({
-      mealKcal,
+      mealKcal: mealKcal * (1 + boost),
       deliveredKcal: args.deliveredKcal,
       deliveredGrams: args.grams,
     });

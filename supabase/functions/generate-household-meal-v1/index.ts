@@ -286,6 +286,7 @@ import {
   loadHouseholdAllergies,
 } from "../_shared/keel/household_safety.ts";
 import {
+  type PreferenceSplit,
   buildHouseholdPromptBlocks,
   // LOT C ② — LE COMPTEUR DE L'ATTRIBUTION D'UNE RÈGLE DANS UN `why`.
   countWhyRuleAttributions,
@@ -5033,7 +5034,42 @@ Deno.serve(async (req) => {
       issues.push("work_lunch_unreadable");
     }
 
+    // ⟳ 2026-09-06 — LES PAIRES « X VEUT CE QUE Y REFUSE », depuis les deux
+    // magasins (durable + prochain plan), par terme normalisé, entre bouches
+    // à table. Une paire où la même bouche veut et refuse n'en est pas une ;
+    // une exclusion de TABLE n'en est pas une non plus (personne ne peut le
+    // porter). Rapport 0f §10.
+    const preferenceSplits: PreferenceSplit[] = (() => {
+      const nameOf = new Map(platedMembers.map((m) => [m.memberId, m.displayName]));
+      const byTerm = new Map<string, { term: string; wants: Set<string>; refuses: Set<string> }>();
+      for (const item of [...retainedDurable.items, ...retainedNextPlan]) {
+        if (item.kind !== "food.prefer" && item.kind !== "food.exclude") continue;
+        const subject = String(item.subject ?? "");
+        if (!subject.startsWith("member:")) continue;
+        const memberId = subject.slice("member:".length);
+        if (!nameOf.has(memberId)) continue;
+        const text = String(item.text ?? "").trim();
+        const key = normalizePantryTerm(text);
+        if (!key) continue;
+        const cur = byTerm.get(key) ?? { term: text, wants: new Set<string>(), refuses: new Set<string>() };
+        (item.kind === "food.prefer" ? cur.wants : cur.refuses).add(memberId);
+        byTerm.set(key, cur);
+      }
+      const out: PreferenceSplit[] = [];
+      for (const cur of byTerm.values()) {
+        const wants = [...cur.wants].filter((id) => !cur.refuses.has(id));
+        const refuses = [...cur.refuses].filter((id) => !cur.wants.has(id));
+        if (wants.length === 0 || refuses.length === 0) continue;
+        out.push({
+          term: cur.term,
+          wants: wants.map((id) => ({ memberId: id, displayName: nameOf.get(id) ?? "" })),
+          refuses: refuses.map((id) => ({ memberId: id, displayName: nameOf.get(id) ?? "" })),
+        });
+      }
+      return out;
+    })();
     const household = buildHouseholdPromptBlocks({
+      preferenceSplits,
       // ══════════════════════════════════════════════════════════════════
       // ⟳ 2026-09-04 · CE QUI EST DÉJÀ TRANCHÉ, DIT AU MODÈLE AVANT QU'IL
       //    ÉCRIVE SA PROSE
@@ -9067,6 +9103,49 @@ Deno.serve(async (req) => {
     // de bouches. L'énergie des boîtes ne dépend plus de ce champ (mouth_energy,
     // lot 0) ; le verdict de plan si — ce compteur dit de combien il se trompe.
     // Grammes prêts et un rapport, jamais un kcal ni un identifiant.
+    // ⟳ 2026-09-06 — LE COMPOSANT SÉPARÉ A-T-IL ÉTÉ COMPOSÉ ? Après ceinture,
+    // relances et recours, sur les boîtes finales, avec le matcher du dépôt
+    // (`dishBitesExclusion`, surface « all » : items de la boîte et casseroles
+    // citées). Le texte de la préférence est tokenisé comme une exclusion — même
+    // tokenisation, même matcher — pour ne pas écrire un second moteur.
+    const preferenceSplit = (() => {
+      const counts = { pairs: preferenceSplits.length, wanters: 0, composed: 0, refuser_clean: 0, refuser_bitten: 0 };
+      if (preferenceSplits.length === 0) return counts;
+      const prepById = new Map(meal.preparations.map((p) => [p.id, { id: p.id, title: p.title, method: p.method, ingredients: p.ingredients }]));
+      const boxCarries = (memberId: string, terms: ReturnType<typeof exclusionTermsFor>): boolean => {
+        for (const dish of meal.dishes) {
+          for (const box of dish.boxes) {
+            if (!box.memberIds.includes(memberId)) continue;
+            const cited = box.items.filter((it) => it.preparationId).map((it) => ({ preparationId: it.preparationId as string }));
+            const bite = dishBitesExclusion({
+              dish: { title: "", method: "", ingredients: box.items.map((it) => ({ term: it.term })) },
+              uses: cited,
+              preparationById: prepById,
+              terms,
+              surface: "all",
+            });
+            if (bite.matched !== null) return true;
+          }
+        }
+        return false;
+      };
+      for (const split of preferenceSplits) {
+        const terms = exclusionTermsFor({
+          items: [{ kind: "food.exclude", subject: "member:_", text: split.term } as never],
+          subject: "member:_",
+        });
+        for (const w of split.wants) {
+          counts.wanters += 1;
+          if (boxCarries(w.memberId, terms)) counts.composed += 1;
+        }
+        for (const r of split.refuses) {
+          if (boxCarries(r.memberId, terms)) counts.refuser_bitten += 1;
+          else counts.refuser_clean += 1;
+        }
+      }
+      console.log(JSON.stringify({ tag: "keel.household_meal.preference_split", user_id: userId, household_id: householdId, intent, ...counts }));
+      return counts;
+    })();
     const potAttribution = composition === null ? null : potAttributionGap({
       index: composition,
       dishes: meal.dishes.map((dish) => ({
@@ -9366,6 +9445,7 @@ Deno.serve(async (req) => {
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.
       exclusion_belt: meal.exclusion_belt,
+      preference_split: preferenceSplit,
       // ══════════════════════════════════════════════════════════════════════
       // ⛔ PERSONNE SANS REPAS — LE COMPTEUR OBLIGATOIRE (2026-09-04)
       // ══════════════════════════════════════════════════════════════════════

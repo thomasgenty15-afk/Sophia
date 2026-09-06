@@ -635,7 +635,7 @@ import {
 // distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
 // le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
 // `explanation.asked` sépare les deux dernières.
-export const HOUSEHOLD_PROMPT_VERSION = "v30_every_meal_follows_the_line";
+export const HOUSEHOLD_PROMPT_VERSION = "v31_one_wants_what_another_refuses";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -761,6 +761,14 @@ export interface HouseholdPromptInput {
    *     passe bien ce champ (`household_meal_generation_test.ts`).
    * Omis ⇒ aucun bloc, et le prompt est celui de v22 au caractère près.
    */
+  /**
+   * ⟳ 2026-09-06 — LES PAIRES « X VEUT CE QUE Y REFUSE ». Mesuré (rapport 0f
+   * §10) : « Léa n'aime pas les asperges, Marc adore » → au plan suivant le
+   * modèle évite l'asperge pour toute la table. Une paire = un terme, ceux qui
+   * le veulent, ceux qui le refusent ; le bloc demande le composant SÉPARÉ par
+   * boîte. Optionnel : sans paire, le prompt est celui d'hier au caractère près.
+   */
+  readonly preferenceSplits?: readonly PreferenceSplit[];
   workLunch?: ReadonlyArray<{
     memberId: string;
     mode: string | null;
@@ -1513,6 +1521,44 @@ function dishOwnerSchemaBlock(
  * et dit que ce n'est pas la même chose. Une consigne qui interdit sans nommer
  * la sortie qu'on prend à sa place est une consigne qu'on reprend.
  */
+export interface PreferenceSplit {
+  /** Le terme tel qu'une bouche l'a écrit (la préférence), rendu tel quel. */
+  readonly term: string;
+  readonly wants: readonly { memberId: string; displayName: string }[];
+  readonly refuses: readonly { memberId: string; displayName: string }[];
+}
+
+/**
+ * ⟳ 2026-09-06 — QUAND UNE BOUCHE VEUT CE QU'UNE AUTRE REFUSE.
+ *
+ * Le bloc de la boîte d'échange (`boxSchemaBlock`) parle des LIGNES (régime,
+ * exclusion) ; une PRÉFÉRENCE contre une exclusion n'y était nommée nulle part,
+ * et le modèle tranchait en évitant l'aliment pour toute la table — « putting
+ * the table on one person's line », la faute que le bloc voisin interdit déjà.
+ * Ici la paire est nommée, et la sortie attendue aussi : la base commune SANS,
+ * le composant dans une préparation à part (ou frais), cité par la boîte de
+ * qui le veut, jamais par celle de qui le refuse. Vide sans paire.
+ */
+function preferenceSplitBlock(splits: readonly PreferenceSplit[] | undefined): string {
+  if (!splits || splits.length === 0) return "";
+  const names = (xs: readonly { displayName: string }[]) => xs.map((x) => x.displayName).join(" and ");
+  const lines: string[] = [
+    "== ONE PERSON WANTS WHAT ANOTHER REFUSES ==",
+    "Do NOT settle these by dropping the food for the whole table: that is putting",
+    "everyone on one person's line, and the person who asked for it gets nothing.",
+  ];
+  for (const s of splits) {
+    lines.push(
+      `- ${names(s.wants)} want(s) "${s.term}"; ${names(s.refuses)} keep(s) it off the plate.`,
+      `  The shared base goes WITHOUT it. "${s.term}" is ONE MORE preparation (or added`,
+      `  fresh on the day), cited only by the box of ${names(s.wants)}, at some lunches and`,
+      `  dinners of the stretch -- never by the box of ${names(s.refuses)}. One dish, one`,
+      `  title, two boxes: the component lives in the box of the person who wants it.`,
+    );
+  }
+  return lines.join("\n");
+}
+
 function dedicatedDishBlock(
   dishBearers: readonly { memberId: string; displayName: string }[],
   dedicatedDishesAsked: number,
@@ -2244,6 +2290,7 @@ export function buildHouseholdPromptBlocks(
     // bouches une par une et porte leurs ids — et la lui prendre démoterait la
     // seule consigne qui doit survivre à tout.
     dedicatedDishBlock(input.dishBearers, input.dedicatedDishesAsked),
+    preferenceSplitBlock(input.preferenceSplits),
     // JUSTE APRÈS LE BRIEF DE PORTIONS, et avant tout le reste: les deux
     // parlent de la même chose — qui mange quoi. Les séparer par l'envie de la
     // semaine ferait lire « pour combien de personnes » très loin de « pour
