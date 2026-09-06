@@ -72,9 +72,38 @@ export interface ForbiddenMatchOptions {
   allowNegatedMentions?: boolean;
 }
 
-/** NFD-strip diacritics + lowercase, so 'proteine' matches 'protéine'. */
+/**
+ * NFD-strip diacritics + lowercase, so 'proteine' matches 'protéine'.
+ *
+ * ── LA LIGATURE QUI A SERVI DES ŒUFS À UN ALLERGIQUE (2026-09-05, audit) ──
+ * Tom porte `allergen_ref='egg'`, `severity='medical'`, et le prompt transmet
+ * bien « Tom: egg / eggs / oeuf — allergy, severity=medical ». Le plan rendu
+ * contenait `œufs` dans une préparation servie à Tom, avec `group = eggs`.
+ *
+ * La cause tient en un caractère. NFD DÉCOMPOSE les diacritiques (é → e + ´)
+ * mais ne décompose PAS les ligatures: « œ » reste « œ », et le catalogue ne
+ * connaît que `oeuf`. Mesuré avant le correctif:
+ *
+ *     tokenPattern("oeuf").test("des oeufs")   -> true
+ *     tokenPattern("oeuf").test("des œufs")    -> false      ← sortie réelle
+ *
+ * Les trois ligatures du français et de l'allemand sont dépliées ici, APRÈS le
+ * passage en minuscules (« Œufs brouillés » en début de titre est le cas
+ * courant). Ce n'est pas une inférence: c'est la même lettre, écrite en un
+ * signe ou en deux.
+ *
+ * ⚠️ La longueur du texte change quand une ligature est dépliée. C'est déjà
+ * prévu: `findForbiddenMatches` compare les longueurs (`offsetsAligned`) et
+ * retombe sur le texte normalisé pour `matchedText` quand elles diffèrent.
+ */
 export function normalizeForMatch(text: string): string {
-  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+  return text
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
+    .replace(/\u00df/g, "ss");
 }
 
 function escapeRegex(value: string): string {
@@ -356,8 +385,32 @@ const NEGATION_BEFORE = new RegExp(
   `(?:\\b(?:${NEGATION_WORD})\\s+(?:(?:${NEGATED_VERB})\\s+)?(?:${NEGATION_PREPOSITION})?(?:${NEGATION_ARTICLE})*)$`,
 );
 
+/**
+ * ⛔ « SANS » NE NIE QUE CE QUI LE SUIT (2026-09-06).
+ *
+ * Cette règle blanchit un terme d'après ce qui vient APRÈS lui. Elle portait
+ * `sans`, et c'est un contresens de langue: en français « sans » nie le mot
+ * QUI SUIT, jamais celui qui précède. Conséquence mesurée sur le vrai
+ * `parseGeneratedMeal`, contrainte `milk`, `severity='medical'`:
+ *
+ *     « lait de vache »                -> retiré du plat et des courses
+ *     « lait sans lactose »            -> CONSERVÉ                ← le défaut
+ *     « lait sans lactose de vache »   -> CONSERVÉ
+ *
+ * Or « sans lactose » ne veut pas dire « sans protéines de lait »: un lait
+ * délactosé reste du lait, et c'est la protéine qui déclenche l'allergie.
+ * L'ingrédient portait même `group = dairy_milk`.
+ *
+ * Rien n'est perdu par ce retrait: `sans` figure déjà dans `NEGATION_WORD`,
+ * donc la direction LÉGITIME reste couverte par `NEGATION_BEFORE` — « pain
+ * sans gluten » ne mord pas `gluten`, « un plat sans cacahuète » ne mord pas
+ * `cacahuete` (test existant). Seule la direction fautive disparaît.
+ *
+ * `-free` RESTE, et pour la raison symétrique: en anglais c'est le mot qui
+ * PRÉCÈDE le suffixe qui est nié — « milk-free sauce » ne parle pas de lait.
+ */
 const NEGATION_AFTER =
-  /^(?:\s*[-\s]?free\b|\s*[-\s]?sans\b|\s+allerg(?:y|ies|ic|ie|ique|ies)\b|\s+intoleran(?:ce|t)\b)/;
+  /^(?:\s*[-\s]?free\b|\s+allerg(?:y|ies|ic|ie|ique|ies)\b|\s+intoleran(?:ce|t)\b)/;
 
 /**
  * Scan `text` for every forbidden term, returning each surviving occurrence.

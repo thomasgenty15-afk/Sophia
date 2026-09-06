@@ -152,6 +152,10 @@ import { type FoodGroupRef, parseFoodGroupRef, PROTEIN_SOURCES } from "./tokens.
 // clé que personne n'écrit.
 import { ingredientGroupPayload } from "./food_group_write.ts";
 import {
+  allergenGroupViolations,
+  groupedIngredientCount,
+} from "./allergen_food_groups.ts";
+import {
   type QuantitySource,
   quantitySourcePayload,
   weighableQuantityOf,
@@ -7990,7 +7994,43 @@ export function parseGeneratedMeal(
     safetyConstraints: args.safetyConstraints,
     doctrine: args.doctrine,
   });
-  const clean = lock.reason === "clean" || lock.reason.startsWith("disarmed");
+  // ── LA SECONDE CEINTURE: LE GROUPE ÉCRIT PAR LE MODÈLE ────────────────────
+  //
+  // Mesuré le 2026-09-05 sur un plan réel (A06-r2): Tom, `allergen_ref='egg'`,
+  // `severity='medical'`, a reçu une préparation dont un ingrédient s'écrivait
+  // `œufs` ET portait `group = "eggs"`. Le verrou ci-dessus lit du TEXTE; la
+  // ligature lui échappait (réparée depuis dans `forbidden_matcher.ts`) et le
+  // GROUPE ne lui servait à rien. Deux gardes ratent des choses différentes:
+  // celle-ci ne lit aucune prose, seulement ce que le modèle a lui-même
+  // déclaré, et aucune graphie ne peut plus la contourner.
+  //
+  // ⛔ MÊME CONSÉQUENCE QUE LE VERROU DE TEXTE, exprès: `clean` retombe à
+  // `false`, ce qui vide plats et préparations plus bas. Un allergène médical
+  // servi n'est pas un plan qu'on rend amputé d'une ligne, c'est un plan qu'on
+  // ne rend pas. Une seconde politique ici serait une seconde doctrine.
+  const allergenGroupBites = allergenGroupViolations(
+    [...dishes, ...preparations],
+    args.safetyConstraints ?? [],
+  );
+  const groupedIngredients = groupedIngredientCount([...dishes, ...preparations]);
+  if (allergenGroupBites.length > 0) {
+    console.error("keel.meal.allergen_group_violation", {
+      violations: allergenGroupBites.length,
+      // ⚠️ LE DÉNOMINATEUR, sinon « 0 morsure » ne se distingue pas de « aucun
+      // ingrédient ne portait de groupe » — la ceinture serait muette et
+      // ressemblerait à une ceinture propre.
+      grouped_ingredients: groupedIngredients,
+      groups: [...new Set(allergenGroupBites.map((v) => v.foodGroup))].join(","),
+      refs: [...new Set(allergenGroupBites.map((v) => v.allergenRef))].join(","),
+    });
+    for (const bite of allergenGroupBites) {
+      issues.push(
+        `allergen_group_served: ${bite.bearer} carries ${bite.term} (${bite.foodGroup}) against ${bite.allergenRef}`,
+      );
+    }
+  }
+  const clean = (lock.reason === "clean" || lock.reason.startsWith("disarmed")) &&
+    allergenGroupBites.length === 0;
 
   // ── FF-037 : L'ANCRE PROTÉIQUE DES REPAS PRINCIPAUX ─────────────────────
   // Une règle qui n'existe que dans le prompt n'est pas une garantie. Ce

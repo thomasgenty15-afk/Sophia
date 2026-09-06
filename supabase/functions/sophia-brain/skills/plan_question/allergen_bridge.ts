@@ -27,50 +27,24 @@
  * inference.
  */
 
-import {
-  FOOD_GROUP_REFS,
-  type FoodGroupRef,
-} from "../../../_shared/keel/tokens.ts";
+import type { FoodGroupRef } from "../../../_shared/keel/tokens.ts";
 import type { StudentSafetyConstraint } from "../../../_shared/keel/safety_constraints.ts";
 
-const FOOD_GROUP_SET: ReadonlySet<string> = new Set(FOOD_GROUP_REFS);
+// ⟳ 2026-09-06 — LA TABLE A DÉMÉNAGÉ DANS LE SOCLE, ET ELLE N'EST PLUS ICI.
+//
+// `_shared/keel/allergen_food_groups.ts` en est la maison désormais: la
+// ceinture de STRUCTURE du générateur de plans en dépend, et l'argument est
+// celui qu'`allergen_surface_forms.ts` écrit déjà en tête — un skill ne peut
+// pas être la maison d'une donnée dont dépend un générateur. Ce fichier garde
+// sa question à lui (« substituer vers ce groupe met-il l'allergène dans
+// l'assiette ? ») et RÉ-EXPORTE la table plutôt que d'en tenir une copie: deux
+// copies de la même liste d'allergènes sont une divergence programmée.
+export {
+  ALLERGEN_FOOD_GROUPS,
+  foodGroupsCoveredBy,
+} from "../../../_shared/keel/allergen_food_groups.ts";
 
-/**
- * Narrow seed. Keys are the allergen/intolerance slugs actually seen in
- * intake; values are the `food_groups` slugs that structurally contain them.
- *
- * Conservative on purpose: `nuts_seeds` is one group, so a peanut allergy
- * blocks every seed swap. Over-blocking escalates to the coach; under-blocking
- * feeds an allergen. Only the first is recoverable.
- */
-export const ALLERGEN_FOOD_GROUPS: Readonly<
-  Record<string, readonly FoodGroupRef[]>
-> = {
-  gluten: ["whole_grain", "refined_grain"],
-  wheat: ["whole_grain", "refined_grain"],
-  lactose: ["dairy_yogurt", "dairy_cheese"],
-  dairy: ["dairy_yogurt", "dairy_cheese"],
-  milk: ["dairy_yogurt", "dairy_cheese"],
-  casein: ["dairy_yogurt", "dairy_cheese"],
-  egg: ["eggs"],
-  eggs: ["eggs"],
-  fish: ["fatty_fish", "white_fish"],
-  shellfish: ["shellfish"],
-  crustacean: ["shellfish"],
-  mollusc: ["shellfish"],
-  peanut: ["nuts_seeds"],
-  tree_nut: ["nuts_seeds"],
-  nuts: ["nuts_seeds"],
-  sesame: ["nuts_seeds"],
-  soy: ["tofu_tempeh"],
-  soya: ["tofu_tempeh"],
-  alcohol: ["alcohol"],
-  pork: ["red_meat"],
-  red_meat: ["red_meat"],
-  meat: ["red_meat", "poultry"],
-  legume: ["legumes"],
-  legumes: ["legumes"],
-};
+import { foodGroupsCoveredBy } from "../../../_shared/keel/allergen_food_groups.ts";
 
 /** Severities that veto a substitution. `preference` never blocks Tier 0. */
 const BLOCKING_SEVERITIES: ReadonlySet<string> = new Set(["medical", "strict"]);
@@ -79,19 +53,6 @@ function normalizeSlug(value: string): string {
   return value.trim().toLowerCase();
 }
 
-/**
- * Food groups a constraint covers, or `null` when this bridge cannot say.
- * `null` is NOT an empty list: it is the third state that makes Tier 0 abstain.
- */
-export function foodGroupsCoveredBy(constraintRef: string): FoodGroupRef[] | null {
-  const slug = normalizeSlug(constraintRef);
-  if (slug === "") return null;
-  const mapped = ALLERGEN_FOOD_GROUPS[slug];
-  if (mapped) return [...mapped];
-  // A constraint that already names a food group is trivially resolvable.
-  if (FOOD_GROUP_SET.has(slug)) return [slug as FoodGroupRef];
-  return null;
-}
 
 export type ConstraintHit = {
   constraint_id: string;
