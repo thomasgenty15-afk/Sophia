@@ -158,3 +158,21 @@ la table (la végane sans tofu) — le retrait est juste, le relogement n'a rien
 relance ne compose pas encore l'alternative (lentilles, pois chiches). C'est un levier de relance
 (dire au modèle QUEL composant composer pour cette bouche), pas de ceinture. En attendant, le plan
 se refuse (`mouth_unfed`) plutôt que de la servir avec la dinde.
+
+## 9. ⟳ Rejeu final (17 h 10, HEAD `10d74992`) — les deux cas restants
+
+8a a posé trois compléments : un analogue déclaré (« yaourt de soja ») éteint son mot nu dans la
+prose du même plat pour la ceinture de régime ; la fusion par cellule accepte toute cellule où
+MOINS de bouches manquent ; la relance par parties nomme la boîte et l'item à remplacer pour la
+bouche retirée (« remplace cet item par un composant du même rôle qu'elle mange et qui suit sa
+ligne »).
+
+| cas | §8 (trois lanes) | rejeu final |
+|---|---|---|
+| « Paul n'aime pas le poulet » | 10 manquants (aléas) | 3 morsures, **3 relogées, 0 manquant**, sans relance ; 0 poulet chez Paul, 0 produit animal chez Nora |
+| « Nora végane n'aime pas le tofu » | 12 manquants, 4 % | 13 morsures, **une relance par parties fusionne 13 cellules**, **0 manquant** ; 13 boîtes aux légumineuses (lentilles, haricots blancs), 0 animal, 0 tofu, **60 %** |
+
+**Conclusion.** Sur les quatre cas fautifs du banc, plus aucune fuite, plus aucun repli sur ce
+qu'une bouche évite, plus aucune case manquante par exclusion, des casseroles et des courses qui
+suivent un retrait, et une cible qui ne rétrécit plus en silence. Ce qui reste est de la variance
+du modèle (cases sans plat, ~30 points d'énergie entre deux témoins), à mesurer par campagne.
