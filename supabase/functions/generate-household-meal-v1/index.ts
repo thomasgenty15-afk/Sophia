@@ -8427,6 +8427,30 @@ Deno.serve(async (req) => {
     // dimensionnement rabotait. Une marge de 5 % (sous la tolérance de 10 % du
     // plafond) et une seconde passe sur la masse regrammée; `passes` et
     // `short_after` disent ce qu'il en reste.
+    // ⟳ 2026-09-06 — UN TIRAGE PAR (BOÎTE, CASSEROLE), SUR LES ITEMS QUI LA CITENT.
+    // Mesuré sur FC4 : chaque plat « quinoa + dinde / tofu » cite DEUX casseroles
+    // (`uses` : dinde 1, tofu 1) ; les boîtes des omnivores ne tirent que la
+    // dinde, celle de Nora que le tofu. Répartir les grammes voulus de chaque
+    // boîte à parts égales entre les casseroles du PLAT faisait grossir la
+    // dinde de moitié (`capped_by_pot`, « 5 931 g voulus pour 4 000 g ») et le
+    // tofu du double. Même artefact que le lot 0 (`uses.servings`), pris par la
+    // croissance : ici l'item dit quelle casserole il tire, et de combien.
+    const potDrawsByItems = (
+      boxes: readonly { boxId: string; items: readonly { grams: number | null; preparationId: string | null }[] }[],
+    ) =>
+      boxes.flatMap((box) => {
+        const byPot = new Map<string, number>();
+        for (const it of box.items) {
+          if (!it.preparationId) continue;
+          const g = Number(it.grams);
+          if (!Number.isFinite(g) || g <= 0) continue;
+          byPot.set(it.preparationId, (byPot.get(it.preparationId) ?? 0) + g);
+        }
+        return [...byPot].map(([preparationId, grams]) => ({
+          shares: [{ key: box.boxId, grams }],
+          uses: [{ preparationId, servings: 1 }],
+        }));
+      });
     const POT_GROWTH_MARGIN = 1.05;
     const POT_GROWTH_PASSES = 2;
     const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0, passes: 0, short_after: 0 };
@@ -8465,10 +8489,7 @@ Deno.serve(async (req) => {
     for (let pass = 1; pass <= POT_GROWTH_PASSES; pass++) {
       growth.passes = pass;
       potGrowth = neededPotFactor(
-        sizableBoxes.map((box) => ({
-          shares: [{ key: box.boxId, grams: box.items.reduce((n, it) => n + (it.grams ?? 0), 0) }],
-          uses: box.uses,
-        })),
+        potDrawsByItems(sizableBoxes),
         // ⚠️ `neededPotFactor` LIT `raw ?? factor` SUR UNE TABLE D'ANCRES. On lui
         // passe donc les facteurs RÉSOLUS déguisés en ancres, clés par `boxId` —
         // la même clé que `shares[].key` ci-dessus. Son prorata par casserole est
@@ -8514,10 +8535,7 @@ Deno.serve(async (req) => {
     }
     // Ce qu'il reste APRÈS la dernière passe, sur la masse regrammée.
     potGrowth = neededPotFactor(
-      sizableBoxes.map((box) => ({
-        shares: [{ key: box.boxId, grams: box.items.reduce((n, it) => n + (it.grams ?? 0), 0) }],
-        uses: box.uses,
-      })),
+      potDrawsByItems(sizableBoxes),
       new Map([...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }])),
       new Map(meal.preparations.map((prep) => [
         prep.id,

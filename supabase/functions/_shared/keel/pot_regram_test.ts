@@ -1,4 +1,4 @@
-import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 // ⟳ 2026-09-05 — REGRAMMER APRÈS AVOIR GROSSI. `scaleIngredients` remet
 // `gramsRaw` à null par contrat; mesuré sur C03: 13 lignes de casserole sur
@@ -32,4 +32,13 @@ Deno.test("CÂBLAGE — la croissance des pots reçoit la MASSE de chaque casser
   assert(/const factor = rawFactor \* POT_GROWTH_MARGIN;/.test(src), "la marge n'est plus appliquée");
   const firstRegram = src.indexOf("const regrammed = regramMeal(meal, composition);");
   assert(firstRegram > -1 && firstRegram < at, "la masse serait lue avant d'être regrammée");
+});
+
+Deno.test("CÂBLAGE — la croissance des pots attribue les tirages PAR ITEM (une boîte, une casserole), plus par `uses.servings`", async () => {
+  const src = await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url));
+  // Le patron d'avant — la boîte entière répartie sur les `uses` du plat — a disparu.
+  assert(!src.includes("shares: [{ key: box.boxId, grams: box.items.reduce("), "les tirages suivaient encore `uses.servings`");
+  // Les deux appels (passes de croissance, puis `short_after`) lisent les items.
+  assertEquals((src.match(/neededPotFactor\(\n\s*potDrawsByItems\(sizableBoxes\),/g) ?? []).length, 2);
+  assert(src.includes("uses: [{ preparationId, servings: 1 }],"), "un tirage par (boîte, casserole)");
 });
