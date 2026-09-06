@@ -8187,7 +8187,7 @@ Deno.serve(async (req) => {
     // journal et l'archive cent lignes plus bas.
     const lostByLine = { mouth_days: 0, slots: 0, kcal: 0, kcal_unknown: 0 };
     // ⟳ 2026-09-06 — arbitrage 3 : combien de (bouche, jour) portent une note datée, et combien ont ancré.
-    const noteBoost = { member_days: 0, household_dated: 0, unknown_member: 0, applied: 0, applied_pot: 0 };
+    const noteBoost = { member_days: 0, household_dated: 0, unknown_member: 0, applied: 0, applied_pot: 0 , detail: [] as string[] };
     // ⟳ ARBITRAGE 3 — hissée : le bloc du BAC (plus bas) la lit aussi, pour le cran par mangeur.
     let noteBoostByKey = new Map<string, number>();
     if (composition) {
@@ -8326,6 +8326,13 @@ Deno.serve(async (req) => {
       noteBoost.applied = [...anchors.values()].filter((a) =>
         a.noteBoost > 0 && (a.reason === "anchored" || a.reason === "clamped")
       ).length;
+      // ⟳ 2026-09-06 (N3b) — LE DÉTAIL PAR CLÉ. « applied 1 » ne disait pas si la
+      // boîte de Claire avait grossi ; sa boîte du mardi faisait 337 g. On journalise,
+      // pour chaque (bouche, jour) noté, ce que l'ancre a vu et fait.
+      noteBoost.detail = [...noteBoostByKey.keys()].map((key) => {
+        const a = anchors.get(key);
+        return `${key.slice(0, 4)}…${key.slice(-4)}:${a?.reason ?? "no_anchor"}:${a?.factor.toFixed(2) ?? ""}:${a?.targetKcal ?? ""}:${a?.deliveredKcal ?? ""}`;
+      });
       // ⟳ 2026-09-04 — L'ÉLECTION `best` A DISPARU. Elle gardait, par bouche, le
       // facteur ancré « le plus proche de 1 » parmi ses jours. Cette prudence
       // n'existait que parce qu'UN facteur servait toute la fenêtre: l'ancrage
