@@ -29,9 +29,7 @@ import { PULSE_BUTTON_PREFIX } from "../keel/daily_pulse.ts";
 import {
   MEMORY_CLARIFICATION_BUTTON_PREFIX,
   NAVIGATION_BUTTON_PREFIX,
-  readMemoryClarificationReply,
 } from "../keel/memory_clarification.ts";
-import { handleMemoryClarificationTap } from "./memory_clarification_tap.ts";
 import {
   recommendationAck,
   recommendationAction,
@@ -62,14 +60,7 @@ import {
   writeWeighIn,
 } from "../keel/weigh_in_io.ts";
 // FF-062 R11 — la correction du chiffre d'énergie d'une photo.
-import {
-  parseEnergyFixToken,
-  renderEnergyFixAck,
-} from "../keel/energy_correction.ts";
-import {
-  applyEnergyFix,
-  ENERGY_FIX_ACK_PURPOSE,
-} from "../keel/energy_correction_io.ts";
+import { ENERGY_FIX_TOKEN_PREFIX } from "../keel/energy_correction.ts";
 import { localDateInZone } from "../keel/local_date.ts";
 // FF-062 C1 — le repas d'un créneau déclaré que le plan ne compose pas.
 import {
@@ -152,8 +143,11 @@ import type { InboundMessage } from "./inbound_message.ts";
  * refuse une ligne sans lecteur et sans annotation.
  */
 export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
-  // La clarification d'une note ambiguë — ajoutée AVEC son lecteur, juste
-  // au-dessous du dispatch de la divergence.
+  // DÉSARMÉ le 2026-09-07 — la question de clarification d'une note ambiguë.
+  // Le classifieur NOMME encore ce qu'il n'a pas compris (`clarify_not_asked`
+  // le compte), il ne le renvoie plus sous forme de question. La bulle
+  // « j'ai noté … · Voir » (`notifyMemoryWrite`), elle, RESTE: c'est un
+  // énoncé, pas une demande, et c'est le pilier « on l'écrit, on le dit ».
   MEMORY_CLARIFICATION_BUTTON_PREFIX,
   // FRONT: « Voir » n'est jamais envoyé au serveur — l'écran l'intercepte et
   // ouvre une page. Seule une charge `KEEL_VIEW_*` FORGÉE arrive ici, et sans
@@ -179,6 +173,16 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   // émetteur était le tap de la bande. `meal_share_outcomes` garde ses lignes
   // et ses lecteurs d'écran: c'est l'ÉCRITURE qui s'arrête, pas la table.
   SHARE_BUTTON_PREFIX,
+  // DÉSARMÉ le 2026-09-07 — la correction du chiffre d'énergie d'une photo.
+  //
+  // ⚠️ IL N'ÉTAIT PAS DANS CETTE LISTE, ET IL Y ENTRE EN MÊME TEMPS QU'IL EN
+  // SORT. Le serveur ne le voyait jamais en `kind: "button"`: `ChatPage`
+  // l'interceptait et renvoyait un `kind: "form"`. En retirant l'interception
+  // sans le lister, un vieux bouton tapé dans l'historique serait parti en
+  // `kind: "button"`, sans lecteur, `known === false` — donc `PASS`, donc le
+  // dispatcher, donc un modèle répondant à une chaîne de protocole. Un
+  // désarmement qui rouvre le trou qu'il vient de fermer.
+  ENERGY_FIX_TOKEN_PREFIX,
 ]);
 
 async function timezoneFor(
@@ -316,57 +320,6 @@ async function writeMeasures(
     });
   }
   return handled("keel_measures");
-}
-
-/**
- * FF-062 R11 — LE CHIFFRE CORRIGÉ.
- *
- * ⚠️ CE FORMULAIRE N'EST PAS DÉSARMÉ PAR R13, ET C'EST LA MÊME LIGNE DE PARTAGE
- * QUE LA PESÉE. Le désarmement ferme ce qui sert à RÉPARER — sur du passé la
- * réparation n'existe plus. Corriger le chiffre d'un repas est une MESURE:
- * rapportée deux jours plus tard, elle reste exacte, et le fait qu'elle
- * remplace était de toute façon la plus faible des deux (−26,6 % de biais).
- *
- * NE JETTE JAMAIS: la personne a tapé un nombre, et un 500 lui ferait croire
- * que son geste est perdu.
- */
-async function writeEnergyFixReply(
-  admin: SupabaseClient,
-  args: { message: InboundMessage; requestId: string; eventId: string },
-): Promise<InboundStepOutcome> {
-  const { message } = args;
-  const { contentLocale: locale } = await studentVoiceContext(
-    admin,
-    message.user_id,
-  );
-  const raw = (message.form_response ?? {}) as Record<string, unknown>;
-  const outcome = await applyEnergyFix(admin, {
-    userId: message.user_id,
-    eventId: args.eventId,
-    raw: raw.kcal,
-  });
-  await ack(admin, {
-    userId: message.user_id,
-    requestId: args.requestId,
-    purpose: ENERGY_FIX_ACK_PURPOSE,
-    // ⛔ L'ACCUSÉ SE REND DEPUIS LE MODULE PUR, à partir du MÊME verdict que
-    // l'écriture. Le recomposer ici ferait deux idées de « qu'est-ce qui a été
-    // écrit », et c'est celle qu'on regarde le moins qui prétendrait.
-    body: renderEnergyFixAck({
-      locale,
-      outcome: outcome.ok
-        ? {
-          ok: true,
-          estimate: {
-            kcal: outcome.kcal,
-            basis: "declared_quantities",
-            confidence_band: "high",
-          },
-        }
-        : outcome,
-    }),
-  });
-  return handled(outcome.ok ? "keel_energy_fixed" : "keel_energy_fix_refused");
 }
 
 /**
@@ -794,28 +747,6 @@ export async function handleDeterministicButton(
   // lecture seule côté élève (aucune policy d'écriture), donc ce n'est pas une
   // discipline mais une impossibilité.
   if (message.kind === "form") {
-    // ── FF-062 C2 — LA PESÉE, TROISIÈME FORMULAIRE ─────────────────────────
-    //
-    // ⚠️ AVANT LES DEUX AUTRES, ET LA RAISON EST UNE FORME. `KEEL_WEIGHIN_` et
-    // `KEEL_WEEKLY_` partagent `KEEL_WE`; les trois reconnaissances sont
-    // ancrées (`^…$`) donc l'ordre est en principe sans conséquence, et c'est
-    // exactement pour ça qu'on le fixe: le jour où quelqu'un écrit un
-    // `startsWith`, il le fera dans le lecteur le plus récent, et celui-ci
-    // passe en premier.
-    // ── FF-062 R11 · LA CORRECTION DU CHIFFRE D'ÉNERGIE ────────────────────
-    //
-    // Neuvième vocabulaire, disjoint des huit autres (`KEEL_KCAL_`). Comme les
-    // deux autres formulaires, il est reconnu par sa FORME et ancré aux deux
-    // bouts — jamais par un préfixe.
-    const energyFixEvent = parseEnergyFixToken(message.form_token);
-    if (energyFixEvent) {
-      return await writeEnergyFixReply(admin, {
-        message,
-        requestId: args.requestId,
-        eventId: energyFixEvent,
-      });
-    }
-
     const weighInDay = parseWeighInToken(message.form_token);
     if (weighInDay) {
       return await writeWeighInReply(admin, {
@@ -1089,60 +1020,6 @@ export async function handleDeterministicButton(
 
 
 
-  // ── FF-056 · LES TAPS DE LA DIVERGENCE CONSTATÉE ──────────────────────────
-  //
-  // CINQ vocabulaires déterministes, tous DISJOINTS (`KEEL_RECO_` /
-  // `KEEL_STRIP_` / `KEEL_FIX_` / `KEEL_WDIV_` / `KEEL_PULSE_`), et chaque
-  // lecteur rend « rien » sur ce qui ne le concerne pas: l'ordre n'a donc
-  // aucune conséquence, et un test le pinne (`weight_divergence_buttons_test.ts`,
-  // « les cinq vocabulaires ne se croisent pas »).
-  //
-  // ⚠️ C'EST ICI QUE MEURT LE NON-DÉTERMINISME DE FF-056. Le chemin texte
-  // descend au dispatcher, qui demande à un modèle de projeter une phrase sur
-  // neuf catégories fermées — mesuré `[0,3,3,0]` sur une phrase IDENTIQUE. Un
-  // `button_payload` est une valeur que NOUS avons émise: la faire descendre
-  // reviendrait à payer un appel LLM pour interpréter une chaîne exacte, et à
-  // accepter qu'il se trompe sur elle.
-  //
-  // `admin` est le client SERVICE-ROLE de `chat-inbound-v1`. C'est structurel:
-  // `authenticated` n'a que `SELECT` sur `student_weight_divergence_episodes`,
-  // et passer le client de l'élève est EXACTEMENT la faute que ce flow a
-  // payée (`permission denied`, chaque tour repartant de zéro).
-  // ── LA CLARIFICATION D'UNE NOTE ─────────────────────────────────────────
-  // Même forme que la divergence juste en dessous, et la même raison: une
-  // charge déterministe qui retomberait au dispatcher serait une chaîne de
-  // protocole donnée à lire à un modèle.
-  const memclar = readMemoryClarificationReply(message.button_payload);
-  if (memclar.kind !== "none") {
-    const now = new Date(message.received_at);
-    const voice = await studentVoiceContext(admin, message.user_id);
-    const language = isFrenchLocale(voice.contentLocale) ? "fr" : "en";
-    // Les prénoms, pour que l'accusé nomme la bouche et pas son identifiant.
-    const roster = await rosterNames(admin, message.user_id);
-    const result = await handleMemoryClarificationTap(admin, {
-      userId: message.user_id,
-      reply: memclar,
-      language,
-      nameOf: (id) => roster.get(id) ?? null,
-      // ⟳ 2026-09-05 — une réponse « toujours » écrit une contrainte de
-      // sécurité: la porte veut le rôle (jamais un repli) et la locale.
-      memberIds: [...roster.keys()],
-      contentLocale: voice.contentLocale,
-      now,
-    });
-    await ack(admin, {
-      userId: message.user_id,
-      requestId: args.requestId,
-      purpose: "keel_memory_clarification_ack",
-      body: result.body,
-      buttons: result.buttons,
-      // ⟳ 2026-09-05: « Voir » allume la ligne écrite, comme sur l'accusé.
-      ...(result.memoryLines
-        ? { metadata: { keel_memory_lines: [...result.memoryLines] } }
-        : {}),
-    });
-    return handled(result.handledAs);
-  }
 
   const divergence = readDivergenceReply(message.button_payload);
   if (divergence.kind !== "none") {

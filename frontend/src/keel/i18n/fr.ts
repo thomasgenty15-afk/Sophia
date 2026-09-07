@@ -4336,14 +4336,6 @@ export const fr: TranslatedMessages = {
   // ⚠️ LE PLACEHOLDER PORTE LE CHIFFRE ACTUEL, ET LE CHAMP RESTE VIDE — un
   // champ pré-rempli validé sans être lu réécrirait le chiffre DEVINÉ en le
   // faisant passer pour une déclaration.
-  "chat.kcalfix.title": "Le chiffre",
-  "chat.kcalfix.subtitle": "Remplace-le par ce que tu sais.",
-  "chat.kcalfix.field": "kcal",
-  "chat.kcalfix.submit": "Enregistrer",
-  "chat.kcalfix.cancel": "Laisser",
-  "chat.kcalfix.error.empty": "Rien n’a été saisi — le chiffre reste tel quel.",
-  "chat.kcalfix.error.number": "Ça doit être un nombre.",
-  "chat.kcalfix.error.range": "Un repas doit être entre {min} et {max} kcal.",
   // ── LES SIX AXES ET LES CINQ CRANS ──────────────────────────────────────
   // ⚠️ L'ANGLAIS DE CES ONZE CLÉS EST SOUS CONTRAT AVEC UN FICHIER DENO
   // (`weekly_flow.ts`, comparé mot pour mot par un test). Le FRANÇAIS, lui, est

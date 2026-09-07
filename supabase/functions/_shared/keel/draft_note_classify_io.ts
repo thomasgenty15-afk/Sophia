@@ -65,7 +65,6 @@ import {
 } from "./retained_items_io.ts";
 import { generateWithGemini } from "../gemini.ts";
 import {
-  askClarification,
   type MemoryClarificationAskReason,
   notifyMemoryWrite,
   notifySafetyNotWritten,
@@ -599,29 +598,26 @@ export async function classifyAndPersistDraftNote(args: {
   // feraient une question intapable et une ligne qui ne se fermerait jamais.
   // La seconde est comptée (`clarify_not_asked`) et perdue — assumé: redemander
   // trois jours plus tard porterait sur une phrase que la personne a oubliée.
-  const pending = classification.clarify.entries[0] ?? null;
-  const notAsked = Math.max(0, classification.clarify.entries.length - 1);
+  // ── LA QUESTION DE CLARIFICATION EST DÉSARMÉE (2026-09-07) ──────────────
+  //
+  // Le classifieur continue de NOMMER ce qu'il n'a pas compris — c'est sa
+  // valeur, et `classification.clarify.entries` le porte. Ce qui s'arrête est
+  // de le RENVOYER à la personne sous forme de question.
+  //
+  // ⛔ CE QUI RESTE, ET QUI N'EST PAS LA MÊME CHOSE: `announce()` plus bas,
+  // c'est-à-dire `notifyMemoryWrite` — la bulle « j'ai noté … · Voir ». Elle
+  // est le pilier « on l'écrit, on le DIT, et ça se défait », qui remplace le
+  // consentement synchrone abandonné le 2026-09-01. La question part, l'énoncé
+  // reste.
+  //
+  // ⟳ `notAsked` VALAIT `entries.length - 1` — tout sauf celle qu'on posait.
+  // Plus rien n'est posé, donc il vaut le compte ENTIER. C'est le discriminant
+  // qui distingue « le classifieur a tout compris » de « il a nommé trois
+  // ambiguïtés et personne ne les lèvera »: sans lui, les deux rendraient zéro.
+  const notAsked = classification.clarify.entries.length;
   const language: "fr" | "en" = /^fr/i.test(String(args.contentLocale ?? ""))
     ? "fr"
     : "en";
-
-  const ask = async (): Promise<DraftNoteClarificationOutcome> => {
-    if (!pending) return NO_CLARIFICATION;
-    const out = await askClarification(args.admin as never, {
-      userId,
-      source: args.source,
-      entry: pending,
-      note: usable,
-      today: args.today,
-      anchor: args.targetWeek,
-      members: args.members,
-      language,
-      contentLocale: args.contentLocale,
-      requestId: args.requestId,
-      now: args.now ? new Date(args.now) : undefined,
-    });
-    return { asked: out.asked, reason: out.reason, id: out.id };
-  };
 
   /**
    * LA BULLE « J'AI NOTÉ … », UNE FOIS, POUR TOUT CE QUE CE TOUR A ÉCRIT.
@@ -667,11 +663,10 @@ export async function classifyAndPersistDraftNote(args: {
     // ⚠️ ON DEMANDE MÊME QUAND ON N'A RIEN RANGÉ, et c'est le cas le plus
     // fréquent de cette porte: « ma fille n'aime pas le poisson » ne remplit
     // aucune des trois listes — c'est précisément pour ça qu'on relance.
-    const clarification = await ask();
+    const clarification = NO_CLARIFICATION;
     const notice = await announce([]);
-    const reason: DraftNoteClassifyReason = clarification.asked
-      ? "clarification_asked"
-      : "nothing_to_file";
+    // ⟳ `clarification_asked` n'est plus atteignable: rien ne demande.
+    const reason: DraftNoteClassifyReason = "nothing_to_file";
     log(reason, {
       user_id: userId,
       model,
@@ -754,7 +749,7 @@ export async function classifyAndPersistDraftNote(args: {
     }
   }
   const notice = await announce(announced);
-  const clarification = await ask();
+  const clarification = NO_CLARIFICATION;
 
   const result: DraftNoteClassifyResult = {
     ok: write.ok,

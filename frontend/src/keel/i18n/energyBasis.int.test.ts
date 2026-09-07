@@ -88,7 +88,14 @@ describe("un kcal affiché porte sa base", () => {
    * lesquelles en refusent un, et c'est la première question qu'on se pose en
    * relisant.
    */
-  const ENERGY_KEYS_THAT_REFUSE = ["chat.kcalfix.error.range"];
+  // ⟳ VIDE DEPUIS LE 2026-09-07, ET LA CATÉGORIE RESTE. Elle ne portait qu'une
+  // clé, `chat.kcalfix.error.range`, partie avec la correction du chiffre
+  // d'énergie. La liste n'est pas supprimée pour autant: la distinction
+  // « rapporter un chiffre » / « en refuser un » est ce que cet inventaire
+  // existe pour tenir, et la prochaine clé qui refuse un kcal doit atterrir
+  // ici plutôt que dans `ENERGY_KEYS_WITH_A_BASIS`, où elle serait obligée de
+  // citer une base qu'elle n'a pas.
+  const ENERGY_KEYS_THAT_REFUSE: string[] = [];
 
   const ENERGY_KEYS_WITH_A_BASIS = [
     "coach.student.numbers.maintenance_value",

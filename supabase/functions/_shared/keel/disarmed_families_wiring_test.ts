@@ -84,7 +84,7 @@ async function rawSource(): Promise<string> {
 // ajoutée d'un côté et pas de l'autre rougit, dans les deux sens.
 // ---------------------------------------------------------------------------
 const READER_OF: Readonly<Record<string, string | null>> = Object.freeze({
-  MEMORY_CLARIFICATION_BUTTON_PREFIX: "readMemoryClarificationReply",
+  MEMORY_CLARIFICATION_BUTTON_PREFIX: null,
   // Traité côté écran: « Voir » ouvre une page et ne part jamais au serveur.
   NAVIGATION_BUTTON_PREFIX: null,
   RECOMMENDATION_BUTTON_PREFIX: "readRecommendationReply",
@@ -98,6 +98,9 @@ const READER_OF: Readonly<Record<string, string | null>> = Object.freeze({
   FEEDBACK_BUTTON_PREFIX: "readFeedbackReply",
   SLOT_MEAL_BUTTON_PREFIX: "parseSlotMealButton",
   SHARE_BUTTON_PREFIX: null,
+  // Jeton de FORMULAIRE, désarmé le 2026-09-07 et listé le même jour — il ne
+  // l'était pas, parce que l'écran l'interceptait avant le serveur.
+  ENERGY_FIX_TOKEN_PREFIX: null,
 });
 
 const GUARD_TAG = 'tag: "keel.deterministic_button.unusable_payload"';
@@ -299,9 +302,13 @@ Deno.test("MUTATION — un préfixe sans lecteur et sans annotation rougit", asy
 
 Deno.test("MUTATION — un préfixe listé hors de la table rougit", async () => {
   const raw = await rawSource();
+  // ⚠️ ON N'ANCRE PAS SUR LA DERNIÈRE FAMILLE. Ce test a rougi le 2026-09-07
+  // en « la mutation n'a rien changé » parce qu'il nommait `SHARE_BUTTON_PREFIX`
+  // comme dernière entrée, et qu'une famille désarmée était passée après. Une
+  // mutation qui ne mute plus est un test qui ne garde plus rien.
   const mutated = raw.replace(
-    "  SHARE_BUTTON_PREFIX,\n]);",
-    "  SHARE_BUTTON_PREFIX,\n  UNE_FAMILLE_NEUVE_PREFIX,\n]);",
+    /(\n)(\]\);)/,
+    "$1  UNE_FAMILLE_NEUVE_PREFIX,$1$2",
   );
   assert(mutated !== raw, "la mutation n'a rien changé");
   assertThrows(() => assertEveryPrefixClassified(mutated));

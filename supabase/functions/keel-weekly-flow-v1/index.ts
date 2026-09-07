@@ -9,24 +9,18 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
-  buildWeeklyFlowToken,
   decideWeeklyFlow,
-  WEEKLY_FLOW_BODY_EN,
-  WEEKLY_FLOW_CTA_EN,
   WEEKLY_TEMPLATE_LANG_DEFAULT,
   WEEKLY_TEMPLATE_NAME_DEFAULT,
   weeklyTemplateFlowComponents,
 } from "../_shared/keel/weekly_flow.ts";
-import {
-  hasAnsweredWeek,
-  hasAskedWeek,
-  weekStartOf,
-  WEEKLY_FLOW_WEEK_META_KEY,
-} from "../_shared/keel/weekly_flow_io.ts";
+import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
-import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { localHourFor } from "../_shared/keel/reengagement_io.ts";
-import { computeAndStoreWeekReview } from "../_shared/keel/week_review_io.ts";
+import {
+  computeAndStoreWeekReview,
+  readWeekReview,
+} from "../_shared/keel/week_review_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
 /**
@@ -209,7 +203,8 @@ Deno.serve(async (req) => {
 
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
-    let sent = 0;
+    /** ⟳ `sent` — ce job n'envoie plus. Il calcule et range un bilan. */
+    let computed = 0;
     const bySkip: Record<string, number> = {};
     // Le compte-rendu du BILAN, à côté de celui de l'envoi. Un job qui envoie
     // mille formulaires et gèle zéro lecture est un job qui a l'air vert:
@@ -276,15 +271,40 @@ Deno.serve(async (req) => {
           // partagée supprime.
           const following = await resolveStudentFollowing(admin, cursor, weekStart);
 
+          // ── L'IDEMPOTENCE A CHANGÉ DE SUJET ─────────────────────────────
+          //
+          // ⟳ Elle demandait « le formulaire est-il déjà parti cette semaine ? »
+          // (`hasAskedWeek`, sur `outbound_messages`). Plus rien ne part: cette
+          // lecture rendrait `false` à CHAQUE passage, et le cron — qui passe à
+          // 18:40, 19:40 et 20:40 dans la fenêtre — recalculerait le bilan de
+          // toute la flotte trois fois par dimanche.
+          //
+          // Elle demande donc maintenant « le bilan existe-t-il ? », qui est le
+          // fait que ce job PRODUIT désormais. Le motif de saut porte son propre
+          // nom: réutiliser `already_asked_this_week` ferait mentir un compteur
+          // sur un formulaire qui n'existe plus.
+          // Fail-open par construction: `readWeekReview` rend `null` sur une
+          // lecture en panne, donc on RECALCULE plutôt que de sauter — un
+          // dimanche sans bilan coûte plus cher qu'un upsert de trop.
+          if (await readWeekReview(admin, { userId: cursor, weekStart })) {
+            bySkip["review_already_stored"] =
+              (bySkip["review_already_stored"] ?? 0) + 1;
+            continue;
+          }
+
           const decision = decideWeeklyFlow({
             localDow,
             localHour,
-            answeredThisWeek: await hasAnsweredWeek(admin, cursor, weekStart),
-            // La question a-t-elle DÉJÀ été posée ce dimanche ? Le cron passe
-            // à 18:40, 19:40 et 20:40 dans la fenêtre, et le silence de l'élève
-            // ne fait pas bouger `answeredThisWeek`: sans cette lecture, il
-            // reçoit trois fois le même formulaire.
-            askedThisWeek: await hasAskedWeek(admin, cursor, weekStart),
+            // ⟳ DEUX LITTÉRAUX, ET C'EST UNE DÉCLARATION, PAS UN RACCOURCI.
+            //
+            // Les deux champs parlent du FORMULAIRE: « a-t-il répondu », « lui
+            // a-t-on demandé ». Il n'y a plus de formulaire. Les laisser
+            // branchés ferait sauter le CALCUL du bilan pour quelqu'un qui a
+            // rempli la carte des mesures de /app/plan cette semaine —
+            // c'est-à-dire priver de bilan précisément celui qui déclare le
+            // plus. L'idempotence est au-dessus, sur le bilan lui-même.
+            answeredThisWeek: false,
+            askedThisWeek: false,
             // EXPLICITE, parce que le type l'exige. Ce dépôt n'a aujourd'hui
             // aucun état de crise persisté et interrogeable: la bande vit dans
             // le tour, pas dans une table. Passer `null` est donc une
@@ -363,39 +383,18 @@ Deno.serve(async (req) => {
                 (reviewBranches[review.reading.branch] ?? 0) + 1;
             }
 
-            // ── DE-WHATSAPP — LE FLOW META DEVIENT UN FORMULAIRE IN-APP ─────
-            // Ce qui disparaît: le `flow_id` déclaré chez Meta, l'écran
-            // d'entrée, le CTA du Flow, le 409 « fenêtre 24h fermée » (le cas
-            // NOMINAL de ce job, puisqu'il vise l'élève silencieux du
-            // dimanche), et le template de repli avec son composant de bouton.
+            // ⟳ LE FORMULAIRE DU DIMANCHE PARTAIT ICI. Il est DÉSARMÉ.
             //
-            // Ce qui SURVIT à l'identique, parce que c'était la vraie règle:
-            // le jeton ne porte QUE la semaine. L'élève est identifié par son
-            // JWT, jamais par le contenu d'un jeton qui a fait l'aller-retour
-            // par un client.
-            const flowToken = buildWeeklyFlowToken(weekStart);
-            const delivered = await deliverChatMessage(admin, {
-              userId: cursor,
-              content: WEEKLY_FLOW_BODY_EN,
-              purpose: "keel_weekly_flow",
-              buttons: [{ payload: flowToken, label: WEEKLY_FLOW_CTA_EN }],
-              requestId,
-              metadata: { [WEEKLY_FLOW_WEEK_META_KEY]: weekStart },
-              // Même raison qu'en `keel-daily-pulse-v1`: l'horloge qui DÉCIDE
-              // doit être celle qui ÉCRIT, sinon le plafond quotidien se compte
-              // sur une autre date locale que celle qui a autorisé l'envoi.
-              now,
-            });
-            if (!delivered.delivered) {
-              // Un refus est une décision produit (mute, plafond, état
-              // périmé), pas une panne. On le NOMME: sans ça, un dimanche
-              // entier sans bilan ressemble à un dimanche calme.
-              bySkip[`delivery:${delivered.reason}`] =
-                (bySkip[`delivery:${delivered.reason}`] ?? 0) + 1;
-              continue;
-            }
+            // ⛔ LE CRON ET LE CALCUL RESTENT, ET CE N'EST PAS UN ARBITRAGE.
+            // `computeAndStoreWeekReview` ci-dessus est le SEUL écrivain de
+            // `weekly_reviews.week_facts`, et `loadLatestWeekReview` n'a AUCUNE
+            // borne de fraîcheur (`.order(desc).limit(1)`). Le bloc
+            // `weekReviewPromptBlock` part dans le prompt à CHAQUE tour, avec
+            // ses dates. Couper ce job gèlerait donc pour toujours un bloc daté
+            // qui vieillit — un mensonge qui empire chaque semaine — et
+            // priverait `grounded_support.ts` de sa matière.
           }
-          sent++;
+          computed++;
         } catch (error) {
           failures.push(`${cursor}: ${errorText(error)}`);
         }
@@ -409,7 +408,7 @@ Deno.serve(async (req) => {
       dry_run: dryRun,
 
       scanned,
-      sent,
+      computed,
       skipped_by_reason: bySkip,
       week_review_outcomes: reviewOutcomes,
       week_review_branches: reviewBranches,

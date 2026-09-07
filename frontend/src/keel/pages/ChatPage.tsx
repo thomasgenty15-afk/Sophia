@@ -36,8 +36,6 @@ import WeeklyCheckInDialog, {
 import { isWeeklyCheckInToken, loadBiofeedbackHasReader } from "../api/weeklyCheckIn";
 import WeighInDialog, { type WeighInValues } from "../components/WeighInDialog";
 import { isWeighInToken, loadLastWeightKg } from "../api/weighIn";
-import EnergyFixDialog, { type EnergyFixValues } from "../components/EnergyFixDialog";
-import { isEnergyFixToken } from "../api/energyFix";
 import { forcedSlotFromPhotoTap, forcedSlotLabel } from "../api/slotMeal";
 import {
   ACCEPTED_PHOTO_MIME_TYPES,
@@ -196,12 +194,6 @@ export default function ChatPage() {
    * texte part (la conversation est passée à autre chose).
    */
   const [forcedPhotoSlot, setForcedPhotoSlot] = React.useState<string | null>(null);
-  /**
-   * FF-062 R11 — le jeton de correction du chiffre d'énergie dont le dialogue
-   * est ouvert, ou `null`. Il ne porte que l'ÉVÉNEMENT: l'élève est identifié
-   * par son JWT, et le chiffre courant se lit dans la bulle, pas dans le jeton.
-   */
-  const [energyFixToken, setEnergyFixToken] = React.useState<string | null>(null);
   // chemin de bucket -> URL signée. `meal-photos` est privé et sans policy, donc
   // une photo ne s'affiche qu'après cet échange (voir `signMealPhotoUrls`).
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
@@ -521,10 +513,11 @@ export default function ChatPage() {
         setWeighInToken(payload);
         return;
       }
-      if (isEnergyFixToken(payload)) {
-        setEnergyFixToken(payload);
-        return;
-      }
+      // ⟳ `isEnergyFixToken` INTERCEPTAIT ICI (retiré le 2026-09-07). Le
+      // vocabulaire est désormais listé dans `DETERMINISTIC_BUTTON_PREFIXES`
+      // côté serveur, annoté `DÉSARMÉ`: une charge `KEEL_KCAL_` encore présente
+      // dans l'historique de quelqu'un part donc au serveur, y tombe dans la
+      // garde terminale, et rend « Celui-là n'est plus d'actualité ».
       // FF-062 C1 — « Photo » ARME le créneau ET part au serveur. Les deux:
       // le serveur doit voir la réponse (sinon R13 désarmera la question au
       // message suivant, et le tap n'aurait laissé aucune trace), et le front
@@ -570,22 +563,6 @@ export default function ChatPage() {
       setLastWeightKg(values.weight_kg);
     },
     [weighInToken, send],
-  );
-
-  const submitEnergyFix = React.useCallback(
-    (values: EnergyFixValues) => {
-      const token = energyFixToken;
-      if (!token) return;
-      setEnergyFixToken(null);
-      // Le MÊME canal que les deux autres formulaires: `kind: "form"` + le
-      // jeton. Le serveur le reconnaît par sa forme et route vers l'écrivain —
-      // c'est LUI qui fait basculer la base, jamais le client.
-      void send(
-        { kind: "form", response: values, token },
-        t("chat.kcalfix.title"),
-      );
-    },
-    [energyFixToken, send],
   );
 
   // ── LA PHOTO DE REPAS, DANS LA CONVERSATION ────────────────────────────────
@@ -1014,14 +991,6 @@ export default function ChatPage() {
             showAxes={axesHaveReader}
             onSubmit={submitWeekly}
             onCancel={() => setWeeklyToken(null)}
-          />
-        )}
-
-        {energyFixToken && (
-          <EnergyFixDialog
-            busy={sending}
-            onSubmit={submitEnergyFix}
-            onCancel={() => setEnergyFixToken(null)}
           />
         )}
 

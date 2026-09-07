@@ -24,7 +24,6 @@ import {
 } from "../_shared/keel/photo_slot_inference.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 // FF-062 R11 — « modifier » le chiffre d'énergie d'une photo.
-import { energyFixButton } from "../_shared/keel/energy_correction.ts";
 import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
 import { openMealPrecisionFlow } from "../_shared/keel/meal_precision_flow.ts";
 import {
@@ -1354,19 +1353,16 @@ Deno.serve(async (req) => {
           const storedEnergy =
             ((analysis as { recognized?: Record<string, unknown> } | null)
               ?.recognized ?? {}) as Record<string, unknown>;
-          const fixButtons = storedEnergy.energy_estimate
-            // ⚠️ LA MÊME LOCALE QUE L'ARTEFACT, résolue par la même fonction
-            // que la ligne `protocol_events` juste au-dessus. Deux résolutions
-            // séparées feraient un jour un bouton français sous un accusé
-            // anglais — la cicatrice de `renderMealPhotoAck`.
-            ? [energyFixButton({
-              locale: resolveArtifactLocale({
-                studentProfile: studentProfileLocale,
-                tenantDefault: null,
-              }),
-              eventId,
-            })]
-            : [];
+          // ⟳ LE BOUTON « CORRIGER LE CHIFFRE » A ÉTÉ RETIRÉ LE 2026-09-07.
+          //
+          // Il proposait de remplacer l'estimation de la photo par un nombre
+          // déclaré. C'est une modification d'un fait déjà écrit, faite par un
+          // bouton — la lane que le chantier de réduction du chat ferme.
+          //
+          // ⚠️ `storedEnergy` RESTE LU, et ce n'est pas un vestige: la ligne
+          // relue est ce qui décide de l'accusé. Le chiffre continue d'être
+          // estimé, rendu et rangé; c'est sa CORRECTION qui s'arrête.
+          const fixButtons: { payload: string; label: string }[] = [];
           const res = ackSilenced
             ? { chatMessageId: null as string | null }
             : await deliverChatMessage(admin, {

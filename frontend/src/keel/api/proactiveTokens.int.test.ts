@@ -21,7 +21,6 @@ import {
   forcedSlotLabel,
   parseSlotMealButton,
 } from "./slotMeal";
-import { buildEnergyFixSubmission, isEnergyFixToken } from "./energyFix";
 
 const ROOT = resolve(__dirname, "../../../..");
 const read = (rel: string) => readFileSync(resolve(ROOT, rel), "utf8");
@@ -97,60 +96,10 @@ describe("C2 — R8, le champ vide n'écrit rien", () => {
   });
 });
 
-describe("R11 — le jeton de correction du chiffre d'énergie", () => {
-  it("ne reconnaît qu'un uuid complet", () => {
-    const EVENT = "77777777-7777-4777-8777-777777777777";
-    expect(isEnergyFixToken(`KEEL_KCAL_${EVENT}`)).toBe(true);
-    for (
-      const bad of [
-        "KEEL_KCAL_",
-        "KEEL_KCAL_42",
-        `KEEL_KCAL_${EVENT}-extra`,
-        "KEEL_WEIGHIN_2026-03-10",
-        "",
-      ]
-    ) {
-      expect(isEnergyFixToken(bad), bad).toBe(false);
-    }
-  });
-
-  it("porte la MÊME forme que le lecteur Deno", () => {
-    const deno = read("supabase/functions/_shared/keel/energy_correction.ts");
-    const shape = "KEEL_KCAL_([0-9a-fA-F]{8}-";
-    expect(deno).toContain(shape);
-    expect(read("frontend/src/keel/api/energyFix.ts"))
-      .toContain("KEEL_KCAL_[0-9a-fA-F]{8}-");
-  });
-
-  it("⛔ VALIDER À BLANC NE SUPPRIME PAS LE CHIFFRE", () => {
-    // La personne a ouvert un champ, elle n'a pas demandé le silence. Retirer
-    // un chiffre est un autre geste, et il n'existe pas.
-    const out = buildEnergyFixSubmission("");
-    expect(out.ok).toBe(false);
-    if (out.ok) return;
-    expect(out.error.kind).toBe("empty");
-  });
-
-  it("hors bornes = refusé et NOMMÉ, jamais ramené au bord", () => {
-    const out = buildEnergyFixSubmission("50000");
-    expect(out.ok).toBe(false);
-    if (out.ok) return;
-    expect(out.error.kind).toBe("out_of_range");
-  });
-
-  it("les bornes du front n'ont pas dérivé de celles du back", () => {
-    // Aucun import n'est possible entre les deux runtimes: la copie est
-    // assumée, la dérive non. Une borne plus large côté écran laisse saisir une
-    // valeur que le serveur rejettera; plus étroite, elle interdit une valeur
-    // légitime.
-    const deno = read("supabase/functions/_shared/keel/meal_analysis.ts");
-    expect(deno).toContain("export const ENERGY_KCAL_MIN = 1;");
-    expect(deno).toContain("export const ENERGY_KCAL_MAX = 5000;");
-    const front = read("frontend/src/keel/api/energyFix.ts");
-    expect(front).toContain("export const ENERGY_KCAL_MIN = 1;");
-    expect(front).toContain("export const ENERGY_KCAL_MAX = 5000;");
-  });
-});
+// ⟳ LE BLOC R11 — LE JETON DE CORRECTION DU CHIFFRE — A ÉTÉ RETIRÉ LE
+// 2026-09-07 avec sa lane. `KEEL_KCAL_` reste dans la matrice de
+// disjonction plus bas: le vocabulaire est DÉSARMÉ, pas libéré, et il doit
+// continuer de ne collider avec aucun autre tant que des bulles en portent.
 
 describe("C1 — le jeton du repas d'un créneau", () => {
   it("⛔ SEULE « PHOTO » ARME UN CRÉNEAU FORCÉ", () => {

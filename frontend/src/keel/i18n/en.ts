@@ -1698,14 +1698,6 @@ export const en = {
   // pré-rempli validé sans être lu réécrirait le chiffre DEVINÉ en le faisant
   // passer pour une déclaration — c'est-à-dire exactement la distinction que
   // cette correction existe pour établir.
-  "chat.kcalfix.title": "The figure",
-  "chat.kcalfix.subtitle": "Replace it with what you know.",
-  "chat.kcalfix.field": "kcal",
-  "chat.kcalfix.submit": "Save",
-  "chat.kcalfix.cancel": "Leave it",
-  "chat.kcalfix.error.empty": "Nothing entered — the figure stays as it was.",
-  "chat.kcalfix.error.number": "That should be a number.",
-  "chat.kcalfix.error.range": "A meal should be between {min} and {max} kcal.",
   // ── LES SIX AXES ET LES CINQ CRANS (lot 4) ──────────────────────────────
   //
   // ⚠️ CES ONZE VALEURS SONT SOUS CONTRAT AVEC UN FICHIER DENO, et le contrat
