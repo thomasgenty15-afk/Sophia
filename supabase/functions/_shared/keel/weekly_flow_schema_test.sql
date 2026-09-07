@@ -73,22 +73,28 @@ begin
   );
 end $$;
 
--- Le cron `keel-daily-pulse-v1` lit la même table: même vérification, parce
--- que la panne est celle de la liste, pas celle d'un fichier.
+-- L'autre cron qui balaie `profiles` subit la même vérification, parce que la
+-- panne est celle de la LISTE, pas celle d'un fichier.
+--
+-- ⟳ C'était `keel-daily-pulse-v1`, supprimée le 2026-09-08. Le bloc est
+-- repointé sur `keel-proactive-v1` plutôt que retiré: la garde ne visait pas
+-- ce job-là, elle vise « tout balayage de la flotte ne nomme que des colonnes
+-- qui existent ». La retirer parce que son exemple a disparu laisserait le
+-- défaut rouvert pour son successeur.
 do $$
 declare
   v_missing text;
 begin
   select string_agg(c, ', ') into v_missing
   from unnest(array[
-    'id', 'timezone', 'proactive_muted_at', 'full_name', 'locale'
+    'id', 'timezone', 'locale', 'proactive_muted_at'
   ]) as c
   where not exists (
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profiles' and column_name = c
   );
   perform pg_temp.assert(
-    'keel-daily-pulse-v1 ne SELECTionne que des colonnes existantes de profiles',
+    'keel-proactive-v1 ne SELECTionne que des colonnes existantes de profiles',
     v_missing is null,
     coalesce('colonnes absentes: ' || v_missing, '')
   );

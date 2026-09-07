@@ -161,10 +161,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // les dix minutes. Diffusion au curseur — `cursor_user_id` porte le point
       // de reprise, donc un tick interrompu ne re-livre jamais.
       "keel-coach-broadcast-v1",
-      // PIVOT N2/C4/§1.3 — les trois boucles proactives KEEL. Depuis le
-      // chantier de-whatsapp elles livrent dans la bulle; couvertes par
-      // _shared/chat/proactive_int_test.ts (9 cas contre le vrai cron).
-      "keel-daily-pulse-v1",
+      // ⟳ `keel-daily-pulse-v1` A ÉTÉ SUPPRIMÉE LE 2026-09-08. Le message du
+      // soir ne servait aucun des trois piliers du chat (bilan de fin de plan,
+      // réponses aux questions, notification de ce qui a été retenu), et son
+      // récap mémoire faisait doublon avec `notifyMemoryWrite`, qui l'annonce
+      // au moment du geste. Son balayage des clarifications périmées est
+      // ré-hébergé dans `keel-proactive-v1`.
       // ⟳ 2026-09-04 — ACQUITTÉE APRÈS DEUX SEMAINES DE ROUGE, même motif que
       // `household-merge-notices-v1` ci-dessus.
       //
@@ -391,6 +393,16 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // cooldown) est décidé par le code applicatif et par les index de la
       // table, jamais par ce trigger.
       "student_daily_recommendations_set_updated_at",
+      // ⟳ 2026-09-07 — ACQUITTÉ PAR UNE SESSION QUI N'EST PAS SON AUTEUR, et
+      // c'est la règle de `scripts/.vitest-red-baseline` appliquée à la
+      // lettre: sa cause est COMMITÉE (`25959f53`, le brouillon relu), donc le
+      // rouge « appartient au dépôt » et se répare au lieu de se tolérer.
+      // VÉRIFIÉ AVANT D'ACQUITTER, pas déduit du nom: le trigger exécute
+      // `public.tg_set_updated_at()` — dont le corps entier est
+      // `new.updated_at = now()`. Aucune règle métier. Ce qui décide du sort
+      // d'un brouillon (relu, adopté, périmé par une empreinte) vit dans le
+      // code et dans les CHECK de la table, jamais ici.
+      "student_meal_drafts_set_updated_at",
       // `/app/health` (20260804190000): l'élève peut RETIRER une contrainte
       // qu'il a déclarée, et rien d'autre. Une policy RLS porte sur des lignes,
       // pas sur des colonnes — sans ce trigger, un `update` autorisé laissait

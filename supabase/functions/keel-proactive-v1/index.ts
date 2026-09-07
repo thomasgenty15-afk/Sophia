@@ -9,6 +9,7 @@ import { runSlotMealStep } from "../_shared/keel/slot_meal_io.ts";
 import { runWeighInStep } from "../_shared/keel/weigh_in_io.ts";
 // FF-054 §3.2 / FF-062 — le retour de fin de plan, sorti du message du soir.
 import { runPlanFeedbackStep } from "../_shared/keel/plan_feedback_chat_io.ts";
+import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_io.ts";
 
 /**
  * FF-062 — LES DEUX CANAUX NEUFS, DANS UN SEUL BALAYAGE HORAIRE.
@@ -164,6 +165,27 @@ Deno.serve(async (req) => {
     const admin = adminClient();
     const startedAt = Date.now();
 
+    // ── LE BALAYAGE DES CLARIFICATIONS PÉRIMÉES ─────────────────────────────
+    //
+    // ⟳ IL VIVAIT DANS `keel-daily-pulse-v1`, SUPPRIMÉ LE 2026-09-08. Son pavé
+    // d'origine disait « ici plutôt que dans son propre cron, parce que ce job
+    // voit toute la flotte, y compris les maîtres de foyer que
+    // `keel-proactive-v1` ne balaie pas ». Cet argument NE S'APPLIQUE PAS au
+    // déplacement: `sweepLapsedClarifications` est un `update` GLOBAL sur la
+    // table, il n'itère aucun profil. L'audience du job hôte ne le borne pas.
+    //
+    // ⚠️ CE N'EST PAS DU MÉNAGE, ET C'EST DEVENU PLUS VRAI QU'AVANT. La
+    // question de clarification est désarmée: plus aucune ligne n'est créée, et
+    // le tap qui les fermait est débranché. Ce balayage est donc la SEULE chose
+    // qui ferme encore les questions déjà posées — sans lui elles resteraient
+    // `open` pour toujours, sans que personne puisse jamais y répondre.
+    //
+    // ⛔ AVANT LA BOUCLE ET SANS `dry_run`: fermer une ligne morte n'envoie
+    // rien. Ce qu'un `dry_run` protège est l'ENVOI.
+    const clarificationsExpired =
+      (await sweepLapsedClarifications(admin, { nowIso: now.toISOString() }))
+        .expired;
+
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     const slotMeal = emptyTally();
@@ -293,6 +315,11 @@ Deno.serve(async (req) => {
       slot_meal: slotMeal,
       weigh_in: weighIn,
       plan_feedback: planFeedback,
+      // Le compteur du silence, hérité du message du soir. Il DÉCROÎT vers zéro
+      // maintenant que plus aucune clarification n'est créée: c'est la forme
+      // attendue, et c'est aussi ce qui dira quand ce balayage n'aura plus
+      // d'objet.
+      clarifications_expired: clarificationsExpired,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,
       // ⚠️ 🔴 LE COMPTE AVANT L'ÉCHANTILLON — MESURÉ LE 2026-09-02. Ce

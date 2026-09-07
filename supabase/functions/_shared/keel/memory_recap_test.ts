@@ -122,50 +122,83 @@ Deno.test("⛔ AUCUN BOUTON — le retrait vit sur SON écran", () => {
   assertEquals(typeof out, "string");
 });
 
-Deno.test("LE CÂBLAGE — le pouls calcule le récap et le PASSE au message", async () => {
+Deno.test("LE CÂBLAGE — la bulle « j'ai noté … » part AU MOMENT DU GESTE", async () => {
   // ⛔ SANS CE TEST, LA MOITIÉ « ON LE DIT » DE L'ARBITRAGE DU 2026-09-01 PEUT
   // DISPARAÎTRE SANS QU'AUCUN TEST NE ROUGISSE — et l'écriture d'une allergie
   // sans consentement resterait, seule, c'est-à-dire une contrainte médicale
   // posée dans le dos de quelqu'un.
-  const src = (await Deno.readTextFile(
-    new URL("../../keel-daily-pulse-v1/index.ts", import.meta.url),
-  ))
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split("\n")
-    .map((l) => l.replace(/(^|[^:])\/\/.*$/, "$1"))
-    .join("\n");
+  //
+  // ⟳ CE TEST A CHANGÉ D'OBJET LE 2026-09-08, IL N'A PAS ÉTÉ AFFAIBLI.
+  //
+  // Il lisait `keel-daily-pulse-v1` et vérifiait que le message du soir
+  // calculait le récap et le PASSAIT au rendu. Ce job est supprimé. Mais la
+  // moitié « on le dit » ne partait déjà plus par lui: `notifyMemoryWrite`
+  // l'annonce AU MOMENT DU GESTE depuis que l'en-tête de
+  // `memory_clarification_io.ts` a acté que « six heures plus tard, le lien
+  // n'est plus évident ». Le message du soir en était la copie tardive.
+  //
+  // On garde donc EXACTEMENT la même propriété — un écrit durable est annoncé —
+  // sur les deux chemins qui écrivent réellement.
+  const read = async (rel: string) =>
+    (await Deno.readTextFile(new URL(rel, import.meta.url)))
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((l) => l.replace(/(^|[^:])\/\/.*$/, "$1"))
+      .join("\n");
+
+  // ① Le retour de fin de plan — la source qui écrit une allergie déclarée.
+  const feedback = await read("../../keel-plan-feedback-v1/index.ts");
   assert(
-    src.includes("const memory = await memoryRecapFor({"),
-    "le pouls ne calcule plus le récap",
+    feedback.includes("notifyMemoryWrite("),
+    "LE BILAN DE FIN DE PLAN N'ANNONCE PLUS: il écrit une préférence durable, " +
+      "et parfois une allergie, sans le dire. C'est le magasin invisible que " +
+      "l'arbitrage du 2026-09-01 existe pour fermer.",
+  );
+
+  // ② Le classifieur de note libre — l'autre source du modèle.
+  const classify = await read("./draft_note_classify_io.ts");
+  assert(
+    classify.includes("notifyMemoryWrite("),
+    "LE CLASSIFIEUR N'ANNONCE PLUS ce qu'il range.",
   );
   assert(
-    /renderPulseMessage\(\{[\s\S]{0,200}memory,/.test(src),
-    "CALCULÉ MAIS JAMAIS PASSÉ: « rendu » n'est pas « dit »",
+    classify.includes("notifySafetyNotWritten("),
+    "LE REFUS DE SÉCURITÉ N'EST PLUS DIT: un refus muet se lit comme un " +
+      "enregistrement réussi.",
   );
-  // ⚠️ ET IL N'EST PAS ÉCRIT AU REGISTRE DES DEMANDES. Un récap qui
-  // consommerait `DAILY_ASK_BUDGET` ferait taire la question du jour — T4
+
+  // ⚠️ ET CE N'EST PAS ÉCRIT AU REGISTRE DES DEMANDES. Un énoncé qui
+  // consommerait `DAILY_ASK_BUDGET` ferait taire une demande du jour — T4
   // borne les demandes, pas les comptes rendus.
-  const at = src.indexOf("const memory = await memoryRecapFor({");
-  const around = src.slice(at, at + 400);
-  assert(
-    !/meal_precision_questions|recordDailyAsk|DAILY_ASK/.test(around),
-    "le récap est écrit au registre des demandes: c'est un ÉNONCÉ",
-  );
+  for (const [name, src] of [["bilan", feedback], ["classifieur", classify]]) {
+    const at = src.indexOf("notifyMemoryWrite(");
+    assert(
+      !/meal_precision_questions|recordDailyAsk|DAILY_ASK/.test(
+        src.slice(Math.max(0, at - 400), at + 400),
+      ),
+      `${name}: l'annonce est écrite au registre des demandes: c'est un ÉNONCÉ`,
+    );
+  }
 });
 
-Deno.test("⛔ LE RÉCAP TIENT SEUL dans le message du soir", async () => {
+Deno.test("⛔ LE RÉCAP TIENT SEUL — sans plat coché, sans rien d'autre", async () => {
   // Prévenir de l'enregistrement d'une allergie ne peut pas dépendre du fait
-  // qu'il y ait eu un plat coché ce soir-là.
-  const { renderPulseMessage } = await import("./daily_pulse.ts");
-  const out = renderPulseMessage({
-    recapBody: null,
-    memory: "J'ai noté une allergie : peanut.",
-    ask: false,
-    strip: null,
-    locale: "fr-FR",
+  // qu'il y ait eu un plat coché ce jour-là.
+  //
+  // ⟳ Cette propriété se vérifiait sur `renderPulseMessage`, le rendu du
+  // message du soir. Elle se vérifie maintenant sur `buildMemoryRecap`, qui est
+  // le rendu que `notifyMemoryWrite` envoie — c'est-à-dire là où elle vit
+  // désormais.
+  const { buildMemoryRecap } = await import("./memory_recap.ts");
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [{ text: "peanut", until: null, kind: "preference", who: null }],
+    language: "fr",
   });
-  assert(out.body.includes("peanut"), "le récap seul ne produit aucun message");
-  assertEquals(out.buttons.length, 0, "le récap a fabriqué un bouton");
+  assert(
+    String(out ?? "").includes("peanut"),
+    "le récap seul ne produit aucun message",
+  );
 });
 
 // ===========================================================================
