@@ -1598,7 +1598,23 @@ export async function loadKeelTurnContext(args: {
   // progression — rien de ce que `SUPPRESSED_STUDENT_SURFACES` suspend. Le
   // taire sous plancher levé priverait quelqu'un en difficulté de la seule
   // information pratique dont il a besoin pour dîner.
-  const household = localDate && householdId
+  //
+  // ⟳ LA CONDITION A PERDU `householdId` LE 2026-09-08, ET C'EST LE POINT DU
+  // LOT. Un solo n'a AUCUNE ligne `household_members` — « le solo ne crée pas
+  // de foyer » — donc `resolveHouseholdIdFor` rend `null`, donc ce chargeur
+  // n'était pas appelé, donc AUCUN bloc de plan ne partait dans le prompt.
+  // L'agent bottait en touche ou INVENTAIT un plat, très exactement le défaut
+  // que `household_turn_context.ts` existe pour fermer, laissé ouvert pour
+  // toute une population.
+  //
+  // `householdId` ne décide donc plus S'IL Y A un bloc: il décide LEQUEL —
+  // le plan du foyer, ou le plan personnel de la personne. C'est `ctx.scope`
+  // qui le porte jusqu'au rendu.
+  //
+  // ⚠️ `localDate` RESTE UNE CONDITION. Sans jour local on ne sait ni quelle
+  // fenêtre couvre aujourd'hui, ni si elle est close — et un bloc de plan sans
+  // fenêtre est précisément le plat d'hier servi ce soir.
+  const household = localDate
     ? await loadHouseholdTurnContext(args.supabase, {
       householdId,
       userId: args.userId,

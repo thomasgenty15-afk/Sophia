@@ -62,6 +62,11 @@ function stubDb(tables: Tables, roster: Array<Record<string, unknown>>, opts: {
           if (op === "is") return value === null ? actual == null : actual === value;
           if (op === "lte") return String(actual ?? "") <= String(value ?? "");
           if (op === "gte") return String(actual ?? "") >= String(value ?? "");
+          // ⟳ `lt` AJOUTÉ LE 2026-09-08 avec la seconde passe du chargeur (le
+          // dernier plan CLOS). Un stub qui ne connaît pas un opérateur ne rend
+          // pas un mauvais résultat: il JETTE, et le test rougit franchement —
+          // c'est la bonne défaillance, et c'est comme ça qu'on l'a vu.
+          if (op === "lt") return String(actual ?? "") < String(value ?? "");
           return true;
         })
       );
@@ -84,6 +89,10 @@ function stubDb(tables: Tables, roster: Array<Record<string, unknown>>, opts: {
       },
       gte(c: string, v: unknown) {
         filters.push(["gte", c, v]);
+        return api;
+      },
+      lt(c: string, v: unknown) {
+        filters.push(["lt", c, v]);
         return api;
       },
       maybeSingle: () =>
@@ -321,18 +330,71 @@ Deno.test("⚠️ MA PART est appariée sur ma LIGNE MEMBRE, pas sur mon compte"
 // LES MODES DE DÉFAILLANCE DE §7
 // ---------------------------------------------------------------------------
 
-Deno.test("SANS FOYER, aucun contexte — donc aucune mention (R8)", async () => {
-  // LA RÉSOLUTION EST REMONTÉE D'UN CRAN (chantier 5): elle sert AUSSI la lane
-  // de sécurité, et la faire deux fois ferait payer un aller-retour de plus à
-  // tout le produit — dont la majorité n'a pas de foyer.
-  const db = stubDb({ household_members: [], households: [] }, []);
+Deno.test("SANS FOYER, on lit le plan PERSONNEL — et jamais un mot de foyer (R8)", async () => {
+  // ⟳ CE TEST A CHANGÉ DE CONCLUSION LE 2026-09-08.
+  //
+  // Il affirmait « sans foyer, aucun contexte ». C'était le défaut, pas la
+  // règle: un solo n'a aucune ligne `household_members`, donc AUCUN bloc de
+  // plan ne partait dans le prompt, et le modèle bottait en touche ou inventait
+  // un plat. R8 n'a jamais dit « pas de contexte » — R8 dit « pas un mot de
+  // foyer à quelqu'un qui vit seul ». C'est cette moitié-là qu'on garde, et
+  // elle est maintenant vérifiable SUR un bloc rendu plutôt que sur son
+  // absence.
+  const db = stubDb(
+    {
+      household_members: [],
+      households: [],
+      student_generated_meals: [{
+        id: "plan-solo",
+        user_id: ME,
+        plan_kind: "personal",
+        retired_at: null,
+        starts_on: "2026-08-03",
+        ends_on: "2026-08-09",
+        dishes: [{ title: "Solo cod bowl", slot: "dinner", day: "wed" }],
+        preparations: [],
+        member_portions: [],
+      }],
+    },
+    [],
+  );
   assertEquals(await resolveHouseholdIdFor(db, ME), null);
-  // Et sans foyer résolu, le chargeur ne va rien chercher.
+
+  const ctx = await loadHouseholdTurnContext(db, {
+    householdId: null,
+    userId: ME,
+    localDate: TODAY,
+  });
+  assert(ctx);
+  assertEquals(ctx.scope, "personal");
+  assertEquals(ctx.householdId, null);
+  assertEquals(ctx.roster, []);
+  assertEquals(ctx.todayDishes.length, 1);
+
+  const block = householdContextBlock(ctx);
+  assertStringIncludes(block, "Solo cod bowl");
+  assertStringIncludes(block, "WHAT THIS STUDENT PLANNED FOR THEMSELVES");
+  // ⛔ R8, LA MOITIÉ QUI COMPTE: pas un mot de foyer, sous aucune forme.
+  assertEquals(/household/i.test(block), false);
+});
+
+Deno.test("UN HOUSEHOLD ID VIDE est lu comme « pas de foyer », pas comme une panne", async () => {
+  const db = stubDb({ household_members: [], households: [] }, []);
+  const ctx = await loadHouseholdTurnContext(db, {
+    householdId: "",
+    userId: ME,
+    localDate: TODAY,
+  });
+  assertEquals(ctx?.scope, "personal");
+});
+
+Deno.test("SANS JOUR LOCAL, aucun contexte — la fenêtre est indécidable", async () => {
+  const db = stubDb({ household_members: [], households: [] }, []);
   assertEquals(
     await loadHouseholdTurnContext(db, {
       householdId: "",
       userId: ME,
-      localDate: TODAY,
+      localDate: "",
     }),
     null,
   );
@@ -362,24 +424,74 @@ Deno.test("la résolution du foyer LÈVE — « pas de foyer » ≠ « je n'ai p
   );
 });
 
-Deno.test("UN PLAN PÉRIMÉ HIER est traité comme ABSENT, pas comme celui d'hier", async () => {
+// ⟳ CE TEST A ÉTÉ RENVERSÉ LE 2026-09-08, ET LA DÉCISION EST ÉCRITE.
+//
+// Il affirmait « un plan périmé hier est traité comme ABSENT ». Le motif était
+// juste — un plat d'hier servi ce soir est une erreur silencieuse — mais la
+// conclusion ne l'était pas: le bilan de fin de plan part à 22 h le DERNIER
+// jour, donc le plan disparaissait du contexte à l'instant précis où les
+// questions arrivent, et le modèle bottait en touche ou inventait.
+//
+// Ce qui répare le risque n'est pas de CACHER le plan, c'est de NOMMER sa
+// fenêtre. Les deux tests ci-dessous tiennent les deux moitiés: il est lu, et
+// il est annoncé comme clos.
+const endedPlan = (endsOn: string) => ({
+  id: "plan-old",
+  household_id: HOUSE,
+  // ⚠️ SANS CETTE LIGNE, LE DÉCOR MENT — et il l'a fait: la première rédaction
+  // de ces deux tests l'omettait, le chargeur écartait la ligne sur
+  // `plan_kind`, et « le plan clos n'est pas lu » aurait été vert pour une
+  // raison qui n'a rien à voir avec la fenêtre. C'est la cicatrice déjà écrite
+  // dans `tables()`, vingt lignes plus haut, repayée.
+  plan_kind: "household",
+  retired_at: null,
+  starts_on: "2026-07-27",
+  ends_on: endsOn,
+  dishes: [{ title: "Yesterday's stew", slot: "dinner", day: "tue" }],
+  preparations: [],
+  member_portions: [],
+});
+
+Deno.test("UN PLAN PÉRIMÉ HIER est LU, et son bloc dit qu'il est CLOS", async () => {
   const db = stubDb(
-    tables({
-      student_generated_meals: [{
-        id: "plan-old",
-        household_id: HOUSE,
-        retired_at: null,
-        starts_on: "2026-07-27",
-        ends_on: "2026-08-04", // fini HIER
-        dishes: [{ title: "Yesterday's stew", slot: "dinner", day: "tue" }],
-        preparations: [],
-        member_portions: [],
-      }],
-    }),
+    tables({ student_generated_meals: [endedPlan("2026-08-04")] }),
     [rosterRow(ME_MEMBER, "Ana")],
   );
-  const ctx = await loadHouseholdTurnContext(db, { householdId: HOUSE, userId: ME, localDate: TODAY });
+  const ctx = await loadHouseholdTurnContext(db, {
+    householdId: HOUSE,
+    userId: ME,
+    localDate: TODAY,
+  });
   assert(ctx);
+  assertEquals(ctx.window, { state: "ended", endedOn: "2026-08-04" });
+  assertEquals(ctx.todayDishes.length, 1);
+
+  const block = householdContextBlock(ctx);
+  assertStringIncludes(block, "THIS PLAN IS OVER");
+  assertStringIncludes(block, "2026-08-04");
+  // ⛔ LA MOITIÉ QUI EMPÊCHE LE DÉFAUT D'ORIGINE. Le plat est là, mais rien ne
+  // le présente comme celui de ce soir: pas de section « TODAY'S DISHES », et
+  // chaque plat porte son jour.
+  assertEquals(block.includes("TODAY'S DISHES"), false);
+  assertStringIncludes(block, "[tue] Yesterday's stew");
+  assertStringIncludes(block, "past tense");
+});
+
+Deno.test("AU-DELÀ DE SEPT JOURS, le plan clos redevient ABSENT", async () => {
+  // Le plafond est ce qui empêche un bloc daté de traîner jusqu'à se relire
+  // comme le plan courant. TODAY = 2026-08-05, donc un plan fini le 2026-07-28
+  // est à huit jours: hors de portée.
+  const db = stubDb(
+    tables({ student_generated_meals: [endedPlan("2026-07-28")] }),
+    [rosterRow(ME_MEMBER, "Ana")],
+  );
+  const ctx = await loadHouseholdTurnContext(db, {
+    householdId: HOUSE,
+    userId: ME,
+    localDate: TODAY,
+  });
+  assert(ctx);
+  assertEquals(ctx.window, { state: "current" });
   assertEquals(ctx.hasPlanToday, false);
   assertEquals(ctx.todayDishes, []);
 });
@@ -390,6 +502,10 @@ Deno.test("UN PLAN RETIRÉ n'est pas lu", async () => {
       student_generated_meals: [{
         id: "plan-retired",
         household_id: HOUSE,
+        // Même raison que dans `endedPlan`: sans `plan_kind`, ce test serait
+        // vert parce que la ligne est écartée sur la MAUVAISE colonne, et il ne
+        // prouverait rien de `retired_at`.
+        plan_kind: "household",
         retired_at: "2026-08-04T10:00:00Z",
         starts_on: "2026-08-03",
         ends_on: "2026-08-09",

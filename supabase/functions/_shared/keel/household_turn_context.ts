@@ -39,6 +39,7 @@ import {
   MEMBER_AGE_STATES,
   type MemberAgeState,
 } from "./household.ts";
+import { addDays } from "./local_date.ts";
 
 /** Structural type: les tests injectent un faux, la prod un SupabaseClient. */
 // deno-lint-ignore no-explicit-any
@@ -118,8 +119,29 @@ export interface HouseholdRestrictionLine {
   chosenBy: string | null;
 }
 
+/**
+ * DE QUI EST CE PLAN, ET QUELLE EST SA FENÊTRE.
+ *
+ * ⚠️ LES DEUX SONT REQUIS, JAMAIS OPTIONNELS. Un champ absent se lirait comme
+ * « foyer » et « en cours », c'est-à-dire le cas nominal — et le rendu
+ * annoncerait le dîner d'un foyer à quelqu'un qui vit seul, ou le plat d'un
+ * plan clos comme celui de ce soir. Un paramètre de garde optionnel est une
+ * garde désarmée.
+ */
+export type PlanScope = "household" | "personal";
+export type PlanWindow =
+  | { readonly state: "current" }
+  | { readonly state: "ended"; readonly endedOn: string };
+
 export interface HouseholdTurnContext {
-  householdId: string;
+  /**
+   * ⟳ NULLABLE DEPUIS LE 2026-09-08. Un solo n'a AUCUNE ligne
+   * `household_members` — « le solo ne crée pas de foyer » — donc aucun
+   * identifiant de foyer. C'est `scope` qui dit lequel des deux on lit.
+   */
+  householdId: string | null;
+  scope: PlanScope;
+  window: PlanWindow;
   /**
    * LA LIGNE MEMBRE de celui qui parle — un `member_id`, pas un `user_id`,
    * parce que c'est la clé de `member_portions`. Le bloc en a besoin pour que
@@ -168,6 +190,21 @@ export const HOUSEHOLD_MAX_RESTRICTIONS = 6;
  * est du même bois qu'un plat inventé: on va l'acheter.
  */
 export const HOUSEHOLD_MAX_SHOPPING = 12;
+
+/**
+ * COMBIEN DE JOURS UN PLAN CLOS RESTE LISIBLE.
+ *
+ * ⚠️ SEPT, ET LE CHIFFRE A UNE RAISON. Le bilan de fin de plan part à 22 h le
+ * DERNIER jour (`PLAN_FEEDBACK_HOUR`, `plan_feedback_chat_io.ts`), et l'écran
+ * l'ouvre à la première visite de /app/plan après la fin. C'est donc le moment
+ * exact où les questions arrivent — et c'était le moment où le plan disparaissait
+ * du contexte, parce que la requête exigeait qu'il COUVRE aujourd'hui.
+ *
+ * Sept jours couvrent la semaine où ces questions tombent. Au-delà, se taire est
+ * juste: personne ne demande le mardi d'il y a trois semaines, et un bloc daté
+ * qui traîne finit par se lire comme le plan courant.
+ */
+export const PLAN_READABLE_AFTER_END_DAYS = 7;
 
 /**
  * ── L4 · LE PLAFOND DU BLOC, ET POURQUOI LES BORNES CI-DESSUS NE SUFFISAIENT
@@ -353,14 +390,28 @@ export async function resolveHouseholdIdFor(
  */
 export async function loadHouseholdTurnContext(
   db: Db,
-  args: { householdId: string; userId: string; localDate: string },
+  args: {
+    /**
+     * ⟳ NULLABLE DEPUIS LE 2026-09-08 — et c'est le point du lot.
+     *
+     * `null` ne veut pas dire « pas de contexte », il veut dire « pas de
+     * foyer »: on lit alors le plan PERSONNEL de la personne. Avant, un solo
+     * n'avait aucune ligne `household_members`, `resolveHouseholdIdFor` rendait
+     * `null`, l'appelant n'appelait donc pas ce chargeur, et AUCUN bloc de plan
+     * ne partait dans le prompt. Le modèle bottait en touche ou inventait un
+     * plat — exactement le défaut que ce module existe pour fermer, laissé
+     * ouvert pour toute une population.
+     */
+    householdId: string | null;
+    userId: string;
+    localDate: string;
+  },
 ): Promise<HouseholdTurnContext | null> {
-  const householdId = str(args.householdId);
+  const householdId = str(args.householdId) || null;
   const userId = str(args.userId);
   const localDate = str(args.localDate);
-  if (!householdId || !userId || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
-    return null;
-  }
+  if (!userId || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) return null;
+  const scope: PlanScope = householdId ? "household" : "personal";
 
   try {
     // 2. LE ROSTER, par la RPC — jamais par `profiles`. (L'étape 1, la
@@ -379,44 +430,99 @@ export async function loadHouseholdTurnContext(
     // ce qu'on mange ce soir. Aucune erreur nulle part.
     // Les deux fonctions partagent UN corps (20260808061000): le navigateur
     // garde sa garde `auth.uid()`, le serveur passe l'élève explicitement.
-    const rosterRes = await db.rpc("keel_household_roster_for", { p_user: userId });
-    if (rosterRes.error) throw rosterRes.error;
-    const rosterRows = asArray(rosterRes.data);
-    const roster: HouseholdRosterEntry[] = rosterRows.map(rosterEntryOf);
-    // MA LIGNE, retrouvée par le compte. C'est le SEUL endroit où `user_id`
-    // sert à identifier: partout ailleurs c'est `member_id`. Une personne qui
-    // parle a forcément un compte — les bouches sans compte ne parlent pas.
-    const me = roster.find((m) => m.userId === userId);
-    if (!me) return null;
+    //
+    // ⟳ EN MODE PERSONNEL, ON NE L'APPELLE PAS. Il n'y a pas de foyer, donc pas
+    // de roster, pas de bouches, pas de part d'un autre. `viewerId` retombe sur
+    // le compte lui-même — c'est le seul cas du produit où les deux coïncident.
+    let roster: HouseholdRosterEntry[] = [];
+    let viewerId = userId;
+    if (scope === "household") {
+      const rosterRes = await db.rpc("keel_household_roster_for", {
+        p_user: userId,
+      });
+      if (rosterRes.error) throw rosterRes.error;
+      roster = asArray(rosterRes.data).map(rosterEntryOf);
+      // MA LIGNE, retrouvée par le compte. C'est le SEUL endroit où `user_id`
+      // sert à identifier: partout ailleurs c'est `member_id`. Une personne qui
+      // parle a forcément un compte — les bouches sans compte ne parlent pas.
+      const me = roster.find((m) => m.userId === userId);
+      if (!me) return null;
+      viewerId = me.memberId;
+    }
 
-    // 3. LE PLAN DU FOYER qui COUVRE aujourd'hui. Une fenêtre finie hier est
-    // traitée comme absente: un plat d'hier servi ce soir est une erreur
-    // silencieuse, et `retired_at` exclut les plans remplacés.
-    const planRes = await db
-      .from("student_generated_meals")
-      .select(
-        "id, dishes, preparations, member_portions, shopping_list, starts_on, ends_on",
-      )
-      .eq("household_id", householdId)
-      // ⚠️ `plan_kind` N'EST PAS UN DÉTAIL ICI — mesuré le 2026-08-12. Un plan
-      // PERSONNEL porte lui aussi le `household_id` de son auteur
-      // (`generate-meal-v1` l'estampe pour que la fusion le retrouve). Sans ce
-      // filtre, la requête rendait le plan personnel du membre le plus récent,
-      // et le chat décrivait ses plats à TOUT LE FOYER comme le dîner de la
-      // maison. Rejoué sur une fixture réelle: le plan de Nina sortait à la
-      // place de celui du foyer.
-      //
-      // L3 (la prise de main) rend la collision NOMINALE: prendre la main,
-      // c'est précisément créer une ligne `personal` portant ce
-      // `household_id`. Ce n'est plus un cas de bord, c'est le cas produit.
-      .eq("plan_kind", "household")
+    // 3. LE PLAN, EN DEUX PASSES.
+    //
+    // ── PASSE ① — CELUI QUI COUVRE AUJOURD'HUI ─────────────────────────────
+    // C'est le cas nominal, et il n'a pas bougé.
+    //
+    // ── PASSE ② — LE DERNIER PLAN CLOS, DANS LES SEPT JOURS ────────────────
+    // ⟳ AJOUTÉE LE 2026-09-08. Une fenêtre finie hier était traitée comme
+    // absente, et le motif écrit ici était juste: « un plat d'hier servi ce
+    // soir est une erreur silencieuse ». Mais la conclusion ne l'était pas.
+    // Le bilan de fin de plan part à 22 h le DERNIER jour, et l'écran l'ouvre
+    // à la première visite d'après — donc le plan disparaissait du contexte à
+    // l'instant précis où les questions arrivent.
+    //
+    // Ce qui répare le risque n'est PAS de cacher le plan, c'est de NOMMER sa
+    // fenêtre: `window.state === "ended"` change l'en-tête, retire la section
+    // « TODAY'S DISHES », date chaque plat, et arme une règle de plus. Le
+    // modèle ne peut pas présenter comme ce soir ce qui est annoncé comme
+    // clos — alors qu'un bloc absent le laissait libre d'inventer.
+    // `Db` est structurel (les tests injectent un faux): on ne fabrique donc pas
+    // un type de requête, on part de la même base à chaque passe.
+    // deno-lint-ignore no-explicit-any
+    const planBase = (): any =>
+      db
+        .from("student_generated_meals")
+        .select(
+          "id, dishes, preparations, member_portions, shopping_list, starts_on, ends_on",
+        );
+
+    // ⚠️ LE FILTRE D'APPARTENANCE CHANGE DE SUJET AVEC LA PORTÉE, ET LA GARDE
+    // DU 2026-08-12 TIENT DANS LES DEUX CAS.
+    //
+    //   · foyer      → `household_id` + `plan_kind = 'household'`. Un plan
+    //     PERSONNEL porte lui aussi le `household_id` de son auteur
+    //     (`generate-meal-v1` l'estampe pour que la fusion le retrouve): sans
+    //     ce second filtre, la requête rendait le plan personnel du membre le
+    //     plus récent, et le chat décrivait ses plats à TOUT LE FOYER comme le
+    //     dîner de la maison. Rejoué sur une fixture réelle: le plan de Nina
+    //     sortait à la place de celui du foyer. L3 (la prise de main) rend la
+    //     collision NOMINALE.
+    //   · personnel  → `user_id` + `plan_kind = 'personal'`. Filtré sur LE
+    //     VIEWER, donc la collision que `plan_kind` ferme ne se rouvre pas par
+    //     l'autre bout: on ne peut pas atteindre le plan personnel d'un tiers.
+    // deno-lint-ignore no-explicit-any
+    const scoped = (q: any): any =>
+      scope === "household"
+        ? q.eq("household_id", householdId).eq("plan_kind", "household")
+        : q.eq("user_id", userId).eq("plan_kind", "personal");
+
+    const currentRes = await scoped(planBase())
       .is("retired_at", null)
       .lte("starts_on", localDate)
       .gte("ends_on", localDate)
       .order("starts_on", { ascending: false })
       .limit(1);
-    if (planRes.error) throw planRes.error;
-    const plan = asArray(planRes.data)[0] ?? null;
+    if (currentRes.error) throw currentRes.error;
+    let plan = asArray(currentRes.data)[0] ?? null;
+    let window: PlanWindow = { state: "current" };
+
+    if (!plan) {
+      const floor = addDays(localDate, -PLAN_READABLE_AFTER_END_DAYS);
+      const endedRes = await scoped(planBase())
+        .is("retired_at", null)
+        .lt("ends_on", localDate)
+        .gte("ends_on", floor)
+        .order("ends_on", { ascending: false })
+        .limit(1);
+      if (endedRes.error) throw endedRes.error;
+      const ended = asArray(endedRes.data)[0] ?? null;
+      if (ended) {
+        plan = ended;
+        window = { state: "ended", endedOn: str(ended.ends_on) };
+      }
+    }
 
     const dayToken = dayTokenFor(localDate);
     const startsOn = str(plan?.starts_on);
@@ -426,7 +532,16 @@ export async function loadHouseholdTurnContext(
       // JOUR COURANT D'ABORD, et SEULEMENT lui: c'est ce que la question pose.
       // Un plat sans jour appartient à un plan d'un seul jour, donc à
       // aujourd'hui par construction.
+      //
+      // ⟳ SUR UNE FENÊTRE CLOSE, CE FILTRE NE PEUT RIEN TROUVER, et c'est
+      // pourquoi il change de sujet. `dayTokenFor(localDate)` est le jour
+      // d'AUJOURD'HUI; sur un plan fini avant-hier, aucun plat ne le porte, et
+      // le bloc serait vide de plats tout en s'annonçant comme un plan. On
+      // garde donc les DERNIERS plats de la fenêtre, et le rendu les DATE — il
+      // n'y a plus de « jour courant » à distinguer, donc plus rien à
+      // confondre avec ce soir.
       .filter((d) => {
+        if (window.state === "ended") return true;
         const day = str(d.day);
         return day === "" || day === dayToken;
       })
@@ -509,7 +624,7 @@ export async function loadHouseholdTurnContext(
               clampLine(p.displayName ?? p.display_name, HOUSEHOLD_MAX_NAME_CHARS),
             note: clampLine(p.portionNote ?? p.portion_note, HOUSEHOLD_MAX_NOTE_CHARS) ||
               null,
-            isMe: memberId === me.memberId,
+            isMe: memberId === viewerId,
           },
         };
       })
@@ -545,14 +660,18 @@ export async function loadHouseholdTurnContext(
     // 5. LES RESTRICTIONS QUI ME VISENT, avec leur auteur. Celles qui visent
     // quelqu'un d'autre ne sont pas chargées: en `family` elles ne concernent
     // pas ce tour, en `shared` elles n'ont rien à y faire.
-    const restrictionsRes = await db
+    // ⟳ EN MODE PERSONNEL, LA TABLE N'A RIEN À DIRE: les restrictions de foyer
+    // sont posées PAR un foyer, POUR une bouche. Un solo n'en a aucune, et
+    // interroger la table sur un `household_id` nul rendrait soit une erreur,
+    // soit — pire — les lignes de tout le monde.
+    const restrictionsRes = scope !== "household" ? { data: [], error: null } : await db
       .from("household_food_restrictions")
       .select("label, created_by")
       .eq("household_id", householdId)
       // MA LIGNE MEMBRE, pas mon compte. Une bouche sans compte porte des
       // contraintes depuis le lot 1 — c'était même le cas nominal impossible
       // avant lui — et `member_user_id` n'existe plus.
-      .eq("member_id", me.memberId)
+      .eq("member_id", viewerId)
       .limit(HOUSEHOLD_MAX_RESTRICTIONS);
     if (restrictionsRes.error) throw restrictionsRes.error;
     const myRestrictions: HouseholdRestrictionLine[] = asArray(restrictionsRes.data)
@@ -572,8 +691,13 @@ export async function loadHouseholdTurnContext(
 
     return {
       householdId,
-      viewerId: me.memberId,
+      scope,
+      window,
+      viewerId,
       roster,
+      // ⚠️ `hasPlanToday` VEUT DIRE « il y a des plats À MONTRER », et sur une
+      // fenêtre close ce ne sont pas ceux d'aujourd'hui — le rendu les date.
+      // Le nom est gardé parce qu'il est lu ailleurs; sa lecture est ici.
       hasPlanToday: todayDishes.length > 0,
       todayDishes,
       preparations,
@@ -754,16 +878,36 @@ function renderHouseholdBlock(
   const lines: string[] = [];
   /** Ce qui a été retiré, dit à la fin — jamais amputé en silence. */
   const dropped: string[] = [];
-  lines.push("== WHAT THIS HOUSEHOLD IS EATING (read-only) ==");
+  const solo = ctx.scope === "personal";
+  lines.push(
+    solo
+      ? "== WHAT THIS STUDENT PLANNED FOR THEMSELVES (read-only) =="
+      : "== WHAT THIS HOUSEHOLD IS EATING (read-only) ==",
+  );
   lines.push("");
   lines.push(
-    "This is NOT the coach's plan. It is what this household composed for " +
-      "itself. Never merge the two, and never present one as the other.",
+    "This is NOT the coach's plan. It is what " +
+      (solo ? "this student composed" : "this household composed for itself") +
+      ". Never merge the two, and never present one as the other.",
   );
+  // ⛔ LA FENÊTRE EST ANNONCÉE AVANT TOUT LE RESTE, ET C'EST CE QUI AUTORISE
+  // UN PLAN CLOS À ENTRER DANS LE PROMPT. Sans cette ligne, les mêmes plats
+  // seraient indiscernables de ceux de ce soir — et c'est exactement pour
+  // éviter ça qu'un plan fini était auparavant traité comme absent.
+  if (ctx.window.state === "ended") {
+    lines.push("");
+    lines.push(
+      `THIS PLAN IS OVER — its window ended on ${ctx.window.endedOn}. Nothing ` +
+        "below is for today. Answer questions ABOUT it in the past tense.",
+    );
+  }
   lines.push("");
 
   // MON PRÉNOM D'ABORD quand la liste est réduite. Le reste garde son ordre
   // (la RPC rend le compte maître en tête, puis l'ordre d'arrivée).
+  // ⟳ PAS DE LIGNE DE FOYER POUR QUELQU'UN QUI VIT SEUL. « Household of 1: … »
+  // annonce une table où il n'y a personne d'autre, et le modèle s'en sert.
+  if (!solo) {
   const rosterOrdered = [
     ...ctx.roster.filter((m) => m.memberId === ctx.viewerId),
     ...ctx.roster.filter((m) => m.memberId !== ctx.viewerId),
@@ -790,12 +934,20 @@ function renderHouseholdBlock(
       `${rosterHidden} household member name(s) — you do not have them here`,
     );
   }
+  }
 
   if (ctx.hasPlanToday) {
     lines.push("");
-    lines.push("TODAY'S DISHES, exactly as composed:");
+    lines.push(
+      ctx.window.state === "ended"
+        ? "DISHES FROM THAT WINDOW, exactly as composed (each with its day):"
+        : "TODAY'S DISHES, exactly as composed:",
+    );
     for (const dish of ctx.todayDishes) {
-      lines.push(`- ${dish.title}${dish.slot ? ` (${dish.slot})` : ""}`);
+      const day = ctx.window.state === "ended" && dish.day
+        ? `[${dish.day}] `
+        : "";
+      lines.push(`- ${day}${dish.title}${dish.slot ? ` (${dish.slot})` : ""}`);
     }
     // LE JOUR COURANT NE SE COUPE PAS. Les préparations d'aujourd'hui passent
     // en entier; seules celles d'un autre jour sont soumises au budget.
@@ -926,64 +1078,12 @@ function renderHouseholdBlock(
   }
 
   lines.push("");
-  lines.push("HARD RULES:");
-  lines.push(
-    "- Everything you say about what they are eating comes from the lines " +
-      "above. Never invent a dish: they will cook what you tell them.",
-  );
-  lines.push(
-    "- READ-ONLY. You cannot compose, change, add or remove anything here. " +
-      "Every one of those has its own screen.",
-  );
-  // ⚠️ LA RÈGLE EST ÉCRITE EN FORME DE RÉPONSE, et pas en forme de principe.
-  // MESURÉ 3 passes sur 3 avec la seule phrase « A dish being planned is NOT a
-  // dish being eaten »: sur « Did we eat the chicken today? » l'agent répondait
-  // « Yes — chicken thighs are listed for today's dinner ». Il n'avait pas
-  // coché en base — aucun `protocol_events`, relu — mais il AFFIRMAIT le fait,
-  // ce qui est l'inférence que le domaine interdit globalement.
-  lines.push(
-    "- A dish being planned is NOT a dish being eaten. Never tick anything, " +
-      "and never assume it was. If they ask whether something WAS eaten, you " +
-      "do not know: this list says what is PLANNED, never what happened. " +
-      "Never answer 'yes' to 'did we eat X'.",
-  );
-  lines.push(
-    "- Only what is dated TODAY above is for today. A dish or a preparation " +
-      "dated another day is not tonight's, and saying it is sends them to cook " +
-      "the wrong thing.",
-  );
-  // ⚠️ UNE PRÉPARATION N'EST PAS UN PLAT. Le bloc ne porte QUE les plats du
-  // jour, mais les préparations portent leurs dates — et le modèle s'en sert
-  // pour annoncer le repas d'un autre jour: « Tomorrow is lentils », mesuré
-  // 1 passe sur 3 sur « And what are we eating tomorrow? ». C'est une
-  // confabulation de plat par déduction, et elle se cuisine comme les autres.
-  lines.push(
-    "- You have TODAY'S dishes and nothing else. A preparation dated a later " +
-      "day is a cooking task, not that day's meal: never turn one into a dish, " +
-      "and never state what a later day's meal is. Say you only have today's " +
-      "and send them to the meals screen.",
-  );
-  // ⚠️ LA CEINTURE COLOCATION EST PARTIE AVEC SON SUJET (lot 2, 2026-08-10).
-  //
-  // Elle interdisait de rendre la consigne de service d'un autre, et surtout d'y
-  // répondre PAR COMPARAISON — mesuré 3 passes sur 3: « ma part est-elle plus
-  // grosse que celle de Sam ? » recevait un « oui » qui portait la moitié
-  // manquante, alors que la consigne de Sam n'était nulle part dans le contexte.
-  //
-  // Elle n'avait de sujet qu'en colocation. Dans un foyer, `member_portions` EST
-  // ce qu'on lit à table, et toutes les portions entrent désormais dans le bloc:
-  // la comparaison redevient une question à laquelle on répond avec les deux
-  // moitiés. CE QUI RESTE INTERDIT est ailleurs et n'a pas bougé — la RAISON
-  // d'une portion, que `household_portions.ts` refuse déjà de façon
-  // déterministe et bilingue. C'est cette ceinture-là qui tient la promesse.
-  if (ctx.roster.some((m) => m.ageState === "minor")) {
-    lines.push(
-      "- A child in this household is an EATER, never a target: allergies, " +
-        "tastes, portion size. No nutritional goal, no weight, and no figures " +
-        "of any kind — not calories, not grams of sugar or fat, not a serving " +
-        "size in numbers. A child asking 'how much sugar is in that?' gets a " +
-        "plain answer about the plate, never a count.",
-    );
+  for (const rule of planHardRules({
+    scope: ctx.scope,
+    window: ctx.window,
+    hasMinor: ctx.roster.some((m) => m.ageState === "minor"),
+  })) {
+    lines.push(rule);
   }
 
   // ── QUAND ON TRONQUE, ON LE DIT ────────────────────────────────────────────
@@ -1010,4 +1110,111 @@ function renderHouseholdBlock(
   }
 
   return lines.join("\n");
+}
+
+/**
+ * LA CEINTURE DU BLOC DE PLAN, ÉNUMÉRABLE.
+ *
+ * ⚠️ POURQUOI UNE FONCTION PLUTÔT QUE DES `push` EN LIGNE. Ces règles sont la
+ * seule chose qui empêche le modèle de présenter un plat comme mangé, d'inventer
+ * une liste de courses, ou de proposer une version modifiée d'un plan qu'il ne
+ * peut pas changer. Noyées dans le rendu, elles ne se vérifient qu'en cherchant
+ * un littéral dans une chaîne — c'est-à-dire par un test qui recopie la règle et
+ * reste vert quand elle change. Extraites, un test les COMPARE à leur source, et
+ * balaie les combinaisons de portée, de fenêtre et de présence d'un mineur.
+ *
+ * Chaque ligne d'ici a été payée par une mesure; les commentaires en portent le
+ * détail, et il ne faut ni les résumer ni les fondre.
+ */
+export function planHardRules(args: {
+  readonly scope: PlanScope;
+  readonly window: PlanWindow;
+  readonly hasMinor: boolean;
+}): readonly string[] {
+  const out: string[] = ["HARD RULES:"];
+  out.push(
+    "- Everything you say about what they are eating comes from the lines " +
+      "above. Never invent a dish: they will cook what you tell them.",
+  );
+  out.push(
+    "- READ-ONLY. You cannot compose, change, add or remove anything here. " +
+      "Every one of those has its own screen.",
+  );
+  // ⚠️ LA RÈGLE EST ÉCRITE EN FORME DE RÉPONSE, et pas en forme de principe.
+  // MESURÉ 3 passes sur 3 avec la seule phrase « A dish being planned is NOT a
+  // dish being eaten »: sur « Did we eat the chicken today? » l'agent répondait
+  // « Yes — chicken thighs are listed for today's dinner ». Il n'avait pas
+  // coché en base — aucun `protocol_events`, relu — mais il AFFIRMAIT le fait,
+  // ce qui est l'inférence que le domaine interdit globalement.
+  out.push(
+    "- A dish being planned is NOT a dish being eaten. Never tick anything, " +
+      "and never assume it was. If they ask whether something WAS eaten, you " +
+      "do not know: this list says what is PLANNED, never what happened. " +
+      "Never answer 'yes' to 'did we eat X'.",
+  );
+  out.push(
+    "- Only what is dated TODAY above is for today. A dish or a preparation " +
+      "dated another day is not tonight's, and saying it is sends them to cook " +
+      "the wrong thing.",
+  );
+  // ⚠️ UNE PRÉPARATION N'EST PAS UN PLAT. Le bloc ne porte QUE les plats du
+  // jour, mais les préparations portent leurs dates — et le modèle s'en sert
+  // pour annoncer le repas d'un autre jour: « Tomorrow is lentils », mesuré
+  // 1 passe sur 3 sur « And what are we eating tomorrow? ». C'est une
+  // confabulation de plat par déduction, et elle se cuisine comme les autres.
+  out.push(
+    "- You have TODAY'S dishes and nothing else. A preparation dated a later " +
+      "day is a cooking task, not that day's meal: never turn one into a dish, " +
+      "and never state what a later day's meal is. Say you only have today's " +
+      "and send them to the meals screen.",
+  );
+  // ⚠️ LA CEINTURE COLOCATION EST PARTIE AVEC SON SUJET (lot 2, 2026-08-10).
+  //
+  // Elle interdisait de rendre la consigne de service d'un autre, et surtout d'y
+  // répondre PAR COMPARAISON — mesuré 3 passes sur 3: « ma part est-elle plus
+  // grosse que celle de Sam ? » recevait un « oui » qui portait la moitié
+  // manquante, alors que la consigne de Sam n'était nulle part dans le contexte.
+  //
+  // Elle n'avait de sujet qu'en colocation. Dans un foyer, `member_portions` EST
+  // ce qu'on lit à table, et toutes les portions entrent désormais dans le bloc:
+  // la comparaison redevient une question à laquelle on répond avec les deux
+  // moitiés. CE QUI RESTE INTERDIT est ailleurs et n'a pas bougé — la RAISON
+  // d'une portion, que `household_portions.ts` refuse déjà de façon
+  // déterministe et bilingue. C'est cette ceinture-là qui tient la promesse.
+  if (args.hasMinor) {
+    out.push(
+      "- A child in this household is an EATER, never a target: allergies, " +
+        "tastes, portion size. No nutritional goal, no weight, and no figures " +
+        "of any kind — not calories, not grams of sugar or fat, not a serving " +
+        "size in numbers. A child asking 'how much sugar is in that?' gets a " +
+        "plain answer about the plate, never a count.",
+    );
+  }
+
+  // ⟳ 2026-09-08 — NOMMER L'HORS-PLAN, ET NE JAMAIS PROPOSER UN PLAN MODIFIÉ.
+  //
+  // Le bloc disait déjà READ-ONLY. Ce qui manquait est ce qui arrive QUAND le
+  // modèle répond quand même quelque chose qui n'est pas dans les lignes: une
+  // substitution, une idée, une réponse générale. Non nommée, elle se lit comme
+  // une consigne — et il n'existe alors AUCUN endroit où la personne la
+  // retrouve: ni l'écran, ni la liste de courses, ni le bilan ne la connaissent.
+  // C'est un plan fantôme, et il est pire qu'un refus.
+  out.push(
+    "- If anything you say is NOT one of the lines above — a substitute, an " +
+      "idea, a general answer — SAY SO IN THE SAME SENTENCE: name it as " +
+      "off-plan. Never let an off-plan suggestion read like a line of the " +
+      "plan, and never offer a modified version of the plan: you cannot " +
+      "change it, and describing a change they cannot get costs them a screen " +
+      "and a disappointment.",
+  );
+
+  if (args.window.state === "ended") {
+    out.push(
+      "- This plan's window is CLOSED. Answer questions ABOUT it in the past " +
+        "tense. Never present any of it as today's food, and never propose the " +
+        "next one: they compose it themselves on the meals screen.",
+    );
+  }
+
+  return Object.freeze(out);
 }
