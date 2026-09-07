@@ -88,20 +88,24 @@ const READER_OF: Readonly<Record<string, string | null>> = Object.freeze({
   // Traité côté écran: « Voir » ouvre une page et ne part jamais au serveur.
   NAVIGATION_BUTTON_PREFIX: null,
   RECOMMENDATION_BUTTON_PREFIX: "readRecommendationReply",
-  STRIP_BUTTON_PREFIX: "readStripReply",
-  ACCIDENT_BUTTON_PREFIX: "readAccidentReply",
+  // Désarmées le 2026-09-07: plus d'émetteur, donc plus de lecteur. Elles
+  // restent listées dans le produit pour que les bulles déjà envoyées tombent
+  // dans la garde terminale au lieu de repartir au dispatcher.
+  STRIP_BUTTON_PREFIX: null,
+  ACCIDENT_BUTTON_PREFIX: null,
   DIVERGENCE_BUTTON_PREFIX: "readDivergenceReply",
-  PULSE_BUTTON_PREFIX: "readPulseReply",
+  PULSE_BUTTON_PREFIX: null,
   FEEDBACK_BUTTON_PREFIX: "readFeedbackReply",
   SLOT_MEAL_BUTTON_PREFIX: "parseSlotMealButton",
-  SHARE_BUTTON_PREFIX: "readShareReply",
+  SHARE_BUTTON_PREFIX: null,
 });
 
 const GUARD_TAG = 'tag: "keel.deterministic_button.unusable_payload"';
 const GUARD_RETURN = 'return handled("keel_unusable_button_payload");';
 const GUARD_KNOWN_LINE = "  const known = DETERMINISTIC_BUTTON_PREFIXES.some((p) =>";
 const DISPATCH_FN = "export async function handleDeterministicButton";
-const ANNOTATIONS = ["FRONT:", "DÉSARMÉ:"] as const;
+// `DÉSARMÉ` est suivi de sa date, `FRONT:` de sa raison — d'où l'asymétrie.
+const ANNOTATIONS = ["FRONT:", "DÉSARMÉ "] as const;
 
 // ---------------------------------------------------------------------------
 // P1 — LA GARDE EST TERMINALE, DANS LES DEUX SENS
@@ -228,7 +232,7 @@ function assertEveryPrefixClassified(raw: string): void {
     assert(
       annotated,
       `\`${name}\` est listé SANS lecteur et SANS annotation. Ajoute ` +
-        "`FRONT:` (l'écran l'intercepte) ou `DÉSARMÉ:` (plus personne ne le " +
+        "`FRONT:` (l'écran l'intercepte) ou `DÉSARMÉ <date>` (plus personne ne le " +
         "fabrique, mais des bulles en portent encore) juste au-dessus, avec " +
         "la raison. Sans ça on ne distingue pas un désarmement voulu d'un " +
         "lecteur supprimé par accident.",

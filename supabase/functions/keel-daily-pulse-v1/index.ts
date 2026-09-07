@@ -6,12 +6,10 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
-  decideAskCadence,
   decideDailyPulse,
   renderPulseMessage,
 } from "../_shared/keel/daily_pulse.ts";
 import {
-  loadAskCadence,
   loadPulseDay,
   PULSE_ASKED_METADATA_KEY,
   wasPulseSentToday,
@@ -22,23 +20,8 @@ import {
 } from "../_shared/keel/daily_practice_adherence_io.ts";
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
-import {
-  buildEveningStrip,
-  buildShoppingStep,
-} from "../_shared/keel/evening_strip.ts";
 import { memoryRecapFor } from "../_shared/keel/memory_recap_io.ts";
 import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_io.ts";
-// FF-061 — la chaîne des trois étapes, et la question de cuisson qui n'avait
-// jusqu'ici AUCUN émetteur: elle ne partait qu'après une décoche.
-import { buildSessionQuestion } from "../_shared/keel/accident.ts";
-import {
-  type DayReviewPending,
-  openingStep,
-} from "../_shared/keel/day_review.ts";
-import {
-  loadEveningStripContext,
-  respondsForHousehold,
-} from "../_shared/keel/evening_strip_io.ts";
 import { isFrenchLocale, resolveArtifactLocale } from "../_shared/keel/locale.ts";
 // A8.0 — L'AUDIENCE: les élèves, PUIS les profils réclamés (le membre existe
 // pour le produit). Le balayage `keel_role = 'student'` a quitté ce fichier
@@ -76,23 +59,34 @@ import { deliverChatMessage } from "../_shared/chat/delivery.ts";
  * C'est le même raisonnement que `keel-reengage-v1`, et c'est le bug latent
  * n°2 documenté dans BUILD_PLAN W1.3 (« planificateur cassé hors Europe »).
  *
- * ── CE QU'IL ENVOIE A CHANGÉ DE NATURE ───────────────────────────────────
- * Il posait une question, tous les soirs. Il envoie maintenant un message qui
- * s'ouvre sur un FAIT de la journée — ce que l'élève a coché, ce qu'il a
- * photographié — et qui ne porte la question que lorsqu'elle est due.
+ * ── CE QU'IL ENVOIE NE DEMANDE PLUS RIEN ─────────────────────────────────
+ * Il posait une question tous les soirs. Il a ensuite envoyé un message qui
+ * s'ouvrait sur un FAIT de la journée et ne portait la question que lorsqu'elle
+ * était due. Depuis le 2026-09-07 il ne la porte plus DU TOUT, et il ne
+ * fabrique plus un seul bouton.
  *
  * Le motif produit, en une ligne: le message ne donnait rien, il prenait. Un
  * formulaire quotidien se fait ignorer puis couper, et la mesure qu'il servait
- * se détruisait elle-même. Le raisonnement complet est dans `daily_recap.ts`;
- * la cadence de la question dans `decideAskCadence`.
+ * se détruisait elle-même. Le raisonnement complet est dans `daily_recap.ts`.
  *
- * TROIS DÉCISIONS, DANS CET ORDRE, et chacune est pure et testable seule:
+ * ⛔ CE JOB EST DÉSARMÉ, PAS RÉPARÉ. Il était le SEUL émetteur de `KEEL_STRIP_`
+ * et, par la chaîne du tap de la bande, la racine unique de `KEEL_FIX_`,
+ * `KEEL_SHARE_` et `KEEL_PULSE_`. Quatre familles se sont tues d'un geste. Les
+ * quatre préfixes restent listés dans `DETERMINISTIC_BUTTON_PREFIXES`, annotés
+ * `DÉSARMÉ:`: des bulles en portent encore dans l'historique des gens, et c'est
+ * cette ligne-là qui fait que leur tap rend une phrase honnête plutôt qu'une
+ * réponse de modèle à une chaîne de protocole.
+ *
+ * DEUX DÉCISIONS, DANS CET ORDRE, et chacune est pure et testable seule:
  *   1. `hasRecapGround(facts)` — y a-t-il un fait sur quoi ouvrir ?
- *   2. `decideAskCadence(...)` — la question est-elle due ?
- *   3. `decideDailyPulse(...)` — envoie-t-on, et la question part-elle avec ?
+ *   2. `decideDailyPulse(...)` — envoie-t-on ?
  *
- * CE QU'IL N'ÉCRIT PAS : la réponse. C'est le webhook qui la reçoit, parce
- * qu'elle arrive par un bouton, des minutes ou des heures plus tard.
+ * ⚠️ CE QU'IL RESTE À TRANCHER: ce job ne sert plus aucun des trois piliers du
+ * chat (bilan de fin de plan, réponses aux questions, notification de ce qui a
+ * été retenu). Il ne porte plus que le récap du jour et le récap mémoire — et
+ * ce dernier est redondant depuis que `notifyMemoryWrite` l'annonce AU MOMENT
+ * DU GESTE. S'il part à son tour, `sweepLapsedClarifications` doit être
+ * ré-hébergé dans `keel-proactive-v1`.
  *
  * `dry_run: true` décide sans envoyer : le mode qui permet de voir QUI serait
  * sollicité avant d'ouvrir la vanne.
@@ -176,21 +170,16 @@ Deno.serve(async (req) => {
     let membersScanned = 0;
     let membersSent = 0;
     let membersAlreadyStudent = 0;
-    /** Messages partis AVEC la question. `sent - asked` = les faits seuls. */
-    let asked = 0;
     /**
-     * FF-058 — messages partis AVEC la bande, et ceux qui portaient en plus la
-     * ligne de courses.
+     * ⟳ Ce pavé décrivait `strips_sent` et `strip_shopping_lines`, partis avec
+     * la bande. Il reste pour la raison qu'il énonce, qui vaut pour les
+     * compteurs survivants:
      *
      * Comptés séparément pour la même raison que `body_sources`: « aucun élève
      * n'a de plan pour aujourd'hui » et « la bande ne se construit jamais »
      * produisent le même `sent`, et sans ces deux compteurs la panne se lirait
      * comme un produit qui marche.
      */
-    let stripsSent = 0;
-    let stripShoppingLines = 0;
-    /** FF-061 — laquelle des trois étapes a ouvert, par élève examiné. */
-    const reviewOpenings: Record<string, number> = {};
     /**
      * LE PLANCHER TCA, COMPTÉ — parce qu'un plancher qui ne mord jamais et un
      * plancher débranché rendent le MÊME compte-rendu.
@@ -226,8 +215,6 @@ Deno.serve(async (req) => {
      * appris à ce job à rendre visible.
      */
     const practiceModes: Record<string, number> = {};
-    /** Pourquoi la question n'est pas partie, ou pourquoi elle est partie. */
-    const cadenceReasons: Record<string, number> = {};
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let outOfBudget = false;
@@ -318,55 +305,37 @@ Deno.serve(async (req) => {
           // cette personne a-t-elle reçus ». Tant que cet ordonnanceur n'existe
           // pas, ce job est de nouveau seul à décider de son soir.
 
-          // ── LES DEUX LECTURES QUI NOURRISSENT LA DÉCISION ───────────────
-          // Les faits d'abord: ils décident s'il y a quelque chose à DIRE. La
-          // cadence ensuite: elle décide s'il y a quelque chose à DEMANDER.
-          // Les deux sont indépendantes, et c'est ce qui garantit qu'une
-          // journée vide n'annule jamais une question due.
+          // ── LA SEULE LECTURE QUI NOURRIT ENCORE LA DÉCISION ─────────────
+          //
+          // ⟳ IL Y EN AVAIT DEUX. Les faits disaient s'il y avait quelque chose
+          // à DIRE, la cadence s'il y avait quelque chose à DEMANDER. Ce job ne
+          // demande plus rien: il ne reste que les faits.
           const facts = await loadDayFacts(admin, { userId: cursor, localDate });
-          const cadence = decideAskCadence(
-            await loadAskCadence(admin, {
-              userId: cursor,
-              localDate,
-              timezone: tz,
-              now,
-            }),
-          );
 
-          // ── FF-058 · LA BANDE DU SOIR ───────────────────────────────────
+          // ── LA VOIX ET LE PLANCHER, QUI SURVIVENT À LA BANDE ────────────
           //
-          // Construite AVANT la décision, parce qu'elle en est une entrée: une
-          // soirée sans fait et sans question due peut quand même porter la
-          // bande (§7), et c'est même le soir où elle sert le plus.
+          // ⟳ CE BLOC PORTAIT LA BANDE DU SOIR (FF-058, puis la chaîne des
+          // trois étapes de FF-061: courses, cuisson, repas). Elle est
+          // DÉSARMÉE — ce job ne pose plus de question et ne fabrique plus un
+          // seul bouton.
           //
-          // ⚠️ ELLE NE CONSOMME PAS LE BUDGET T4 (R6). Elle n'appelle jamais
-          // `recordDailyAsk`, et elle ne lit jamais le compteur: une affordance
-          // n'est pas une demande. La pratique (FF-029) et la recommandation
-          // (FF-028), elles, restent adossées au budget, dans le code qu'elles
-          // avaient déjà — c'est structurel, pas une discipline.
-          //
-          // ⚠️ ELLE COÛTE UNE SECONDE RÉSOLUTION DU PLAN DU JOUR. `loadDayFacts`
-          // a déjà appelé `loadPlannedDishContext` pour son DÉNOMINATEUR, mais
-          // il n'en rend que le compte. Faire remonter les plats jusqu'ici
-          // demanderait d'élargir `DayFacts`, dont le test appartient à un autre
-          // chantier cette nuit. Le coût est borné aux élèves de la fenêtre
-          // 20h-22h, et le noter ici vaut mieux qu'une optimisation non relue.
-          // ── LA LANGUE DU SOIR, RÉSOLUE UNE FOIS ET DESCENDUE ──────────────
-          //
-          // Elle était résolue TROIS fois dans cette boucle — une par
-          // consommateur — et le troisième consommateur, la question elle-même,
-          // n'existait pas: `renderPulseMessage` n'avait pas de locale et
-          // écrivait « How was today? » sous un fait français. Une résolution
-          // unique par élève est ce qui empêche un quatrième consommateur de
-          // repartir sur son propre défaut (R3: on résout au propriétaire du
+          // Ce qui reste ici est ce dont le RÉCAP a besoin: la langue de
+          // l'artefact, et le plancher TCA. Le plancher n'était pas à la bande,
+          // il est à la personne: `composeRecapBody` le lit aussi, et
+          // `restriction_raised` reste le chiffre qui distingue « personne
+          // n'est à risque ce soir » de « le plancher est débranché ».
           // tour, on passe le résultat).
           const artifactLocale = resolveArtifactLocale({
             studentProfile: String(row.locale ?? "").trim() || null,
             tenantDefault: null,
           });
-          // `buildEveningStrip` prend un `StripLanguage` fermé, pas un tag
-          // BCP-47: on traverse par `isFrenchLocale`, LE prédicat unique du gel.
-          const stripLanguage = isFrenchLocale(artifactLocale)
+          // Le récap mémoire prend une langue FERMÉE, pas un tag BCP-47: on
+          // traverse par `isFrenchLocale`, LE prédicat unique du gel.
+          //
+          // ⟳ Il s'appelait `stripLanguage` et servait les trois renderers de la
+          // bande. La bande est désarmée; le nom la suit, sinon il désigne dans
+          // six mois une chose qui n'existe plus.
+          const recapLanguage = isFrenchLocale(artifactLocale)
             ? "fr" as const
             : "en" as const;
           // ── LE PLANCHER TCA DURABLE — BRANCHÉ SUR SA SOURCE VIVANTE ──────
@@ -427,87 +396,6 @@ Deno.serve(async (req) => {
             }));
           }
           if (restrictionFlag) restrictionRaised++;
-          const stripContext = await loadEveningStripContext(admin, {
-            userId: cursor,
-            localDate,
-          });
-          // ══ FF-061 — LA CHAÎNE DES TROIS ÉTAPES ═════════════════════════
-          //
-          // ⟳ CE QUI A CHANGÉ LE 2026-09-02, ET POURQUOI. La bande portait les
-          // plats ET la ligne de courses dans la MÊME bulle. C'était juste tant
-          // que les deux étaient indépendantes; FF-061 les rend dépendantes:
-          // déclarer « pas encore » aux courses invalide la cuisson que la
-          // vague sert, donc les plats qui en descendent. Les afficher ensemble
-          // reviendrait à nommer des plats qu'on est en train de rendre
-          // impossibles, avec leurs boutons armés.
-          //
-          // Le message OUVRE donc à la première étape qui a lieu d'être, et la
-          // suite se calcule sur l'état ÉCRIT, dans l'accusé du tap (R1: ② et ③
-          // sont des réponses, jamais des notifications).
-          //
-          // ⛔ `masterOnly` EST LU UNE FOIS. Deux lectures de « qui répond des
-          // faits du foyer » finiraient par diverger, et c'est celle qu'on
-          // regarde le moins qui laisserait un profil réclamé répondre d'une
-          // vague de courses.
-          const masterOnly = await respondsForHousehold(admin, cursor);
-          const reviewPending: DayReviewPending = {
-            // Une vague tombe aujourd'hui ET personne ne l'a déclarée.
-            // `shoppingAnswered !== null` la ferme pour de bon.
-            shopping: Boolean(stripContext.shopping) &&
-              stripContext.shoppingAnswered === null && masterOnly &&
-              !restrictionFlag,
-            cooking: stripContext.cookOn !== null && masterOnly &&
-              !restrictionFlag,
-            meals: stripContext.dishes.length > 0 && !restrictionFlag,
-          };
-          const opening = stripContext.mealId
-            ? openingStep(reviewPending)
-            : null;
-
-          // ── L'ÉTAPE QUI OUVRE, RENDUE ─────────────────────────────────────
-          //
-          // Les trois renderers portent chacun leur propre ceinture
-          // (`acceptStripText` pour ① et ③, `acceptAccidentText` pour ②) et
-          // rendent `null` plutôt qu'un texte qui interroge. Un `null` ici fait
-          // retomber le message sur ce qu'il était: le fait du jour, et la
-          // question du pouls si elle est due.
-          let strip: { line: string; buttons: { id: string; title: string }[] } | null =
-            null;
-          if (opening === "shopping" && stripContext.mealId && stripContext.shopping) {
-            strip = buildShoppingStep({
-              mealId: stripContext.mealId,
-              buyOn: stripContext.shopping.buyOn,
-              language: stripLanguage,
-              masterOnly,
-              restrictionFlag,
-            });
-          } else if (opening === "cooking" && stripContext.mealId && stripContext.cookOn) {
-            const question = buildSessionQuestion({
-              mealId: stripContext.mealId,
-              cookOn: stripContext.cookOn,
-              language: stripLanguage,
-              restrictionFlag,
-            });
-            if (question) {
-              strip = { line: question.body, buttons: question.buttons };
-            }
-          } else if (opening === "meals" && stripContext.mealId) {
-            strip = buildEveningStrip({
-              mealId: stripContext.mealId,
-              dishes: stripContext.dishes,
-              language: stripLanguage,
-              // ⛔ `null`, TOUJOURS. La ligne de courses est devenue l'étape ①,
-              // qui a son propre renderer et son propre tour. La laisser ici
-              // ferait réapparaître une question DÉJÀ répondue — c'est le seul
-              // chemin par lequel `opening === "meals"` est atteint quand une
-              // vague tombe aujourd'hui.
-              shopping: null,
-              masterOnly,
-              restrictionFlag,
-            });
-          }
-          reviewOpenings[opening ?? "none"] =
-            (reviewOpenings[opening ?? "none"] ?? 0) + 1;
 
           // ⟳ FF-062 — LE RETOUR DE FIN DE PLAN A QUITTÉ CE JOB LE 2026-09-02.
           //
@@ -542,7 +430,13 @@ Deno.serve(async (req) => {
             // aussi, et deux lectures du même fait finiraient par diverger.
             sentToday: pulseSentToday,
             hasGround: hasRecapGround(facts),
-            askDue: cadence.ask,
+            // ⟳ DÉSARMÉ, ET ÉCRIT EN LITTÉRAL. Ce job ne demande plus rien.
+            //
+            // ⛔ NE PAS RENDRE CE CHAMP OPTIONNEL pour « simplifier ». Le pavé
+            // de `daily_pulse.ts` porte la règle: un paramètre de garde
+            // optionnel est une garde désarmée, et l'omission est invisible.
+            // `false` écrit ici se relit; un champ absent ne se relit pas.
+            askDue: false,
             // FF-058, puis FF-061 — LA TROISIÈME RAISON DE PARLER.
             //
             // ⟳ Elle ne veut plus dire « il y a des plats à offrir » mais
@@ -554,7 +448,8 @@ Deno.serve(async (req) => {
             // ÉTEINTS. Une journée dont la cascade a tout invalidé est
             // précisément une journée où ① ou ② a lieu d'être; l'ancienne
             // lecture s'y taisait.
-            hasStrip: strip !== null,
+            // ⟳ DÉSARMÉ. Même règle que `askDue`: le littéral reste.
+            hasStrip: false,
             // Le mode `attach` demande le dernier échange; ce job ne l'a pas
             // sous la main et l'attachement se décide côté conversation. Ici
             // on envoie toujours en standalone, ce qui est le cas nominal du
@@ -601,11 +496,6 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // La cadence n'est comptée QUE sur les élèves réellement servis: la
-          // compter avant les gardes ferait ressembler une cohorte entière hors
-          // fenêtre à une cohorte qu'on a décidé de ne pas questionner.
-          cadenceReasons[cadence.reason] = (cadenceReasons[cadence.reason] ?? 0) + 1;
-
           if (!dryRun) {
             // LE PLANCHER TCA (FF-001 R4) est résolu PLUS HAUT, avant la
             // bande du soir qui en dépend aussi (FF-058 R8). Le pavé qui
@@ -644,7 +534,7 @@ Deno.serve(async (req) => {
                 localDate,
                 isMinor,
                 restrictionFlag,
-                pulseAsks: decision.ask,
+                pulseAsks: false,
               },
               requestId,
             });
@@ -671,13 +561,16 @@ Deno.serve(async (req) => {
               admin,
               userId: cursor,
               localDate,
-              language: stripLanguage === "fr" ? "fr" : "en",
+              language: recapLanguage,
             });
+            // ⟳ `ask: false` ET `strip: null` ⇒ `message.buttons` est VIDE.
+            // C'est ce qui reste du message du soir: un énoncé de faits et ce
+            // qu'on a retenu, sans une seule chose à taper.
             const message = renderPulseMessage({
               recapBody: recap.body,
               memory,
-              ask: decision.ask,
-              strip,
+              ask: false,
+              strip: null,
               locale: artifactLocale,
             });
             // FF-058 §10 / R6 — LA MESURE DU SAPIN DE NOËL, dans le journal du
@@ -685,26 +578,6 @@ Deno.serve(async (req) => {
             // deux chiffres qui disent si l'ajout reste lisible; sans eux, « le
             // message est devenu illisible » n'est constatable que par un humain
             // qui regarde une bulle, c'est-à-dire jamais.
-            if (strip) {
-              stripsSent++;
-              if (opening === "shopping") stripShoppingLines++;
-              console.info(JSON.stringify({
-                tag: "keel.evening_strip.sent",
-                user_id: cursor,
-                local_date: localDate,
-                language: stripLanguage,
-                // ⟳ L'ÉTAPE QUI A OUVERT, et c'est ce qu'il faut mesurer
-                // maintenant: `dishes` seul ne disait plus lequel des trois
-                // rendus était parti.
-                review_step: opening,
-                dishes: stripContext.dishes.length,
-                carries_shopping: opening === "shopping",
-                practice_mode: recap.practiceMode,
-                pulse_asked: decision.ask,
-                message_chars: message.body.length,
-                interactive_count: message.buttons.length,
-              }));
-            }
             // DE-WHATSAPP — la livraison est une ÉCRITURE, plus un appel Graph.
             //
             // Ce qui disparaît avec Meta, et ce que ça supprime de complexité:
@@ -741,7 +614,10 @@ Deno.serve(async (req) => {
               // s'il portait la voix du coach ou le texte de secours est un
               // message qu'on ne peut pas juger.
               metadata: {
-                [PULSE_ASKED_METADATA_KEY]: decision.ask,
+                // ⟳ TOUJOURS `false`, ET LA CLÉ RESTE. C'est le discriminant
+                // qui distingue « ce job s'est tu » de « ce job ne tourne
+                // plus »: sans elle, les deux rendraient le même compte.
+                [PULSE_ASKED_METADATA_KEY]: false,
                 body_source: recap.source,
                 body_fallback_reason: recap.reason || null,
                 // ── FF-029 — CE QUE CE MESSAGE PORTAIT COMME PRATIQUE ─────
@@ -783,7 +659,6 @@ Deno.serve(async (req) => {
           }
           sent++;
           if (phase === "members") membersSent++;
-          if (decision.ask) asked++;
         } catch (error) {
           // Une erreur PostgREST n'est PAS une `Error`: sans ces champs, le
           // journal ne dit que « [object Object] ». C'est exactement ce qui a
@@ -833,19 +708,11 @@ Deno.serve(async (req) => {
       // `sent` compte les MESSAGES, `asked` les questions. Les confondre était
       // possible tant que le message ÉTAIT la question; ça ne l'est plus, et un
       // soir où « 40 messages sont partis » ne dit rien de ce qui a été mesuré.
-      asked,
-      // FF-058 — combien de bandes sont parties, et combien portaient la ligne
-      // de courses. `strips_sent: 0` sur une cohorte qui a des plans est une
-      // panne; `sent: 40` ne l'aurait jamais dit.
-      strips_sent: stripsSent,
-      strip_shopping_lines: stripShoppingLines,
-      // ⟳ FF-061 — LAQUELLE DES TROIS ÉTAPES A OUVERT. `strips_sent` seul ne
-      // distingue plus les trois rendus, et c'est précisément le chiffre qui
-      // dira si la chaîne est câblée: `cooking: 0` sur une cohorte qui a des
-      // sessions de cuisine veut dire que l'étape ② n'est pas atteinte — le
-      // défaut qu'elle vient de fermer (elle n'avait AUCUN émetteur avant
-      // aujourd'hui, seulement un lecteur).
-      review_openings: reviewOpenings,
+      // ⟳ `asked`, `strips_sent`, `strip_shopping_lines` et `review_openings`
+      // ONT QUITTÉ CE COMPTE-RENDU AVEC LEUR CANAL. Les garder à zéro aurait
+      // dit « aucune bande n'est partie » à propos d'un canal que ce job ne
+      // regarde plus — la règle est déjà écrite douze lignes plus bas, à propos
+      // de `feedback_opened`, et elle vaut ici mot pour mot.
       // Le plancher TCA. `restriction_raised: 0` sur une cohorte entière est
       // lisible (personne n'est à risque ce soir); `restriction_unreadable: 40`
       // dit que la bande a disparu pour une panne, pas pour une décision.
@@ -867,9 +734,6 @@ Deno.serve(async (req) => {
       // FF-001 — la répartition rappel / question / rien, qui est l'une des
       // quatre mesures que la spécification demande (§10).
       practice_modes: practiceModes,
-      // Pourquoi la question est partie, ou pas. `{"too_soon": 30}` est un
-      // produit qui se tient; `{"backing_off": 30}` est une cohorte qui décroche.
-      ask_cadence_reasons: cadenceReasons,
       skipped_by_reason: bySkip,
       exhausted,
       // A8.0 — le curseur porte sa phase: l'appelant repasse les deux.

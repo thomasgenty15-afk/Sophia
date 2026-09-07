@@ -181,14 +181,28 @@ Deno.test("un jour de session illisible n'invente pas de date", () => {
 });
 
 // ===========================================================================
-// 4. ⛔ LE CÂBLAGE — un lot débranché rend 0, et 0 se lit « rien à constater »
+// ===========================================================================
+// 4. ⛔ LE MODULE EST DÉBRANCHÉ, ET C'EST VOULU — Lot A.2, 2026-09-07
 // ===========================================================================
 
-Deno.test("LE CÂBLAGE — la coche appelle ce module, et la décoche JAMAIS", async () => {
-  // ⚠️ CE FICHIER EXISTE À CAUSE DU DÉFAUT QU'IL VIENT DE FERMER:
-  // `writeSessionState` n'avait qu'UN appelant, et rien ne rougissait. Un
-  // second lot débranché serait indiscernable — et sa table à zéro se relirait
-  // « la chaîne ne marche pas », exactement comme la première fois.
+Deno.test("LE DÉBRANCHEMENT — plus aucun appelant, et ça reste vrai", async () => {
+  // ⚠️ CE TEST A CHANGÉ DE SENS, IL N'A PAS ÉTÉ AFFAIBLI.
+  //
+  // Il affirmait « la coche appelle ce module ». Son unique appelant était
+  // `handleStripTap`, la lane du tap de la bande du soir, retirée par le lot
+  // A.2 du chantier de réduction du chat: le message du soir ne fabrique plus
+  // un seul bouton, donc plus personne ne tape, donc plus personne ne constate
+  // une session par les coches.
+  //
+  // Le module lui-même est encore là — le désarmement retire l'ÉMETTEUR, la
+  // suppression vient après, une fois prouvé sur huit jours qu'aucune ligne ne
+  // s'écrit plus. Ses tests 1 à 3 gardent donc encore la fonction pure.
+  //
+  // ⛔ CE QUE CETTE ASSERTION-CI GARDE, ET POURQUOI ELLE VAUT L'ANCIENNE: un
+  // rebranchement silencieux. Quelqu'un qui recâblerait `sessionsConfirmedByTicks`
+  // sans rouvrir la décision produit ferait ROUGIR ce test. C'est la même
+  // discipline dans l'autre sens, et c'est la seule qui reste juste tant que le
+  // module vit sans appelant.
   const src = (await Deno.readTextFile(
     new URL("../chat/deterministic_buttons.ts", import.meta.url),
   ))
@@ -198,42 +212,18 @@ Deno.test("LE CÂBLAGE — la coche appelle ce module, et la décoche JAMAIS", a
     .join("\n");
 
   assert(
-    src.includes("sessionsConfirmedByTicks("),
-    "MODULE DÉBRANCHÉ: la coche ne constate plus la session, et la table " +
-      "redevient muette sans qu'un seul test ne tombe.",
+    !src.includes("sessionsConfirmedByTicks("),
+    "LE MODULE A ÉTÉ REBRANCHÉ. La bande du soir est désarmée: si une coche " +
+      "constate de nouveau une session, c'est qu'un émetteur est revenu — " +
+      "rouvre la décision produit avant de rétablir ce câblage.",
   );
   assert(
-    src.includes("writeSessionState("),
-    "L'ÉCRITURE A DISPARU: le module calcule et personne n'écrit.",
+    !src.includes("writeSessionState("),
+    "`writeSessionState` est de retour dans le dispatch: la lane de la bande " +
+      "écrit de nouveau, alors qu'elle ne doit plus rien émettre.",
   );
-
-  // ⛔ LA GARDE LA PLUS IMPORTANTE: les décoches n'entrent pas. Une décoche
-  // n'est preuve de rien, et l'inférence inverse retirerait des repas.
-  const at = src.indexOf("sessionsConfirmedByTicks(");
-  const before = src.slice(Math.max(0, at - 1600), at);
   assert(
-    before.includes('reply.kind !== "untick"'),
-    "LES DÉCOCHES ENTRENT DANS LA DÉRIVATION: « je n'ai pas mangé le plat » " +
-      "deviendrait une preuve sur la session, alors que la personne a pu " +
-      "commander sur une préparation parfaitement faite.",
+    !src.includes('tag: "keel.evening_strip.sessions_confirmed"'),
+    "le compteur de la bande est revenu dans le dispatch",
   );
-  // Et `happened` est écrit à `true` LITTÉRAL, jamais dérivé d'une variable
-  // qu'un refactor pourrait inverser.
-  const after = src.slice(at, at + 1600);
-  assert(
-    after.includes("happened: true"),
-    "`happened` n'est plus le littéral `true`: le sens de l'inférence peut " +
-      "désormais s'inverser sans qu'on le voie.",
-  );
-
-  // ⚠️ LE DÉNOMINATEUR. Sans lui, « 0 session constatée » ne se distingue pas
-  // de « 0 soir observé » — la forme exacte sous laquelle ce lot est resté
-  // invisible.
-  assert(
-    src.includes('tag: "keel.evening_strip.sessions_confirmed"'),
-    "LE COMPTEUR A DISPARU: la table à zéro redevient illisible.",
-  );
-  for (const field of ["ticked:", "confirmed:", "skipped_future:", "skipped_known:"]) {
-    assert(src.includes(field), `le champ \`${field}\` a disparu du compteur`);
-  }
 });
