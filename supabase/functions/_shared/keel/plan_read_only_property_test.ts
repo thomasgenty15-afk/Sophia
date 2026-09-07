@@ -292,3 +292,49 @@ Deno.test("P6 — la règle du PASSÉ n'existe QUE sur une fenêtre close", () =
     assertEquals(closed.length, open.length + 1);
   }
 });
+
+Deno.test("P7 — `plan_question` est FERMÉE quand il n'y a pas de plan de coach", async () => {
+  // ⚠️ POURQUOI UNE LECTURE DE SOURCE, ET PAS UN APPEL.
+  //
+  // La garde vit dans `sophia-brain/router/run.ts`, que le gate ne lance pas
+  // (`check_tests` se limite à `_shared/keel/`). Un test posé à côté d'elle
+  // serait compté et jamais exécuté. On lit donc le fichier — l'idiome de
+  // `disarmed_families_wiring_test.ts` et des quatre autres tests de câblage.
+  //
+  // Ce qu'elle garde: `plan_question` résout un embranchement DANS un plan
+  // publié par un coach (`keel_plan_context` ⇐ `plan_versions` +
+  // `plan_commitments`). Un foyer B2C n'a aucune de ces lignes. Le prompt le
+  // dit déjà en toutes lettres — et une consigne de prompt n'est pas une garde:
+  // la lane capture une part importante des tours, et un signal émis quand même
+  // faisait répondre SANS le bloc du plan composé, qui, lui, est là.
+  const src = (await Deno.readTextFile(
+    new URL("../../sophia-brain/router/run.ts", import.meta.url),
+  ))
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((l) => l.replace(/(^|[^:])\/\/.*$/, "$1"))
+    .join("\n");
+
+  assert(
+    src.includes('reason_code: "plan_question_no_coach_plan_b2c"'),
+    "LA GARDE A DISPARU: un tour B2C peut de nouveau entrer dans une lane dont " +
+      "chaque lecture rend vide, et répondre sans le plan du foyer.",
+  );
+
+  // ⛔ ET ELLE DOIT LIRE LA PRÉSENCE DU BLOC, pas autre chose. Une garde qui
+  // testerait le rôle, la doctrine ou l'absence de foyer se tromperait de
+  // sujet: ce qui manque est le CONTEXTE DE PLAN COACH, et lui seul.
+  const at = src.indexOf('reason_code: "plan_question_no_coach_plan_b2c"');
+  assert(
+    /keelTurn\.plan_block === null/.test(src.slice(Math.max(0, at - 1200), at)),
+    "la garde ne se décide plus sur `keelTurn.plan_block === null`",
+  );
+
+  // ⛔ LA SKILL N'EST PAS SUPPRIMÉE. Elle sert la lane 1:1 du coach, gardée
+  // exprès (MODEL.md). Fermer la route n'est pas retirer le module.
+  assert(
+    src.includes("skills/plan_question/"),
+    "le module `plan_question` a été retiré de `run.ts`: la lane 1:1 du coach " +
+      "est gardée EXPRÈS, on ferme la route, on ne supprime pas la skill.",
+  );
+});

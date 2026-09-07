@@ -5363,6 +5363,47 @@ export async function processMessage(
   // Il est DÉTERMINISTE: il ne lit que le signal du tour, jamais une décision
   // du modèle. Ce qui FERME une lane ne transite pas plus par le LLM que ce
   // qui l'ouvre.
+  // ══════════════════════════════════════════════════════════════════════════
+  // LA LANE `plan_question` N'EXISTE PAS SANS PLAN DE COACH — 2026-09-08
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Elle résout un embranchement DANS un plan publié par un coach: une
+  // substitution autorisée ou non, une `swap_policy`, une escalade. Tout cela
+  // se lit dans `keel_plan_context`, qui vient de `plan_versions` et
+  // `plan_commitments` — la lane 1:1, gardée exprès et qui N'EST PAS le modèle
+  // du produit. Un foyer B2C n'a aucune de ces lignes: le contexte est vide, et
+  // il n'y a littéralement rien à résoudre.
+  //
+  // Le prompt le dit déjà (règle 6-bis: « UNIQUEMENT si le payload porte
+  // keel_plan_context, sinon la lane n'existe pas »). ⚠️ MAIS LE DIRE NE SUFFIT
+  // PAS: cette lane capture une part importante des tours, et une consigne de
+  // prompt n'est pas une garde. Un signal émis quand même faisait entrer un
+  // tour dans une lane dont chaque lecture rend vide — et la réponse partait
+  // sans le bloc de plan du foyer, qui, lui, est là.
+  //
+  // ⛔ ON NE SUPPRIME PAS LA SKILL. `skills/plan_question/` sert la lane 1:1 du
+  // coach, gardée exprès (MODEL.md), et `run.ts` en importe cinq symboles. On
+  // ferme la ROUTE quand sa matière est absente, exactement comme les deux
+  // gardes voisines (`plan_question_no_target_general_path`,
+  // `plan_question_no_named_swap_general_path`) — même idiome, même endroit,
+  // même retombée sur le chemin général.
+  if (
+    routeDecision.response_owner === "plan_question" &&
+    keelTurn.plan_block === null
+  ) {
+    console.warn("[keel] plan_question sans plan de coach → chemin général", {
+      request_id: requestId,
+      detail:
+        "aucun `keel_plan_context`: ni commitment ni swap_policy à lire. Le " +
+        "chemin général porte, lui, le bloc du plan composé (foyer ou solo).",
+    });
+    routeDecision = {
+      ...routeDecision,
+      response_owner: "normal_reply",
+      reason_code: "plan_question_no_coach_plan_b2c",
+    };
+  }
+
   if (routeDecision.response_owner === "plan_question") {
     const pqContext = turnFrame.skill_signals.plan_question?.context;
     // LA SIGNATURE EXACTE DE « CE N'EST PAS UNE SUBSTITUTION »: personne n'a
