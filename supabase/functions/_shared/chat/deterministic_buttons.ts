@@ -184,18 +184,33 @@ import type { InboundMessage } from "./inbound_message.ts";
  * liste sert à autre chose: reconnaître qu'une charge VOULAIT être un tap, même
  * quand aucun lecteur n'a su la lire. Voir la garde en fin de fonction.
  *
- * Une famille ajoutée sans être listée ici retombe au dispatcher sur charge
- * cassée — c'est-à-dire qu'elle redevient interprétable par un modèle.
+ * ── LES DEUX SENS DE LA RÈGLE, ET LE PIÈGE QUI EST ENTRE LES DEUX ──────────
+ *
+ * **Lue sans être listée** ⇒ la charge cassée retombe au dispatcher, et un
+ * modèle répond à une chaîne de protocole. C'est un défaut, toujours.
+ *
+ * **Listée sans lecteur** ⇒ la charge tombe dans la garde terminale et rend
+ * « Celui-là n'est plus d'actualité ». C'est un défaut quand la famille est
+ * VIVANTE (on refuse un tap qui devrait marcher), et c'est exactement ce qu'on
+ * VEUT dans deux cas, tous deux annotés ligne par ligne ci-dessous:
+ *
+ *   · `FRONT:` — le bouton n'est jamais envoyé au serveur, il est intercepté
+ *     par l'écran. Seule une charge FORGÉE arrive ici.
+ *   · `DÉSARMÉ:` — plus personne ne fabrique ce bouton, mais des bulles en
+ *     portent encore dans l'historique des gens. La ligne est ce qui fait que
+ *     leur tap rend une phrase honnête au lieu d'une réponse de modèle.
+ *
+ * ⚠️ Une famille VIVANTE se retire donc AVEC son lecteur, dans le même commit,
+ * et sa ligne reste ici, réannotée `DÉSARMÉ:`. `disarmed_families_wiring_test`
+ * refuse une ligne sans lecteur et sans annotation.
  */
 export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   // La clarification d'une note ambiguë — ajoutée AVEC son lecteur, juste
   // au-dessous du dispatch de la divergence.
   MEMORY_CLARIFICATION_BUTTON_PREFIX,
-  // ⛔ LA NAVIGATION EST LISTÉE **SANS LECTEUR**, ET C'EST VOULU. « Voir »
-  // n'est jamais envoyé au serveur: le front l'intercepte et ouvre un écran.
-  // Mais une charge `KEEL_VIEW_*` FORGÉE, elle, arriverait ici — et sans cette
-  // ligne elle retomberait au dispatcher, où un modèle répondrait à une chaîne
-  // de protocole. Listée, elle tombe dans la garde des charges inutilisables.
+  // FRONT: « Voir » n'est jamais envoyé au serveur — l'écran l'intercepte et
+  // ouvre une page. Seule une charge `KEEL_VIEW_*` FORGÉE arrive ici, et sans
+  // cette ligne elle retomberait au dispatcher.
   NAVIGATION_BUTTON_PREFIX,
   RECOMMENDATION_BUTTON_PREFIX,
   STRIP_BUTTON_PREFIX,
@@ -203,15 +218,11 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   DIVERGENCE_BUTTON_PREFIX,
   PULSE_BUTTON_PREFIX,
   FEEDBACK_BUTTON_PREFIX,
-  // FF-062 C1. Ajouté AVEC son lecteur: une famille listée ici sans lecteur
-  // ferait refuser un tap que personne ne sait traiter, et une famille lue sans
-  // être listée retomberait au dispatcher sur charge cassée — c'est-à-dire
-  // qu'elle redeviendrait interprétable par un modèle.
+  // FF-062 C1. Ajouté AVEC son lecteur.
   SLOT_MEAL_BUTTON_PREFIX,
-  // A8.3. Meme regle: ajoute AVEC son lecteur (`readShareReply`, route
-  // juste apres la bande). Sans cette ligne, une charge `KEEL_SHARE_` que le
-  // lecteur refuse — une charge tronquee, un `shifted` sans jour — retomberait
-  // au dispatcher et un modele repondrait a un bouton.
+  // A8.3. Ajouté AVEC son lecteur (`readShareReply`, routé juste après la
+  // bande): une charge `KEEL_SHARE_` que le lecteur refuse — tronquée, ou un
+  // `shifted` sans jour — retomberait sinon au dispatcher.
   SHARE_BUTTON_PREFIX,
 ]);
 
@@ -1762,168 +1773,176 @@ export async function handleDeterministicButton(
 
   // ── LE TAP DU SOIR ────────────────────────────────────────────────────────
   const pulse = readPulseReply(message.button_payload);
-  if (pulse.kind === "none") {
-    // ── UNE CHARGE DÉTERMINISTE ILLISIBLE NE DESCEND PAS AU DISPATCHER ─────
-    //
-    // MESURÉ le 2026-08-12 (revue adversariale FF-056, H3/H4). Une charge
-    // `KEEL_WDIV_CAT|<uuid>|` tronquée, et une autre portant un jeton hors
-    // liste, tombaient toutes deux ici en `PASS`. `parseInboundMessage` pose
-    // alors `text = button_payload` (le libellé sert de trace lisible), et le
-    // dispatcher analysait donc la CHAÎNE DU BOUTON comme une phrase d'élève.
-    // Les deux réponses obtenues en run réel:
-    //
-    //   « If it's not going down, the usual reasons are: the portion is too
-    //     large, the food is too dry/dense, you're eating too fast… »
-    //   « Your question is with them now. »
-    //
-    // La première SPÉCULE sur des causes (ce que FF-056 existe pour ne jamais
-    // faire), la seconde promet un canal 1:1 coach→élève QUI N'EXISTE PAS
-    // (`docs/keel/MODEL.md`). Une charge qu'on n'a pas su lire n'est pas une
-    // phrase: c'est un identifiant cassé, et lui répondre par un modèle est la
-    // façon la plus chère possible de se tromper.
-    //
-    // Le précédent est DANS CE FICHIER: `weekly_flow_unusable_token`, quinze
-    // lignes plus haut, prend exactement cette décision pour un jeton de
-    // formulaire illisible. On l'étend aux boutons.
-    //
-    // ⚠️ APRÈS LES CINQ LECTEURS, JAMAIS AVANT. Une charge VALIDE n'atteint
-    // jamais ce point — c'est ce qui empêche cette garde de bloquer tout en
-    // ressemblant à une garde qui marche.
-    const payload = String(message.button_payload ?? "").trim();
-    const known = DETERMINISTIC_BUTTON_PREFIXES.some((p) =>
-      payload.startsWith(p)
+  if (pulse.kind !== "none") {
+    const localDate = localDateFor(
+      new Date(message.received_at),
+      await timezoneFor(admin, message.user_id),
     );
-    if (!known) return PASS;
-    console.warn(JSON.stringify({
-      tag: "keel.deterministic_button.unusable_payload",
-      user_id: message.user_id,
-      // Tronqué, et il ne désigne jamais rien: on le journalise pour pouvoir
-      // reconnaître une campagne de charges forgées, pas pour l'interpréter.
-      button_payload: payload.slice(0, 64),
-    }));
-    const voice = await studentVoiceContext(admin, message.user_id);
-    await ack(admin, {
-      userId: message.user_id,
-      requestId: args.requestId,
-      purpose: "keel_unusable_button_ack",
-      body: isFrenchLocale(voice.contentLocale)
-        ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
-        : "That one's no longer open — nothing has been saved.",
-    });
-    return handled("keel_unusable_button_payload");
-  }
 
-  const localDate = localDateFor(
-    new Date(message.received_at),
-    await timezoneFor(admin, message.user_id),
-  );
+    // L'accusé et la question d'axe partent dans la langue de l'élève. Elles
+    // étaient anglaises en dur pendant que la charge du bouton, elle, venait
+    // d'un message du soir déjà français: taper « Dur » renvoyait « Got it,
+    // thanks. » puis « What was hard? » avec trois boutons anglais.
+    const pulseVoice = await studentVoiceContext(admin, message.user_id);
 
-  // L'accusé et la question d'axe partent dans la langue de l'élève. Elles
-  // étaient anglaises en dur pendant que la charge du bouton, elle, venait
-  // d'un message du soir déjà français: taper « Dur » renvoyait « Got it,
-  // thanks. » puis « What was hard? » avec trois boutons anglais.
-  const pulseVoice = await studentVoiceContext(admin, message.user_id);
+    // ══════════════════════════════════════════════════════════════════════════
+    // 🔴 LE POULS EST LE SEUL CHEMIN QUI ÉCRIVAIT FAUX. Garde posée le 2026-09-01.
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // `writePulseLevel` fait un `upsert` sur `(user_id, local_date)` avec la date
+    // DU TAP, sans jamais regarder de quel message il vient. Taper le bouton d'un
+    // bilan de mardi un jeudi écrivait donc le pouls DE JEUDI — une journée que
+    // personne n'a évaluée, dans la table que la synthèse coach relit.
+    //
+    // Les cinq autres familles n'ont pas ce défaut: leurs charges portent un
+    // identifiant (plan, épisode, semaine) et leurs gardes de péremption mordent
+    // dessus. Celle du pouls porte des constantes globales — `KEEL_PULSE_HARD` est
+    // le même jeton hier et aujourd'hui — donc rien dans la charge ne date le tap.
+    //
+    // ⚠️ LE DÉSARMEMENT (R13) FERME DÉJÀ CE CAS, MAIS SEULEMENT AVEC `reply_to`.
+    // Un client ancien n'en envoie pas, et la lecture est fail-open: il reste donc
+    // un chemin. Cette garde-ci n'en dépend pas — elle demande à la base si un
+    // pouls est parti AUJOURD'HUI. Sinon, le tap vient forcément d'un autre jour.
+    //
+    // Fail-closed: `wasPulseSentToday` qui jette laisse passer, parce qu'une
+    // lecture en panne ne doit pas faire perdre une réponse donnée à l'heure —
+    // mais le cas nominal, lui, est fermé.
+    let pulseSentToday = true;
+    try {
+      pulseSentToday = await wasPulseSentToday(admin, {
+        userId: message.user_id,
+        localDate,
+        timezone: await timezoneFor(admin, message.user_id),
+        now: new Date(message.received_at),
+      });
+    } catch (error) {
+      console.warn(JSON.stringify({
+        tag: "keel.daily_pulse.freshness_unreadable",
+        user_id: message.user_id,
+        local_date: localDate,
+        error: error instanceof Error ? error.message : String(error),
+        effect: "fail-open: le tap est honore",
+      }));
+    }
+    if (!pulseSentToday) {
+      console.info(JSON.stringify({
+        tag: "keel.daily_pulse.stale_tap",
+        user_id: message.user_id,
+        local_date: localDate,
+        effect: "aucune ecriture: le pouls du jour n'a pas ete demande",
+      }));
+      await ack(admin, {
+        userId: message.user_id,
+        requestId: args.requestId,
+        purpose: "keel_unusable_button_ack",
+        body: isFrenchLocale(pulseVoice.contentLocale)
+          ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+          : "That one's no longer open — nothing has been saved.",
+      });
+      return handled("keel_daily_pulse_stale_tap");
+    }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // 🔴 LE POULS EST LE SEUL CHEMIN QUI ÉCRIVAIT FAUX. Garde posée le 2026-09-01.
-  // ══════════════════════════════════════════════════════════════════════════
-  //
-  // `writePulseLevel` fait un `upsert` sur `(user_id, local_date)` avec la date
-  // DU TAP, sans jamais regarder de quel message il vient. Taper le bouton d'un
-  // bilan de mardi un jeudi écrivait donc le pouls DE JEUDI — une journée que
-  // personne n'a évaluée, dans la table que la synthèse coach relit.
-  //
-  // Les cinq autres familles n'ont pas ce défaut: leurs charges portent un
-  // identifiant (plan, épisode, semaine) et leurs gardes de péremption mordent
-  // dessus. Celle du pouls porte des constantes globales — `KEEL_PULSE_HARD` est
-  // le même jeton hier et aujourd'hui — donc rien dans la charge ne date le tap.
-  //
-  // ⚠️ LE DÉSARMEMENT (R13) FERME DÉJÀ CE CAS, MAIS SEULEMENT AVEC `reply_to`.
-  // Un client ancien n'en envoie pas, et la lecture est fail-open: il reste donc
-  // un chemin. Cette garde-ci n'en dépend pas — elle demande à la base si un
-  // pouls est parti AUJOURD'HUI. Sinon, le tap vient forcément d'un autre jour.
-  //
-  // Fail-closed: `wasPulseSentToday` qui jette laisse passer, parce qu'une
-  // lecture en panne ne doit pas faire perdre une réponse donnée à l'heure —
-  // mais le cas nominal, lui, est fermé.
-  let pulseSentToday = true;
-  try {
-    pulseSentToday = await wasPulseSentToday(admin, {
+    if (pulse.kind === "level") {
+      const wrote = await writePulseLevel(admin, {
+        userId: message.user_id,
+        localDate,
+        level: pulse.level,
+        source: "chat",
+      });
+      await ack(admin, {
+        userId: message.user_id,
+        requestId: args.requestId,
+        purpose: "keel_daily_pulse_ack",
+        body: renderPulseAck(pulse.level, null, pulseVoice.contentLocale),
+      });
+      // La question d'axe n'est posée QUE si quelque chose a coincé — et c'est un
+      // second message, armé de ses boutons. Deux messages plutôt qu'un accusé
+      // qui pose une question : la bulle affiche les boutons sous LA question,
+      // pas sous un « Got it ».
+      if (wrote.needsAxis) {
+        const axisQuestion = renderPulseAxisQuestion(pulseVoice.contentLocale);
+        await ack(admin, {
+          userId: message.user_id,
+          requestId: args.requestId,
+          purpose: "keel_daily_pulse_axis",
+          body: axisQuestion.body,
+          buttons: axisQuestion.buttons.map((b) => ({
+            payload: b.id,
+            label: b.title,
+          })),
+        });
+      }
+      return handled("daily_pulse_level");
+    }
+
+    await writePulseAxis(admin, {
       userId: message.user_id,
       localDate,
-      timezone: await timezoneFor(admin, message.user_id),
-      now: new Date(message.received_at),
-    });
-  } catch (error) {
-    console.warn(JSON.stringify({
-      tag: "keel.daily_pulse.freshness_unreadable",
-      user_id: message.user_id,
-      local_date: localDate,
-      error: error instanceof Error ? error.message : String(error),
-      effect: "fail-open: le tap est honore",
-    }));
-  }
-  if (!pulseSentToday) {
-    console.info(JSON.stringify({
-      tag: "keel.daily_pulse.stale_tap",
-      user_id: message.user_id,
-      local_date: localDate,
-      effect: "aucune ecriture: le pouls du jour n'a pas ete demande",
-    }));
-    await ack(admin, {
-      userId: message.user_id,
-      requestId: args.requestId,
-      purpose: "keel_unusable_button_ack",
-      body: isFrenchLocale(pulseVoice.contentLocale)
-        ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
-        : "That one's no longer open — nothing has been saved.",
-    });
-    return handled("keel_daily_pulse_stale_tap");
-  }
-
-  if (pulse.kind === "level") {
-    const wrote = await writePulseLevel(admin, {
-      userId: message.user_id,
-      localDate,
-      level: pulse.level,
-      source: "chat",
+      axis: pulse.axis,
     });
     await ack(admin, {
       userId: message.user_id,
       requestId: args.requestId,
       purpose: "keel_daily_pulse_ack",
-      body: renderPulseAck(pulse.level, null, pulseVoice.contentLocale),
+      body: renderPulseAck("hard", pulse.axis, pulseVoice.contentLocale),
     });
-    // La question d'axe n'est posée QUE si quelque chose a coincé — et c'est un
-    // second message, armé de ses boutons. Deux messages plutôt qu'un accusé
-    // qui pose une question : la bulle affiche les boutons sous LA question,
-    // pas sous un « Got it ».
-    if (wrote.needsAxis) {
-      const axisQuestion = renderPulseAxisQuestion(pulseVoice.contentLocale);
-      await ack(admin, {
-        userId: message.user_id,
-        requestId: args.requestId,
-        purpose: "keel_daily_pulse_axis",
-        body: axisQuestion.body,
-        buttons: axisQuestion.buttons.map((b) => ({
-          payload: b.id,
-          label: b.title,
-        })),
-      });
-    }
-    return handled("daily_pulse_level");
+    return handled("daily_pulse_axis");
   }
 
-  await writePulseAxis(admin, {
-    userId: message.user_id,
-    localDate,
-    axis: pulse.axis,
-  });
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── UNE CHARGE DÉTERMINISTE ILLISIBLE NE DESCEND PAS AU DISPATCHER ────────
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // MESURÉ le 2026-08-12 (revue adversariale FF-056, H3/H4). Une charge
+  // `KEEL_WDIV_CAT|<uuid>|` tronquée, et une autre portant un jeton hors liste,
+  // tombaient toutes deux ici en `PASS`. `parseInboundMessage` pose alors
+  // `text = button_payload` (le libellé sert de trace lisible), et le dispatcher
+  // analysait donc LA CHAÎNE DU BOUTON comme une phrase d'élève. Les deux
+  // réponses obtenues en run réel:
+  //
+  //   « If it's not going down, the usual reasons are: the portion is too
+  //     large, the food is too dry/dense, you're eating too fast… »
+  //   « Your question is with them now. »
+  //
+  // La première SPÉCULE sur des causes (ce que FF-056 existe pour ne jamais
+  // faire), la seconde promet un canal 1:1 coach→élève QUI N'EXISTE PAS
+  // (`docs/keel/MODEL.md`). Une charge qu'on n'a pas su lire n'est pas une
+  // phrase: c'est un identifiant cassé, et lui répondre par un modèle est la
+  // façon la plus chère possible de se tromper.
+  //
+  // ⚠️ ELLE EST TERMINALE, ET C'EST LA SEULE POSITION QUI MARCHE.
+  //
+  // Elle a vécu de sa pose jusqu'au 2026-09-07 IMBRIQUÉE dans le lecteur du pouls
+  // (`if (pulse.kind === "none") { … }`), c'est-à-dire attachée par hasard à la
+  // famille qui se lisait en dernier. Retirer ce lecteur — ce que le
+  // désarmement fait — l'aurait emportée avec lui, en silence, et TOUTES les
+  // charges désarmées seraient reparties en `PASS` vers le dispatcher: très
+  // exactement le défaut que ces lignes existent pour fermer.
+  //
+  // Elle est donc désormais le dernier bloc de la fonction, après le dernier
+  // lecteur — jamais avant. Une charge VALIDE n'atteint jamais ce point, et
+  // c'est ce qui empêche cette garde de bloquer tout en ressemblant à une garde
+  // qui marche. `disarmed_families_wiring_test.ts` tient les deux bouts.
+  const payload = String(message.button_payload ?? "").trim();
+  const known = DETERMINISTIC_BUTTON_PREFIXES.some((p) =>
+    payload.startsWith(p)
+  );
+  if (!known) return PASS;
+  console.warn(JSON.stringify({
+    tag: "keel.deterministic_button.unusable_payload",
+    user_id: message.user_id,
+    // Tronqué, et il ne désigne jamais rien: on le journalise pour pouvoir
+    // reconnaître une campagne de charges forgées, pas pour l'interpréter.
+    button_payload: payload.slice(0, 64),
+  }));
+  const unusableVoice = await studentVoiceContext(admin, message.user_id);
   await ack(admin, {
     userId: message.user_id,
     requestId: args.requestId,
-    purpose: "keel_daily_pulse_ack",
-    body: renderPulseAck("hard", pulse.axis, pulseVoice.contentLocale),
+    purpose: "keel_unusable_button_ack",
+    body: isFrenchLocale(unusableVoice.contentLocale)
+      ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+      : "That one's no longer open — nothing has been saved.",
   });
-  return handled("daily_pulse_axis");
+  return handled("keel_unusable_button_payload");
 }
