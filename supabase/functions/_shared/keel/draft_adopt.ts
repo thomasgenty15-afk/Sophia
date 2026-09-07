@@ -78,7 +78,8 @@ import {
   type DraftLane,
   loadDraftForAdoption,
   markAdopted,
-  sourceVersionOf,
+  contractVersionOf,
+  DRAFT_CONTRACT_VERSION,
 } from "./draft_store.ts";
 import {
   type SafetyFingerprintInput,
@@ -575,11 +576,23 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
     }, requestId, null, 0);
   }
 
-  // (b) LE CODE. Le payload stocké a été composé par une version d'avant; la
-  //     garde d'aujourd'hui ou la RPC peuvent ne plus l'accepter, et personne
-  //     ne le saurait avant l'écriture.
-  const liveSource = sourceVersionOf(args.promptVersion);
-  const storedSource = asStringOrNull(draft.source_version);
+  // (b) LE CONTRAT DU PAYLOAD — et SEULEMENT lui.
+  //
+  // ⛔ PAS LA VERSION DE PROMPT. Un plan composé est un objet FINI: changer le
+  // prompt change ce qu'on composerait demain, pas la validité de ce qui est
+  // déjà écrit. Mesuré le 2026-09-07, `HOUSEHOLD_PROMPT_VERSION` est passée de
+  // v31 à v32 en une soirée — avec une péremption calée sur la provenance,
+  // tout aperçu composé avant le déploiement devenait `draft_stale`, et la
+  // personne se voyait refuser son plan pour une raison qui ne parle pas de
+  // son plan. Pendant une itération de prompt, ce serait le cas NOMINAL.
+  //
+  // Ce qui périme un brouillon: la FORME du payload rangé et ce que ses
+  // lecteurs savent en faire (`DRAFT_CONTRACT_VERSION`), et le foyer qui a
+  // changé (l'empreinte de sécurité, testée juste au-dessus). La version de
+  // prompt reste écrite sur la ligne — c'est de la provenance, elle sert à
+  // lire un incident, pas à décider.
+  const liveSource = DRAFT_CONTRACT_VERSION;
+  const storedSource = contractVersionOf(asStringOrNull(draft.source_version) ?? "");
   if (storedSource !== liveSource) {
     logLine({
       meal_id: null,
@@ -592,7 +605,7 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
     });
     return refusalOutcome("draft_stale", {
       reason: "source",
-      says: "ce brouillon a été composé par une version antérieure du code",
+      says: "ce brouillon a été rangé sous une forme que ce code ne relit plus",
       stored: storedSource,
       live: liveSource,
     }, requestId, null, 0);

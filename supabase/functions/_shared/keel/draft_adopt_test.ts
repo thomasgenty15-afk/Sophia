@@ -22,7 +22,10 @@ import {
   type AdoptOutcome,
   type AdoptRefusalBody,
 } from "./draft_adopt.ts";
-import { sourceVersionOf } from "./draft_store.ts";
+import {
+  DRAFT_CONTRACT_VERSION,
+  sourceVersionOf,
+} from "./draft_store.ts";
 import {
   FINAL_GATE_POLICY_LOT_1,
   finalPlanGate,
@@ -464,16 +467,43 @@ Deno.test("une allergie déclarée entre-temps périme le brouillon", async () =
   assertEquals(writeCalls(calls).length, 0, "le payload d'hier ne s'écrit pas");
 });
 
-Deno.test("version de source différente ⇒ draft_stale, raison « source »", async () => {
+// ── LA PROVENANCE NE PÉRIME RIEN, LE CONTRAT OUI ──────────────────────────
+//
+// Mesuré le 2026-09-07: `HOUSEHOLD_PROMPT_VERSION` est passée de v31 à v32 en
+// une soirée. Une péremption calée sur la version de PROMPT aurait rendu
+// `draft_stale` tout aperçu composé avant le déploiement — la personne relit
+// son plan, clique « adopter », et se fait refuser pour une raison qui ne
+// parle pas de son plan. Pendant une itération de prompt, ce serait le cas
+// nominal. Un plan composé est un objet FINI.
+
+Deno.test("UN BUMP DE PROMPT NE PÉRIME PAS UN BROUILLON: il s'adopte", async () => {
   const { out, calls } = await adoptOnce(
     await doneRow({ source_version: sourceVersionOf("v30") }),
+  );
+  assertEquals(out.ok, true, "un plan déjà composé reste valide");
+  assertEquals(writeCalls(calls).length, 1, "et il s'écrit tel quel");
+});
+
+Deno.test("contrat de rangement différent ⇒ draft_stale, raison « source »", async () => {
+  // Ce qui périme, c'est la FORME du payload rangé et ce que ses lecteurs
+  // savent en faire — pas ce qui l'a composé.
+  const { out, calls } = await adoptOnce(
+    await doneRow({ source_version: "v31|draft_store.v0" }),
   );
   assertEquals(out.ok, false);
   assertEquals(refusal(out).error, "draft_stale");
   const detail = refusal(out).detail as Record<string, unknown>;
   assertEquals(detail.reason, "source");
-  assertEquals(detail.stored, sourceVersionOf("v30"));
-  assertEquals(detail.live, sourceVersionOf(PROMPT_VERSION));
+  assertEquals(detail.stored, "draft_store.v0");
+  assertEquals(detail.live, DRAFT_CONTRACT_VERSION);
+  assertEquals(writeCalls(calls).length, 0);
+});
+
+Deno.test("une `source_version` illisible REFUSE, elle ne passe pas", async () => {
+  // Le repli sûr est de refuser une ligne qu'on ne sait pas lire.
+  const { out, calls } = await adoptOnce(await doneRow({ source_version: "" }));
+  assertEquals(out.ok, false);
+  assertEquals(refusal(out).error, "draft_stale");
   assertEquals(writeCalls(calls).length, 0);
 });
 
@@ -481,7 +511,7 @@ Deno.test("LA SÉCURITÉ SE MESURE AVANT LA SOURCE: les deux périmées disent �
   // Sinon on enverrait recomposer « parce que le code a changé » quelqu'un dont
   // l'enfant vient d'être déclaré allergique — le motif le moins grave gagnerait.
   const { out } = await adoptOnce(
-    await doneRow({ safety_fingerprint: "deadbeef", source_version: sourceVersionOf("v30") }),
+    await doneRow({ safety_fingerprint: "deadbeef", source_version: "v31|draft_store.v0" }),
   );
   assertEquals((refusal(out).detail as Record<string, unknown>).reason, "safety");
 });

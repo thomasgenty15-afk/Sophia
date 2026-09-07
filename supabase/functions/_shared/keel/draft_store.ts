@@ -134,6 +134,43 @@ export function sourceVersionOf(promptVersion: string): string {
   return `${version}|${DRAFT_STORE_VERSION}`;
 }
 
+/**
+ * ⛔ LA PROVENANCE N'EST PAS LE CONTRAT — et les confondre périme des
+ * brouillons parfaitement valides.
+ *
+ * `source_version` porte DEUX choses: la version de prompt qui a composé le
+ * plan (provenance, utile pour lire un incident après coup) et le millésime du
+ * magasin (contrat, c'est-à-dire la FORME du payload rangé et ce que ses
+ * lecteurs savent en faire).
+ *
+ * Seul le second peut rendre un brouillon inadoptable. Un plan composé est un
+ * objet FINI: changer le prompt change ce qu'on composerait DEMAIN, pas la
+ * validité de ce qui est déjà écrit. Mesuré le 2026-09-07 sur le cas qui a
+ * révélé le défaut: `HOUSEHOLD_PROMPT_VERSION` est passée de v31 à v32 en une
+ * soirée. Avec une péremption calée sur la provenance, tout aperçu composé
+ * avant le déploiement devenait `draft_stale` — c'est-à-dire que la personne
+ * relit son plan, clique « adopter », et se fait refuser pour une raison qui
+ * n'a rien à voir avec son plan. Pendant une phase d'itération de prompt, ce
+ * serait le cas NOMINAL.
+ *
+ * Ce qui périme un brouillon reste donc: le contrat ci-dessous, et l'empreinte
+ * de sécurité (`safety_fingerprint.ts`) — le foyer a changé, pas le code.
+ */
+export const DRAFT_CONTRACT_VERSION = DRAFT_STORE_VERSION;
+
+/**
+ * Le segment de CONTRAT d'un `source_version`, c'est-à-dire ce qui suit la
+ * dernière barre. Une valeur d'une forme inattendue rend la chaîne entière:
+ * elle ne pourra pas égaler `DRAFT_CONTRACT_VERSION`, donc elle refusera — le
+ * repli sûr est de refuser une ligne qu'on ne sait pas lire, jamais de
+ * l'accepter.
+ */
+export function contractVersionOf(sourceVersion: string): string {
+  const raw = String(sourceVersion ?? "").trim();
+  const at = raw.lastIndexOf("|");
+  return at < 0 ? raw : raw.slice(at + 1);
+}
+
 function stripGestureKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripGestureKeys);
   if (value === null || typeof value !== "object") return value;
