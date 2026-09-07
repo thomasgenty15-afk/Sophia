@@ -32,7 +32,9 @@ const TABLE = "protocol_events";
  * ne partagent pas de module; recopier quatre jetons l'est, les laisser dériver
  * ne l'est pas. `mealTicks.int.test.ts` relit le module Deno ET la migration
  * `20260818170000` sur le disque, et fait échouer la suite si l'une des trois
- * copies bouge sans les autres. C'est l'idiome de `lib/accidentPayload.ts`.
+ * copies bouge sans les autres. C'est l'idiome de `api/slotMeal.ts` (le pavé
+ * citait `lib/accidentPayload.ts`, supprimé le 2026-09-07 avec la porte de la
+ * procédure accident).
  *
  * `food_not_eaten` est la DÉCOCHE NUE: elle est écrite d'abord, elle précède le
  * formulaire, et elle reste seule quand la personne l'ignore (fiche §7). Les

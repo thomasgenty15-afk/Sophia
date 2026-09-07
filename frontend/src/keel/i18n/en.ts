@@ -6207,10 +6207,6 @@ export const en = {
   // même règle que `plan_feedback.ts` (« ON ÉVALUE LE PLAN, JAMAIS LA
   // PERSONNE »). Un libellé culpabilisant sur le geste qu'on veut voir arriver
   // est un geste qu'on n'aura pas, et le plan restera faux.
-  "meals.today.session_missed": "I didn't cook this",
-  "meals.today.session_missed_busy": "Sending…",
-  "meals.today.session_missed_failed":
-    "That didn't go through. Try again, or tell Sophia in the chat.",
   // Le repli quand la journée ne demande rien: on ne dit pas « rien à faire »,
   // on dit CE QUI EST déjà fait — sinon l'élève croit qu'il manque quelque
   // chose, alors qu'une semaine bien préparée est justement une semaine où la

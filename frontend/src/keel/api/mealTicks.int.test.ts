@@ -22,9 +22,14 @@ import {
  * qui s'est vraiment passé — le geste que tout le produit cherche à rendre bon
  * marché. À l'inverse, un motif que la base accepterait et que le front
  * n'offrirait plus laisserait des lignes qu'aucun écran ne sait relire. Aucun
- * test de l'un ou l'autre côté ne rougirait: c'est la même faute que la charge
- * d'accident (`lib/accidentPayload.int.test.ts`), d'où le même remède — on lit
- * les deux autres sources sur le disque.
+ * test de l'un ou l'autre côté ne rougirait: c'est la même faute que le jeton
+ * du repas d'un créneau (`api/slotMeal.int.test.ts`), d'où le même remède — on
+ * lit les deux autres sources sur le disque.
+ *
+ * ⟳ Ce pavé citait `lib/accidentPayload.int.test.ts`, supprimé le 2026-09-07
+ * avec la porte de la procédure accident. Le remède, lui, n'a pas changé de
+ * nature: on le rattache à un jumeau VIVANT plutôt que de laisser une
+ * référence désigner un fichier fantôme.
  */
 
 const MEAL_TICK_SOURCE = new URL(

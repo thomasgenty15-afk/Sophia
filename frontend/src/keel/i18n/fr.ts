@@ -4519,10 +4519,6 @@ export const fr: TranslatedMessages = {
   "meals.today.makes": "Tu prépares {titles}",
   // FF-057 — voir le commentaire côté `en.ts` : le libellé énonce un fait, il
   // ne fait pas avouer. « Je n'ai pas fait cette cuisson », jamais « j'ai raté ».
-  "meals.today.session_missed": "Je n’ai pas fait cette cuisson",
-  "meals.today.session_missed_busy": "Envoi…",
-  "meals.today.session_missed_failed":
-    "Ça n’est pas parti. Réessaie, ou dis-le à Sophia dans la conversation.",
   "meals.today.assembling": "Rien à cuisiner aujourd’hui — aujourd’hui, on assemble.",
   "meals.result.from_prep": "Depuis {title} — cuisiné {day}.",
   "meals.result.batch_makes": "Cuisiné une seule fois — {n} portions",

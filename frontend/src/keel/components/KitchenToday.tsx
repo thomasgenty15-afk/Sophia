@@ -1,12 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
-import { sendChatMessage } from "../api/chat";
 import { addDays, dayTokenOf } from "../api/dates";
 import { planGroceryWaves } from "../api/groceryWaves";
 import type { GeneratedMealResult } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
-import { sessionMissedPayload } from "../lib/accidentPayload";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import CookingSessions from "./CookingSessions";
@@ -208,30 +205,6 @@ export default function KitchenToday(
                   {day.cookToday.run_through}
                 </p>
               )}
-              {/* ── FF-057 · LA PORTE DE LA PROCÉDURE ACCIDENT ──────────────
-                  L'arbre entier existe côté serveur (`accident.ts`) et n'était
-                  atteignable QUE par la conversation: `grep -r "KEEL_FIX"
-                  frontend/src/` rendait ZÉRO le 2026-08-18. Ce bouton ne fait
-                  qu'ouvrir la porte.
-
-                  ⚠️ IL EST SOUS LE DÉROULÉ, PAS À CÔTÉ DU TITRE. La séquence
-                  de lecture est « voilà ce que tu cuisines aujourd'hui, voilà
-                  l'ordre des gestes » — et seulement après, « et si ça n'a pas
-                  eu lieu ». Le poser en tête ferait de l'échec la première
-                  chose qu'on lit sur sa propre cuisine.
-
-                  ⛔ UN SEUL BOUTON, ET PAS TROIS. Le serveur POSE LA SUITE:
-                  il répond avec l'espace de réalignement calculé sur le plan
-                  réel (`buildRealignmentSpace` — décaler, du sans-cuisson,
-                  glisser la session, ou ne rien changer) et ses propres
-                  boutons, que la conversation rend déjà. Offrir ces choix ici
-                  les ferait calculer par l'écran, qui ne sait ni ce qui est
-                  périssable, ni ce qui est déjà cuit, ni où finit la fenêtre
-                  du plan. */}
-              <SessionMissedButton
-                mealId={meals.mealId}
-                cookOn={todayDate}
-              />
             </div>
           )
           : day.cookTomorrow
@@ -363,76 +336,3 @@ export default function KitchenToday(
   );
 }
 
-/**
- * FF-057 — « JE N'AI PAS FAIT CETTE CUISSON ».
- *
- * ── CE QUE CE COMPOSANT FAIT, ET LA LISTE EST COMPLÈTE ────────────────────
- * Il forme une charge, l'envoie par le canal de conversation qui existe, et
- * emmène la personne là où la réponse arrive. Il ne décide de rien.
- *
- * ⛔ IL NE REJOUE PAS L'ARBRE, et c'est la garantie du lot. Ce qui se passe
- * après le tap — la cascade des repas qui tombent, le glissement de la session,
- * les quatre refus (`perishables_at_risk` quand un périssable déjà acheté ne
- * tiendrait pas jusqu'à la nouvelle cuisson, `already_cooked`,
- * `outside_plan_window`, `no_session`), et l'espace de réalignement — est
- * CALCULÉ SUR LE PLAN RÉEL, côté serveur. L'écran ne sait rien de tout ça, et
- * c'est ce qui garantit qu'il ne contredira jamais le serveur.
- *
- * ── POURQUOI ON EMMÈNE VERS LA CONVERSATION ───────────────────────────────
- * Parce que la réponse Y ARRIVE DÉJÀ, avec ses boutons de suite (« oui, décale
- * de deux jours » / « non, je gère »), que `ChatPage` rend depuis
- * `message.buttons`. Afficher la réponse ici demanderait un second rendu de la
- * même chose — et un second rendu divergerait au premier correctif.
- *
- * ⚠️ ON NAVIGUE APRÈS L'ENVOI, JAMAIS AVANT. Naviguer d'abord ferait arriver la
- * personne sur une conversation où son propre geste n'est pas encore écrit: le
- * silence se lirait comme un bouton mort. En cas d'échec on reste, et on le
- * dit — « un refus loin du geste se lit comme un bouton mort » est une
- * cicatrice de ce dépôt, payée trois fois sur `SetupPage`.
- */
-function SessionMissedButton(
-  { mealId, cookOn }: { mealId: string | null; cookOn: string },
-) {
-  const navigate = useNavigate();
-  const [busy, setBusy] = React.useState(false);
-  const [failed, setFailed] = React.useState(false);
-
-  // PAS DE CHARGE, PAS DE BOUTON. `mealId` est `string | null` sur un plan
-  // rendu, et « un bouton qui ouvre un vide est pire que pas de bouton »
-  // (`DishCard`). Le module rend `null` plutôt que de jeter, exprès.
-  const payload = sessionMissedPayload(mealId, cookOn);
-  if (!payload) return null;
-
-  const label = mealCopy("meals.today.session_missed");
-
-  return (
-    <div className="mt-3">
-      <Button
-        variant="secondary"
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          setFailed(false);
-          const result = await sendChatMessage(crypto.randomUUID(), {
-            kind: "button",
-            payload,
-            label,
-          });
-          setBusy(false);
-          if (!result.ok) {
-            setFailed(true);
-            return;
-          }
-          navigate("/app/chat");
-        }}
-      >
-        {busy ? mealCopy("meals.today.session_missed_busy") : label}
-      </Button>
-      {failed && (
-        <p className="mt-2 text-sm text-amber-800">
-          {mealCopy("meals.today.session_missed_failed")}
-        </p>
-      )}
-    </div>
-  );
-}
