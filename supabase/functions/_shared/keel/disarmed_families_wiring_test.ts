@@ -101,6 +101,10 @@ const READER_OF: Readonly<Record<string, string | null>> = Object.freeze({
   // Jeton de FORMULAIRE, désarmé le 2026-09-07 et listé le même jour — il ne
   // l'était pas, parce que l'écran l'interceptait avant le serveur.
   ENERGY_FIX_TOKEN_PREFIX: null,
+  // B.7 — ce que la personne pense de la fourchette. Il REMPLACE la correction
+  // ci-dessus: on ne change plus le chiffre, on apprend de quel côté il se
+  // trompe. Ajouté AVEC son lecteur.
+  ENERGY_BAND_TOKEN_PREFIX: "parseEnergyBandToken",
 });
 
 const GUARD_TAG = 'tag: "keel.deterministic_button.unusable_payload"';

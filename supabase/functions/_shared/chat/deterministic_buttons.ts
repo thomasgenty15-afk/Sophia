@@ -61,6 +61,15 @@ import {
 } from "../keel/weigh_in_io.ts";
 // FF-062 R11 — la correction du chiffre d'énergie d'une photo.
 import { ENERGY_FIX_TOKEN_PREFIX } from "../keel/energy_correction.ts";
+import {
+  ENERGY_BAND_TOKEN_PREFIX,
+  parseEnergyBandToken,
+  renderEnergyBandAck,
+} from "../keel/energy_band_feedback.ts";
+import {
+  ENERGY_BAND_ACK_PURPOSE,
+  writeEnergyBandFeedback,
+} from "../keel/energy_band_feedback_io.ts";
 import { localDateInZone } from "../keel/local_date.ts";
 // FF-062 C1 — le repas d'un créneau déclaré que le plan ne compose pas.
 import {
@@ -175,6 +184,9 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   // émetteur était le tap de la bande. `meal_share_outcomes` garde ses lignes
   // et ses lecteurs d'écran: c'est l'ÉCRITURE qui s'arrête, pas la table.
   SHARE_BUTTON_PREFIX,
+  // B.7 — la déclaration sur la FOURCHETTE. Ajouté AVEC son lecteur, routé
+  // juste au-dessous du repas d'un créneau.
+  ENERGY_BAND_TOKEN_PREFIX,
   // DÉSARMÉ le 2026-09-07 — la correction du chiffre d'énergie d'une photo.
   //
   // ⚠️ IL N'ÉTAIT PAS DANS CETTE LISTE, ET IL Y ENTRE EN MÊME TEMPS QU'IL EN
@@ -1069,6 +1081,39 @@ export async function handleDeterministicButton(
       }),
     });
     return handled(`keel_slot_meal_${slotMeal.action}`);
+  }
+
+  // ── B.7 · CE QUE LA PERSONNE PENSE DE LA FOURCHETTE ──────────────────────
+  //
+  // ⛔ ELLE NE CHANGE NI LE CHIFFRE NI SA BASE. La déclaration se pose À CÔTÉ
+  // du fait: un « ça a l'air juste » n'a rien mesuré, et un « c'était plus » ne
+  // dit pas de combien. Promouvoir l'un ou l'autre en `declared_quantities` lui
+  // emprunterait une fiabilité que ce geste n'a jamais eue.
+  const band = parseEnergyBandToken(message.button_payload);
+  if (band) {
+    const voice = await studentVoiceContext(admin, message.user_id);
+    const out = await writeEnergyBandFeedback(admin, {
+      userId: message.user_id,
+      eventId: band.eventId,
+      verdict: band.verdict,
+      now: new Date(message.received_at),
+    });
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: ENERGY_BAND_ACK_PURPOSE,
+      // ⚠️ `written` DIT SI LA LIGNE EXISTE. Un « c'est noté » sur une écriture
+      // ratée est un `phantom_commit`, et il est indétectable par la personne:
+      // rien à l'écran ne dirait que sa déclaration s'est perdue.
+      body: renderEnergyBandAck({
+        locale: voice.contentLocale,
+        verdict: band.verdict,
+        written: out.ok,
+      }),
+    });
+    return handled(
+      out.ok ? `keel_energy_band_${band.verdict}` : "keel_energy_band_refused",
+    );
   }
 
   // ── FF-028 · LE TAP SUR UNE RECOMMANDATION ────────────────────────────────

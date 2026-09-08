@@ -17,6 +17,7 @@ import {
   z,
 } from "../_shared/http.ts";
 import { localePackKey, resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import { energyBandButtons } from "../_shared/keel/energy_band_feedback.ts";
 import {
   renderPhotoDuplicate,
   renderPhotoSavedUnanalysed,
@@ -1372,7 +1373,36 @@ Deno.serve(async (req) => {
           // ⚠️ `storedEnergy` RESTE LU, et ce n'est pas un vestige: la ligne
           // relue est ce qui décide de l'accusé. Le chiffre continue d'être
           // estimé, rendu et rangé; c'est sa CORRECTION qui s'arrête.
-          const fixButtons: { payload: string; label: string }[] = [];
+          //
+          // ⟳ CE QUI LE REMPLACE (B.7): TROIS BOUTONS QUI CALIBRENT LA
+          // FOURCHETTE. « À peu près ça » / « C'était plus » / « C'était
+          // moins ». Ils ne changent NI le chiffre NI sa base — la déclaration
+          // se pose à côté du fait — mais ils disent de quel côté l'estimation
+          // se trompe, ce qu'aucune autre source ne peut donner: une photo ne
+          // montre pas l'huile de la poêle, et personne ne pèse son dîner.
+          //
+          // ⛔ SEULEMENT SOUS UNE FOURCHETTE. Sur un chiffre DÉCLARÉ il n'y a
+          // rien à calibrer: la personne a donné le nombre, lui demander s'il
+          // est juste serait lui demander de se relire. Et sans estimation du
+          // tout — les quatre portes de `energy_gate` l'effacent à l'ingestion
+          // — il n'y a aucune fourchette à l'écran, donc rien à juger.
+          const storedEstimate = storedEnergy.energy_estimate as
+            | { basis?: unknown }
+            | null
+            | undefined;
+          const fixButtons = storedEstimate &&
+              String(storedEstimate.basis ?? "") === "photo_estimate"
+            ? energyBandButtons({
+              // ⚠️ LA MÊME RÉSOLUTION QUE L'ACCUSÉ, une seule pour toute la
+              // fonction: deux résolutions séparées feraient un jour des
+              // boutons français sous un accusé anglais.
+              locale: resolveArtifactLocale({
+                studentProfile: studentProfileLocale,
+                tenantDefault: null,
+              }),
+              eventId,
+            })
+            : [];
           const res = ackSilenced
             ? { chatMessageId: null as string | null }
             : await deliverChatMessage(admin, {

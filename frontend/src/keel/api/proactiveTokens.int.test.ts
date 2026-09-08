@@ -190,3 +190,51 @@ describe("C1 — le jeton du repas d'un créneau", () => {
     expect(collisions).toEqual([]);
   });
 });
+
+describe("B.7 — la déclaration sur la fourchette", () => {
+  it("son vocabulaire est DISJOINT de tous les autres, y compris désarmés", () => {
+    // ⛔ `KEEL_KCAL_` est désarmé mais TOUJOURS LISTÉ — des bulles en portent
+    // encore. Un vocabulaire qui le contiendrait ferait répondre deux lecteurs
+    // au même tap, et le premier gagnerait en silence.
+    const all = [
+      "KEEL_BANDFB_",
+      "KEEL_KCAL_",
+      "KEEL_RECO_",
+      "KEEL_STRIP_",
+      "KEEL_FIX_",
+      "KEEL_WDIV_",
+      "KEEL_PULSE_",
+      "KEEL_FEEDBACK_",
+      "KEEL_SLOTMEAL_",
+      "KEEL_SHARE_",
+      "KEEL_MEMCLAR_",
+      "KEEL_VIEW_",
+      "KEEL_WEIGHIN_",
+      "KEEL_WEEKLY_",
+      "KEEL_MEASURES_",
+    ];
+    for (const a of all) {
+      for (const b of all) {
+        if (a === b) continue;
+        expect(a.startsWith(b), `${a} contient ${b}`).toBe(false);
+      }
+    }
+  });
+
+  it("⛔ L'ÉCRAN NE L'INTERCEPTE PAS — il part au serveur", () => {
+    // Trois boutons dont le seul effet est une ÉCRITURE: les intercepter côté
+    // front ferait un geste qui a l'air pris sans l'être, et la mesure que ce
+    // lot sert n'existerait jamais.
+    const chat = read("frontend/src/keel/pages/ChatPage.tsx");
+    expect(chat).not.toContain("KEEL_BANDFB");
+    expect(chat).not.toContain("parseEnergyBandToken");
+  });
+
+  it("le serveur le LIT, et il est LISTÉ", () => {
+    const dispatch = read(
+      "supabase/functions/_shared/chat/deterministic_buttons.ts",
+    );
+    expect(dispatch).toContain("parseEnergyBandToken(message.button_payload)");
+    expect(dispatch).toContain("ENERGY_BAND_TOKEN_PREFIX,");
+  });
+});
