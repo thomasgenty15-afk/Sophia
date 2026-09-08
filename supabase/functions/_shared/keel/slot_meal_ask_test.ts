@@ -9,6 +9,7 @@ import {
   SLOT_MEAL_BUTTON_PREFIX,
   SLOT_MEAL_GOALS,
   SLOT_MEAL_GRACE_HOURS,
+  slotMealAskSwitchFrom,
   slotMealButtonId,
 } from "./slot_meal_ask.ts";
 import { GOAL_TOKENS } from "./tokens.ts";
@@ -36,6 +37,11 @@ function base(over: Partial<Parameters<typeof decideSlotMealAsk>[0]> = {}) {
   return decideSlotMealAsk({
     goal: "fat_loss",
     muted: false,
+    // ⚠️ `null` = « personne n'a choisi », donc l'objectif décide. C'est le cas
+    // NOMINAL, et c'est ce qu'il faut par défaut ici: un `true` en dur ferait
+    // passer tous les cas de ce fichier par la branche explicite, et la garde
+    // de l'objectif ne serait plus éprouvée par personne.
+    askEnabled: null,
     dayToken: "tue",
     localHour: 14,
     eatingOut: [{ day: "tue", slots: ["lunch"] }],
@@ -269,10 +275,11 @@ Deno.test("⛔ UN CRÉNEAU DÉJÀ DEMANDÉ AUJOURD'HUI NE SE REDEMANDE PAS", () 
 // LES MOTS
 // ---------------------------------------------------------------------------
 
-Deno.test("la question porte TROIS options, et chacune nomme son créneau", () => {
+Deno.test("la question porte QUATRE options, et chacune nomme son créneau", () => {
   for (const locale of ["en-US", "fr-FR"]) {
     const m = renderSlotMealAsk({ locale, localDate: TUESDAY, slot: "lunch" });
-    assertEquals(m.buttons.length, 3);
+    // ⟳ TROIS, PUIS QUATRE (2026-09-08): l'extinction voyage AVEC la question.
+    assertEquals(m.buttons.length, SLOT_MEAL_ACTIONS.length);
     const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
     assertEquals(actions, [...SLOT_MEAL_ACTIONS]);
     for (const b of m.buttons) {
@@ -316,5 +323,119 @@ Deno.test("« Décrire » dit « c'est noté » SEULEMENT quand ça l'est", () =
       `${locale}: les deux phrases sont identiques — l'échec d'écriture est muet`,
     );
     assert(written.length > not.length, "l'affirmation est ce qui s'ajoute");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// L'INTERRUPTEUR — TRI-ÉTAT, ET `null` N'EST PAS UNE EXTINCTION
+// ---------------------------------------------------------------------------
+
+Deno.test("l'interrupteur: `null` laisse décider l'objectif, jamais éteint", () => {
+  // ⛔ C'EST LA MOITIÉ QUI SE CASSE EN SILENCE. Un appelant qui écrirait
+  // `col === true` refermerait la question pour TOUS ceux que leur objectif
+  // devait ouvrir — sans qu'aucun type ne bronche, et sans qu'un seul test
+  // rougisse si celui-ci n'existait pas. C'est mot pour mot la cicatrice de
+  // `energySwitchFrom`, transposée.
+  assertEquals(
+    slotMealAskSwitchFrom({ stored: null, goal: "fat_loss" }),
+    { on: true, source: "goal" },
+  );
+  assertEquals(
+    slotMealAskSwitchFrom({ stored: null, goal: "muscle_gain" }),
+    { on: true, source: "goal" },
+  );
+  // R4 — le maintien ne reçoit PAS la boucle par repas, et le motif le dit.
+  assertEquals(
+    slotMealAskSwitchFrom({ stored: null, goal: "maintenance" }),
+    { on: false, source: "goal" },
+  );
+  assertEquals(
+    slotMealAskSwitchFrom({ stored: null, goal: null }),
+    { on: false, source: "no_goal" },
+  );
+});
+
+Deno.test("⛔ UNE EXTINCTION EXPLICITE GAGNE POUR TOUJOURS", () => {
+  // Quelqu'un qui éteint puis change d'objectif ne se fait pas rallumer: une
+  // extinction est un CHOIX, un objectif est une CIRCONSTANCE, et une
+  // circonstance ne révoque pas un choix. Sans cette règle, passer de maintien
+  // à perte rallumerait une question que la personne avait coupée — et elle
+  // n'aurait aucune raison de faire le lien.
+  for (const goal of GOAL_TOKENS) {
+    assertEquals(
+      slotMealAskSwitchFrom({ stored: false, goal }),
+      { on: false, source: "explicit_off" },
+      goal,
+    );
+  }
+  // Et l'allumage explicite ouvre même là où l'objectif fermerait.
+  assertEquals(
+    slotMealAskSwitchFrom({ stored: true, goal: "maintenance" }),
+    { on: true, source: "explicit_on" },
+  );
+});
+
+Deno.test("les deux clés sont REQUISES — une garde optionnelle est désarmée", () => {
+  assertThrows(
+    () =>
+      slotMealAskSwitchFrom(
+        { goal: "fat_loss" } as unknown as Parameters<
+          typeof slotMealAskSwitchFrom
+        >[0],
+      ),
+    Error,
+    "REQUIS",
+  );
+});
+
+Deno.test("la décision NOMME l'extinction, et pas `muted`", () => {
+  // ⚠️ DEUX MOTIFS DISTINCTS, ET C'EST LA SEULE MESURE QUI DIRA SI CETTE
+  // BOUCLE COÛTE PLUS QU'ELLE NE RAPPORTE. `muted` = « il a coupé TOUT le
+  // proactif »; `ask_muted` = « il n'a coupé QUE la question du repas ». Les
+  // fondre rendrait les deux illisibles dans le compte-rendu du cron.
+  assertEquals(
+    base({ askEnabled: false }),
+    { ask: false, reason: "ask_muted" },
+  );
+  assertEquals(
+    base({ muted: true, askEnabled: false }),
+    { ask: false, reason: "muted" },
+  );
+  // ⛔ ET `ask_muted` NE SORT JAMAIS POUR QUELQU'UN QUE L'OBJECTIF EXCLUT: il
+  // dirait « il a éteint » d'une personne à qui on n'a jamais rien proposé.
+  assertEquals(
+    base({ goal: "maintenance", askEnabled: false }),
+    { ask: false, reason: "goal_not_covered" },
+  );
+});
+
+Deno.test("le bouton d'extinction est SOUS la question, et il est le dernier", () => {
+  const m = renderSlotMealAsk({
+    locale: "fr-FR",
+    localDate: TUESDAY,
+    slot: "lunch",
+  });
+  const last = m.buttons[m.buttons.length - 1];
+  assertEquals(parseSlotMealButton(last.payload)?.action, "mute");
+  // ⛔ LE LIBELLÉ NE PROMET QUE CE QU'IL FAIT. « Arrêter le suivi » ferait
+  // couper la mesure à quelqu'un qui voulait le silence, et il ne le saurait
+  // pas. Il éteint une QUESTION.
+  assertEquals(last.label, "Ne plus me demander à chaque repas");
+  assertEquals(/suivi|tracking/i.test(last.label), false, last.label);
+});
+
+Deno.test("l'accusé d'extinction ne prétend pas quand rien n'est écrit", () => {
+  for (const locale of ["en-US", "fr-FR"]) {
+    const ok = renderSlotMealAck({ locale, action: "mute", written: true });
+    const ko = renderSlotMealAck({ locale, action: "mute", written: false });
+    assert(ok !== ko, `${locale}: les deux accusés sont identiques`);
+    // L'accusé qui a marché dit que les repas restent cochables — c'est la
+    // moitié qui empêche de croire qu'on a coupé le suivi.
+    assert(
+      locale.startsWith("fr")
+        ? ok.includes("cochables")
+        : ok.includes("tickable"),
+      ok,
+    );
   }
 });

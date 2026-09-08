@@ -155,7 +155,7 @@ describe("C1 — le jeton du repas d'un créneau", () => {
 
   it("porte la MÊME forme que le lecteur Deno", () => {
     const deno = read("supabase/functions/_shared/keel/slot_meal_ask.ts");
-    const shape = "KEEL_SLOTMEAL_(photo|describe|skip)";
+    const shape = "KEEL_SLOTMEAL_(photo|describe|skip|mute)";
     expect(deno).toContain(shape);
     expect(read("frontend/src/keel/api/slotMeal.ts")).toContain(shape);
   });

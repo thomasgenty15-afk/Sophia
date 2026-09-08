@@ -201,7 +201,12 @@ Deno.serve(async (req) => {
         // `profiles` a déjà fait rendre 42703 à PostgREST dès la première page
         // dans `keel-weekly-flow-v1`: aucun élève examiné, et toutes les gardes
         // en aval mortes derrière un SELECT cassé.
-        .select("id, timezone, locale, proactive_muted_at")
+        // ⚠️ `slot_meal_ask_enabled` ARRIVE AVEC SA MIGRATION, DANS LE MÊME
+        // COMMIT. La cicatrice est chiffrée: un `eating_rhythm` nommé dans un
+        // SELECT avant que sa colonne existe a rendu 42703 sur 629 élèves sur
+        // 669 — aucun examiné, et toutes les gardes en aval mortes derrière une
+        // requête cassée. La migration s'applique AVANT le déploiement.
+        .select("id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -222,6 +227,15 @@ Deno.serve(async (req) => {
           timezone: row.timezone ? String(row.timezone) : null,
           locale: row.locale ? String(row.locale) : null,
           muted: Boolean(row.proactive_muted_at),
+          // ⛔ LE TRI-ÉTAT PASSE BRUT, ET `Boolean(...)` SERAIT UN DÉFAUT.
+          // `null` veut dire « personne n'a choisi », et l'objectif décide
+          // alors; le convertir ici l'écraserait en « éteint » pour toute la
+          // cohorte qui n'a jamais touché au réglage — c'est-à-dire tout le
+          // monde. La réduction vit dans `slotMealAskSwitchFrom`, et là seule.
+          askEnabled: row.slot_meal_ask_enabled === null ||
+              row.slot_meal_ask_enabled === undefined
+            ? null
+            : Boolean(row.slot_meal_ask_enabled),
           now,
           dryRun,
           requestId,

@@ -165,6 +165,16 @@ export async function runSlotMealStep(
     timezone: string | null;
     locale: string | null;
     muted: boolean;
+    /**
+     * `profiles.slot_meal_ask_enabled`, BRUT — le tri-état, pas un booléen
+     * déjà réduit. La réduction vit dans `slotMealAskSwitchFrom`, et la faire
+     * ici serait la deuxième écriture de la règle.
+     *
+     * ⛔ REQUIS, JAMAIS OPTIONNEL. Un champ omis se lirait `undefined`, donc
+     * comme « personne n'a choisi » — c'est-à-dire que l'extinction de quelqu'un
+     * serait silencieusement ignorée par tout appelant qui oublie de le passer.
+     */
+    askEnabled: boolean | null;
     now: Date;
     dryRun?: boolean;
     requestId?: string;
@@ -222,6 +232,7 @@ export async function runSlotMealStep(
   const verdict = decideSlotMealAsk({
     goal,
     muted: args.muted,
+    askEnabled: args.askEnabled,
     dayToken: dayTokenForLocalDate(today),
     localHour,
     eatingOut,

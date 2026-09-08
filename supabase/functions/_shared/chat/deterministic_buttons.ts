@@ -939,6 +939,32 @@ export async function handleDeterministicButton(
         }));
       }
     }
+    // ── L'EXTINCTION DE LA QUESTION PAR REPAS ──────────────────────────────
+    //
+    // ⛔ `.eq("id", message.user_id)`, ET JAMAIS UN IDENTIFIANT VENU DE LA
+    // CHARGE. Le jeton ne porte que la date et le créneau — mais la règle vaut
+    // même là où la charge ne porte rien: c'est l'auteur du message qui éteint
+    // son propre réglage, et c'est la seule lecture possible de « je ».
+    //
+    // ⚠️ `written` DÉCIDE DE L'ACCUSÉ. Une extinction annoncée mais pas écrite
+    // ferait recevoir la question suivante à quelqu'un qui croit l'avoir
+    // coupée — pire que ne pas offrir le bouton, parce qu'il n'essaiera pas
+    // deux fois.
+    if (slotMeal.action === "mute") {
+      const { error } = await admin
+        .from("profiles")
+        .update({ slot_meal_ask_enabled: false })
+        .eq("id", message.user_id);
+      written = !error;
+      if (error) {
+        console.warn(JSON.stringify({
+          tag: "keel.slot_meal.mute_write_failed",
+          user_id: message.user_id,
+          error: error.message,
+          effect: "l'accuse dit que l'extinction n'a pas pris",
+        }));
+      }
+    }
     await ack(admin, {
       userId: message.user_id,
       requestId: args.requestId,

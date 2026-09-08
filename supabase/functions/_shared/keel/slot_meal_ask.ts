@@ -85,12 +85,23 @@ export const SLOT_MEAL_GRACE_HOURS = 2;
 /** Le préfixe du jeton. Huitième vocabulaire, disjoint des sept autres. */
 export const SLOT_MEAL_BUTTON_PREFIX = "KEEL_SLOTMEAL_";
 
-/** Les trois issues offertes. Vocabulaire FERMÉ. */
-export const SLOT_MEAL_ACTIONS = ["photo", "describe", "skip"] as const;
+/**
+ * Les issues offertes. Vocabulaire FERMÉ.
+ *
+ * ⟳ `mute` REJOINT LES TROIS LE 2026-09-08, et il voyage AVEC la question —
+ * donc il est présent sous CHAQUE bulle, quelle que soit sa forme. C'est ce qui
+ * fait qu'on éteint là où l'agacement naît, plutôt qu'en cherchant un réglage.
+ *
+ * ⛔ PAS UN VOCABULAIRE DE PLUS. Un neuvième préfixe pour un seul bouton
+ * ajouterait une famille à `DETERMINISTIC_BUTTON_PREFIXES`, un lecteur, et une
+ * ligne à la matrice de disjonction — pour une action qui appartient
+ * exactement à cette question-ci.
+ */
+export const SLOT_MEAL_ACTIONS = ["photo", "describe", "skip", "mute"] as const;
 export type SlotMealAction = (typeof SLOT_MEAL_ACTIONS)[number];
 
 const SLOT_MEAL_PAYLOAD =
-  /^KEEL_SLOTMEAL_(photo|describe|skip)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
+  /^KEEL_SLOTMEAL_(photo|describe|skip|mute)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
 
 /**
  * `KEEL_SLOTMEAL_<action>|<date>|<slot>`.
@@ -153,6 +164,15 @@ export const SLOT_MEAL_SKIPS = [
   "too_late",
   /** La question de ce créneau a déjà été posée aujourd'hui. */
   "already_asked",
+  /**
+   * ⟳ 2026-09-08 — LA PERSONNE A ÉTEINT LA QUESTION PAR REPAS.
+   *
+   * ⚠️ DISTINCT DE `muted`, ET C'EST TOUT L'INTÉRÊT. `muted` dit « il a coupé
+   * TOUT le proactif »; celui-ci dit « il n'a coupé QUE la question du repas ».
+   * Les fondre rendrait invisible, dans le compte-rendu du cron, la seule
+   * mesure qui dira si cette boucle coûte plus qu'elle ne rapporte.
+   */
+  "ask_muted",
 ] as const;
 export type SlotMealSkip = (typeof SLOT_MEAL_SKIPS)[number];
 
@@ -180,9 +200,61 @@ export interface EatingOutCell {
  * dans le même tick, et l'ancienne est PERDUE plutôt que retardée — c'est
  * l'arbitrage de R2 appliqué à l'intérieur d'un canal.
  */
+/**
+ * L'INTERRUPTEUR DE LA QUESTION PAR REPAS, RÉDUIT UNE SEULE FOIS.
+ *
+ * ⛔ C'EST LE SEUL ENDROIT OÙ `profiles.slot_meal_ask_enabled` SE LIT. La
+ * colonne est un TRI-ÉTAT et `null` n'est PAS une extinction: un appelant qui
+ * écrirait `col === true` refermerait la question à tous ceux que leur objectif
+ * devait ouvrir, en silence et sans qu'aucun type ne bronche. C'est mot pour
+ * mot l'avertissement de `energy_gate.ts::energySwitchFrom`, et il vaut ici
+ * pour la même raison.
+ *
+ * ⚠️ `false` GAGNE POUR TOUJOURS. Quelqu'un qui éteint puis change d'objectif
+ * ne se fait pas rallumer: une extinction est un choix, un objectif est une
+ * circonstance, et une circonstance ne révoque pas un choix.
+ *
+ * ⚠️ ELLE PREND UN OBJECTIF, PAS UNE DIRECTION — contrairement à
+ * `energySwitchFrom`. `SLOT_MEAL_GOALS` est la table ÉCRITE de ce canal, et
+ * c'est elle qui exclut `maintenance` avec son motif (R4: le trou du midi ne
+ * change aucun chiffre qui pilote). Passer par `scaleDirectionOf` ferait une
+ * TROISIÈME écriture de « qui compte ».
+ *
+ * ⚠️ LES DEUX CLÉS SONT REQUISES. `undefined` n'est pas `null`: un paramètre de
+ * garde optionnel est une garde désarmée.
+ */
+export type SlotMealAskSwitchSource =
+  | "explicit_on"
+  | "explicit_off"
+  | "goal"
+  | "no_goal";
+
+export function slotMealAskSwitchFrom(args: {
+  stored: boolean | null;
+  goal: GoalToken | null;
+}): { on: boolean; source: SlotMealAskSwitchSource } {
+  if (!("stored" in args) || !("goal" in args)) {
+    throw new Error(
+      "[keel/slot_meal_ask] slotMealAskSwitchFrom: `stored` et `goal` sont " +
+        "REQUIS. Un champ omis se lirait comme `undefined`, donc comme " +
+        "« personne n'a choisi » — c'est-à-dire comme une garde désarmée.",
+    );
+  }
+  if (args.stored === true) return { on: true, source: "explicit_on" };
+  if (args.stored === false) return { on: false, source: "explicit_off" };
+  if (!args.goal) return { on: false, source: "no_goal" };
+  return { on: SLOT_MEAL_GOALS.has(args.goal), source: "goal" };
+}
+
 export function decideSlotMealAsk(args: {
   goal: GoalToken | null;
   muted: boolean;
+  /**
+   * ⟳ `profiles.slot_meal_ask_enabled`, BRUT. On passe la colonne, pas un
+   * booléen déjà réduit: la réduction est au-dessus, et la faire chez
+   * l'appelant serait la deuxième écriture de la règle.
+   */
+  askEnabled: boolean | null;
   /** Le jeton du jour local (`mon`…`sun`). */
   dayToken: string;
   localHour: number;
@@ -197,6 +269,15 @@ export function decideSlotMealAsk(args: {
   if (!args.goal) return { ask: false, reason: "no_goal" };
   if (!SLOT_MEAL_GOALS.has(args.goal)) {
     return { ask: false, reason: "goal_not_covered" };
+  }
+  // ⚠️ APRÈS LES DEUX GARDES D'OBJECTIF, ET PAS AVANT. Un motif `ask_muted`
+  // rendu à quelqu'un en `maintenance` dirait « il a éteint » d'une personne
+  // qui n'a jamais rien reçu — et le compte-rendu du cron s'en servirait pour
+  // conclure que la boucle est refusée alors qu'elle n'a jamais été offerte.
+  if (
+    !slotMealAskSwitchFrom({ stored: args.askEnabled, goal: args.goal }).on
+  ) {
+    return { ask: false, reason: "ask_muted" };
   }
 
   const day = String(args.dayToken ?? "").trim().toLowerCase();
@@ -303,6 +384,24 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
   describingUnwritten: string;
   /** L'accusé de « Photo »: l'écran prend le relais. */
   photoAsked: string;
+  /**
+   * ⟳ 2026-09-08 — LE BOUTON QUI ÉTEINT, ET SON ACCUSÉ.
+   *
+   * ⛔ LE LIBELLÉ NE PROMET QUE CE QU'IL FAIT. Pas « arrêter le suivi », pas
+   * « ne plus me suivre »: il éteint une QUESTION. Les repas restent cochables,
+   * et rien de ce qui est déjà enregistré ne bouge. Un libellé qui promettrait
+   * l'arrêt du suivi ferait couper la mesure à quelqu'un qui voulait juste le
+   * silence — et il ne le saurait pas.
+   *
+   * ⚠️ L'ACCUSÉ NE MENTIONNE NI LE « + » DU COMPOSEUR NI LA CASE DE PROFIL:
+   * les deux arrivent au lot B.4 et N'EXISTENT PAS ENCORE. Les annoncer ici
+   * enverrait quelqu'un chercher un réglage introuvable, ce qui est la même
+   * faute qu'un accusé qui prétend. À COMPLÉTER EN B.4, dans les deux packs.
+   */
+  mute: string;
+  muted: string;
+  /** L'extinction n'a PAS pu s'écrire: on ne prétend pas, et on le dit. */
+  muteFailed: string;
 }> = {
   en: {
     ask: (slot) => `You are eating out for ${slot} today — what did you have?`,
@@ -321,6 +420,11 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describing: "Noted. Go ahead — what was it?",
     describingUnwritten: "Go ahead — what was it?",
     photoAsked: "Send it over whenever you are ready.",
+    mute: "Stop asking me at each meal",
+    muted:
+      "Turned off. I will not ask at each meal any more — your meals stay tickable on your day, and nothing already logged has moved.",
+    muteFailed:
+      "I could not turn that off just now, so the question may come back. Try again, and if it keeps coming back tell me.",
   },
   fr: {
     ask: (slot) => `Tu manges dehors pour ${slot} aujourd'hui — tu as pris quoi ?`,
@@ -339,6 +443,11 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describing: "C'est noté. Vas-y — c'était quoi ?",
     describingUnwritten: "Vas-y — c'était quoi ?",
     photoAsked: "Envoie-la-moi quand tu veux.",
+    mute: "Ne plus me demander à chaque repas",
+    muted:
+      "C'est éteint. Je ne poserai plus la question à chaque repas — tes repas restent cochables sur ta journée, et rien de ce qui est déjà enregistré n'a bougé.",
+    muteFailed:
+      "Je n'ai pas réussi à l'éteindre à l'instant, donc la question peut revenir. Retente, et si elle revient quand même dis-le-moi.",
   },
 };
 
@@ -361,6 +470,13 @@ export function renderSlotMealAsk(args: {
       { payload: mk("photo"), label: copy.photo },
       { payload: mk("describe"), label: copy.describe },
       { payload: mk("skip"), label: copy.skip },
+      // ⛔ EN DERNIER, ET SOUS CHAQUE QUESTION. En dernier parce qu'éteindre
+      // n'est pas une réponse à « tu as mangé quoi ? » — le proposer avant
+      // « Passer » ferait de l'extinction la sortie évidente. Et sous CHAQUE
+      // question parce que c'est là que l'agacement naît: un réglage qu'il faut
+      // aller chercher n'est pas un réglage, c'est un obstacle, et la personne
+      // coupe alors tout le proactif à la place.
+      { payload: mk("mute"), label: copy.mute },
     ],
   };
 }
@@ -384,6 +500,12 @@ export function renderSlotMealAck(args: {
       return args.written ? copy.describing : copy.describingUnwritten;
     case "photo":
       return copy.photoAsked;
+    case "mute":
+      // ⚠️ `written` DIT ICI SI L'EXTINCTION EST EN BASE. Un accusé « c'est
+      // éteint » sur une écriture ratée est un `phantom_commit`: la personne
+      // recevrait la question suivante en croyant l'avoir coupée, ce qui est
+      // pire que ne pas offrir le bouton.
+      return args.written ? copy.muted : copy.muteFailed;
   }
 }
 

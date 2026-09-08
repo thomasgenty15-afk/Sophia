@@ -25,10 +25,23 @@ export const SLOT_MEAL_BUTTON_PREFIX = "KEEL_SLOTMEAL_";
  * qu'elle porte deviendrait `undefined` en aval.
  */
 const SLOT_MEAL_PAYLOAD =
-  /^KEEL_SLOTMEAL_(photo|describe|skip)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
+  /^KEEL_SLOTMEAL_(photo|describe|skip|mute)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
 
 export interface SlotMealTap {
-  action: "photo" | "describe" | "skip";
+  /**
+   * ⟳ `mute` REJOINT LES TROIS LE 2026-09-08 — le bouton qui éteint la question
+   * par repas, présent sous CHAQUE bulle.
+   *
+   * ⛔ IL EST LU ICI MAIS L'ÉCRAN N'EN FAIT RIEN: le tap part au serveur comme
+   * les trois autres, et c'est LUI qui écrit `profiles.slot_meal_ask_enabled`.
+   * L'intercepter côté front ferait un réglage qui a l'air pris sans l'être —
+   * et la question reviendrait au créneau suivant.
+   *
+   * Il est dans le miroir parce que ce miroir est la FORME du jeton, pas la
+   * liste de ce que l'écran traite: un `mute` que la regex refuserait tomberait
+   * en charge inconnue et n'atteindrait jamais le serveur.
+   */
+  action: "photo" | "describe" | "skip" | "mute";
   localDate: string;
   slot: string;
 }
