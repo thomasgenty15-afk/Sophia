@@ -1619,9 +1619,21 @@ export const en = {
     "Your browser is blocking notifications for this site — allow them there first.",
   "chat.settings.notify.unsupported":
     "This browser can't show notifications.",
+  // Same rule as the button under every question: it turns off a QUESTION, not
+  // the tracking.
+  "chat.settings.slotmeal.label": "Ask me at each meal",
+  "chat.settings.slotmeal.help":
+    "A question at each moment you eat, to know what it was. Turned off, your meals stay tickable on your day and the “+” stays.",
 
   // Le point hebdomadaire, dans l'app. C'était un WhatsApp Flow: deux écrans
   // declares chez Meta. Il ne reste que ce qui comptait.
+  // The composer "+" — never a camera icon: two of the three options are not
+  // photos, so a camera would lie about two thirds of the menu.
+  "chat.compose.add": "Add something",
+  "chat.compose.add.close": "Close",
+  "chat.compose.add.photo": "Photo of an unplanned meal",
+  "chat.compose.add.describe": "Describe an unplanned meal",
+  "chat.compose.add.weight": "Update my weight",
   "chat.photo.label": "Photo",
   "chat.photo.sending": "Sending a photo…",
   "chat.photo.error.type": "That file type isn't supported — send a JPEG, PNG or WebP.",

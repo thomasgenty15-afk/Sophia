@@ -16,6 +16,7 @@ import {
   type SendPayload,
   sendChatMessage,
   setProactiveMuted,
+  setSlotMealAsk,
   subscribeToChat,
 } from "../api/chat";
 import {
@@ -28,15 +29,26 @@ import {
   supportsDesktopNotifications,
 } from "../lib/chatUnread";
 import KeelAppShell from "../components/KeelAppShell";
-import { Button, buttonClass } from "../components/ui/Button";
+import { Button } from "../components/ui/Button";
 import { inputClass } from "../components/ui/Field";
 import WeeklyCheckInDialog, {
   type WeeklyCheckInValues,
 } from "../components/WeeklyCheckInDialog";
 import { isWeeklyCheckInToken, loadBiofeedbackHasReader } from "../api/weeklyCheckIn";
 import WeighInDialog, { type WeighInValues } from "../components/WeighInDialog";
-import { isWeighInToken, loadLastWeightKg } from "../api/weighIn";
-import { forcedSlotFromPhotoTap, forcedSlotLabel } from "../api/slotMeal";
+import { TrackingDescribeDialog } from "../components/TrackingDescribeDialog";
+import {
+  isWeighInToken,
+  loadLastWeightKg,
+  weighInTokenFor,
+} from "../api/weighIn";
+import {
+  forcedSlotFromPhotoTap,
+  forcedSlotLabel,
+  SLOT_ORDER,
+  slotMealAskSwitchFrom,
+  slotMealSwitchOfferable,
+} from "../api/slotMeal";
 import {
   ACCEPTED_PHOTO_MIME_TYPES,
   MAX_PHOTO_BYTES,
@@ -162,6 +174,19 @@ export default function ChatPage() {
   // ne porte QUE le jour où la question est partie.
   const [weighInToken, setWeighInToken] = React.useState<string | null>(null);
   /**
+   * LE PANNEAU DU « + », ET SON SECOND TEMPS.
+   *
+   * ⚠️ « Décrire » OUVRE UN CHOIX DE MOMENT AVANT LE CHAMP. Le composeur ne
+   * peut pas deviner de quel repas on parle: sans choix, la déclaration
+   * tomberait au dernier créneau écoulé — juste par accident, et faux dès
+   * qu'on répond le soir. C'est la même raison qui met le créneau DANS le
+   * jeton de la question (R6).
+   */
+  const photoInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [addSlotPicker, setAddSlotPicker] = React.useState(false);
+  const [describeSlot, setDescribeSlot] = React.useState<string | null>(null);
+  /**
    * R8 — le dernier poids, pour le PLACEHOLDER du champ. `undefined` = pas
    * encore su, et le dialogue ne se monte pas; `null` = il n'y en a pas.
    *
@@ -210,6 +235,21 @@ export default function ChatPage() {
     notificationPermission(),
   );
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  /**
+   * `profiles.slot_meal_ask_enabled`, BRUT, et l'objectif qui le réduit.
+   *
+   * ⚠️ `settingsLoaded` EST UNE TROISIÈME VALEUR, ET PAS UN LUXE. `null` est un
+   * ÉTAT LÉGITIME de la colonne (« personne n'a choisi »), donc il ne peut pas
+   * servir aussi de « pas encore lu ». Sans ce drapeau, l'interrupteur serait
+   * actionnable pendant qu'on ignore encore ce qu'il vaut — et un interrupteur
+   * qui affiche le mauvais état une seconde est un interrupteur qu'on actionne
+   * à contresens.
+   */
+  const [slotMealStored, setSlotMealStored] = React.useState<boolean | null>(
+    null,
+  );
+  const [goal, setGoal] = React.useState<string | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = React.useState(false);
   const [settingsBusy, setSettingsBusy] = React.useState(false);
   const logRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -313,7 +353,17 @@ export default function ChatPage() {
     (async () => {
       try {
         const settings = await loadChatSettings(user.id);
-        if (!cancelled) setMuted(settings.muted);
+        if (!cancelled) {
+          setMuted(settings.muted);
+          // ⛔ ON GARDE LA COLONNE BRUTE ET L'OBJECTIF, PAS LE RÉDUIT. La
+          // réduction est faite au rendu par `slotMealAskSwitchFrom`: la faire
+          // ici perdrait `null`, et « personne n'a choisi » deviendrait
+          // indiscernable de « éteint » — donc l'interrupteur s'afficherait
+          // coupé à tous ceux qui n'y ont jamais touché.
+          setSlotMealStored(settings.slotMealAskEnabled);
+          setGoal(settings.goal);
+          setSettingsLoaded(true);
+        }
       } catch {
         // Voir ci-dessus.
       }
@@ -346,6 +396,25 @@ export default function ChatPage() {
     setNotifyOptIn(isDesktopNotificationOptIn());
     return () => { cancelled = true; };
   }, [user?.id]);
+
+  const toggleSlotMealAsk = React.useCallback(async () => {
+    if (!user?.id || !settingsLoaded || settingsBusy) return;
+    const next = !slotMealAskSwitchFrom({ stored: slotMealStored, goal }).on;
+    setSettingsBusy(true);
+    // Optimiste, puis remis en place si l'écriture échoue — même patron que le
+    // mute. ⛔ ON ÉCRIT UN BOOLÉEN EXPLICITE: revenir à `null` effacerait le
+    // choix au lieu de l'inverser.
+    const before = slotMealStored;
+    setSlotMealStored(next);
+    try {
+      await setSlotMealAsk(user.id, next);
+    } catch (err) {
+      setSlotMealStored(before);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSettingsBusy(false);
+    }
+  }, [user?.id, slotMealStored, goal, settingsLoaded, settingsBusy]);
 
   const toggleMuted = React.useCallback(async () => {
     if (!user?.id || muted === null || settingsBusy) return;
@@ -802,6 +871,25 @@ export default function ChatPage() {
               disabled={muted === null || settingsBusy}
               onToggle={() => void toggleMuted()}
             />
+            {/* ⛔ OFFERT SUR L'OBJECTIF, PAS SUR L'ÉTAT. Un réglage posé
+                au-dessus d'une chose qui ne s'applique pas annonce une
+                fonctionnalité qu'on refuse (la raison écrite de
+                `energySwitchesPlacement.int.test.ts`). Et il RESTE offert à
+                qui a éteint: sinon il disparaîtrait au moment exact où il sert
+                à rallumer. */}
+            {slotMealSwitchOfferable(goal) && (
+              <SettingSwitch
+                testId="setting-slotmeal"
+                label={t("chat.settings.slotmeal.label")}
+                help={t("chat.settings.slotmeal.help")}
+                checked={slotMealAskSwitchFrom({
+                  stored: slotMealStored,
+                  goal,
+                }).on}
+                disabled={!settingsLoaded || settingsBusy}
+                onToggle={() => void toggleSlotMealAsk()}
+              />
+            )}
             <SettingSwitch
               testId="setting-notifications"
               label={t("chat.settings.notify.label")}
@@ -994,6 +1082,21 @@ export default function ChatPage() {
           />
         )}
 
+        {/* ⚠️ LE MÊME DIALOGUE QUE `/app/today`, PAS UNE COPIE. Il porte déjà
+            les huit refus nommés, le plancher déterministe et la garde de
+            fuseau; en écrire un second ici les ferait diverger au premier
+            correctif. Le créneau vient du second temps du menu, jamais d'une
+            inférence. */}
+        {describeSlot && (
+          <TrackingDescribeDialog
+            open
+            localDate={todayLocalIso}
+            slot={describeSlot}
+            onClose={() => setDescribeSlot(null)}
+            onRecorded={() => setDescribeSlot(null)}
+          />
+        )}
+
         {weighInToken && (
           <WeighInDialog
             busy={sending}
@@ -1069,36 +1172,158 @@ export default function ChatPage() {
               </Button>
             </div>
           )}
-          <div className="flex gap-2">
-            {/* UN BOUTON RECOPIÉ → `buttonClass`. C'est l'emploi pour lequel
-                cette fonction existe: l'APPARENCE d'un bouton sur un élément qui
-                n'en est pas un — ici un `<label>` qui enveloppe un champ de
-                fichier masqué. Elle apporte le contour de contrôle
-                `line-strong`, le survol `fig-50` et le rayon des boutons. */}
-            <label
-              className={buttonClass(
-                "secondary",
-                "md",
-                "shrink-0 cursor-pointer",
-              )}
-              aria-label={t("chat.photo.label")}
+          {/* ══════════════════════════════════════════════════════════════
+              LE PANNEAU DU « + » — EN LIGNE, AU-DESSUS DU COMPOSEUR.
+
+              Pas un `Modal`: le composeur reste visible, et ce qu'on vient
+              d'écrire ne disparaît pas derrière un voile. Il porte la grammaire
+              du bloc de réglages (`rounded-card border-line-strong bg-paper-2`),
+              parce que c'est la même nature — un tiroir, pas une page.
+              ═══════════════════════════════════════════════════════════ */}
+          {addOpen && slotMealSwitchOfferable(goal) && (
+            <div
+              role="menu"
+              aria-label={t("chat.compose.add")}
+              data-testid="chat-compose-add-panel"
+              className="mb-2 flex flex-col gap-2 rounded-card border border-line-strong bg-paper-2 p-3"
             >
-              {t("chat.photo.label")}
-              <input
-                type="file"
-                accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
-                className="hidden"
-                disabled={sending}
-                onChange={(e) => {
-                  const file = e.target.files?.[0] ?? null;
-                  // Le champ est remis à zéro pour que RE-choisir le même fichier
-                  // redéclenche `change`. Sans ça, une photo retirée puis
-                  // reprise, ou un envoi raté réessayé, resterait sans effet.
-                  e.target.value = "";
-                  attachPhoto(file);
+              {!addSlotPicker
+                ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      data-testid="chat-add-photo"
+                      onClick={() => {
+                        setAddOpen(false);
+                        photoInputRef.current?.click();
+                      }}
+                    >
+                      {t("chat.compose.add.photo")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      data-testid="chat-add-describe"
+                      onClick={() => setAddSlotPicker(true)}
+                    >
+                      {t("chat.compose.add.describe")}
+                    </Button>
+                    {/* ⚠️ LE MÊME JETON QUE LA QUESTION DE PESÉE, frappé par
+                        l'écran. Vérifié: `writeWeighInReply` n'utilise
+                        `askedOn` que pour le journal, donc un jeton produit
+                        sans qu'aucune bulle C2 ne soit partie fonctionne tel
+                        quel — aucune ligne de serveur à écrire pour ça. */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      data-testid="chat-add-weight"
+                      onClick={() => {
+                        setAddOpen(false);
+                        setWeighInToken(weighInTokenFor(browserLocalDate()));
+                      }}
+                    >
+                      {t("chat.compose.add.weight")}
+                    </Button>
+                  </>
+                )
+                : (
+                  <>
+                    {SLOT_ORDER.map((slot) => (
+                      <Button
+                        key={slot}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`chat-add-describe-${slot}`}
+                        onClick={() => {
+                          setAddOpen(false);
+                          setAddSlotPicker(false);
+                          setDescribeSlot(slot);
+                        }}
+                      >
+                        {forcedSlotLabel(slot) ?? slot}
+                      </Button>
+                    ))}
+                  </>
+                )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                data-testid="chat-add-close"
+                onClick={() => {
+                  setAddOpen(false);
+                  setAddSlotPicker(false);
                 }}
-              />
-            </label>
+              >
+                {t("chat.compose.add.close")}
+              </Button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            {/* ══════════════════════════════════════════════════════════════
+                LE « + », ET PAS UNE ICÔNE D'APPAREIL PHOTO.
+
+                Une icône d'appareil photo promet « photographie tout ». Le
+                « + » promet « déclare quelque chose qui n'était pas prévu » —
+                et deux des trois options ne sont pas des photos. Mettre une
+                icône de photo mentirait sur les deux tiers du menu.
+
+                ⛔ ET IL N'EXISTE QUE POUR LES OBJECTIFS DE POIDS. C'est la
+                décision produit: la photo d'un repas n'est offerte qu'à ceux
+                dont l'objectif la consomme. Quelqu'un en `maintenance` n'a
+                donc plus de bouton photo du tout — c'est une perte de surface
+                assumée, pas un oubli.
+
+                ⛔ GATÉ SUR L'OBJECTIF, JAMAIS SUR L'OPT-OUT. L'interrupteur
+                éteint les QUESTIONS; le « + » est le geste qui leur survit.
+                C'est ce que promet le libellé du bouton d'extinction, et un
+                test le tient. ═══════════════════════════════════════════ */}
+            {slotMealSwitchOfferable(goal) && (
+              <div className="relative shrink-0">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  disabled={sending}
+                  aria-haspopup="menu"
+                  aria-expanded={addOpen}
+                  aria-label={t("chat.compose.add")}
+                  data-testid="chat-compose-add"
+                  onClick={() => {
+                    setAddOpen((v) => !v);
+                    setAddSlotPicker(false);
+                  }}
+                >
+                  +
+                </Button>
+              </div>
+            )}
+            {/* ⚠️ LE CHAMP DE FICHIER RESTE DANS LE DOM, ET IL EST OUVERT PAR
+                LE « + ». Il n'est plus enveloppé dans un `<label>` qui fait
+                bouton: c'est le menu qui décide, et lui seul. Le retirer
+                complètement obligerait à en fabriquer un à la volée, ce qui
+                perdrait le `accept` et la remise à zéro ci-dessous. */}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
+              className="hidden"
+              disabled={sending}
+              data-testid="chat-photo-input"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                // Le champ est remis à zéro pour que RE-choisir le même fichier
+                // redéclenche `change`. Sans ça, une photo retirée puis
+                // reprise, ou un envoi raté réessayé, resterait sans effet.
+                e.target.value = "";
+                attachPhoto(file);
+              }}
+            />
             {/* LE MÊME CHAMP SERT LES DEUX, et il le DIT: sous une photo en
                 attente, le placeholder annonce une légende facultative. Un champ
                 qui continue de dire « écris à Sophia » laisserait croire qu'un

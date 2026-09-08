@@ -622,7 +622,40 @@ export const PAGE_NAMESPACES: Readonly<
   // des fonctions edge et relève de la locale de CONTENU (R2), pas de celle de
   // l'interface (R3). Les deux axes ne se confondent pas, et celui-ci n'est pas
   // dans ce lot.
-  "/app/chat": ["chat", "app", "shell"],
+  //
+  // ⟳ `tracking` REJOINT LA LISTE LE 2026-09-08, et c'est une DÉCLARATION, pas
+  // une fuite tolérée. Le geste « + » du composeur offre « décrire un repas non
+  // prévu », et il monte `TrackingDescribeDialog` — LE MÊME dialogue que
+  // `/app/today`, pas une copie. Il porte déjà les huit refus nommés, le
+  // plancher déterministe et la garde de fuseau; en écrire un second pour
+  // n'avoir à déclarer qu'un namespace de moins ferait diverger les deux au
+  // premier correctif, et dupliquerait huit messages de refus dans deux
+  // familles de clés. Déclarer coûte une ligne; dupliquer coûte une dette.
+  "/app/chat": [
+    "chat",
+    "app",
+    "shell",
+    // ⟳ LES SIX FAMILLES QUE LE DIALOGUE DE DESCRIPTION TIRE AVEC LUI.
+    //
+    // `tracking` est la sienne; les cinq autres sont les ATOMES de
+    // `api/labels.ts` qu'il atteint transitivement (le libellé d'un créneau, la
+    // phrase d'une quantité, le mot d'une question). Ce sont exactement celles
+    // que `/app/today` déclare, pour le même dialogue.
+    //
+    // ⛔ DÉCLARER, PAS DUPLIQUER. L'alternative était d'écrire un second
+    // dialogue « slim » pour n'atteindre que `chat.*` — c'est-à-dire recopier
+    // les huit refus nommés, le plancher déterministe et la garde de fuseau
+    // dans une seconde famille de clés, et les faire diverger au premier
+    // correctif. Les six familles sont déjà traduites dans les deux packs
+    // (elles servent `/app/today`), donc les déclarer n'ouvre aucune couture:
+    // le défaut que ce test attrape est un namespace atteint et NON TRADUIT.
+    "tracking",
+    "common",
+    "when",
+    "amount",
+    "sentence",
+    "question",
+  ],
   // `/app/today` — la journée. La liste la plus longue de la table, et c'est
   // la nature de cet écran: il fait la jonction entre le plan de repas
   // (`meals`), les lignes d'engagement rendues par `api/labels.ts` (les

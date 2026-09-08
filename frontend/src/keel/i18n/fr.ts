@@ -4272,6 +4272,23 @@ export const fr: TranslatedMessages = {
     "Ton navigateur bloque les notifications pour ce site — autorise-les là-bas d’abord.",
   "chat.settings.notify.unsupported":
     "Ce navigateur ne sait pas afficher de notifications.",
+  // ⛔ LE LIBELLÉ NE PROMET QUE CE QU'IL FAIT — le même que le bouton sous
+  // chaque question. Il éteint une QUESTION, pas le suivi: les repas restent
+  // cochables et le « + » reste là. « Arrêter le suivi » ferait couper la
+  // mesure à quelqu'un qui voulait juste le silence, et il ne le saurait pas.
+  "chat.settings.slotmeal.label": "Me demander à chaque repas",
+  "chat.settings.slotmeal.help":
+    "Une question à chaque moment où tu manges, pour savoir ce que c'était. Éteint, tes repas restent cochables sur ta journée et le « + » reste là.",
+  // ── LE GESTE « + » DU COMPOSEUR ────────────────────────────────────────
+  //
+  // ⛔ PAS « APPAREIL PHOTO ». Une icône d'appareil photo promet
+  // « photographie tout »; le « + » promet « déclare quelque chose qui n'était
+  // pas prévu », et deux des trois options ne sont pas des photos.
+  "chat.compose.add": "Ajouter quelque chose",
+  "chat.compose.add.close": "Fermer",
+  "chat.compose.add.photo": "Photo d'un repas non prévu",
+  "chat.compose.add.describe": "Décrire un repas non prévu",
+  "chat.compose.add.weight": "Mettre à jour mon poids",
   "chat.photo.label": "Photo",
   "chat.photo.sending": "Envoi d’une photo…",
   "chat.photo.error.type":

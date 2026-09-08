@@ -333,23 +333,81 @@ export type ChatSettings = {
   muted: boolean;
   /** Dernière ouverture de la conversation. `null` = jamais ouverte. */
   lastReadAt: string | null;
+  /**
+   * `profiles.slot_meal_ask_enabled` — TRI-ÉTAT, BRUT.
+   *
+   * ⛔ ON NE RÉDUIT PAS ICI. `null` veut dire « personne n'a choisi », et c'est
+   * l'OBJECTIF qui décide alors. Le réduire dans ce chargeur ferait une
+   * deuxième écriture de la règle (`slotMealAskSwitchFrom` est la première), et
+   * c'est celle qu'on relit le moins qui finirait par diverger.
+   */
+  slotMealAskEnabled: boolean | null;
+  /**
+   * L'objectif, pour la réduction ET pour savoir si l'interrupteur a lieu
+   * d'être offert. `null` = pas de ligne `student_goals`, ce qui est le cas de
+   * la majorité des comptes.
+   */
+  goal: string | null;
 };
 
 export async function loadChatSettings(userId: string): Promise<ChatSettings> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("proactive_muted_at,chat_last_read_at")
+    .select("proactive_muted_at,chat_last_read_at,slot_meal_ask_enabled")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw error;
   const row = (data ?? {}) as {
     proactive_muted_at?: string | null;
     chat_last_read_at?: string | null;
+    slot_meal_ask_enabled?: boolean | null;
   };
+
+  // ⚠️ UNE SECONDE LECTURE, ET ELLE NE FAIT PAS ÉCHOUER LA PREMIÈRE. Sans
+  // objectif on ne sait pas si l'interrupteur a lieu d'être offert — mais un
+  // échec ici ne doit pas faire disparaître le panneau de réglages entier. Il
+  // rend `null`, l'interrupteur ne s'offre pas, et le reste marche.
+  let goal: string | null = null;
+  try {
+    const g = await supabase
+      .from("student_goals")
+      .select("goal")
+      .eq("user_id", userId)
+      .maybeSingle();
+    goal = String((g.data as { goal?: unknown } | null)?.goal ?? "").trim() ||
+      null;
+  } catch {
+    goal = null;
+  }
+
   return {
     muted: Boolean(row.proactive_muted_at),
     lastReadAt: row.chat_last_read_at ?? null,
+    slotMealAskEnabled: row.slot_meal_ask_enabled === null ||
+        row.slot_meal_ask_enabled === undefined
+      ? null
+      : Boolean(row.slot_meal_ask_enabled),
+    goal,
   };
+}
+
+/**
+ * Allume ou éteint la question par repas.
+ *
+ * ⛔ ON ÉCRIT UN BOOLÉEN EXPLICITE, JAMAIS `null`. `null` veut dire « personne
+ * n'a choisi »; y revenir depuis l'écran effacerait le choix de la personne au
+ * lieu de l'inverser. Les deux gestes de cet interrupteur sont `true` et
+ * `false`, et rien d'autre.
+ */
+export async function setSlotMealAsk(
+  userId: string,
+  enabled: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ slot_meal_ask_enabled: enabled })
+    .eq("id", userId);
+  if (error) throw error;
 }
 
 /**

@@ -97,7 +97,87 @@ const SLOT_NAME_KEYS = {
   before_bed: "chat.slotmeal.slot.before_bed",
 } as const;
 
+/**
+ * LES SIX MOMENTS, DANS L'ORDRE DE LA JOURNÉE.
+ *
+ * ⚠️ EXPORTÉS POUR LE GESTE « + », QUI DOIT LES OFFRIR TOUS. Le composeur ne
+ * peut pas deviner de quel repas la personne parle: « décrire un repas non
+ * prévu » sans choix de moment rangerait la déclaration au dernier créneau
+ * écoulé, ce qui tombe juste par accident et faux dès qu'on répond le soir.
+ * C'est la même raison qui met le créneau DANS le jeton de la question (R6).
+ */
+export const SLOT_ORDER = [
+  "breakfast",
+  "snack_am",
+  "lunch",
+  "snack_pm",
+  "dinner",
+  "before_bed",
+] as const;
+
 export function forcedSlotLabel(slot: string): string | null {
   const key = SLOT_NAME_KEYS[slot as keyof typeof SLOT_NAME_KEYS];
   return key ? t(key) : null;
+}
+
+// ---------------------------------------------------------------------------
+// L'INTERRUPTEUR — LE MIROIR DE `slotMealAskSwitchFrom`
+// ---------------------------------------------------------------------------
+
+/**
+ * Les objectifs que la boucle par repas couvre. Jumeau de `SLOT_MEAL_GOALS`
+ * (`_shared/keel/slot_meal_ask.ts`).
+ *
+ * ⚠️ LA DUPLICATION EST INÉVITABLE ET GARDÉE. Deno et le navigateur ne
+ * partagent pas de module; recopier deux jetons l'est, les laisser diverger ne
+ * l'est pas. `slotMealSwitch.int.test.ts` relit le module Deno sur le disque et
+ * fait échouer la suite si les deux copies bougent séparément.
+ */
+export const SLOT_MEAL_GOALS = ["fat_loss", "muscle_gain"] as const;
+
+export type SlotMealAskSwitchSource =
+  | "explicit_on"
+  | "explicit_off"
+  | "goal"
+  | "no_goal";
+
+/**
+ * ⛔ LA MÊME RÉDUCTION QUE LE SERVEUR, ET C'EST OBLIGATOIRE.
+ *
+ * L'écran lit `profiles` en direct: sans cette fonction, il faudrait soit
+ * afficher la COLONNE (donc « éteint » à tous ceux qui n'ont jamais choisi —
+ * la cicatrice `energySwitchFrom` mot pour mot), soit faire un aller-retour
+ * serveur pour un booléen.
+ *
+ * `null` n'est PAS une extinction: l'objectif décide. `false` gagne pour
+ * toujours — une extinction est un choix, un objectif une circonstance.
+ */
+export function slotMealAskSwitchFrom(args: {
+  stored: boolean | null;
+  goal: string | null;
+}): { on: boolean; source: SlotMealAskSwitchSource } {
+  if (args.stored === true) return { on: true, source: "explicit_on" };
+  if (args.stored === false) return { on: false, source: "explicit_off" };
+  const goal = String(args.goal ?? "").trim();
+  if (!goal) return { on: false, source: "no_goal" };
+  return {
+    on: (SLOT_MEAL_GOALS as readonly string[]).includes(goal),
+    source: "goal",
+  };
+}
+
+/**
+ * L'interrupteur A-T-IL LIEU D'ÊTRE OFFERT ?
+ *
+ * ⛔ IL NE DÉPEND PAS DE L'ÉTAT, IL DÉPEND DE L'OBJECTIF. Un réglage affiché
+ * au-dessus d'une chose qui ne s'applique pas annonce à la personne une
+ * fonctionnalité qu'on lui refuse — c'est la raison écrite de
+ * `energySwitchesPlacement.int.test.ts`, et elle vaut ici.
+ *
+ * ⚠️ ET IL RESTE OFFERT À QUELQU'UN QUI A ÉTEINT: sinon l'interrupteur
+ * disparaîtrait au moment exact où il sert à rallumer.
+ */
+export function slotMealSwitchOfferable(goal: string | null): boolean {
+  const g = String(goal ?? "").trim();
+  return (SLOT_MEAL_GOALS as readonly string[]).includes(g);
 }

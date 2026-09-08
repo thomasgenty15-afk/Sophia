@@ -32,6 +32,26 @@ export const WEIGHT_KG_MAX = 400;
 export const WEIGH_IN_TOKEN_PREFIX = "KEEL_WEIGHIN_";
 
 /**
+ * Le jeton du jour, frappé par l'ÉCRAN.
+ *
+ * ⚠️ POURQUOI LE FRONT A LE DROIT DE LE FABRIQUER. Le geste « mettre à jour
+ * mon poids » du « + » ne répond à aucune bulle: il n'y a donc pas de jeton à
+ * relire. Vérifié côté serveur avant de l'ajouter — `writeWeighInReply`
+ * n'utilise `askedOn` que pour le JOURNAL, jamais comme garde: un jeton frappé
+ * sans qu'aucune question ne soit partie s'écrit exactement comme un autre.
+ *
+ * ⛔ ET IL NE PORTE QUE LE JOUR. L'élève est identifié par son JWT, jamais par
+ * le contenu d'un jeton qui a fait l'aller-retour par un client.
+ */
+export function weighInTokenFor(localDate: string): string {
+  const date = String(localDate ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error(`weighInTokenFor: date invalide: ${JSON.stringify(localDate)}`);
+  }
+  return `${WEIGH_IN_TOKEN_PREFIX}${date}`;
+}
+
+/**
  * `true` si ce payload de bouton ouvre le formulaire de pesée.
  *
  * ⚠️ ANCRÉ AUX DEUX BOUTS, ET C'EST LE SEUL PIÈGE DE FORME DE CE LOT.

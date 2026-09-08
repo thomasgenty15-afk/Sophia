@@ -587,10 +587,11 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
    * l'arrêt du suivi ferait couper la mesure à quelqu'un qui voulait juste le
    * silence — et il ne le saurait pas.
    *
-   * ⚠️ L'ACCUSÉ NE MENTIONNE NI LE « + » DU COMPOSEUR NI LA CASE DE PROFIL:
-   * les deux arrivent au lot B.4 et N'EXISTENT PAS ENCORE. Les annoncer ici
-   * enverrait quelqu'un chercher un réglage introuvable, ce qui est la même
-   * faute qu'un accusé qui prétend. À COMPLÉTER EN B.4, dans les deux packs.
+   * ⟳ COMPLÉTÉ AU LOT B.4. L'accusé taisait le « + » du composeur et la case
+   * de profil parce qu'ils N'EXISTAIENT PAS ENCORE: les annoncer aurait envoyé
+   * quelqu'un chercher un réglage introuvable, ce qui est la même faute qu'un
+   * accusé qui prétend. Les deux existent maintenant, et l'accusé les nomme —
+   * c'est ce qui distingue « je me tais » de « j'ai coupé ton suivi ».
    */
   mute: string;
   muted: string;
@@ -625,7 +626,7 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     photoAsked: "Send it over whenever you are ready.",
     mute: "Stop asking me at each meal",
     muted:
-      "Turned off. I will not ask at each meal any more — your meals stay tickable on your day, and nothing already logged has moved.",
+      "Turned off. I will not ask at each meal any more — your meals stay tickable on your day, and the “+” next to the message box is still there for a photo, a description or your weight. You can turn it back on in your chat settings.",
     muteFailed:
       "I could not turn that off just now, so the question may come back. Try again, and if it keeps coming back tell me.",
   },
@@ -657,7 +658,7 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     photoAsked: "Envoie-la-moi quand tu veux.",
     mute: "Ne plus me demander à chaque repas",
     muted:
-      "C'est éteint. Je ne poserai plus la question à chaque repas — tes repas restent cochables sur ta journée, et rien de ce qui est déjà enregistré n'a bougé.",
+      "C'est éteint. Je ne poserai plus la question à chaque repas — tes repas restent cochables sur ta journée, et le « + » à côté du champ de message reste là pour une photo, une description ou ton poids. Tu peux rallumer dans tes réglages de conversation.",
     muteFailed:
       "Je n'ai pas réussi à l'éteindre à l'instant, donc la question peut revenir. Retente, et si elle revient quand même dis-le-moi.",
   },
