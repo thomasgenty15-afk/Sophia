@@ -66,8 +66,10 @@ import { localDateInZone } from "../keel/local_date.ts";
 import {
   parseSlotMealButton,
   renderSlotMealAck,
+  renderSlotMealAsk,
   SLOT_MEAL_BUTTON_PREFIX,
 } from "../keel/slot_meal_ask.ts";
+import { applyStripTicks } from "../keel/evening_strip_io.ts";
 import {
   SLOT_MEAL_ACK_PURPOSE,
   writeSlotMealFact,
@@ -950,6 +952,97 @@ export async function handleDeterministicButton(
     // ferait recevoir la question suivante à quelqu'un qui croit l'avoir
     // coupée — pire que ne pas offrir le bouton, parce qu'il n'essaiera pas
     // deux fois.
+    // ── « OUI » — LES PLATS NOMMÉS SONT COCHÉS ─────────────────────────────
+    //
+    // ⛔ LES INDEX VIENNENT DE LA CHARGE, JAMAIS D'UNE RELECTURE DU PLAN.
+    // C'est la règle écrite de `stripAllId`: le tap ne peut écrire que ce que
+    // la QUESTION a nommé. Relire au moment du tap cocherait des plats que la
+    // personne n'a jamais vus — et le plan a pu être recomposé entre-temps.
+    //
+    // ⚠️ `applyStripTicks`, PAS UN SECOND ÉCRIVAIN. Il porte les gardes que
+    // cette lane doit respecter aussi: plat disparu (`stale`), jour hors
+    // fenêtre, et surtout « pas encore déclarable » — on ne coche pas un dîner
+    // à 10 h du matin. Les réécrire ici en ferait une deuxième version, et
+    // c'est celle qu'on relit le moins qui écrirait un fait faux.
+    //
+    // ⟳ CONSÉQUENCE POUR LE LOT C: `evening_strip_io.ts` NE MEURT PLUS. Il
+    // était sur la liste des morts par ricochet parce que son seul appelant
+    // était le tap de la bande; il en a un neuf, vivant, et volontaire.
+    if (slotMeal.action === "ate" || slotMeal.action === "notplanned") {
+      const plan = slotMeal.plan;
+      if (!plan) {
+        // Impossible par construction (`parseSlotMealButton` refuse ces deux
+        // actions sans segment de plan) — mais on ne l'affirme pas en silence.
+        return handled("keel_slot_meal_plan_missing");
+      }
+      const localDate = localDateFor(
+        now,
+        await timezoneFor(admin, message.user_id),
+      );
+      try {
+        const res = await applyStripTicks(admin, {
+          userId: message.user_id,
+          mealId: plan.mealId,
+          dishIndexes: plan.dishIndexes,
+          // ⛔ « Non » N'EST PAS UNE ABSENCE DE COCHE: c'est une DÉCLARATION
+          // que le plat prévu n'a pas été mangé, et son motif est du
+          // vocabulaire fermé (`MEAL_UNTICK_REASONS`). Sans lui, le bilan ne
+          // distinguerait pas « il a dit non » de « personne n'a rien dit ».
+          disqualified: slotMeal.action === "notplanned" ? "ate_other" : null,
+          today: localDate,
+          now,
+        });
+        written = res.written + res.rearmed > 0;
+      } catch (error) {
+        console.warn(JSON.stringify({
+          tag: "keel.slot_meal.tick_write_failed",
+          user_id: message.user_id,
+          slot: slotMeal.slot,
+          action: slotMeal.action,
+          error: error instanceof Error ? error.message : String(error),
+          effect: "l'accuse dit que la coche n'a pas pris",
+        }));
+      }
+
+      // ⛔ « NON » ENCHAÎNE, IL NE CONCLUT PAS. C'est le début de « alors tu as
+      // mangé quoi ? »: on repose la question du créneau NON COUVERT, avec ses
+      // trois boutons. Un accusé plat arrêterait la conversation juste avant
+      // ce qu'on cherche à savoir. `renderSlotMealAck` REFUSE ce cas exprès.
+      if (slotMeal.action === "notplanned" && written) {
+        const next = renderSlotMealAsk({
+          locale: voice.contentLocale,
+          localDate: slotMeal.localDate,
+          slot: slotMeal.slot,
+          origin: "uncovered",
+          eatingOut: false,
+        });
+        await ack(admin, {
+          userId: message.user_id,
+          requestId: args.requestId,
+          purpose: SLOT_MEAL_ACK_PURPOSE,
+          body: next.body,
+          buttons: next.buttons.map((b) => ({
+            payload: b.payload,
+            label: b.label,
+          })),
+        });
+        return handled("keel_slot_meal_notplanned");
+      }
+      if (slotMeal.action === "notplanned") {
+        await ack(admin, {
+          userId: message.user_id,
+          requestId: args.requestId,
+          purpose: SLOT_MEAL_ACK_PURPOSE,
+          body: renderSlotMealAck({
+            locale: voice.contentLocale,
+            action: "ate",
+            written: false,
+          }),
+        });
+        return handled("keel_slot_meal_notplanned_unwritten");
+      }
+    }
+
     if (slotMeal.action === "mute") {
       const { error } = await admin
         .from("profiles")

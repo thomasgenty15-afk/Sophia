@@ -25,7 +25,7 @@ export const SLOT_MEAL_BUTTON_PREFIX = "KEEL_SLOTMEAL_";
  * qu'elle porte deviendrait `undefined` en aval.
  */
 const SLOT_MEAL_PAYLOAD =
-  /^KEEL_SLOTMEAL_(photo|describe|skip|mute)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
+  /^KEEL_SLOTMEAL_(photo|describe|skip|mute|ate|notplanned)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)(?:\|[0-9a-f-]{36}@\d+(?:,\d+)*)?$/;
 
 export interface SlotMealTap {
   /**
@@ -41,7 +41,7 @@ export interface SlotMealTap {
    * liste de ce que l'écran traite: un `mute` que la regex refuserait tomberait
    * en charge inconnue et n'atteindrait jamais le serveur.
    */
-  action: "photo" | "describe" | "skip" | "mute";
+  action: "photo" | "describe" | "skip" | "mute" | "ate" | "notplanned";
   localDate: string;
   slot: string;
 }

@@ -12,8 +12,11 @@ import { CHAT_SCOPE, deliverChatMessage } from "../chat/delivery.ts";
 import { localDateInZone } from "./local_date.ts";
 import { type EatingOccasion } from "./meal_generation.ts";
 import { dayTokenForLocalDate } from "./slot_reminders.ts";
+import { plannedSlotsToday } from "./slot_meal_planned_io.ts";
 import {
   decideSlotMealAsk,
+  SLOT_MEAL_GOALS,
+  slotMealAskSwitchFrom,
   type EatingOutCell,
   parseSlotMealButton,
   renderSlotMealAsk,
@@ -158,6 +161,33 @@ export interface SlotMealStepOutcome {
 }
 
 /** Le pas complet pour UN élève. */
+/**
+ * LA BOUCHE DE CETTE PERSONNE, POUR LE FILTRE A8.3 — ET RIEN D'AUTRE.
+ *
+ * ⚠️ APPELÉE PARESSEUSEMENT, seulement quand le plan du jour porte au moins un
+ * plat DÉDIÉ. Sur un balayage horaire de toute la flotte, la lire à chaque fois
+ * serait une requête par élève et par heure pour un filtre qui n'a d'objet que
+ * dans une minorité de plans.
+ *
+ * ⚠️ `.eq("user_id", …)` ET RIEN DE PLUS: une personne n'a qu'une bouche dans
+ * son foyer. Une lecture en panne rend `null`, ce qui FERME les plats dédiés —
+ * une question qui manque plutôt qu'un fait fabriqué sur le plat d'un tiers.
+ */
+async function memberIdOf(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await admin
+    .from("household_members")
+    .select("id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  const id = String((data as Record<string, unknown> | null)?.id ?? "").trim();
+  return id || null;
+}
+
 export async function runSlotMealStep(
   admin: SupabaseClient,
   args: {
@@ -225,7 +255,29 @@ export async function runSlotMealStep(
   // ── LES DEUX PORTES GRATUITES D'ABORD ──────────────────────────────────
   // L'objectif retire la majorité des élèves avant qu'on ne lise une case.
   const eatingOut = eatingOutCellsFrom(row?.practical_constraints);
-  const asked = eatingOut.length > 0 && goal
+
+  // ── LES CRÉNEAUX QUE LE PLAN COMPOSE, ET CE QUI RESTE À COCHER DEDANS ────
+  //
+  // ⚠️ CHARGÉS APRÈS LES GARDES GRATUITES, JAMAIS AVANT. Le mute, l'objectif et
+  // l'interrupteur se lisent sur la ligne qu'on a déjà; ce chargeur-ci fait
+  // deux requêtes de plus. Les ordonner autrement ferait payer une lecture de
+  // plan à toute la cohorte que la décision écarte de toute façon.
+  const dayToken = dayTokenForLocalDate(today);
+  const openSwitch = goal !== null && SLOT_MEAL_GOALS.has(goal) && !args.muted &&
+    slotMealAskSwitchFrom({ stored: args.askEnabled, goal }).on;
+  const planned = openSwitch
+    ? await plannedSlotsToday(admin, {
+      userId: args.userId,
+      localDate: today,
+      dayToken,
+      resolveMemberId: () => memberIdOf(admin, args.userId),
+    })
+    : { slots: [], reason: "no_plan" as const };
+
+  // ⟳ L'IDEMPOTENCE NE DÉPEND PLUS DU SEUL « DEHORS ». Un créneau composé, ou
+  // simplement déclaré au rythme, s'interroge aussi: relire les créneaux déjà
+  // demandés dès qu'il y a QUELQUE CHOSE à demander.
+  const asked = openSwitch
     ? await slotsAskedToday(admin, { userId: args.userId, today })
     : [];
 
@@ -233,7 +285,8 @@ export async function runSlotMealStep(
     goal,
     muted: args.muted,
     askEnabled: args.askEnabled,
-    dayToken: dayTokenForLocalDate(today),
+    plannedToday: planned.slots,
+    dayToken,
     localHour,
     eatingOut,
     // La CLÉ du jsonb, pas une colonne. Voir le pavé au-dessus.
@@ -244,11 +297,21 @@ export async function runSlotMealStep(
   if (!verdict.ask) return { verdict, delivered: false };
   if (args.dryRun) return { verdict, delivered: false, deliveryReason: "dry_run" };
 
-  const message = renderSlotMealAsk({
-    locale: String(args.locale ?? "") || "en-US",
-    localDate: today,
-    slot: verdict.slot,
-  });
+  const message = verdict.origin === "planned"
+    ? renderSlotMealAsk({
+      locale: String(args.locale ?? "") || "en-US",
+      localDate: today,
+      slot: verdict.slot,
+      origin: "planned",
+      planned: verdict.planned,
+    })
+    : renderSlotMealAsk({
+      locale: String(args.locale ?? "") || "en-US",
+      localDate: today,
+      slot: verdict.slot,
+      origin: "uncovered",
+      eatingOut: verdict.eatingOut,
+    });
   const res = await deliverChatMessage(admin, {
     userId: args.userId,
     content: message.body,

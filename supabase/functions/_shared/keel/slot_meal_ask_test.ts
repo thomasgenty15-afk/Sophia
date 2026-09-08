@@ -42,6 +42,9 @@ function base(over: Partial<Parameters<typeof decideSlotMealAsk>[0]> = {}) {
     // passer tous les cas de ce fichier par la branche explicite, et la garde
     // de l'objectif ne serait plus éprouvée par personne.
     askEnabled: null,
+    // ⛔ VIDE, ET DÉCLARÉ. « Le plan ne compose rien » est le cas de base de ce
+    // fichier — les cas `planned` sont plus bas et le posent explicitement.
+    plannedToday: [],
     dayToken: "tue",
     localHour: 14,
     eatingOut: [{ day: "tue", slots: ["lunch"] }],
@@ -69,6 +72,7 @@ Deno.test("⛔ LE CRÉNEAU EST DANS LE JETON, ET IL EN RESSORT INTACT", () => {
     action: "describe",
     localDate: TUESDAY,
     slot: "lunch",
+    plan: null,
   });
   assert(id.startsWith(SLOT_MEAL_BUTTON_PREFIX));
 });
@@ -177,7 +181,7 @@ Deno.test("une case « dehors » SANS moments ne déclenche rien", () => {
 Deno.test("un autre jour que le jour courant ne déclenche rien", () => {
   assertEquals(
     base({ eatingOut: [{ day: "wed", slots: ["lunch"] }] }),
-    { ask: false, reason: "no_eating_out_today" },
+    { ask: false, reason: "nothing_to_ask" },
   );
 });
 
@@ -277,11 +281,21 @@ Deno.test("⛔ UN CRÉNEAU DÉJÀ DEMANDÉ AUJOURD'HUI NE SE REDEMANDE PAS", () 
 
 Deno.test("la question porte QUATRE options, et chacune nomme son créneau", () => {
   for (const locale of ["en-US", "fr-FR"]) {
-    const m = renderSlotMealAsk({ locale, localDate: TUESDAY, slot: "lunch" });
-    // ⟳ TROIS, PUIS QUATRE (2026-09-08): l'extinction voyage AVEC la question.
-    assertEquals(m.buttons.length, SLOT_MEAL_ACTIONS.length);
+    const m = renderSlotMealAsk({
+      locale,
+      localDate: TUESDAY,
+      slot: "lunch",
+      origin: "uncovered",
+      eatingOut: true,
+    });
+    // ⟳ QUATRE, ET PAS `SLOT_MEAL_ACTIONS.length`. Le vocabulaire porte six
+    // actions depuis que la forme COMPOSÉE existe (`ate`, `notplanned`), et
+    // aucune question ne les offre toutes: lier le compte à la taille du
+    // vocabulaire ferait rougir ce test à chaque action ajoutée à l'AUTRE
+    // forme. C'est le nombre de boutons de CETTE question-ci.
+    assertEquals(m.buttons.length, 4);
     const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
-    assertEquals(actions, [...SLOT_MEAL_ACTIONS]);
+    assertEquals(actions, ["photo", "describe", "skip", "mute"]);
     for (const b of m.buttons) {
       const tap = parseSlotMealButton(b.payload);
       assertEquals(tap?.slot, "lunch", `${locale}: ${b.payload}`);
@@ -414,6 +428,8 @@ Deno.test("le bouton d'extinction est SOUS la question, et il est le dernier", (
     locale: "fr-FR",
     localDate: TUESDAY,
     slot: "lunch",
+    origin: "uncovered",
+    eatingOut: true,
   });
   const last = m.buttons[m.buttons.length - 1];
   assertEquals(parseSlotMealButton(last.payload)?.action, "mute");
@@ -438,4 +454,147 @@ Deno.test("l'accusé d'extinction ne prétend pas quand rien n'est écrit", () =
       ok,
     );
   }
+});
+
+// ---------------------------------------------------------------------------
+// UN SEUL AXE — LE PLAN COUVRE-T-IL CE CRÉNEAU ?
+// ---------------------------------------------------------------------------
+
+const PLANNED_LUNCH = {
+  slot: "lunch" as const,
+  mealId: "11111111-2222-4333-8444-555555555555",
+  dishIndexes: [1, 2],
+  title: "Poulet, riz complet, brocolis",
+};
+
+Deno.test("CRÉNEAU COMPOSÉ — la question nomme le plat, et porte oui/non", () => {
+  const v = base({
+    eatingOut: [],
+    plannedToday: [PLANNED_LUNCH],
+    rhythmRaw: [{ slot: "lunch", at: "13:00" }],
+  });
+  assert(v.ask);
+  if (!v.ask || v.origin !== "planned") return;
+  assertEquals(v.origin, "planned");
+  assertEquals(v.planned.title, PLANNED_LUNCH.title);
+
+  const m = renderSlotMealAsk({
+    locale: "fr-FR",
+    localDate: TUESDAY,
+    slot: "lunch",
+    origin: "planned",
+    planned: v.planned,
+  });
+  // ⛔ LE PLAT EST NOMMÉ. Un « Oui » qui coche trois lignes anonymes est une
+  // signature en blanc.
+  assert(m.body.includes(PLANNED_LUNCH.title), m.body);
+  assertEquals(m.buttons.length, 3);
+  const actions = m.buttons.map((b) => parseSlotMealButton(b.payload)?.action);
+  assertEquals(actions, ["ate", "notplanned", "mute"]);
+
+  // Les deux réponses portent DE QUOI on parle; l'extinction non — elle ne
+  // coche rien.
+  const [yes, no, mute] = m.buttons.map((b) => parseSlotMealButton(b.payload));
+  assertEquals(yes?.plan, {
+    mealId: PLANNED_LUNCH.mealId,
+    dishIndexes: [1, 2],
+  });
+  assertEquals(no?.plan?.dishIndexes, [1, 2]);
+  assertEquals(mute?.plan, null);
+});
+
+Deno.test("⟳ CRÉNEAU DÉCLARÉ MAIS NON COMPOSÉ — « tu as mangé quoi ? »", () => {
+  // C'EST LE TROU PAR LEQUEL PASSAIENT LES REPAS QU'ON NE COMPTE JAMAIS.
+  // Quelqu'un qui a déclaré déjeuner tous les jours et dont le plan ne compose
+  // rien à midi n'était JAMAIS interrogé: ni le plan, ni la question, ni le
+  // bilan ne savaient ce qu'il avait mangé.
+  const v = base({
+    eatingOut: [],
+    plannedToday: [],
+    rhythmRaw: [{ slot: "lunch", at: "13:00" }],
+  });
+  assert(v.ask);
+  if (!v.ask || v.origin !== "uncovered") return;
+  assertEquals(v.slot, "lunch");
+  assertEquals(v.eatingOut, false);
+
+  const m = renderSlotMealAsk({
+    locale: "fr-FR",
+    localDate: TUESDAY,
+    slot: "lunch",
+    origin: "uncovered",
+    eatingOut: false,
+  });
+  assert(m.body.includes("Rien n'était prévu"), m.body);
+  assertEquals(m.buttons.length, 4);
+});
+
+Deno.test("⛔ « DEHORS » L'EMPORTE SUR « COMPOSÉ »", () => {
+  // La personne a DIT qu'elle mangeait dehors: le plat composé pour ce
+  // moment-là est un reste de composition, pas une prévision. Lui demander
+  // « tu as mangé ton poulet prévu ? » serait lui opposer une consigne qu'elle
+  // a déjà annulée.
+  const v = base({
+    eatingOut: [{ day: "tue", slots: ["lunch"] }],
+    plannedToday: [PLANNED_LUNCH],
+    rhythmRaw: [{ slot: "lunch", at: "13:00" }],
+  });
+  assert(v.ask);
+  if (!v.ask || v.origin !== "uncovered") return;
+  assertEquals(v.eatingOut, true);
+});
+
+Deno.test("un créneau composé dont tout est COCHÉ ne se demande pas", () => {
+  // Le lecteur retire les index déjà cochés; un créneau qui n'en garde aucun
+  // n'entre pas dans la décision. R2 — une question déjà répondue ne se repose
+  // pas, et c'est la garde qui remplace l'ancienne collision avec la bande du
+  // soir (désarmée depuis le 2026-09-07).
+  const v = base({
+    eatingOut: [],
+    plannedToday: [{ ...PLANNED_LUNCH, dishIndexes: [] }],
+    rhythmRaw: null,
+  });
+  assertEquals(v, { ask: false, reason: "nothing_to_ask" });
+});
+
+Deno.test("le jeton de plan est OBLIGATOIRE par action, dans les deux sens", () => {
+  const plan = { mealId: PLANNED_LUNCH.mealId, dishIndexes: [1, 2] };
+  // ⛔ `ate`/`notplanned` SANS segment de plan: refusé à la lecture ET à
+  // l'écriture. Une charge qui ne dit pas de quels plats elle parle ne peut
+  // rien cocher.
+  assertEquals(
+    parseSlotMealButton(`KEEL_SLOTMEAL_ate|${TUESDAY}|lunch`),
+    null,
+  );
+  assertThrows(() =>
+    slotMealButtonId({ action: "ate", localDate: TUESDAY, slot: "lunch" })
+  );
+  // ⛔ Et les quatre autres AVEC un segment: refusé aussi. Une charge qui le
+  // porte là où ça n'a pas de sens est une charge forgée.
+  assertEquals(
+    parseSlotMealButton(
+      `KEEL_SLOTMEAL_skip|${TUESDAY}|lunch|${plan.mealId}@1,2`,
+    ),
+    null,
+  );
+  assertThrows(() =>
+    slotMealButtonId({ action: "skip", localDate: TUESDAY, slot: "lunch", plan })
+  );
+  // Un index dupliqué cocherait deux fois la même ligne; un tableau vide ne
+  // désignerait rien.
+  assertEquals(
+    parseSlotMealButton(`KEEL_SLOTMEAL_ate|${TUESDAY}|lunch|${plan.mealId}@1,1`),
+    null,
+  );
+});
+
+Deno.test("⛔ « NON » N'A PAS D'ACCUSÉ — il enchaîne, et la fonction le dit", () => {
+  // Rendre une phrase close arrêterait la conversation juste avant ce qu'on
+  // cherche à savoir. Et cette fonction ne reçoit pas le créneau: le premier
+  // jet de ce lot a effectivement codé « lunch » en dur.
+  assertThrows(
+    () => renderSlotMealAck({ locale: "fr-FR", action: "notplanned", written: true }),
+    Error,
+    "enchaîne",
+  );
 });

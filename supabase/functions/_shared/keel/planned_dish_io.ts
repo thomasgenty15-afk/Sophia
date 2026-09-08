@@ -131,6 +131,66 @@ export async function resolvePlanScope(db: Db, userId: string): Promise<PlanScop
 }
 
 /** Le premier candidat dont la fenêtre contient encore `localDate`. */
+/**
+ * LE PLAN QUI POSSÈDE CE JOUR — LA SEULE ÉCRITURE DE CETTE RÈGLE.
+ *
+ * ⚠️ EXPORTÉE LE 2026-09-08 POUR QUE `slot_meal_planned_io.ts` L'APPELLE plutôt
+ * que d'en écrire une copie. « Quel plan couvre ce jour » est une question à
+ * laquelle ce dépôt répond en DEUX passes — le plan personnel d'abord, celui du
+ * foyer ensuite, avec un `ownerOfDay` qui compare la date à
+ * `starts_on + duration_days - 1`. Deux implémentations divergeraient au
+ * premier correctif, et c'est celle qu'on relit le moins qui servirait un plat
+ * du mauvais jour.
+ *
+ * ⛔ NE PAS PASSER PAR `loadPlannedDishContext` POUR ÇA. Elle charge le
+ * catalogue `food_items` ENTIER avant tout, et rend `load_failed` s'il est
+ * vide: sur un balayage horaire de toute la flotte, ce serait une lecture de
+ * table par élève pour un filtre qui n'en a pas besoin.
+ *
+ * `columns` est passé par l'appelant: les deux consommateurs ne lisent pas les
+ * mêmes champs, et élargir la sélection « pour tout le monde » ferait payer à
+ * chacun ce dont l'autre a besoin.
+ */
+export async function loadPlanRowOwningDay(
+  db: Db,
+  args: { userId: string; localDate: string; columns: string },
+): Promise<Record<string, unknown> | null> {
+  const userId = String(args.userId ?? "").trim();
+  const localDate = String(args.localDate ?? "").trim();
+  if (!userId || !/^\d{4}-\d{2}-\d{2}$/.test(localDate)) return null;
+
+  const { data, error } = await db
+    .from("student_generated_meals")
+    .select(args.columns)
+    .eq("user_id", userId)
+    .is("retired_at", null)
+    .lte("starts_on", localDate)
+    .order("starts_on", { ascending: false })
+    .limit(4);
+  if (error) throw error;
+  const own = ownerOfDay((data ?? []) as Array<Record<string, unknown>>, localDate);
+  if (own) return own;
+
+  // Le plan du FOYER, si la personne en est membre. Fail-closed vers « le sien
+  // seulement »: `resolvePlanScope` porte son propre arbitrage de panne.
+  const scope = await resolvePlanScope(db, userId);
+  if (scope.kind !== "household_member") return null;
+  const shared = await db
+    .from("student_generated_meals")
+    .select(args.columns)
+    .eq("plan_kind", "household")
+    .eq("household_id", scope.householdId)
+    .is("retired_at", null)
+    .lte("starts_on", localDate)
+    .order("starts_on", { ascending: false })
+    .limit(4);
+  if (shared.error) throw shared.error;
+  return ownerOfDay(
+    (shared.data ?? []) as Array<Record<string, unknown>>,
+    localDate,
+  );
+}
+
 function ownerOfDay(
   candidates: Array<Record<string, unknown>>,
   localDate: string,

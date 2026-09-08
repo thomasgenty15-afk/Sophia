@@ -97,11 +97,44 @@ export const SLOT_MEAL_BUTTON_PREFIX = "KEEL_SLOTMEAL_";
  * ligne à la matrice de disjonction — pour une action qui appartient
  * exactement à cette question-ci.
  */
-export const SLOT_MEAL_ACTIONS = ["photo", "describe", "skip", "mute"] as const;
+export const SLOT_MEAL_ACTIONS = [
+  "photo",
+  "describe",
+  "skip",
+  "mute",
+  /**
+   * ⟳ 2026-09-08 — LES DEUX RÉPONSES D'UN CRÉNEAU QUE LE PLAN COMPOSE.
+   *
+   * « Tu as mangé le plat prévu ? » a une réponse oui/non; « qu'est-ce que tu
+   * as mangé ? » n'en a pas. Ce sont deux questions différentes, donc deux
+   * jeux de boutons — et ces deux-ci portent en plus DE QUOI on parle.
+   */
+  "ate",
+  "notplanned",
+] as const;
 export type SlotMealAction = (typeof SLOT_MEAL_ACTIONS)[number];
 
+/**
+ * `KEEL_SLOTMEAL_<action>|<date>|<slot>` — et, pour `ate`/`notplanned`, un
+ * QUATRIÈME segment `|<mealId>@<i,j,…>`.
+ *
+ * ⚠️ OPTIONNEL DANS LA REGEX, OBLIGATOIRE PAR ACTION. `parseSlotMealButton`
+ * rend `null` si `ate`/`notplanned` arrive SANS le segment de plan, et `null`
+ * si les quatre autres arrivent AVEC. On ne devine pas: une charge qui ne dit
+ * pas de quels plats elle parle ne peut rien cocher, et une charge qui le dit
+ * là où ça n'a pas de sens est une charge forgée.
+ *
+ * ⛔ LES INDEX VIENNENT DE LA CHARGE, JAMAIS D'UNE RELECTURE. C'est la règle
+ * écrite de `stripAllId`: « le tap ne peut écrire que ce que la bande a
+ * nommé ». Relire le plan au moment du tap cocherait des plats que la personne
+ * n'a jamais vus nommés — et c'est pour ça que la question NOMME le plat: un
+ * « Oui » qui coche trois lignes anonymes est une signature en blanc.
+ */
 const SLOT_MEAL_PAYLOAD =
-  /^KEEL_SLOTMEAL_(photo|describe|skip|mute)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)$/;
+  /^KEEL_SLOTMEAL_(photo|describe|skip|mute|ate|notplanned)\|(\d{4}-\d{2}-\d{2})\|([a-z_]+)(?:\|([0-9a-f-]{36})@(\d+(?:,\d+)*))?$/;
+
+/** Les deux actions qui EXIGENT un segment de plan. */
+const PLAN_BOUND_ACTIONS: ReadonlySet<string> = new Set(["ate", "notplanned"]);
 
 /**
  * `KEEL_SLOTMEAL_<action>|<date>|<slot>`.
@@ -117,6 +150,8 @@ const SLOT_MEAL_PAYLOAD =
  */
 export function slotMealButtonId(args: {
   action: SlotMealAction;
+  /** REQUIS pour `ate`/`notplanned`, INTERDIT pour les quatre autres. */
+  plan?: { mealId: string; dishIndexes: readonly number[] } | null;
   localDate: string;
   slot: EatingOccasion;
 }): string {
@@ -128,13 +163,36 @@ export function slotMealButtonId(args: {
   if (!(EATING_OCCASIONS as readonly string[]).includes(args.slot)) {
     throw new Error(`[keel/slot_meal_ask] slot inconnu: ${JSON.stringify(args.slot)}`);
   }
-  return `${SLOT_MEAL_BUTTON_PREFIX}${args.action}|${args.localDate}|${args.slot}`;
+  // ⛔ LE CONTRAT EST VÉRIFIÉ À L'ÉCRITURE AUSSI, ET IL JETTE. Un jeton
+  // fabriqué sans son segment de plan serait refusé par le lecteur — donc le
+  // bouton partirait, la personne taperait, et la charge tomberait dans la
+  // garde des charges inutilisables. Un tap perdu qu'on aurait pu ne jamais
+  // offrir. Le compilateur ne peut pas tenir cette règle (le champ est
+  // optionnel par nécessité), donc c'est ici.
+  const needsPlan = PLAN_BOUND_ACTIONS.has(args.action);
+  const plan = args.plan ?? null;
+  if (needsPlan && !plan) {
+    throw new Error(
+      `[keel/slot_meal_ask] \`${args.action}\` exige un segment de plan`,
+    );
+  }
+  if (!needsPlan && plan) {
+    throw new Error(
+      `[keel/slot_meal_ask] \`${args.action}\` n'accepte pas de segment de plan`,
+    );
+  }
+  const tail = plan
+    ? `|${plan.mealId}@${[...plan.dishIndexes].join(",")}`
+    : "";
+  return `${SLOT_MEAL_BUTTON_PREFIX}${args.action}|${args.localDate}|${args.slot}${tail}`;
 }
 
 export interface SlotMealTap {
   action: SlotMealAction;
   localDate: string;
   slot: EatingOccasion;
+  /** Présent SI ET SEULEMENT SI l'action est `ate` ou `notplanned`. */
+  plan: { mealId: string; dishIndexes: readonly number[] } | null;
 }
 
 /** Lit un tap de C1, ou rend `null` — c'est le contrat de tous les lecteurs. */
@@ -143,11 +201,26 @@ export function parseSlotMealButton(raw: unknown): SlotMealTap | null {
   if (!m) return null;
   const slot = m[3];
   if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) return null;
-  return {
-    action: m[1] as SlotMealAction,
-    localDate: m[2],
-    slot: slot as EatingOccasion,
-  };
+  const action = m[1] as SlotMealAction;
+  const mealId = m[4] ?? null;
+  const rawIndexes = m[5] ?? null;
+
+  // ⛔ LES DEUX SENS DU CONTRAT, ET AUCUN N'EST TOLÉRANT.
+  const needsPlan = PLAN_BOUND_ACTIONS.has(action);
+  if (needsPlan !== Boolean(mealId)) return null;
+
+  let plan: SlotMealTap["plan"] = null;
+  if (mealId && rawIndexes) {
+    const indexes = rawIndexes.split(",").map((n) => Number(n));
+    if (indexes.some((n) => !Number.isInteger(n) || n < 0)) return null;
+    // Un doublon d'index cocherait deux fois la même ligne; un tableau vide ne
+    // désignerait rien. Ni l'un ni l'autre n'est une charge que la question a
+    // pu produire.
+    const unique = [...new Set(indexes)];
+    if (unique.length === 0 || unique.length !== indexes.length) return null;
+    plan = { mealId, dishIndexes: unique };
+  }
+  return { action, localDate: m[2], slot: slot as EatingOccasion, plan };
 }
 
 /** Pourquoi la question ne part pas. Vocabulaire FERMÉ. */
@@ -156,8 +229,14 @@ export const SLOT_MEAL_SKIPS = [
   /** R4 — `maintenance`: le trou ne change aucun chiffre qui pilote. */
   "goal_not_covered",
   "muted",
-  /** Aucun créneau n'est marqué « dehors » aujourd'hui. */
-  "no_eating_out_today",
+  /**
+   * ⟳ RENOMMÉ LE 2026-09-08 (`no_eating_out_today`). Le motif ne parle plus
+   * du « dehors »: un créneau s'interroge maintenant dès qu'il est DÉCLARÉ
+   * dans le rythme ou COMPOSÉ par le plan. « Aucun créneau à interroger »
+   * couvre les trois origines; l'ancien nom aurait menti sur deux d'entre
+   * elles. Un seul consommateur, vérifié avant de renommer.
+   */
+  "nothing_to_ask",
   /** Un créneau est marqué, mais son heure n'est pas encore écoulée. */
   "not_elapsed",
   /** L'heure est passée depuis trop longtemps pour une question honnête. */
@@ -176,8 +255,49 @@ export const SLOT_MEAL_SKIPS = [
 ] as const;
 export type SlotMealSkip = (typeof SLOT_MEAL_SKIPS)[number];
 
+/**
+ * D'OÙ VIENT LA QUESTION — ET IL N'Y A QU'UN SEUL AXE: LE PLAN COUVRE-T-IL CE
+ * CRÉNEAU ?
+ *
+ * ⚠️ `eating_out` N'EST PAS UNE ORIGINE, ET C'ÉTAIT LE PIÈGE. C'est une NUANCE
+ * DE COPIE sur `uncovered`: « tu manges dehors ce midi » plutôt que « rien
+ * n'était prévu ce midi ». En faire une troisième origine multiplierait les
+ * branches sans rien changer à la question posée ni aux boutons offerts.
+ *
+ * ⛔ ET UN CRÉNEAU MARQUÉ « DEHORS » **ET** COMPOSÉ EST `uncovered`. La
+ * personne a DIT qu'elle mangeait dehors; le plat composé pour ce moment-là
+ * est un reste de composition, pas une prévision. Lui demander « tu as mangé
+ * ton poulet prévu ? » serait lui opposer une consigne qu'elle a déjà annulée.
+ */
+export const SLOT_MEAL_ORIGINS = ["planned", "uncovered"] as const;
+export type SlotMealOrigin = (typeof SLOT_MEAL_ORIGINS)[number];
+
+/** Un créneau que le plan COMPOSE aujourd'hui, et ce qu'il y met. */
+export interface PlannedSlot {
+  readonly slot: EatingOccasion;
+  readonly mealId: string;
+  /** Les plats de ce créneau qui n'ont PAS encore de coche. */
+  readonly dishIndexes: readonly number[];
+  /** Le titre à NOMMER dans la question. Jamais vide. */
+  readonly title: string;
+}
+
 export type SlotMealVerdict =
-  | { ask: true; slot: EatingOccasion; elapsedAtHour: number }
+  | {
+    ask: true;
+    slot: EatingOccasion;
+    elapsedAtHour: number;
+    origin: "uncovered";
+    /** `true` quand la personne a déclaré manger dehors: la copie change. */
+    eatingOut: boolean;
+  }
+  | {
+    ask: true;
+    slot: EatingOccasion;
+    elapsedAtHour: number;
+    origin: "planned";
+    planned: PlannedSlot;
+  }
   | { ask: false; reason: SlotMealSkip };
 
 /** Une case « dehors »: un jour de semaine et un moment. */
@@ -260,6 +380,14 @@ export function decideSlotMealAsk(args: {
   localHour: number;
   /** Les cases marquées `kind: "eating_out"`, jour + moments. */
   eatingOut: readonly EatingOutCell[];
+  /**
+   * Les créneaux que le PLAN compose aujourd'hui, avec leurs plats non cochés.
+   *
+   * ⛔ REQUIS, MÊME VIDE. Un champ optionnel se lirait `undefined` chez tout
+   * appelant qui l'oublie — c'est-à-dire « le plan ne compose rien », pour
+   * toute une flotte, en silence. Un tableau vide est une DÉCLARATION.
+   */
+  plannedToday: readonly PlannedSlot[];
   /** `eating_rhythm` brut — c'est lui qui porte les heures DÉCLARÉES. */
   rhythmRaw: unknown;
   /** Les créneaux dont la question est DÉJÀ partie aujourd'hui. */
@@ -281,17 +409,50 @@ export function decideSlotMealAsk(args: {
   }
 
   const day = String(args.dayToken ?? "").trim().toLowerCase();
-  const marked = new Set<EatingOccasion>();
+  const declaredSlots = new Set<EatingOccasion>();
+  for (const r of rhythmClockFrom(args.rhythmRaw)) declaredSlots.add(r.slot);
+
+  // ── LES TROIS SOURCES, DANS CET ORDRE, ET L'ORDRE EST LE CONTRAT ────────
+  type Mark =
+    | { origin: "planned"; planned: PlannedSlot }
+    | { origin: "uncovered"; eatingOut: boolean };
+  const marked = new Map<EatingOccasion, Mark>();
+
+  // ① CE QUE LE PLAN COMPOSE. « Tu as mangé le plat prévu ? »
+  for (const p of args.plannedToday) {
+    if (!(EATING_OCCASIONS as readonly string[]).includes(p.slot)) continue;
+    if (p.dishIndexes.length === 0) continue;
+    if (String(p.title ?? "").trim() === "") continue;
+    marked.set(p.slot, { origin: "planned", planned: p });
+  }
+
+  // ② CE QUE LE RYTHME DÉCLARE ET QUE LE PLAN NE COUVRE PAS.
+  //
+  // ⟳ AJOUTÉ LE 2026-09-08, ET C'EST LE TROU PAR LEQUEL PASSAIENT LES REPAS
+  // QU'ON NE COMPTE JAMAIS. Avant, un créneau ne s'interrogeait QUE s'il était
+  // explicitement marqué « je mange dehors ». Quelqu'un qui a déclaré déjeuner
+  // tous les jours et dont le plan ne compose rien à midi n'était jamais
+  // interrogé: ni le plan, ni la question, ni le bilan ne savaient ce qu'il
+  // avait mangé.
+  for (const slot of declaredSlots) {
+    if (marked.has(slot)) continue;
+    marked.set(slot, { origin: "uncovered", eatingOut: false });
+  }
+
+  // ③ CE QUI EST MARQUÉ « DEHORS » — ET QUI ÉCRASE ①.
   for (const cell of args.eatingOut) {
     if (String(cell.day ?? "").trim().toLowerCase() !== day) continue;
     for (const s of cell.slots ?? []) {
       const slot = String(s ?? "").trim().toLowerCase();
-      if ((EATING_OCCASIONS as readonly string[]).includes(slot)) {
-        marked.add(slot as EatingOccasion);
-      }
+      if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+      marked.set(slot as EatingOccasion, {
+        origin: "uncovered",
+        eatingOut: true,
+      });
     }
   }
-  if (marked.size === 0) return { ask: false, reason: "no_eating_out_today" };
+
+  if (marked.size === 0) return { ask: false, reason: "nothing_to_ask" };
 
   // ── L'HEURE DÉCLARÉE L'EMPORTE SUR LE REPLI ───────────────────────────
   // Quelqu'un qui a dit déjeuner à 15h n'a pas « raté » son déjeuner à 14h.
@@ -307,11 +468,11 @@ export function decideSlotMealAsk(args: {
     args.askedSlotsToday.map((s) => String(s ?? "").trim().toLowerCase()),
   );
 
-  let best: { slot: EatingOccasion; at: number } | null = null;
+  let best: { slot: EatingOccasion; at: number; mark: Mark } | null = null;
   let sawFuture = false;
   let sawStale = false;
   let sawAsked = false;
-  for (const slot of marked) {
+  for (const [slot, mark] of marked) {
     // L'heure déclarée si elle existe ET est lisible, sinon le repli. Un
     // `null` déclaré (« je prends un goûter », sans heure) retombe donc sur le
     // repli — et les trois moments sans repli (`snack_am`, `snack_pm`,
@@ -332,17 +493,33 @@ export function decideSlotMealAsk(args: {
       sawAsked = true;
       continue;
     }
-    if (!best || at > best.at) best = { slot, at };
+    if (!best || at > best.at) best = { slot, at, mark };
   }
 
-  if (best) return { ask: true, slot: best.slot, elapsedAtHour: best.at };
+  if (best) {
+    return best.mark.origin === "planned"
+      ? {
+        ask: true,
+        slot: best.slot,
+        elapsedAtHour: best.at,
+        origin: "planned",
+        planned: best.mark.planned,
+      }
+      : {
+        ask: true,
+        slot: best.slot,
+        elapsedAtHour: best.at,
+        origin: "uncovered",
+        eatingOut: best.mark.eatingOut,
+      };
+  }
   // L'ordre des motifs de refus dit ce qui s'est passé de plus proche d'un
   // envoi: « déjà demandé » est un succès d'hier, « trop tard » un tick perdu,
   // « pas encore » l'attente normale.
   if (sawAsked) return { ask: false, reason: "already_asked" };
   if (sawStale) return { ask: false, reason: "too_late" };
   if (sawFuture) return { ask: false, reason: "not_elapsed" };
-  return { ask: false, reason: "no_eating_out_today" };
+  return { ask: false, reason: "nothing_to_ask" };
 }
 
 // ---------------------------------------------------------------------------
@@ -362,7 +539,24 @@ export function decideSlotMealAsk(args: {
  * question armée que R13 désarmera en silence.
  */
 const SLOT_MEAL_COPY: Record<LocalePackKey, {
+  /** « Rien n'était prévu ce midi — tu as mangé quoi ? » */
   ask: (slot: string) => string;
+  /** La même, quand la personne a DÉCLARÉ manger dehors ce jour-là. */
+  askEatingOut: (slot: string) => string;
+  /**
+   * « Tu as mangé le « X » prévu à midi ? »
+   *
+   * ⛔ LE PLAT EST NOMMÉ, ET CE N'EST PAS DU CONFORT. Un « Oui » qui coche
+   * trois lignes anonymes est une signature en blanc: la personne doit voir ce
+   * qu'elle confirme avant de le confirmer.
+   */
+  askPlanned: (slot: string, dish: string) => string;
+  yes: string;
+  no: string;
+  /** L'accusé du « Oui »: les plats sont cochés. */
+  ticked: string;
+  /** Le même quand la coche n'a pas pu s'écrire. */
+  tickFailed: string;
   slotName: Record<EatingOccasion, string>;
   photo: string;
   describe: string;
@@ -404,7 +598,16 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
   muteFailed: string;
 }> = {
   en: {
-    ask: (slot) => `You are eating out for ${slot} today — what did you have?`,
+    ask: (slot) => `Nothing was planned for ${slot} today — what did you have?`,
+    askEatingOut: (slot) =>
+      `You are eating out for ${slot} today — what did you have?`,
+    askPlanned: (slot, dish) =>
+      `Did you have the "${dish}" planned for ${slot}?`,
+    yes: "Yes",
+    no: "No",
+    ticked: "Ticked off. Tell me if that was not it.",
+    tickFailed:
+      "I could not tick that off just now — try again in a moment, or tick it on your day.",
     slotName: {
       breakfast: "breakfast",
       snack_am: "your morning snack",
@@ -427,7 +630,16 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
       "I could not turn that off just now, so the question may come back. Try again, and if it keeps coming back tell me.",
   },
   fr: {
-    ask: (slot) => `Tu manges dehors pour ${slot} aujourd'hui — tu as pris quoi ?`,
+    ask: (slot) => `Rien n'était prévu pour ${slot} aujourd'hui — tu as mangé quoi ?`,
+    askEatingOut: (slot) =>
+      `Tu manges dehors pour ${slot} aujourd'hui — tu as pris quoi ?`,
+    askPlanned: (slot, dish) =>
+      `Tu as mangé le « ${dish} » prévu pour ${slot} ?`,
+    yes: "Oui",
+    no: "Non",
+    ticked: "C'est coché. Dis-moi si ce n'était pas ça.",
+    tickFailed:
+      "Je n'ai pas réussi à le cocher à l'instant — retente dans un moment, ou coche-le sur ta journée.",
     slotName: {
       breakfast: "le petit-déjeuner",
       snack_am: "ta collation du matin",
@@ -460,12 +672,56 @@ export function renderSlotMealAsk(args: {
   locale: string;
   localDate: string;
   slot: EatingOccasion;
+  /**
+   * ⟳ REQUIS DEPUIS LE 2026-09-08. Un défaut ferait rendre la question du
+   * créneau NON COUVERT sur un créneau que le plan compose — c'est-à-dire
+   * demander « tu as mangé quoi ? » à quelqu'un dont on connaît le plat, et
+   * perdre la coche que le « Oui » aurait posée.
+   */
+  origin: SlotMealOrigin;
+  /** REQUIS si `origin === "planned"`. */
+  planned?: PlannedSlot | null;
+  /** Nuance de copie sur `uncovered`. */
+  eatingOut?: boolean;
 }): SlotMealMessage {
   const copy = SLOT_MEAL_COPY[localePackKey(String(args.locale ?? ""))];
+  const slotName = copy.slotName[args.slot];
+
+  if (args.origin === "planned") {
+    const planned = args.planned ?? null;
+    if (!planned) {
+      throw new Error(
+        "[keel/slot_meal_ask] renderSlotMealAsk: `planned` est REQUIS quand " +
+          "l'origine est `planned`. Sans lui la question ne peut NOMMER ni le " +
+          "plat ni les lignes que le « Oui » cocherait.",
+      );
+    }
+    const plan = { mealId: planned.mealId, dishIndexes: planned.dishIndexes };
+    const mkPlan = (action: SlotMealAction) =>
+      slotMealButtonId({
+        action,
+        localDate: args.localDate,
+        slot: args.slot,
+        plan,
+      });
+    const mkBare = (action: SlotMealAction) =>
+      slotMealButtonId({ action, localDate: args.localDate, slot: args.slot });
+    return {
+      body: copy.askPlanned(slotName, planned.title),
+      buttons: [
+        { payload: mkPlan("ate"), label: copy.yes },
+        { payload: mkPlan("notplanned"), label: copy.no },
+        // L'extinction voyage avec CHAQUE question, quelle que soit sa forme —
+        // et elle ne porte pas de segment de plan: elle ne coche rien.
+        { payload: mkBare("mute"), label: copy.mute },
+      ],
+    };
+  }
+
   const mk = (action: SlotMealAction) =>
     slotMealButtonId({ action, localDate: args.localDate, slot: args.slot });
   return {
-    body: copy.ask(copy.slotName[args.slot]),
+    body: args.eatingOut ? copy.askEatingOut(slotName) : copy.ask(slotName),
     buttons: [
       { payload: mk("photo"), label: copy.photo },
       { payload: mk("describe"), label: copy.describe },
@@ -506,6 +762,28 @@ export function renderSlotMealAck(args: {
       // recevrait la question suivante en croyant l'avoir coupée, ce qui est
       // pire que ne pas offrir le bouton.
       return args.written ? copy.muted : copy.muteFailed;
+    case "ate":
+      // ⚠️ `written` DIT SI LA COCHE EST EN BASE. « C'est coché » sur une
+      // écriture ratée est un `phantom_commit`: la personne croirait son repas
+      // compté, et le bilan dirait l'inverse sans que personne fasse le lien.
+      return args.written ? copy.ticked : copy.tickFailed;
+    case "notplanned":
+      // ⛔ CE CAS N'A PAS D'ACCUSÉ, ET IL JETTE PLUTÔT QUE D'EN INVENTER UN.
+      //
+      // « Non » n'est pas une fin: c'est le début de « alors tu as mangé
+      // quoi ? ». Le routeur doit enchaîner un `renderSlotMealAsk` complet, en
+      // `origin: "uncovered"` — avec ses trois boutons, et surtout avec SON
+      // créneau. Une phrase rendue ici ne pourrait pas nommer le bon moment:
+      // cette fonction ne reçoit pas le créneau, et le premier jet de ce lot a
+      // effectivement codé « lunch » en dur.
+      //
+      // Jeter est le bon comportement: un routeur qui oublie l'enchaînement
+      // s'en aperçoit au premier tap, pas six semaines plus tard sur une
+      // conversation qui s'arrête juste avant ce qu'on cherchait à savoir.
+      throw new Error(
+        "[keel/slot_meal_ask] `notplanned` n'a pas d'accusé: enchaîne " +
+          "`renderSlotMealAsk({ origin: \"uncovered\", slot })`.",
+      );
   }
 }
 
