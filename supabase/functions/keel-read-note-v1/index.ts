@@ -217,6 +217,7 @@ Deno.serve(async (req) => {
         dropped_clauses: note.dropped.length,
         announced: [],
         questions: [],
+        cells: [],
         request_id: requestId,
       });
     }
@@ -254,6 +255,7 @@ Deno.serve(async (req) => {
       ok: out.ok,
       announced: out.announced.length,
       questions: out.questions.length,
+      cells: out.cells.length,
       notice_delivered: out.notice.delivered,
       ...trace,
     }));
@@ -265,6 +267,10 @@ Deno.serve(async (req) => {
       announced: out.announced.map((a) => ({ text: a.text, who: a.who ?? null, kind: a.kind })),
       // ⟳ lot 4 — ce qu'on n'a PAS pu écrire faute d'une bouche, à demander.
       questions: out.questions,
+      // ⟳ 2026-09-09 — les cases de CE plan, à rendre au composeur (`edit_cells`).
+      // Rien n'est écrit pour elles: sans brouillon ouvert, elles tombent — et
+      // le compteur `cells` le dit.
+      cells: out.cells,
       // ⛔ LES COMPTEURS QUI DISENT « RIEN N'A ÉTÉ FAIT, ET VOICI POURQUOI ».
       // Sans eux, un tiroir vide et un tiroir inerte se ressemblent.
       counters: {
@@ -280,6 +286,7 @@ Deno.serve(async (req) => {
         // ⟳ 2026-09-08 — deux issues qui ne sont ni « rien » ni un échec.
         safety_written: out.safety.written.length,
         at_edge: out.atEdge,
+        cells: out.cells.length,
       },
       request_id: requestId,
     });

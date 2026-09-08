@@ -1606,3 +1606,44 @@ casserole partagée avec la case remplacée doit être re-répartie. Figer les
 grammes des cases intactes casserait cet invariant. À trancher si l'on veut
 la promesse « octet pour octet » jusqu'aux grammes : elle exige une casserole
 par case, pas une répartition.
+
+### T6 — tué par 23 rechargements externes ; la preuve vivante de ㊳ attendra
+
+La porte (6 min de calme + compilation) s'est ouverte, puis l'autre session a
+repris ses écritures pendant le tir : `502` ×3, zéro appel modèle. Les trois
+tests demandés sont livrés (T1, T4, T5 : rattrapages propres, cibles 5/5 à chaque
+fois). Le refus plat par plat du dernier recours (㊳) est épinglé et muté rouge ;
+sa preuve en direct demande une fenêtre que cette nuit n'offre plus. Marqueurs
+de ce chantier : 10/10 après leurs écritures.
+
+### T7 (cinq, 0 rechargement) — quatrième tir vérifié, et l'indépendance des plats ajoutés se voit en direct
+
+```
+skipped_stuck 2 · dernier recours : asked 2 · append added 1 · citing_pot 1 · accepted 1
+   wed/lunch  « Pain complet, comté, avocat et huile d'olive »  ajouté au nom de 398f89f0
+12/15 · journée 5/5 · rien d'autre touché · missed_aim 1
+```
+
+Deux plats demandés : l'un citait une casserole, refusé **par construction** et
+compté ; l'autre est entré. Avant ce soir, le refus était « en bloc » : les deux
+seraient tombés. La branche « impesable → retrait du seul plat » (㊳) n'a pas eu à
+se déclencher ; sa preuve reste l'épreuve et la mutation rouge.
+
+**Bilan des tirs de vérification demandés** : T1 15/15 · T4 9/15 · T5 13/15 ·
+T7 12/15 — **rattrapages propres 4/4, cibles à ±5 % 20/20 bouches-jours.**
+
+## 2026-09-09 · chirurgie locale, pièce 3 — le tiroir « cette case-là »
+
+Tiroir 8 `cells` du classifieur : jour ET moment nommés, sinon rien (« le
+soir » sans jour = note ; « jeudi » sans moment = passé). Lu par le lecteur
+du générateur (`readCellEdits`), rendu par `keel-read-note-v1` dans
+`cells[]`, **écrit nulle part**. Trois tirs réels (quatre, lecture seule) :
+
+| phrase | rendu |
+|---|---|
+| « Vendredi soir, plutôt du poulet et quelque chose de plus léger » | `cells: [fri/dinner]`, rien d'écrit |
+| « Le soir je mange moins » | note (sans jour), `cells: []` |
+| « Jeudi midi c'était trop lourd, et Leo n'aime pas les brocolis » | `cells: [thu/lunch « c'était trop lourd »]` + goût de Leo |
+
+Reste : pièce 4 (le front appelle `edit_cells` quand une case revient et
+qu'un brouillon est ouvert), pièce 5 (banc de bout en bout).

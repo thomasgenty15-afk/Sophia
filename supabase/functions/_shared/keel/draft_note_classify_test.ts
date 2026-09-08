@@ -536,7 +536,8 @@ Deno.test("CE QUE LE MODÈLE A LU ET N'A PAS RANGÉ — compté par motif, et un
   assertEquals(out.classification.kept, 0);
 });
 
-Deno.test("les SEPT listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+Deno.test("les HUIT listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+  // ⟳ 2026-09-09 — HUIT: `cells`, la case de ce plan-ci, même raison.
   // ⟳ 2026-09-08 — SEPT: `portions` puis `settings` sont des listes comme les
   // autres, et pour la même raison exactement que `clarify` ci-dessous.
   // ⟳ 2026-09-04 — CINQ, ET PAS QUATRE. `clarify` est une liste comme les
@@ -550,6 +551,7 @@ Deno.test("les SEPT listes vides sont une réponse correcte; une liste ABSENTE e
     next_plan: [],
     portions: [],
     settings: [],
+    cells: [],
     skipped: [],
     clarify: [],
   });
@@ -563,6 +565,7 @@ Deno.test("les SEPT listes vides sont une réponse correcte; une liste ABSENTE e
     "next_plan",
     "portions",
     "settings",
+    "cells",
     "skipped",
     "clarify",
   ]);
@@ -612,10 +615,15 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
     next_plan: [{ kind: "craving", text: "", member_id: null }],
     portions: [{ direction: "down", text: "maman mange moins", member_id: ZOE }],
     settings: [{ about: "time", direction: "down" }],
+    cells: [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }, { day: "fri", slot: "soir", text: "x" }],
     skipped: [{ why: "degree" }],
     clarify: [],
   });
   const t = draftNoteClassifyTrace(out.classification);
+  // ⑧ — la case de ce plan-ci: une gardée, une refusée (moment illisible).
+  assertEquals(t.cells_proposed, 2);
+  assertEquals(t.cells_kept, 1);
+  assertEquals(t.cells_refused_bad_when, 1);
   assertEquals(t.pref_proposed, 2);
   assertEquals(t.pref_kept, 1);
   // ⛔ UNE PORTION RANGÉE DANS ① RESTE REFUSÉE, et c'est le cœur du lot: la
@@ -637,9 +645,10 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
   assertEquals(t.settings_time, 1);
   assertEquals(t.settings_difficulty, 0);
   assertEquals(t.skipped_degree, 1);
-  assertEquals(t.proposed, 6);
-  assertEquals(t.kept, 3);
-  assertEquals(t.refused, 3);
+  // ⑧ ajoute deux proposées: une gardée, une refusée.
+  assertEquals(t.proposed, 8);
+  assertEquals(t.kept, 4);
+  assertEquals(t.refused, 4);
   assertEquals(t.refused_forbidden_kinds, ["portion.adjust"]);
   assertEquals(t.lists_missing, []);
 });
@@ -2263,4 +2272,78 @@ Deno.test("⑧ io — une note qui n'ÉCRIT QU'EN SÉCURITÉ le dit: une ligne `
   // « Claire : un régime de Claire : vegetarian ».
   assertEquals(res.announced[0].text, "une allergie : peanut");
   assertEquals(res.notice.reason !== "not_attempted", true, "la bulle doit être tentée");
+});
+
+
+// ===========================================================================
+// ⑧ CHIRURGIE LOCALE, PIÈCE 3 (2026-09-09) — LA CASE DE CE PLAN-CI
+// ===========================================================================
+
+Deno.test("⑧ `cells` — jour ET moment lisibles ⇒ une demande, rangée nulle part ailleurs, rien d'écrit", () => {
+  const out = read({
+    preferences: [], notes: [], next_plan: [], portions: [], settings: [], skipped: [], clarify: [],
+    cells: [{ day: "Fri", slot: "DINNER", text: " plutôt du poulet " }],
+  });
+  assertEquals(out.classification.cells.requests, [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }]);
+  assertEquals(out.classification.cells.kept, 1);
+  assertEquals(out.classification.kept, 1);
+  assertEquals(out.classification.preferences.items.length, 0);
+  assertEquals(out.classification.notes.lines.length, 0);
+});
+
+Deno.test("⑧ `cells` — sans moment, sans jour, texte vide, doublon: refusés et comptés, jamais devinés", () => {
+  const out = read({
+    preferences: [], notes: [], next_plan: [], portions: [], settings: [], skipped: [], clarify: [],
+    cells: [
+      { day: "thu", slot: null, text: "trop lourd" },
+      { day: null, slot: "dinner", text: "moins" },
+      { day: "thu", slot: "lunch", text: "" },
+      { day: "thu", slot: "dinner", text: "a" },
+      { day: "thu", slot: "dinner", text: "b" },
+      "nope",
+    ],
+  });
+  const c = out.classification.cells;
+  assertEquals(c.requests.length, 1);
+  assertEquals(c.refused.badWhen, 2);
+  assertEquals(c.refused.badText, 1);
+  assertEquals(c.refused.malformed, 2);
+  assertEquals(c.refused.total, 5);
+});
+
+Deno.test("⑧ le prompt: « BOTH » est SUR la ligne du tiroir 8, le repli est nommé à côté, la forme JSON et `skipped` le connaissent", () => {
+  const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const title = p.indexOf('8. "cells"');
+  assert(title >= 0, "le tiroir 8 a disparu");
+  assert(p.slice(title, title + 300).includes("BOTH its day AND its moment"));
+  const both = p.indexOf("BOTH or nothing", title);
+  assert(both >= 0 && both - title < 1400, "le repli n'est pas à côté du tiroir");
+  assert(p.includes('"cells": [ ... ]'));
+  assert(p.includes("did not file in 1, 2, 3, 4, 5 or 8"));
+  // La note renvoie vers la case, comme la case renvoie vers la note.
+  assert(p.includes('(that is "cells", 8)'));
+});
+
+Deno.test("⑧ io — les cases sont RENDUES (même quand rien d'autre n'est rangé) et jamais écrites", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("Vendredi soir, plutôt du poulet"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], portions: [], settings: [], skipped: [], clarify: [],
+      cells: [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }],
+    }, trace),
+  });
+  assertEquals(res.reason, "nothing_to_file");
+  assertEquals(res.cells, [{ day: "fri", slot: "dinner", text: "plutôt du poulet" }]);
+  assertEquals(res.announced, []);
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for"), []);
 });

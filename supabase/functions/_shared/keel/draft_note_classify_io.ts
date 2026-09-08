@@ -60,6 +60,7 @@ import {
   type SettingMove,
 } from "./draft_note_classify.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
+import type { CellEdit } from "./cell_edit.ts";
 import { keelGenerationModel } from "./generation_model.ts";
 import {
   type MinimalClient,
@@ -211,6 +212,12 @@ export interface DraftNoteClassifyResult {
    * déjà au bout ». Mesuré au banc: « trop compliqué » sur `minimal`.
    */
   readonly atEdge: number;
+  /**
+   * ⟳ 2026-09-09 — LES CASES DE CE PLAN-CI, à rendre au composeur
+   * (`operation: "edit_cells"`). Rien n'est écrit pour elles ici, et rien ne
+   * le sera: une case est une demande pour CE plan, pas un souvenir.
+   */
+  readonly cells: readonly CellEdit[];
   /** Les trois nombres AGRÉGÉS. Le détail par porte est dans `classification`. */
   readonly proposed: number;
   readonly kept: number;
@@ -511,6 +518,7 @@ export async function classifyAndPersistDraftNote(args: {
       announced: [],
       questions: [],
       atEdge: 0,
+      cells: [],
     };
   };
 
@@ -553,6 +561,7 @@ export async function classifyAndPersistDraftNote(args: {
       announced: [],
       questions: [],
       atEdge: 0,
+      cells: [],
     };
   }
   const raw = classified.raw;
@@ -600,6 +609,7 @@ export async function classifyAndPersistDraftNote(args: {
       announced: [],
       questions: [],
       atEdge: 0,
+      cells: [],
     };
   }
 
@@ -810,6 +820,7 @@ export async function classifyAndPersistDraftNote(args: {
       announced: safetyLines,
       questions,
       atEdge: 0,
+      cells: classification.cells.requests,
     };
   }
 
@@ -1088,6 +1099,7 @@ export async function classifyAndPersistDraftNote(args: {
     announced,
     questions,
     atEdge: appetite.at_edge + settings.at_edge,
+    cells: classification.cells.requests,
   };
   // UNE SEULE LIGNE, ET ELLE PORTE LES NOMBRES PAR PORTE AVEC LE MODÈLE.
   (result.ok ? console.info : console.warn)(JSON.stringify({

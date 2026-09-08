@@ -92,6 +92,10 @@ import {
   parseMemoWhen,
 } from "./memo.ts";
 import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
+// ⟳ 2026-09-09 (chirurgie locale, pièce 3) — LE LECTEUR DES CASES est celui
+// du générateur (`readCellEdits`): même vocabulaire, même plafond, mêmes refus.
+// Un second lecteur ici divergerait au premier jeton ajouté.
+import { type CellEdit, readCellEdits } from "./cell_edit.ts";
 import { DAY_TOKENS } from "./tokens.ts";
 
 // ===========================================================================
@@ -350,7 +354,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   "Return ONE JSON object, and nothing else. No prose, no code fence.",
   "",
-  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "cells": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
   "",
   "For each thing the note says, try the drawers IN THIS ORDER and file it in the FIRST one that fits. Never in two. Every drawer may be empty, and an empty drawer is a correct answer.",
   "",
@@ -379,7 +383,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   ),
   "",
   // ── PORTE ③ — la promesse est SUR la ligne du titre, et la clé `when` juste après
-  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree about the WORK such as too long or too complicated (that is "skipped"), and NEVER a share that is too big or too small (that is "portions"). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
+  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree about the WORK such as too long or too complicated (that is "skipped"), NEVER a share that is too big or too small (that is "portions"), and NEVER a request to change ONE meal of THIS plan that names both its day and its moment (that is "cells", 8). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
   "{",
   '  "text": their fact, in THEIR language and their own words, one line,',
   '  "member_id": see WHO below,',
@@ -415,7 +419,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   '  ⛔ NOT how many days they cook, what they spend, how often they shop, or which meals of the day they take. Those have no drawer here and go in "skipped" (6).',
   "",
   // ── CE QU'ON NE RANGE PAS — dit, et compté ──────────────────────────────
-  '6. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2, 3, 4 or 5 MUST appear here, once: never return six empty lists without saying why. Each entry is exactly:',
+  '6. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2, 3, 4, 5 or 8 MUST appear here, once: never return six empty lists without saying why. Each entry is exactly:',
   `{ "why": exactly one of ${DRAFT_NOTE_SKIP_REASONS.join(" | ")} }`,
   ...DRAFT_NOTE_SKIP_REASONS.map((why) => `- ${why} — ${SKIP_BLURBS[why]},`),
   `  The families you never file, each for its own reason:${
@@ -433,6 +437,21 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   '  "entry": the entry exactly as you would have written it in that drawer (same keys), with "member_id": null when you are asking who,',
   `  "options": between 1 and ${MEMORY_CLARIFICATION_MAX_OPTIONS} candidates — member ids from the roster when "about" is "who", plan foods copied EXACTLY when it is "what", the two words ["always", "sometimes"] when it is "scope". Never a first name, never a food you rephrased, never more than ${MEMORY_CLARIFICATION_MAX_OPTIONS}.`,
   "}",
+  "",
+  // ── PORTE ⑧ — LA CASE DE CE PLAN-CI (2026-09-09). Jour ET moment, ou rien.
+  //
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ: « BOTH » est sur la ligne du titre, et le
+  // repli est nommé à côté (« the evening » sans jour = une note; « Thursday »
+  // sans moment = skipped). Rien n'est écrit pour une case: c'est une
+  // instruction pour CE plan, que le front rend au composeur (`edit_cells`).
+  '8. "cells" — the note asks to change ONE meal of THIS plan and names BOTH its day AND its moment: "Friday dinner, chicken instead", "jeudi midi c\'était trop lourd", "Saturday breakfast: something without eggs". Filed NOWHERE else — not in 1, 2, 3 or "skipped": it is a request for this plan, not a fact to remember. Each entry is exactly:',
+  "{",
+  `  "day": exactly one of ${DAY_TOKENS.join(" | ")} — the day they NAMED. Never guessed, never today by default,`,
+  `  "slot": exactly one of ${RHYTHM_OCCASIONS.join(" | ")} — the moment they NAMED,`,
+  '  "text": what they want for THAT meal, in THEIR language and their own words, one line,',
+  "}",
+  '  ⛔ BOTH or nothing: "in the evening I eat less" has no day — it is a note (3) with "when"; "Thursday is a mess" has no moment — it is "skipped" (other). A rule said for good ("never fish on Thursdays") is a note (3) with "when", not a cell.',
+  '  ⚠️ ONE entry per meal named. "Thursday and Friday dinner" is two entries.',
   "",
   ...WHO_RULES,
   "",
@@ -640,6 +659,12 @@ export interface DraftNoteClassification {
    * bouge et refuse les bords. Voir `SettingMove`.
    */
   readonly settings: DraftNoteGateCount & { readonly moves: readonly SettingMove[] };
+  /**
+   * ⑧ — LA CASE DE CE PLAN-CI (2026-09-09). Rien n'est ÉCRIT pour elle: c'est
+   * une instruction que `keel-read-note-v1` rend au front, qui la donne au
+   * composeur (`operation: "edit_cells"`). Lue par le lecteur du générateur.
+   */
+  readonly cells: DraftNoteGateCount & { readonly requests: readonly CellEdit[] };
   readonly skipped: DraftNoteSkipped;
   /**
    * ⑤ — ce qui attend UNE précision. Chaque entrée est rangée nulle part
@@ -714,6 +739,7 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
   nextPlan: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, entries: [] },
   portions: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   settings: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
+  cells: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, requests: [] },
   skipped: EMPTY_SKIPPED,
   clarify: {
     proposed: 0,
@@ -1067,6 +1093,17 @@ export function readDraftNoteClassification(args: {
   const portionRead = readPortions(portionRows);
   const settingRows = lists.settings;
   const settingRead = readSettings(settingRows);
+  // ── ⑧ LA CASE — par le lecteur du générateur, ses refus rangés ici ─────
+  // `badDay`/`badSlot` sont un `when` illisible (même famille que la note);
+  // doublon et plafond sont `malformed`: deux entrées pour une case veulent
+  // dire deux demandes pour un seul repas.
+  const cellRows = lists.cells;
+  const cellRead = readCellEdits(cellRows);
+  const cellRefusals = new Refusals();
+  cellRefusals.malformed = cellRead.refused.malformed + cellRead.refused.duplicate +
+    cellRead.refused.tooMany;
+  cellRefusals.badWhen = cellRead.refused.badDay + cellRead.refused.badSlot;
+  cellRefusals.badText = cellRead.refused.badText;
   const nextRows = lists.next_plan;
   const next = readItems(nextRows, DRAFT_NOTE_NEXT_PLAN_KINDS, "next_plan");
   const nextEntries: NextPlanEntry[] = next.items.map((item) => ({
@@ -1405,6 +1442,12 @@ export function readDraftNoteClassification(args: {
     refused: settingRead.refused,
     moves: settingRead.moves,
   };
+  const cells = {
+    proposed: cellRows.length,
+    kept: cellRead.cells.length,
+    refused: cellRefusals.freeze(),
+    requests: cellRead.cells,
+  };
   const clarify = {
     proposed: lists.clarify.length,
     kept: clarifyEntries.length + portionQuestions.length,
@@ -1419,6 +1462,7 @@ export function readDraftNoteClassification(args: {
     preferences.refused,
     notes.refused,
     nextPlan.refused,
+    cells.refused,
     portions.refused,
     settings.refused,
     clarify.refused,
@@ -1429,15 +1473,16 @@ export function readDraftNoteClassification(args: {
     refusal: null,
     classification: {
       proposed: preferences.proposed + notes.proposed + nextPlan.proposed +
-        portions.proposed + settings.proposed + clarify.proposed,
+        portions.proposed + settings.proposed + cells.proposed + clarify.proposed,
       kept: preferences.kept + notes.kept + nextPlan.kept + portions.kept +
-        settings.kept + clarify.kept,
+        settings.kept + cells.kept + clarify.kept,
       refused,
       preferences,
       notes,
       nextPlan,
       portions,
       settings,
+      cells,
       skipped: {
         total: degree + setting + mealStory + other + unknownSkip,
         degree,
@@ -1468,6 +1513,7 @@ function listsOf(raw: unknown): {
   next_plan: unknown[];
   portions: unknown[];
   settings: unknown[];
+  cells: unknown[];
   skipped: unknown[];
   clarify: unknown[];
   missing: string[];
@@ -1488,6 +1534,7 @@ function listsOf(raw: unknown): {
     "next_plan",
     "portions",
     "settings",
+    "cells",
     "skipped",
     "clarify",
   ] as const;
@@ -1507,6 +1554,7 @@ function listsOf(raw: unknown): {
     next_plan: list("next_plan"),
     portions: list("portions"),
     settings: list("settings"),
+    cells: list("cells"),
     skipped: list("skipped"),
     clarify: list("clarify"),
     missing,
@@ -1574,6 +1622,11 @@ export function draftNoteClassifyTrace(
     // a proposé des candidats qui n'existent pas, et que la personne ne sera
     // donc PAS relancée — c'est le nombre à regarder quand une ambiguïté
     // disparaît en silence.
+    // ⑧ — la case de ce plan-ci. `cells_kept` = ce que le front rendra au
+    // composeur; `cells_refused_bad_when` = un jour ou un moment que le modèle
+    // a inventé ou omis.
+    ...gate("cells", classification.cells),
+    cells_refused_bad_when: classification.cells.refused.badWhen,
     ...gate("clarify", classification.clarify),
     clarify_refused_bad_about: classification.clarify.refused.badAbout,
     clarify_refused_bad_gate: classification.clarify.refused.badGate,
