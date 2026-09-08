@@ -46,6 +46,22 @@ import type { PlannedSlot } from "./slot_meal_ask.ts";
 type Db = any;
 
 /**
+ * Le texte d'une erreur, y compris quand ce n'en est PAS une.
+ *
+ * ⚠️ POSTGREST NE LÈVE PAS DES `Error`. Il rend un objet `{code, message,
+ * details, hint}`, et `String(...)` dessus donne `[object Object]` — un
+ * journal qui ne dit rien au moment exact où il devrait tout dire.
+ */
+function errorText(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  const e = (error ?? {}) as Record<string, unknown>;
+  return [e.code, e.message, e.details, e.hint]
+    .map((v) => String(v ?? "").trim())
+    .filter(Boolean)
+    .join(" — ") || String(error);
+}
+
+/**
  * ⚠️ POURQUOI UN MOTIF PLUTÔT QU'UN TABLEAU VIDE.
  *
  * « Le plan ne compose rien aujourd'hui » et « on n'a pas su lire le plan » se
@@ -131,7 +147,7 @@ export async function plannedSlotsToday(
       tag: "keel.slot_meal.planned_unreadable",
       user_id: args.userId,
       local_date: args.localDate,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorText(error),
       effect: "aucun creneau compose ce tour: la question du repas se tait",
     }));
     return EMPTY("load_failed");
@@ -170,7 +186,7 @@ export async function plannedSlotsToday(
       console.warn(JSON.stringify({
         tag: "keel.slot_meal.member_unreadable",
         user_id: args.userId,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorText(error),
         effect: "fail-closed: les plats DEDIES sont ecartes",
       }));
       memberId = null;
@@ -236,15 +252,25 @@ export async function answeredDishIndexes(
   if (wanted.length === 0) return new Set();
   const keys = wanted.map((i) => mealTickKey(args.mealId, i));
   try {
+    // ⚠️ `source_message_id`, ET SURTOUT PAS `key`. `protocol_events` N'A PAS
+    // de colonne `key` — mesuré en run réel le 2026-09-08: la requête levait,
+    // le fail-closed ci-dessous tenait TOUT pour répondu, et la question du
+    // créneau composé ne partait JAMAIS. Elle était remplacée en silence par
+    // celle du créneau non couvert, ce qui est exactement le genre de défaut
+    // qu'un test unitaire ne voit pas: le stub, lui, répondait à `key`.
+    //
+    // C'est `writeMealTick` (`evening_strip_io.ts`) qui pose la clé, et il
+    // l'écrit dans `source_message_id`. La même erreur avait été commise dans
+    // les requêtes de preuve de la migration `20260908010000`.
     const { data, error } = await db
       .from("protocol_events")
-      .select("key")
+      .select("source_message_id")
       .eq("user_id", args.userId)
-      .in("key", keys);
+      .in("source_message_id", keys);
     if (error) throw error;
     const seen = new Set<number>();
     for (const row of (data ?? []) as Array<Record<string, unknown>>) {
-      const key = String(row?.key ?? "");
+      const key = String(row?.source_message_id ?? "");
       if (!key.startsWith(MEAL_TICK_PREFIX)) continue;
       const at = key.lastIndexOf(":");
       const index = Number(key.slice(at + 1));
@@ -256,7 +282,11 @@ export async function answeredDishIndexes(
       tag: "keel.slot_meal.ticks_unreadable",
       user_id: args.userId,
       meal_id: args.mealId,
-      error: error instanceof Error ? error.message : String(error),
+      // ⚠️ UNE ERREUR POSTGREST N'EST PAS UNE `Error`. `String(error)` rendait
+      // `[object Object]`, et le journal ne disait donc PAS que la colonne
+      // n'existait pas — c'est ce qui a fait chercher ailleurs. Même
+      // dépliage que `keel-daily-pulse-v1` le faisait pour le plancher.
+      error: errorText(error),
       effect: "fail-closed: tout est tenu pour repondu, aucune question ne part",
     }));
     return new Set(wanted);
