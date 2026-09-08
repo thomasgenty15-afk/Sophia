@@ -2232,3 +2232,35 @@ Deno.test("⑦ io — la RÉPONSE déplace UN cran par la RPC `_for`, le dit dan
   assertEquals(edge.reason, "at_edge");
   assertEquals(edge.announced, []);
 });
+
+Deno.test("⑧ io — une note qui n'ÉCRIT QU'EN SÉCURITÉ le dit: une ligne `safety`, la bouche à part, et la bulle la porte", async () => {
+  // Mesuré au banc de phrases (2026-09-08): « Claire est végétarienne », « pas
+  // de porc », « ma femme est allergique aux noix » écrivaient en table de
+  // sécurité et répondaient « je n'ai rien trouvé à changer ».
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("Zoé est allergique aux arachides"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({
+      preferences: [], notes: [], next_plan: [], skipped: [], clarify: [],
+      safety: [{ kind: "allergy", ref: "peanut", member_id: ZOE, text: "Zoé est allergique aux arachides" }],
+    }, trace),
+  });
+  assertEquals(res.reason, "nothing_to_file", "le motif parle des PORTES, pas de la sécurité");
+  assertEquals(res.safety.written.length, 1);
+  assertEquals(res.announced.length, 1);
+  assertEquals(res.announced[0].kind, "safety");
+  assertEquals(res.announced[0].who, "Zoé");
+  // ⚠️ LE PRÉNOM N'EST PAS DANS LE TEXTE: le front le préfixe. Mesuré:
+  // « Claire : un régime de Claire : vegetarian ».
+  assertEquals(res.announced[0].text, "une allergie : peanut");
+  assertEquals(res.notice.reason !== "not_attempted", true, "la bulle doit être tentée");
+});

@@ -73,6 +73,10 @@ const BLOCK_OF: Record<RecapKept["kind"], string> = {
   note: "notes",
   next_plan: "next_plan",
   setting: "settings",
+  // ⟳ 2026-09-08 — une déclaration de sécurité n'a pas de bloc sur la carte
+  // mémoire: elle se défait dans la fiche santé, et le récap le dit en toutes
+  // lettres (`undo`). Le bouton « Voir » ouvre la carte, comme pour le reste.
+  safety: "preferences",
 };
 
 /**
@@ -140,6 +144,12 @@ export async function notifyMemoryWrite(
   args: {
     userId: string;
     kept: readonly RecapKept[];
+    /**
+     * ⟳ 2026-09-08 — CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ, pour que la bulle le dise
+     * avec la phrase « si je me suis trompée… ». REQUIS, jamais `?`: c'était
+     * `safety: []` en dur, et une allergie écrite ne se disait nulle part.
+     */
+    safety: readonly RecapSafety[];
     language: ClarificationLanguage;
     requestId?: string;
     now?: Date;
@@ -148,15 +158,18 @@ export async function notifyMemoryWrite(
   const kept = (args.kept ?? []).filter((k) =>
     String(k?.text ?? "").trim() !== ""
   );
-  if (kept.length === 0) return { delivered: false, reason: "nothing_written" };
+  const safety = (args.safety ?? []).filter((s) => String(s?.ref ?? "").trim() !== "");
+  if (kept.length === 0 && safety.length === 0) {
+    return { delivered: false, reason: "nothing_written" };
+  }
 
   // ⚠️ LE MÊME RENDU QUE LE RÉCAP DU SOIR. Il sait déjà nommer la destination
   // et la bouche, dans les deux langues. Un second rendu dirait la même chose
   // avec d'autres mots, et les deux divergeraient au premier ajout.
-  const body = buildMemoryRecap({ safety: [], kept, language: args.language });
+  const body = buildMemoryRecap({ safety, kept, language: args.language });
   if (!body) return { delivered: false, reason: "nothing_to_say" };
 
-  const block = BLOCK_OF[kept[0].kind] ?? "preferences";
+  const block = kept.length > 0 ? BLOCK_OF[kept[0].kind] ?? "preferences" : "preferences";
 
   // ⛔ CE MODULE NE LÈVE JAMAIS, ET CE N'EST PAS DE LA PRUDENCE DÉCORATIVE.
   // Il est appelé APRÈS que le plan et la mémoire sont écrits. Une panne du

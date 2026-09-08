@@ -72,7 +72,7 @@ import {
   notifyMemoryWrite,
   notifySafetyNotWritten,
 } from "./memory_clarification_io.ts";
-import { type RecapKept, settingRecapLine } from "./memory_recap.ts";
+import { type RecapKept, type RecapSafety, safetyRecapLine, settingRecapLine } from "./memory_recap.ts";
 // ⟳ 2026-09-08 — LA PORTE DU BILAN, POUR LES RÉGLAGES. `retainedItemsFromPlanFeedback`
 // tient l'échelle de chaque champ, le cadran unique du style, les bords et le
 // conflit des deux axes: une phrase passe par LÀ, jamais par une arithmétique
@@ -204,6 +204,13 @@ export interface DraftNoteClassifyResult {
    * classifieur a tout compris — jamais une question fabriquée ici.
    */
   readonly questions: readonly DraftNoteQuestion[];
+  /**
+   * ⟳ 2026-09-08 — LES MOUVEMENTS COMPRIS MAIS AU BOUT DE L'ÉCHELLE (une part
+   * déjà au plus petit, un style déjà au plus simple). Ce n'est ni un refus ni
+   * un échec, et « rien à changer » serait faux: la personne mérite « c'est
+   * déjà au bout ». Mesuré au banc: « trop compliqué » sur `minimal`.
+   */
+  readonly atEdge: number;
   /** Les trois nombres AGRÉGÉS. Le détail par porte est dans `classification`. */
   readonly proposed: number;
   readonly kept: number;
@@ -503,6 +510,7 @@ export async function classifyAndPersistDraftNote(args: {
       notice: NO_NOTICE,
       announced: [],
       questions: [],
+      atEdge: 0,
     };
   };
 
@@ -544,6 +552,7 @@ export async function classifyAndPersistDraftNote(args: {
       notice: NO_NOTICE,
       announced: [],
       questions: [],
+      atEdge: 0,
     };
   }
   const raw = classified.raw;
@@ -590,6 +599,7 @@ export async function classifyAndPersistDraftNote(args: {
       notice: NO_NOTICE,
       announced: [],
       questions: [],
+      atEdge: 0,
     };
   }
 
@@ -697,10 +707,14 @@ export async function classifyAndPersistDraftNote(args: {
     written: readonly RecapKept[],
   ): Promise<{ delivered: boolean; reason: string }> => {
     const all = [...(args.alsoAnnounce ?? []), ...written];
-    if (all.length === 0) return NO_NOTICE;
+    if (all.length === 0 && safetyRecap.length === 0) return NO_NOTICE;
     return await notifyMemoryWrite(args.admin as never, {
       userId,
+      // ⚠️ LES LIGNES DE SÉCURITÉ SONT DANS `all` (pour le front) ET DANS
+      // `safety` (pour le bloc « si je me suis trompée… » de la bulle). Le
+      // récap ignore le genre `safety` dans ses destinations: pas de doublon.
       kept: all,
+      safety: safetyRecap,
       language,
       requestId: args.requestId,
       now: args.now ? new Date(args.now) : undefined,
@@ -717,6 +731,25 @@ export async function classifyAndPersistDraftNote(args: {
     const label = String(found?.label ?? "").trim();
     return label || null;
   };
+
+  // ── ⟳ 2026-09-08 — CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ SE DIT, ET EN PREMIER ──
+  // Avant la sortie « rien à ranger », parce que c'est SON cas: « Claire est
+  // végétarienne » ne remplit aucune porte et écrit un régime. Mesuré au banc
+  // de phrases: trois déclarations écrites, trois réponses « je n'ai rien
+  // trouvé à changer ».
+  const safetyRecap: RecapSafety[] = safety.written.map((d) => ({
+    kind: d.kind,
+    ref: d.ref,
+    who: d.memberId === null ? null : whoOf(memberSubject(d.memberId) ?? ""),
+  }));
+  // ⚠️ LA BOUCHE VOYAGE DANS `who`, PAS DANS LE TEXTE: le front la préfixe
+  // lui-même (« Claire : … »). Mesuré: « Claire : un régime de Claire : … ».
+  const safetyLines: RecapKept[] = safetyRecap.map((s) => ({
+    text: safetyRecapLine({ ...s, who: null }, language),
+    until: null,
+    kind: "safety",
+    who: s.who,
+  }));
 
   if (
     classification.preferences.items.length === 0 &&
@@ -737,8 +770,11 @@ export async function classifyAndPersistDraftNote(args: {
     // fréquent de cette porte: « ma fille n'aime pas le poisson » ne remplit
     // aucune des trois listes — c'est précisément pour ça qu'on relance.
     const clarification = NO_CLARIFICATION;
-    const notice = await announce([]);
+    const notice = await announce(safetyLines);
     // ⟳ `clarification_asked` n'est plus atteignable: rien ne demande.
+    // ⚠️ `nothing_to_file` RESTE LE MOTIF même quand une sécurité a été
+    // écrite: il parle des PORTES. Les lignes annoncées, elles, disent
+    // l'écriture — et le front lit les lignes, pas le motif.
     const reason: DraftNoteClassifyReason = "nothing_to_file";
     log(reason, {
       user_id: userId,
@@ -771,8 +807,9 @@ export async function classifyAndPersistDraftNote(args: {
       safety,
       clarification,
       notice,
-      announced: [],
+      announced: safetyLines,
       questions,
+      atEdge: 0,
     };
   }
 
@@ -968,7 +1005,7 @@ export async function classifyAndPersistDraftNote(args: {
   // refusée (un doublon, un mémo plein) apprendrait à la personne que les
   // accusés ne veulent rien dire — la même règle que « on ne dit jamais noté
   // sur une écriture qu'on n'a pas faite ».
-  const announced: RecapKept[] = [];
+  const announced: RecapKept[] = [...safetyLines];
   if (write.ok) {
     if (write.durableWritten > 0) {
       // ⛔ ON N'ANNONCE QUE CE QUI EST VRAIMENT ENTRÉ, et un mouvement de part
@@ -1050,6 +1087,7 @@ export async function classifyAndPersistDraftNote(args: {
     notice,
     announced,
     questions,
+    atEdge: appetite.at_edge + settings.at_edge,
   };
   // UNE SEULE LIGNE, ET ELLE PORTE LES NOMBRES PAR PORTE AVEC LE MODÈLE.
   (result.ok ? console.info : console.warn)(JSON.stringify({
@@ -1310,6 +1348,7 @@ export async function answerDraftNotePortion(args: {
   const notice = announced.length === 0 ? NO_NOTICE : await notifyMemoryWrite(args.admin as never, {
     userId,
     kept: announced,
+    safety: [],
     language,
     requestId: args.requestId,
     now: args.now ? new Date(args.now) : undefined,

@@ -687,6 +687,9 @@ Deno.serve(async (req) => {
       // le `catch` ci-dessus n'a alors pas vidé la liste.)
       if (announced.length > 0) {
         const notice = await notifyMemoryWrite(admin as never, {
+          // Les réponses fermées n'écrivent rien en sécurité; le texte libre
+          // passe par `classifyAndPersistDraftNote`, qui porte les siennes.
+          safety: [],
           userId,
           kept: announced,
           language: feedbackLanguage,

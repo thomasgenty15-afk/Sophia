@@ -83,7 +83,7 @@ export interface RecapKept {
    * pas une chose que Sophia SAIT de la personne, c'est un curseur qu'elle a
    * bougé à cause d'une réponse. Les fondre dirait le contraire du modèle.
    */
-  readonly kind: "preference" | "note" | "next_plan" | "setting";
+  readonly kind: "preference" | "note" | "next_plan" | "setting" | "safety";
   /** Le prénom de la bouche, ou `null` = toute la table. */
   readonly who: string | null;
   /**
@@ -181,6 +181,29 @@ const COPY = {
  * de l'enregistrement d'une allergie ne peut pas dépendre du fait qu'il y ait
  * eu autre chose à dire ce soir-là.
  */
+/**
+ * ⟳ 2026-09-08 — UNE DÉCLARATION DE SÉCURITÉ, EN UNE LIGNE: « une allergie de
+ * Claire : noix ». Le SEUL rendu, partagé par le récap (écrite), l'avis d'échec
+ * (pas écrite) et l'accusé sous le champ du brouillon. Mesuré au banc de
+ * phrases: « Claire est végétarienne », « pas de porc », « ma femme est
+ * allergique aux noix » ÉCRIVAIENT en table de sécurité et répondaient « je
+ * n'ai rien trouvé à changer » — l'écriture la plus grave du produit était la
+ * seule muette.
+ *
+ * ⚠️ UN `kind` INCONNU NE FABRIQUE PAS DE PHRASE. On rend le slug seul plutôt
+ * qu'un libellé inventé: mieux vaut « j'ai noté : peanut » que « j'ai noté une
+ * <kind> : peanut », qui se lirait comme un bug et ferait douter du reste du
+ * message — celui qui porte une allergie.
+ */
+export function safetyRecapLine(s: RecapSafety, language: RecapLanguage): string {
+  const copy = COPY[language] ?? COPY.en;
+  const label = copy.kinds[String(s.kind ?? "")] ?? "";
+  const ref = String(s.ref ?? "").trim();
+  const who = String(s.who ?? "").trim();
+  if (!label) return who ? `${who} : ${ref}` : ref;
+  return who ? copy.safetyWho(who, label, ref) : copy.safetyMine(label, ref);
+}
+
 export function buildMemoryRecap(args: {
   safety: readonly RecapSafety[];
   kept: readonly RecapKept[];
@@ -193,19 +216,7 @@ export function buildMemoryRecap(args: {
     String(s?.ref ?? "").trim() !== ""
   );
   if (safety.length > 0) {
-    const rendered = safety.map((s) => {
-      // ⚠️ UN `kind` INCONNU NE FABRIQUE PAS DE PHRASE. On rend le slug seul
-      // plutôt qu'un libellé inventé: mieux vaut « j'ai noté : peanut » que
-      // « j'ai noté une <kind> : peanut », qui se lirait comme un bug et
-      // ferait douter du reste du message — celui qui porte une allergie.
-      const label = copy.kinds[String(s.kind ?? "")] ?? "";
-      const ref = String(s.ref).trim();
-      const who = String(s.who ?? "").trim();
-      if (!label) return who ? `${who} : ${ref}` : ref;
-      return who
-        ? copy.safetyWho(who, label, ref)
-        : copy.safetyMine(label, ref);
-    });
+    const rendered = safety.map((s) => safetyRecapLine(s, args.language));
     blocks.push(
       `${copy.safetyOne(rendered.join(" · "))} ${
         safety.length > 1 ? copy.undoMany : copy.undo
@@ -420,9 +431,15 @@ export function settingRecapLine(
   const field = String(change.field ?? "");
   const title = FIELD_TITLE[field];
   if (!title) return null;
-  const moved = FIELD_MOVED[language](
+  // ⟳ 2026-09-08 — SANS VALEUR D'AVANT, ON NE DIT QUE L'ARRIVÉE. Mesuré au
+  // banc: « un peu de variété » sur un champ jamais réglé rendait « Variété :
+  // de rien à variée » — « rien » n'est pas un barreau, c'est une absence.
+  const unset = change.previous === null || change.previous === undefined ||
+    String(change.previous).trim() === "";
+  const next = showFieldValue(field, change.next, language);
+  const moved = unset ? next : FIELD_MOVED[language](
     showFieldValue(field, change.previous, language),
-    showFieldValue(field, change.next, language),
+    next,
   );
   // L'espace avant le deux-points suit la langue, comme partout ailleurs ici.
   const colon = language === "fr" ? " : " : ": ";
@@ -446,12 +463,6 @@ export function buildSafetyNotWrittenNotice(args: {
     String(s?.ref ?? "").trim() !== ""
   );
   if (failed.length === 0) return null;
-  const rendered = failed.map((s) => {
-    const label = copy.kinds[String(s.kind ?? "")] ?? "";
-    const ref = String(s.ref).trim();
-    const who = String(s.who ?? "").trim();
-    if (!label) return who ? `${who} : ${ref}` : ref;
-    return who ? copy.safetyWho(who, label, ref) : copy.safetyMine(label, ref);
-  });
+  const rendered = failed.map((s) => safetyRecapLine(s, args.language));
   return copy.notWritten(rendered.join(" · "));
 }

@@ -508,13 +508,20 @@ Deno.test("⛔ UN CHAMP SANS ÉCRAN RESTE TU — la garde n'a pas été désarm�
   );
 });
 
-Deno.test("un nombre et une absence traversent inchangés", () => {
+Deno.test("un nombre traverse inchangé, et une absence d'avant ne se dit pas — mesuré: « de rien à variée »", () => {
+  // ⟳ 2026-09-08 — « rien » n'est pas un barreau, c'est une absence: on ne dit
+  // que l'arrivée. Le banc de phrases rendait « Variété : de rien à variée ».
   assertEquals(
-    settingRecapLine(
-      { field: "cooking_time_min", previous: null, next: 45 },
-      "fr",
-    ),
-    "Temps de cuisine : de rien à 45",
+    settingRecapLine({ field: "cooking_time_min", previous: null, next: 45 }, "fr"),
+    "Temps de cuisine : 45",
+  );
+  assertEquals(
+    settingRecapLine({ field: "variety", previous: "", next: "varied" }, "fr"),
+    "Variété : variée",
+  );
+  assertEquals(
+    settingRecapLine({ field: "cooking_time_min", previous: 30, next: 45 }, "fr"),
+    "Temps de cuisine : de 30 à 45",
   );
 });
 

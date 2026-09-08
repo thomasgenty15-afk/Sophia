@@ -11,7 +11,7 @@ while IFS= read -r phrase; do
   [ -z "$phrase" ] && continue
   i=$((i+1))
   printf '\n### P%02d · « %s »\n\n```\n' "$i" "$phrase" >> "$OUT"
-  bash 23-tir-read-note.sh "P$(printf %02d $i)" "$FIX" "$phrase" 2>&1 | grep -v "^   → \|http=" >> "$OUT"
+  bash 23-tir-read-note.sh "P$(printf %02d $i)" "$FIX" "$phrase" </dev/null 2>&1 | grep -v "^   → \|http=" >> "$OUT"
   printf '```\n' >> "$OUT"
   sleep 1
 done <<'PHRASES'

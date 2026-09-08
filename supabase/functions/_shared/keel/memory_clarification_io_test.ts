@@ -388,7 +388,7 @@ Deno.test("panne: tous les motifs rendus sont dans le vocabulaire déclaré", as
 
 Deno.test("notification: une ligne écrite, une bulle, un bouton « Voir »", async () => {
   const { admin, trace } = fake();
-  const out = await notifyMemoryWrite(admin, {
+  const out = await notifyMemoryWrite(admin, { safety: [],
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: "Léa" }],
     language: "fr",
@@ -423,7 +423,7 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
     ] as const
   ) {
     const { admin, trace } = fake();
-    await notifyMemoryWrite(admin, {
+    await notifyMemoryWrite(admin, { safety: [],
       userId: USER,
       kept: [{ text: "quelque chose", until: null, kind, who: null }],
       language: "fr",
@@ -449,12 +449,12 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
 Deno.test("notification: rien à dire — aucune bulle, aucun motif inventé", async () => {
   const { admin } = fake({ explodes: true });
   assertEquals(
-    await notifyMemoryWrite(admin, { userId: USER, kept: [], language: "fr" }),
+    await notifyMemoryWrite(admin, { safety: [], userId: USER, kept: [], language: "fr" }),
     { delivered: false, reason: "nothing_written" },
   );
   // Une ligne au texte vide n'est pas une ligne.
   assertEquals(
-    (await notifyMemoryWrite(admin, {
+    (await notifyMemoryWrite(admin, { safety: [],
       userId: USER,
       kept: [{ text: "   ", until: null, kind: "preference", who: null }],
       language: "fr",
@@ -468,7 +468,7 @@ Deno.test("notification: le canal tombe — elle ne lève pas", async () => {
   // panne du canal ferait alors échouer une requête dont tout le travail est
   // fait, et la personne lirait « ça n'a pas marché » sur un plan qui existe.
   const { admin } = fake({ explodes: true });
-  const out = await notifyMemoryWrite(admin, {
+  const out = await notifyMemoryWrite(admin, { safety: [],
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: null }],
     language: "fr",
