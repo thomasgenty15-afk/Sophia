@@ -67,8 +67,27 @@ export function parseWeighInToken(raw: unknown): string | null {
  * façon d'éviter qu'il hérite en silence de la cadence de la perte.
  */
 export const WEIGH_IN_INTERVAL_DAYS: Record<GoalToken, number> = {
-  fat_loss: 2,
+  // ⟳ 2026-09-08 — DE DEUX À TROIS JOURS, ET C'EST UNE DÉCISION PRODUIT.
+  //
+  // Demandé tel quel: « la question tous les 3 jours de mettre à jour le poids ».
+  // Le sens va dans la direction que ce module défend déjà partout — moins
+  // souvent plutôt que plus — et il tombe le même jour que la boucle par repas,
+  // qui, elle, ajoute des sollicitations. Alléger celle-ci pendant qu'on
+  // alourdit l'autre est ce qui empêche la journée de devenir un formulaire.
+  fat_loss: 3,
+  // ⛔ ON N'Y TOUCHE PAS. C2 couvre les TROIS objectifs — une pesée sert le
+  // maintien autant que la perte. Ce que `maintenance` ne reçoit pas, c'est C1,
+  // la boucle par repas. Bouger cette ligne-ci serait un changement produit
+  // silencieux sur une cohorte que ce lot ne concerne pas.
   maintenance: 2,
+  // ⛔ ON N'Y TOUCHE PAS NON PLUS, ET LE RAPPORT SE DÉGRADE — dit ici plutôt
+  // que découvert plus tard. Le raisonnement d'origine était un RAPPORT: « cinq
+  // jours en prise = deux jours en perte », soit 2,5×. Avec la perte à trois
+  // jours, le rapport tombe à 1,67×. Rien n'a été demandé sur la prise de
+  // masse, et déplacer une cadence par symétrie arithmétique serait décider à
+  // la place de quelqu'un. Si on la bouge un jour, `ASK_LOOKBACK_DAYS`
+  // (`weigh_in_io.ts`) doit suivre: sa justification est « deux cycles
+  // complets » contre la cadence maximale.
   muscle_gain: 5,
 };
 

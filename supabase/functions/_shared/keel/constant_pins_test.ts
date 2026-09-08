@@ -509,7 +509,7 @@ Deno.test("épinglage — le mémo tient CINQ lignes", () => {
 // FF-062 — LES DEUX CANAUX NEUFS (lot 6)
 // ═══════════════════════════════════════════════════════════════════════════
 
-Deno.test("épinglage — la cadence de pesée: 2 jours, 2 jours, 5 jours", () => {
+Deno.test("épinglage — la cadence de pesée: 3 jours, 2 jours, 5 jours", () => {
   // C2. ⚠️ CE SONT DES ARBITRAGES ADOSSÉS À UNE MESURE, et la mesure est le
   // BRUIT DE LA BALANCE. Une perte de 0,5 kg/semaine fait 70 g/jour, soit moins
   // que `WEIGHT_NOISE_KG`: un point quotidien n'ajoute aucun signal, il ajoute
@@ -529,13 +529,32 @@ Deno.test("épinglage — la cadence de pesée: 2 jours, 2 jours, 5 jours", () =
   // c'est demander son poids tous les jours à quelqu'un qui perd 70 g — la
   // forme même du tracker que ce produit refuse d'être.
   //
+  // ── ⟳ 2026-09-08 · LA PERTE PASSE À TROIS JOURS ─────────────────────────
+  //
+  // ⚠️ CE PAVÉ PORTAIT UN ARGUMENT CONTRE CE CHANGEMENT, ET IL N'EST PAS
+  // EFFACÉ. Il disait: deux jours donnent 140 g, « encore dans le bruit point à
+  // point, mais assez de POINTS pour qu'une tendance existe ». Le trois-jours
+  // donne 210 g — un signal PLUS propre par point, et un point de moins par
+  // semaine. Sur la dispersion, c'est un échange, pas une amélioration.
+  //
+  // Ce qui a tranché n'est donc PAS la balance, et il faut le dire: c'est le
+  // budget de la journée. La boucle par repas arrive le même jour et ajoute
+  // trois à cinq sollicitations quotidiennes. Alléger la pesée pendant qu'on
+  // alourdit le reste est ce qui empêche la journée de devenir un formulaire —
+  // et un formulaire quotidien se fait ignorer puis couper, ce qui détruit la
+  // mesure qu'il servait (le motif est déjà écrit dans `daily_recap.ts`).
+  //
+  // Décision produit, demandée telle quelle. Si la dispersion se dégrade
+  // visiblement, c'est CE nombre qu'on relit, et l'argument du bruit est
+  // au-dessus, intact.
+  //
   // ⛔ L'OBJET ENTIER, PAS TROIS ACCÈS. Trois `assertEquals` par clé restent
   // verts le jour où un QUATRIÈME objectif entre dans `GOAL_TOKENS` avec sa
   // cadence — c'est-à-dire le jour où un chiffre neuf apparaît sans que
   // personne l'apprenne. La même règle que `SLOT_DAY_WEIGHT` et
   // `ACTIVITY_FACTORS` plus haut, pour la même raison.
   assertEquals(WEIGH_IN_INTERVAL_DAYS, {
-    fat_loss: 2,
+    fat_loss: 3,
     maintenance: 2,
     muscle_gain: 5,
   });

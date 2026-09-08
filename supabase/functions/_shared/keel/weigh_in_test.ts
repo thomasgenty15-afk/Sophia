@@ -133,26 +133,44 @@ Deno.test("chaque objectif a une cadence NOMMÉE — aucune n'hérite d'un défa
       `${goal} n'a pas de cadence`,
     );
   }
-  assertEquals(WEIGH_IN_INTERVAL_DAYS.fat_loss, 2);
+  // ⛔ C'EST LE SEUL ENDROIT DE CE FICHIER QUI FIXE UN NOMBRE. Les tests de
+  // comportement, plus bas, DÉRIVENT de la constante: c'est ce qui les rend
+  // vrais du BORD (« la cadence ouvre au n-ième jour ») plutôt que d'un
+  // chiffre. Sans cette épingle-ci, changer la constante ferait suivre toute la
+  // suite en silence — la cicatrice `test-parameterized-by-its-own-constant`.
+  //
+  // ⟳ 2026-09-08 — la perte passe de 2 à 3 jours (décision produit, demandée
+  // telle quelle). Le maintien ne bouge PAS: C2 couvre les trois objectifs.
+  assertEquals(WEIGH_IN_INTERVAL_DAYS.fat_loss, 3);
   assertEquals(WEIGH_IN_INTERVAL_DAYS.maintenance, 2);
   assertEquals(
     WEIGH_IN_INTERVAL_DAYS.muscle_gain,
     5,
-    "une prise de masse avance 2 à 3× plus lentement: 5 jours y donnent le " +
-      "même signal que 2 en perte, pour 2,5× moins de questions",
+    "une prise de masse avance 2 à 3× plus lentement. ⟳ Le RAPPORT s'est " +
+      "dégradé de 2,5× à 1,67× le 2026-09-08, quand la perte est passée à 3 " +
+      "jours: rien n'avait été demandé sur la prise de masse, et déplacer une " +
+      "cadence par symétrie arithmétique déciderait à la place de quelqu'un",
   );
 });
 
-Deno.test("une pesée d'hier ferme, une pesée de la cadence ouvre", () => {
+Deno.test("sous la cadence ça ferme, AU BORD ça ouvre", () => {
+  // TODAY = 2026-03-10, cadence de la perte = 3 jours.
   assertEquals(
-    base({ lastMeasuredOn: "2026-03-09" }),
+    base({ lastMeasuredOn: "2026-03-09" }), // 1 jour
     { ask: false, reason: "measured_recently" },
   );
-  const ok = base({ lastMeasuredOn: "2026-03-08" });
+  assertEquals(
+    base({ lastMeasuredOn: "2026-03-08" }), // 2 jours — sous la cadence
+    { ask: false, reason: "measured_recently" },
+  );
+  const ok = base({ lastMeasuredOn: "2026-03-07" }); // 3 jours — au bord
   assert(ok.ask);
   if (!ok.ask) return;
-  assertEquals(ok.sinceDays, 2);
-  assertEquals(ok.intervalDays, 2);
+  assertEquals(ok.sinceDays, 3);
+  // ⚠️ DÉRIVÉ, ET C'EST VOULU: ce test dit « l'intervalle rendu est celui de
+  // l'objectif », pas « il vaut 3 ». Le chiffre est épinglé une seule fois,
+  // dans le test des cadences nommées.
+  assertEquals(ok.intervalDays, WEIGH_IN_INTERVAL_DAYS.fat_loss);
 });
 
 Deno.test("une PRISE DE MASSE attend cinq jours, pas deux", () => {
@@ -183,7 +201,13 @@ Deno.test("⛔ UNE QUESTION IGNORÉE NE SE RÉPÈTE PAS LE LENDEMAIN (R2)", () =
     { ask: false, reason: "asked_recently" },
   );
   // Deux jours plus tard, la boucle se réamorce d'elle-même.
-  assert(base({ lastMeasuredOn: "2026-03-01", lastAskedOn: "2026-03-08" }).ask);
+  // ⚠️ LA RÉCENCE DE LA DEMANDE LIT LE MÊME INTERVALLE que celle de la pesée.
+  // À 2 jours elle ferme donc aussi depuis que la perte est à 3.
+  assertEquals(
+    base({ lastMeasuredOn: "2026-03-01", lastAskedOn: "2026-03-08" }),
+    { ask: false, reason: "asked_recently" },
+  );
+  assert(base({ lastMeasuredOn: "2026-03-01", lastAskedOn: "2026-03-07" }).ask);
 });
 
 Deno.test("une date illisible ne vaut pas « jamais »", () => {

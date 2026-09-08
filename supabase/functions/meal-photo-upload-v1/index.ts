@@ -16,7 +16,11 @@ import {
   serverError,
   z,
 } from "../_shared/http.ts";
-import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import { localePackKey, resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import {
+  renderPhotoDuplicate,
+  renderPhotoSavedUnanalysed,
+} from "../_shared/keel/meal_analysis.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
 import {
   inferSlotFromLocalHour,
@@ -582,6 +586,14 @@ Deno.serve(async (req) => {
     let timezone = String(planVersion?.timezone ?? "").trim() ||
       String(profileRow?.timezone ?? "").trim();
     const studentProfileLocale = String(profileRow?.locale ?? "").trim() || null;
+    // ⚠️ UNE SEULE RÉSOLUTION POUR TOUT CE QUI PART DE CETTE FONCTION. Deux
+    // résolutions séparées finissent par diverger, et la cicatrice a un nom
+    // ici même: un bouton français sous un accusé anglais. `resolveArtifactLocale`
+    // clampe sur les langues LIVRÉES, donc `localePackKey` ne peut pas jeter.
+    const ackPack = localePackKey(resolveArtifactLocale({
+      studentProfile: studentProfileLocale,
+      tenantDefault: null,
+    }));
     if (!timezone) {
       // Ni plan ni profil: on ne SAIT pas quel jour il est pour cet élève. UTC
       // est le seul repli honnête — c'est « on ne sait pas » et non « il vit à
@@ -813,8 +825,7 @@ Deno.serve(async (req) => {
 
             const res = await deliverChatMessage(admin, {
               userId,
-              content:
-                "I already have that photo — it is the same one, so I have not logged it twice.",
+              content: renderPhotoDuplicate(ackPack),
               isReply: true,
               purpose: "keel_meal_photo_ack",
               requestId,
@@ -1333,8 +1344,7 @@ Deno.serve(async (req) => {
           ).trim();
           // Pas d'accusé rendu = l'analyse n'a pas tourné. On le DIT au lieu de
           // laisser un silence qui ressemble à une photo ignorée.
-          const body_text = ack ||
-            "Saved. I could not analyse it just now — it is on file either way.";
+          const body_text = ack || renderPhotoSavedUnanalysed(ackPack);
           // L2 — SOUS PLANCHER, RIEN NE PART. Voir le bloc du dessus: le fait
           // est déjà écrit, la photo est déjà dans la bulle, et le
           // commentaire sur l'assiette n'a pas sa place ici. `chatDelivered`

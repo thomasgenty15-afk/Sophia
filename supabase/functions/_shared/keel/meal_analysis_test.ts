@@ -26,6 +26,7 @@ import {
   MEAL_ANALYSIS_SYSTEM_PROMPT,
   mealDisqualification,
   parseMealAnalysis,
+  photoEnergyBand,
   renderEnergyLine,
   renderMealPhotoAck,
   resolveFoodGroupCredit,
@@ -2314,7 +2315,23 @@ Deno.test("⛔ UN KCAL RENDU PORTE SA BASE, DANS LES DEUX LANGUES", () => {
       { kcal: 620, basis: "photo_estimate", confidence_band: "low" },
       locale,
     );
-    assert(text.includes("620 kcal"), text);
+    // ⟳ UNE FOURCHETTE, PLUS UN POINT (2026-09-08). Le biais de la photo est
+    // de −26,6 %, MESURÉ, et toujours du même côté: un point unique annonce
+    // comme un fait ce qui est systématiquement sous-estimé.
+    const band = photoEnergyBand(620);
+    assertEquals({ low: band.low, high: band.high }, { low: 600, high: 850 });
+    assert(
+      text.includes(`${band.low}`) && text.includes(`${band.high} kcal`),
+      `${locale}: la fourchette n'est pas rendue — ${text}`,
+    );
+    // ⛔ ET LE POINT NE SURVIT PAS À CÔTÉ D'ELLE. Une phrase qui porterait les
+    // deux (« environ 620, entre 600 et 850 ») rendrait la fourchette
+    // décorative: c'est le chiffre net que l'œil retient.
+    assertEquals(
+      text.includes("620"),
+      false,
+      `${locale}: l'estimation nue subsiste à côté de la fourchette — ${text}`,
+    );
     assert(
       text.includes(ENERGY_BASIS_MARKERS[pack].photo_estimate),
       `${locale}: le chiffre est nu — ${text}`,

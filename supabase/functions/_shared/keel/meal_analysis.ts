@@ -2330,8 +2330,28 @@ const ACK_COPY: Record<LocalePackKey, {
   foodNotEaten: string;
   unreadable: string;
   see: (foods: string) => string;
-  /** Le chiffre et sa base, dans la MÊME phrase. Voir `ENERGY_BASIS_MARKERS`. */
-  energy: (kcal: number, basis: EnergyBasis) => string;
+  /**
+   * LE CHIFFRE ET SA BASE, DANS LA MÊME PHRASE. Voir `ENERGY_BASIS_MARKERS`.
+   *
+   * ⚠️ DEUX ENTRÉES, ET C'EST LE TYPE QUI FAIT LE TRAVAIL. Une estimation de
+   * photo se rend en FOURCHETTE, un chiffre déclaré en POINT. Avec une seule
+   * fonction `(kcal, basis)`, rien n'empêchait un pack de rendre un point sur
+   * une photo — c'est-à-dire d'annoncer comme mesuré ce qui est deviné, et
+   * deviné bas. Deux signatures distinctes rendent ce mélange impossible à
+   * écrire.
+   */
+  energyBand: (low: number, high: number) => string;
+  energyPoint: (kcal: number) => string;
+  /**
+   * ⟳ LES DEUX ACCUSÉS QUI VIVAIENT EN ANGLAIS EN DUR, HORS DE TOUT PACK.
+   *
+   * Ils étaient écrits à la main dans `meal-photo-upload-v1/index.ts`, et un
+   * francophone les recevait donc en anglais — sous un accusé français, deux
+   * lignes plus bas. Ils rentrent ici parce que c'est ce qu'ils sont: de la
+   * copie d'accusé de photo, au même titre que les treize autres.
+   */
+  savedUnanalysed: string;
+  duplicate: string;
   noItems: string;
   ticked: (dish: string) => string;
   loggedExplicit: (titles: string) => string;
@@ -2355,12 +2375,16 @@ const ACK_COPY: Record<LocalePackKey, {
     unreadable:
       "I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.",
     see: (foods) => `I see ${foods}.`,
-    energy: (kcal, basis) =>
-      basis === "photo_estimate"
-        ? `Ballpark: about ${kcal} kcal, ${
-          ENERGY_BASIS_MARKERS.en.photo_estimate
-        } — photo guesses run low, so treat that as an order of magnitude rather than a measurement.`
-        : `About ${kcal} kcal, ${ENERGY_BASIS_MARKERS.en.declared_quantities}.`,
+    energyBand: (low, high) =>
+      `Ballpark: between ${low} and ${high} kcal, ${
+        ENERGY_BASIS_MARKERS.en.photo_estimate
+      } — photo guesses run low, so treat that as an order of magnitude rather than a measurement.`,
+    energyPoint: (kcal) =>
+      `About ${kcal} kcal, ${ENERGY_BASIS_MARKERS.en.declared_quantities}.`,
+    savedUnanalysed:
+      "Saved. I could not analyse it just now — it is on file either way.",
+    duplicate:
+      "I already have that photo — it is the same one, so I have not logged it twice.",
     noItems: "Photo saved. I could not identify the items with confidence.",
     ticked: (dish) =>
       `Looks like your planned "${dish}" — I have ticked it off. Tell me if that was not it.`,
@@ -2396,12 +2420,16 @@ const ACK_COPY: Record<LocalePackKey, {
     unreadable:
       "Je n'ai pas réussi à lire cette photo assez bien pour en dire quelque chose d'utile, donc je n'ai rien enregistré de ce qu'il y a dessus. Une autre, un peu plus lumineuse, et c'est bon.",
     see: (foods) => `Je vois ${foods}.`,
-    energy: (kcal, basis) =>
-      basis === "photo_estimate"
-        ? `Ordre de grandeur : environ ${kcal} kcal, ${
-          ENERGY_BASIS_MARKERS.fr.photo_estimate
-        } — les estimations sur photo tirent vers le bas, donc prends-le comme un ordre de grandeur, pas comme une mesure.`
-        : `Environ ${kcal} kcal, ${ENERGY_BASIS_MARKERS.fr.declared_quantities}.`,
+    energyBand: (low, high) =>
+      `Ordre de grandeur : entre ${low} et ${high} kcal, ${
+        ENERGY_BASIS_MARKERS.fr.photo_estimate
+      } — les estimations sur photo tirent vers le bas, donc prends-le comme un ordre de grandeur, pas comme une mesure.`,
+    energyPoint: (kcal) =>
+      `Environ ${kcal} kcal, ${ENERGY_BASIS_MARKERS.fr.declared_quantities}.`,
+    savedUnanalysed:
+      "C'est enregistré. Je n'ai pas pu l'analyser à l'instant — la photo est gardée quand même.",
+    duplicate:
+      "J'ai déjà cette photo — c'est la même, donc je ne l'ai pas comptée deux fois.",
     noItems: "Photo enregistrée. Je n'ai pas pu identifier les aliments avec certitude.",
     ticked: (dish) =>
       `On dirait ton « ${dish} » prévu — je l'ai coché. Dis-moi si ce n'était pas ça.`,
@@ -2471,7 +2499,66 @@ export function renderEnergyLine(
 ): string | null {
   if (!estimate) return null;
   if (!Number.isFinite(estimate.kcal)) return null;
-  return ACK_COPY[pack].energy(estimate.kcal, estimate.basis);
+  if (estimate.basis !== "photo_estimate") {
+    return ACK_COPY[pack].energyPoint(estimate.kcal);
+  }
+  const band = photoEnergyBand(estimate.kcal);
+  return ACK_COPY[pack].energyBand(band.low, band.high);
+}
+
+/**
+ * LE BIAIS DE LA PHOTO, ET LA FOURCHETTE QUI EN DÉCOULE.
+ *
+ * ── POURQUOI UNE FOURCHETTE, ET POURQUOI ASYMÉTRIQUE ──────────────────────
+ * L'estimation d'une photo est basse de −26,6 %, **mesuré**, et cité dans cinq
+ * modules de ce dépôt (`plan_energy.ts`, `evaluator.ts`, `energy_correction.ts`,
+ * et deux fois ici). Ce n'est pas du bruit: c'est un biais DIRECTIONNEL, et il
+ * vient de ce qu'une photo ne montre pas — l'huile de la poêle, le beurre du
+ * fond, la sauce absorbée. Toujours du même côté.
+ *
+ * Un point unique annonce donc comme un fait ce qui est systématiquement
+ * sous-estimé. Et une fourchette CENTRÉE serait pire qu'un point: elle
+ * prétendrait que l'erreur va dans les deux sens, ce que la mesure dément.
+ * Celle-ci s'ouvre vers le HAUT, du montant exact du biais.
+ *
+ * ⛔ CE QUI EST STOCKÉ NE CHANGE PAS. `energy_estimate.kcal` reste le scalaire
+ * que le modèle a rendu. La bande est un RENDU: la faire entrer en base
+ * obligerait `sumEnergy` et `weakestBasis` (`tracking_window.ts`) à sommer des
+ * intervalles, ce qui est un chantier à part et pas celui-ci.
+ *
+ * ⛔ ET `declared_quantities` RESTE UN POINT. La personne a donné un nombre;
+ * l'élargir inventerait une incertitude qu'elle n'a pas exprimée.
+ *
+ * Arrondi à 50 kcal, le même arbitrage que `energy_target.ts::maintenanceRange`:
+ * « 550–750 » se lit comme un ordre de grandeur, « 547–748 » comme une mesure.
+ */
+/**
+ * LES DEUX ACCUSÉS QUI NE PASSENT PAS PAR `renderMealPhotoAck`.
+ *
+ * L'un part quand l'analyse n'a pas tourné, l'autre sur un doublon: dans les
+ * deux cas il n'y a rien à décrire, donc pas de verdict, donc pas d'accusé
+ * composé. Ils restent néanmoins des accusés — et ils doivent parler la même
+ * langue que celui qui les remplace le reste du temps.
+ */
+export function renderPhotoSavedUnanalysed(pack: LocalePackKey): string {
+  return ACK_COPY[pack].savedUnanalysed;
+}
+
+export function renderPhotoDuplicate(pack: LocalePackKey): string {
+  return ACK_COPY[pack].duplicate;
+}
+
+export const PHOTO_ESTIMATE_LOW_BIAS = 0.266;
+
+export function photoEnergyBand(
+  kcal: number,
+): { readonly low: number; readonly high: number } {
+  const round50 = (n: number) => Math.round(n / 50) * 50;
+  const low = round50(kcal);
+  const high = round50(kcal / (1 - PHOTO_ESTIMATE_LOW_BIAS));
+  // Une bande qui se referme sur elle-même après arrondi ne dit plus rien:
+  // on garde alors au moins un cran d'écart, sinon autant rendre un point.
+  return { low, high: high > low ? high : low + 50 };
 }
 
 /**
