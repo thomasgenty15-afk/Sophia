@@ -13,7 +13,17 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { buildMemoryRecap, buildSafetyNotWrittenNotice, type RecapKept } from "./memory_recap.ts";
+import {
+  buildMemoryRecap,
+  buildSafetyNotWrittenNotice,
+  fieldValueLabel,
+  type RecapKept,
+  settingRecapLine,
+} from "./memory_recap.ts";
+// ⛔ LES VOCABULAIRES VIENNENT DE LEUR PROPRE MODULE, jamais recopiés ici.
+import { COOKING_STYLES } from "./cooking_plan.ts";
+import { RECIPE_DIFFICULTIES, VARIETY_LEVELS } from "./retained_item.ts";
+import { APPETITE_LEVELS } from "./tokens.ts";
 
 Deno.test("⛔ LA SÉCURITÉ SORT MÊME SEULE, avec son « défaire »", () => {
   const fr = buildMemoryRecap({
@@ -412,4 +422,114 @@ Deno.test("CÂBLAGE — les deux producteurs d'un accusé de préférence passen
   assert(/kind: "preference",\n\s*who: whoOf\(item\.subject\),\n\s*sense: item\.kind,/.test(io), "la classification de note n'annonce plus le sens d'une préférence");
   assert(/kind: "next_plan",\n\s*who: whoOf\(entry\.item\.subject\),\n\s*sense: entry\.item\.kind,/.test(io), "l'encart n'annonce plus le sens");
   assert(/sense: item\.kind,/.test(fb), "le retour de plan n'annonce plus le sens d'une préférence");
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// `settingRecapLine` — LE DÉPLACEMENT LE PLUS FRÉQUENT DU BILAN (2026-09-08)
+//
+// ⛔ CETTE FONCTION N'AVAIT AUCUN TEST, et c'est ce qui a laissé vivre deux
+// défauts pendant des semaines: `cooking_style` sans libellé (donc tu), et des
+// jetons anglais imprimés tels quels dans une phrase française.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ `cooking_style` N'EST PLUS TU — c'est le champ que le bilan déplace le plus", () => {
+  const line = settingRecapLine(
+    { field: "cooking_style", previous: "balanced", next: "keen" },
+    "fr",
+  );
+  assert(
+    line !== null,
+    "le champ le plus fréquemment déplacé retombe encore sur `field_not_announced`",
+  );
+  assert(line!.includes("Style de cuisine"), line!);
+});
+
+Deno.test("une échelle fermée se dit dans la langue de qui lit", () => {
+  const fr = settingRecapLine(
+    { field: "variety", previous: "repeat", next: "varied" },
+    "fr",
+  );
+  assertEquals(fr, "Variété : de répétitive à variée");
+  const en = settingRecapLine(
+    { field: "variety", previous: "repeat", next: "varied" },
+    "en",
+  );
+  assertEquals(en, "Variety: from repetitive to varied");
+});
+
+// ⛔ LE TEST QUI SE CASSE QUAND LE VOCABULAIRE BOUGE, et c'est tout son intérêt.
+// Un test qui recopierait ses propres jetons resterait vert après l'ajout d'un
+// quatrième cran — la faute que ce dépôt a déjà payée. Ici les trois listes sont
+// IMPORTÉES, et la couverture se DEMANDE (`fieldValueLabel`) au lieu de se
+// deviner dans la phrase: en anglais le libellé est souvent le jeton lui-même.
+Deno.test("CÂBLAGE — chaque jeton des trois échelles a son libellé, fr ET en", () => {
+  const scales: ReadonlyArray<[string, readonly string[]]> = [
+    ["cooking_style", COOKING_STYLES],
+    ["recipe_difficulty", RECIPE_DIFFICULTIES],
+    ["variety", VARIETY_LEVELS],
+    // ⟳ 2026-09-08 — la quatrième échelle: une phrase la déplace d'un cran.
+    ["appetite", APPETITE_LEVELS],
+  ];
+  for (const [field, tokens] of scales) {
+    assert(
+      settingRecapLine({ field, previous: null, next: tokens[0] }, "fr") !== null,
+      `${field} n'a pas de libellé de champ: le bilan le tairait`,
+    );
+    for (const token of tokens) {
+      for (const language of ["fr", "en"] as const) {
+        assert(
+          fieldValueLabel(field, token, language) !== null,
+          `${field}.${token} n'a pas de libellé en ${language}: il sortirait sous son jeton brut`,
+        );
+      }
+    }
+  }
+});
+
+// La contre-épreuve du test ci-dessus: un jeton inconnu N'A PAS de libellé, donc
+// l'assertion précédente sait dire non. Sans elle, elle pourrait être vraie par
+// construction et ne rien mesurer.
+Deno.test("un cran inconnu n'a aucun libellé — et retombe sur lui-même dans la phrase", () => {
+  assertEquals(fieldValueLabel("cooking_style", "obsessive", "fr"), null);
+  assertEquals(
+    settingRecapLine(
+      { field: "cooking_style", previous: "balanced", next: "obsessive" },
+      "fr",
+    ),
+    "Style de cuisine : d'équilibré à obsessive",
+  );
+});
+
+Deno.test("⛔ UN CHAMP SANS ÉCRAN RESTE TU — la garde n'a pas été désarmée", () => {
+  assertEquals(
+    settingRecapLine({ field: "grocery_runs", previous: 1, next: 2 }, "fr"),
+    null,
+    "un champ absent de FIELD_TITLE fabrique une phrase: le bouton mentirait",
+  );
+});
+
+Deno.test("un nombre et une absence traversent inchangés", () => {
+  assertEquals(
+    settingRecapLine(
+      { field: "cooking_time_min", previous: null, next: 45 },
+      "fr",
+    ),
+    "Temps de cuisine : de rien à 45",
+  );
+});
+
+Deno.test("« de » s'élide devant une voyelle — mesuré: « de équilibré à minimal »", () => {
+  assertEquals(
+    settingRecapLine({ field: "cooking_style", previous: "balanced", next: "minimal" }, "fr"),
+    "Style de cuisine : d'équilibré à minimal",
+  );
+  assertEquals(
+    settingRecapLine({ field: "appetite", previous: "average", next: "small" }, "fr"),
+    "Appétit : de moyen à petit",
+  );
+  // L'anglais n'élide pas.
+  assertEquals(
+    settingRecapLine({ field: "cooking_style", previous: "balanced", next: "minimal" }, "en"),
+    "Cooking style: from balanced to minimal",
+  );
 });

@@ -282,18 +282,116 @@ const FIELD_TITLE: Readonly<Record<string, { fr: string; en: string }>> = {
   recipe_difficulty: { fr: "Difficulté des recettes", en: "Recipe difficulty" },
   variety: { fr: "Variété", en: "Variety" },
   eating_rhythm: { fr: "Rythme des repas", en: "Meal rhythm" },
+  // ⟳ 2026-09-08 — LE DÉPLACEMENT LE PLUS FRÉQUENT DU BILAN, ENFIN NOMMÉ.
+  //
+  // ⛔ CE `null` N'ÉTAIT PAS UNE PRÉCAUTION ÉTERNELLE, c'était un FAIT daté:
+  // « un bouton Voir qui mène sur un écran où la ligne n'est pas ». Vérifié
+  // avant d'écrire cette ligne, et la prémisse est tombée: `CookingStyleField`
+  // existe, `MealBuilder` le rend, et `onboarding.ts` en fait une étape
+  // (`id: "cooking_style"`). Le champ a donc son écran.
+  //
+  // ⚠️ ET IL EST LE CAS MAJORITAIRE: dès qu'un style est déclaré, c'est LUI que
+  // le bilan déplace, et `recipe_difficulty` / `variety` le suivent. Se taire
+  // ici, c'était taire presque tous les déplacements (`field_not_announced`).
+  cooking_style: { fr: "Style de cuisine", en: "Cooking style" },
+  // ⟳ 2026-09-08 — L'APPÉTIT, déplacé d'un cran par une phrase de brouillon
+  // (« ma mère ne mange pas autant »). Il a son écran — la fiche de la bouche,
+  // que `mouthProfile` écrit — donc la garde du `null` n'a pas à jouer.
+  //
+  // ⚠️ IL NE VIT PAS DANS `practical_constraints` mais sur
+  // `household_member_bodies`. Ça n'a aucune importance ICI: cette fonction dit
+  // un champ, elle ne sait pas où il est rangé — et c'est ce qui lui permet de
+  // servir les deux magasins sans en apprendre un second.
+  appetite: { fr: "Appétit", en: "Appetite" },
 };
 
+/**
+ * LA VALEUR D'UNE ÉCHELLE FERMÉE, DANS LA LANGUE DE QUI LIT.
+ *
+ * ⛔ SANS CETTE TABLE, LA PHRASE MÉLANGE DEUX LANGUES. `showFieldValue` rendait
+ * `String(value)`, donc une carte française annonçait « Variété : de some à
+ * varied ». C'était déjà vrai pour `variety` et `recipe_difficulty`; le rendre
+ * vrai AUSSI sur le champ le plus fréquemment déplacé aurait fait du défaut la
+ * règle plutôt que l'exception.
+ *
+ * ⚠️ LES TROIS VOCABULAIRES SONT AILLEURS, ET C'EST EUX QUI DÉCIDENT:
+ * `COOKING_STYLES` (`cooking_plan.ts:46`), `RECIPE_DIFFICULTIES` et
+ * `VARIETY_LEVELS` (`retained_item.ts:290` et `:294`). Un jeton qu'on ne
+ * connaît pas retombe sur lui-même — jamais sur « rien », qui voudrait dire
+ * l'absence.
+ */
+const FIELD_VALUE: Readonly<
+  Record<string, Readonly<Record<string, { fr: string; en: string }>>>
+> = {
+  cooking_style: {
+    minimal: { fr: "minimal", en: "minimal" },
+    balanced: { fr: "équilibré", en: "balanced" },
+    keen: { fr: "passionné", en: "keen" },
+  },
+  recipe_difficulty: {
+    simple: { fr: "simple", en: "simple" },
+    normal: { fr: "normale", en: "normal" },
+    keen: { fr: "ambitieuse", en: "keen" },
+  },
+  variety: {
+    repeat: { fr: "répétitive", en: "repetitive" },
+    some: { fr: "un peu variée", en: "somewhat varied" },
+    varied: { fr: "variée", en: "varied" },
+  },
+  // ⚠️ « moyen » ET PAS « normal » POUR `average`. Le cran du milieu est aussi
+  // ce que rend une fiche muette; le dire « normal » ferait lire à quelqu'un
+  // qu'on a jugé son appétit normal alors qu'on ne lui a jamais demandé.
+  appetite: {
+    small: { fr: "petit", en: "small" },
+    average: { fr: "moyen", en: "average" },
+    large: { fr: "grand", en: "large" },
+  },
+};
+
+// ⟳ 2026-09-08 — L'ÉLISION, mesurée sur un vrai accusé: « de équilibré à
+// minimal ». Depuis que les échelles se disent en français (`FIELD_VALUE`), le
+// mot après « de » peut commencer par une voyelle — et une phrase qu'on lit à
+// voix haute ne pardonne pas « de équilibré ».
+const elideDe = (word: string): string =>
+  /^[aeiouyàâäéèêëîïôöùûüh]/i.test(word) ? `d'${word}` : `de ${word}`;
 const FIELD_MOVED = {
-  fr: (previous: string, next: string) => `de ${previous} à ${next}`,
+  fr: (previous: string, next: string) => `${elideDe(previous)} à ${next}`,
   en: (previous: string, next: string) => `from ${previous} to ${next}`,
 } as const;
 
 const FIELD_UNSET = { fr: "rien", en: "nothing" } as const;
 
 /** `null` devient « rien », jamais « 0 »: l'absence n'est pas une déclaration. */
-function showFieldValue(value: unknown, language: RecapLanguage): string {
+/**
+ * LE LIBELLÉ D'UN JETON D'ÉCHELLE, ou `null` si ce champ n'est pas une échelle
+ * fermée — ou si ce jeton n'y est pas.
+ *
+ * ⛔ EXPORTÉ POUR ÊTRE TESTABLE, et c'est la raison exacte. En ANGLAIS le
+ * libellé est souvent le jeton lui-même (`balanced`, `keen`, `simple`): un test
+ * qui vérifierait la couverture en lisant la PHRASE ne saurait pas distinguer
+ * « libellé trouvé » de « jeton recraché par `String()` ». Il resterait vert
+ * après l'ajout d'un quatrième cran sans libellé — c'est-à-dire qu'il
+ * mesurerait l'état d'hier. Ici la couverture se demande, elle ne se devine pas.
+ */
+export function fieldValueLabel(
+  field: string,
+  value: unknown,
+  language: RecapLanguage,
+): string | null {
+  if (value === null || value === undefined) return null;
+  return FIELD_VALUE[field]?.[String(value)]?.[language] ?? null;
+}
+
+function showFieldValue(
+  field: string,
+  value: unknown,
+  language: RecapLanguage,
+): string {
   if (value === null || value === undefined) return FIELD_UNSET[language];
+  // ⛔ AVANT LE TABLEAU ET AVANT `String()`: une échelle fermée se dit dans la
+  // langue de qui lit. Un jeton inconnu tombe plus bas, sur lui-même.
+  const known = fieldValueLabel(field, value, language);
+  if (known !== null) return known;
   if (Array.isArray(value)) {
     return value.length === 0
       ? FIELD_UNSET[language]
@@ -306,19 +404,25 @@ function showFieldValue(value: unknown, language: RecapLanguage): string {
  * La ligne d'un réglage déplacé, ou `null` si ce champ n'a PAS de nom lisible.
  *
  * ⛔ `null` PLUTÔT QUE LE SLUG. Un champ que la carte ne sait pas afficher
- * (`cooking_style` aujourd'hui) enverrait la personne, bouton « Voir » à
- * l'appui, sur un écran où sa ligne n'est pas — pire que le silence, parce que
- * ça lui apprend que le bouton ment. L'appelant compte ce qu'il a tu.
+ * enverrait la personne, bouton « Voir » à l'appui, sur un écran où sa ligne
+ * n'est pas — pire que le silence, parce que ça lui apprend que le bouton ment.
+ * L'appelant compte ce qu'il a tu (`field_not_announced`).
+ *
+ * ⟳ 2026-09-08 — L'EXEMPLE QUI VIVAIT ICI ÉTAIT `cooking_style`, ET IL N'EST
+ * PLUS VRAI: le champ a son écran, donc son libellé. La règle, elle, tient —
+ * c'est la liste qui a changé, pas la doctrine. Le prochain champ ajouté à
+ * `WRITABLE_FIELDS` sans écran retombera sur ce `null`, et c'est voulu.
  */
 export function settingRecapLine(
   change: { field: string; previous: unknown; next: unknown },
   language: RecapLanguage,
 ): string | null {
-  const title = FIELD_TITLE[String(change.field ?? "")];
+  const field = String(change.field ?? "");
+  const title = FIELD_TITLE[field];
   if (!title) return null;
   const moved = FIELD_MOVED[language](
-    showFieldValue(change.previous, language),
-    showFieldValue(change.next, language),
+    showFieldValue(field, change.previous, language),
+    showFieldValue(field, change.next, language),
   );
   // L'espace avant le deux-points suit la langue, comme partout ailleurs ici.
   const colon = language === "fr" ? " : " : ": ";

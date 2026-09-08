@@ -455,6 +455,15 @@ verify_jwt = true
 [functions.keel-plan-feedback-v1]
 verify_jwt = true
 
+# ⟳ 2026-09-08 — LA NOTE SUR UN BROUILLON, LUE AVANT DE COMPOSER. Même nature
+# que le bilan: l'appelant EST la personne, depuis son navigateur, et la
+# fonction a besoin de son identité (elle écrit sur SA fiche). Elle existe pour
+# que la phrase ne parte plus au composeur: on la lit, on l'applique (goûts,
+# appétit, réglages), on répond en ~4 s, et le plan se compose ENSUITE sans
+# elle — deux appels, chacun sous la coupure de la passerelle.
+[functions.keel-read-note-v1]
+verify_jwt = true
+
 # Public webhooks / internal senders (no JWT)
 # (DE-WHATSAPP: les 7 fonctions WhatsApp ont ete supprimees en P5.)
 [functions.process-llm-retry-jobs]

@@ -19,6 +19,7 @@ import { persistRetainedItemsFor } from "../_shared/keel/retained_items_io.ts";
 // premier au premier mot changé, et c'est celui qu'on regarde le moins qui
 // finirait par décider.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import { draftNoteMembersOf } from "../_shared/keel/draft_note_members_io.ts";
 import {
   type RecapKept,
   type RecapLanguage,
@@ -223,70 +224,13 @@ function feedbackWhoOf(
   return label.trim() === "" ? null : label.trim();
 }
 
-async function feedbackMembersOf(
-  admin: SupabaseClient,
-  userId: string,
-): Promise<DraftNoteMember[]> {
-  try {
-    const roster = await admin.rpc("keel_household_roster_for", { p_user: userId });
-    if (roster.error) throw new Error(roster.error.message);
-    const rows = (roster.data ?? []) as Record<string, unknown>[];
-    if (rows.length === 0) return [];
-
-    // Le sexe vient de la fiche de corps, et son absence n'est pas une panne.
-    //
-    // ⚠️ ELLE PREND LE FOYER, PAS LA PERSONNE — et les deux RPC ne prennent
-    // donc PAS le même argument. Mesuré au banc: `p_user` rendait
-    // « Could not find the function … in the schema cache », un refus de
-    // PostgREST qui ressemble à une panne de base alors que c'est un nom de
-    // paramètre. Le foyer se résout par `keel_household_of`, comme partout.
-    const sexOf = new Map<string, string>();
-    try {
-      const hh = await admin.rpc("keel_household_of", { p_user: userId });
-      if (hh.error) throw new Error(hh.error.message);
-      const householdId = String(hh.data ?? "").trim();
-      if (!householdId) throw new Error("aucun foyer");
-      const bodies = await admin.rpc("keel_household_bodies_for", {
-        p_household: householdId,
-      });
-      if (bodies.error) throw new Error(bodies.error.message);
-      for (const row of (bodies.data ?? []) as Record<string, unknown>[]) {
-        const id = String(row.member_id ?? "").trim();
-        const sex = String(row.gender ?? "").trim();
-        if (id && sex) sexOf.set(id, sex);
-      }
-    } catch (error) {
-      console.warn(JSON.stringify({
-        tag: "keel/plan_feedback_free_text",
-        event: "bodies_unreadable",
-        user_id: userId,
-        error: error instanceof Error ? error.message : String(error),
-        effect: "sexe inconnu, le modèle s'abstient sur un mot de parenté",
-      }));
-    }
-
-    return rows.map((row): DraftNoteMember => {
-      const memberId = String(row.member_id ?? "");
-      const age = String(row.age_state ?? "").trim();
-      const sex = sexOf.get(memberId) ?? "";
-      return {
-        memberId,
-        label: String(row.first_name ?? ""),
-        ageState: age === "adult" ? "adult" : age === "minor" ? "minor" : null,
-        sex: sex === "male" || sex === "female" || sex === "other" ? sex : null,
-      };
-    }).filter((m) => m.memberId);
-  } catch (error) {
-    console.warn(JSON.stringify({
-      tag: "keel/plan_feedback_free_text",
-      event: "roster_unreadable",
-      user_id: userId,
-      error: error instanceof Error ? error.message : String(error),
-      effect: "le modèle s'abstient d'attribuer",
-    }));
-    return [];
-  }
-}
+/**
+ * ⟳ 2026-09-08 — LA LECTURE DU RÔLE A REJOINT `draft_note_members_io.ts`,
+ * partagée avec `keel-read-note-v1`: une note sur un brouillon et la case
+ * libre du bilan donnent au modèle le MÊME rôle, lu une seule fois.
+ */
+const feedbackMembersOf = (admin: SupabaseClient, userId: string) =>
+  draftNoteMembersOf(admin, userId, "keel/plan_feedback_free_text");
 
 /** Le jour du serveur, en UTC — le REPLI, et il est journalisé. */
 function serverDay(): string {

@@ -117,6 +117,68 @@ export const DRAFT_NOTE_FORBIDDEN_KINDS: readonly RetainedKind[] = RETAINED_KIND
   .filter((kind) => !canProduce(DRAFT_NOTE_PRODUCER, kind));
 
 /**
+ * ⟳ 2026-09-08 — CE QU'UNE PHRASE PEUT DIRE D'UNE PART: **le sens, et qui**.
+ *
+ * ⛔ CE N'EST PAS UN `RetainedItem`, ET C'EST LA DÉCISION DU PROPRIÉTAIRE.
+ * « Ma mère ne mange pas autant » déplace `household_member_bodies.appetite`
+ * d'un cran — un CHAMP que la personne voit sur sa fiche, donc l'écran et le
+ * plan lisent la même valeur. Un `portion.adjust` en mémoire serait une seconde
+ * vérité à côté de l'écran, et les deux s'empileraient (−10 % et −5 % = −14,5 %
+ * sur une seule phrase), puisqu'ils visent la même cible du jour.
+ *
+ * ⛔ AUCUNE AMPLITUDE, JAMAIS. Le modèle ne rend que `down` / `up`; de combien
+ * ça bouge appartient au code, et vaut un cran. Le prompt ne lui propose même
+ * pas la clé.
+ *
+ * ⚠️ CE MODULE NE L'APPLIQUE PAS. Il CLASSE. L'écriture de l'appétit demande
+ * une RPC `_for` (celle qui existe lit `auth.uid()`, NULL en service_role) et
+ * appartient à l'appelant — comme tout le reste ici.
+ */
+/**
+ * ⟳ 2026-09-08 (lot 4) — UNE PART SANS BOUCHE, ET LES BOUCHES QUE ÇA PEUT ÊTRE.
+ * Le sens est déjà lu (jamais une amplitude); les options sont des ids du rôle,
+ * vérifiés. La réponse de la personne en fait un `PortionMove`.
+ */
+export interface PortionQuestion {
+  readonly text: string;
+  readonly direction: "down" | "up";
+  readonly options: readonly string[];
+}
+
+export interface PortionMove {
+  /** L'uuid de la bouche visée. ⛔ Jamais `household`: voir le lecteur. */
+  readonly memberId: string;
+  readonly direction: "down" | "up";
+}
+
+/** Les trois axes de la CUISINE qu'une phrase peut pousser d'un cran. */
+export const SETTING_AXES = ["time", "difficulty", "variety"] as const;
+export type SettingAxis = (typeof SETTING_AXES)[number];
+
+/**
+ * ⟳ 2026-09-08 — CE QU'UNE PHRASE PEUT DIRE DU TRAVAIL DE CUISINE: **l'axe,
+ * et le sens**. « C'est trop long à cuisiner » ⇒ `{time, down}`.
+ *
+ * ⛔ CE N'EST PAS UN `logistics.set`, ET LA DIFFÉRENCE EST CELLE QUI A FERMÉ
+ * `logistics.set` AU LOT M5. Un item retenu était une COPIE du réglage, relue
+ * au moment de composer: l'écran disait 45 min, le plan était fait sur 35.
+ * Ici la phrase déplace **le champ lui-même** (`practical_constraints`), par la
+ * même porte que le bilan (`persistFieldChangesFor`), avec la même trace —
+ * l'écran et le plan lisent la même valeur. Décision du propriétaire.
+ *
+ * ⛔ AUCUNE VALEUR, JAMAIS. Ni minutes, ni nom de cran: le modèle ne rend que
+ * `down` / `up`, et QUEL champ bouge (le style s'il est déclaré, sinon le
+ * temps ou la difficulté) est décidé par le code du bilan, pas par lui.
+ *
+ * ⚠️ PAS DE `member_id`: ce sont les réglages de la CUISINE, pas d'une
+ * personne. Le prompt le dit, et le lecteur n'en lit pas.
+ */
+export interface SettingMove {
+  readonly about: SettingAxis;
+  readonly direction: "down" | "up";
+}
+
+/**
  * LA PORTE ① — les familles qui sont une PRÉFÉRENCE. Calculées: tout ce que
  * la matrice permet, sauf l'envie, qui est `next_plan` par construction du
  * socle (`craving ⇒ next_plan`).
@@ -149,6 +211,18 @@ export type DraftNoteSkipReason = (typeof DRAFT_NOTE_SKIP_REASONS)[number];
 /** Les trois portes, telles que le journal les nomme. */
 export const DRAFT_NOTE_GATES = ["preferences", "notes", "next_plan"] as const;
 export type DraftNoteGate = (typeof DRAFT_NOTE_GATES)[number];
+
+/**
+ * ⟳ 2026-09-08 (lot 4) — LES PORTES QU'UNE QUESTION PEUT NOMMER: les trois du
+ * journal, PLUS la part. « Ma mère ne mange pas autant » sans prénom
+ * reconnaissable n'a nulle part où aller: le tiroir 4 refuse le foyer, et une
+ * question `who` sur `gate: "preferences"` avec `kind: "portion.adjust"`
+ * tombait en `forbidden_kind` — mesuré: la phrase mourait en silence, comptée
+ * mais jamais posée. Une part se demande donc par SA porte, et sa réponse
+ * déplace un appétit (`answerDraftNotePortion`), jamais un item retenu.
+ */
+export const DRAFT_NOTE_CLARIFY_GATES = [...DRAFT_NOTE_GATES, "portions"] as const;
+export type DraftNoteClarifyGate = (typeof DRAFT_NOTE_CLARIFY_GATES)[number];
 
 /**
  * CE QU'EST CHAQUE FAMILLE, **UNE PHRASE PAR FAMILLE ET LES HUIT PRÉSENTES**.
@@ -185,8 +259,13 @@ const FORBIDDEN_REASONS: Readonly<Record<RetainedKind, string>> = {
   "method.avoid": "",
   "method.prefer": "",
   craving: "",
+  // ⟳ 2026-09-08 — LA FAMILLE RESTE INTERDITE **COMME `kind`**, et pourtant la
+  // part se range: elle a son propre tiroir (4), qui n'a pas de clé `kind` du
+  // tout — il a `direction`. Les deux phrases ne se contredisent donc pas, et
+  // le motif doit le DIRE, sinon le modèle lit un refus sans issue et range en
+  // `skipped` ce que le tiroir 4 attend.
   "portion.adjust":
-    "a measure needs to know WHO it is for, and that is asked in a closed question with the people at the table in front of them",
+    "a share is not a preference — it has its own drawer (4), where you give the direction and nothing else",
   "rhythm.set": "a rhythm is a standing fact, not a mood about one week",
   "logistics.set":
     "these are SETTINGS they can see and change on their own screen — filing a copy here would let their settings say one thing while their plan is built on another",
@@ -194,10 +273,17 @@ const FORBIDDEN_REASONS: Readonly<Record<RetainedKind, string>> = {
 
 /** Ce que la porte « degree » couvre, mot pour mot dans le prompt. */
 const SKIP_BLURBS: Readonly<Record<DraftNoteSkipReason, string>> = {
+  // ⟳ 2026-09-08 — « TROP GROS » ET « TROP PETIT » SONT SORTIS D'ICI: ils ont
+  // le tiroir 4. Ce qui reste sont les degrés qui n'ont TOUJOURS pas de canal
+  // par-phrase — la difficulté, le temps, la variété — et qui se règlent sur
+  // leur écran ou en question fermée au bilan.
+  // ⟳ 2026-09-08 — LE DEGRÉ N'A PRESQUE PLUS RIEN: la part a le tiroir 4, le
+  // travail de cuisine a le tiroir 5. Reste ce qui juge le PLAN ENTIER sans
+  // nommer un axe — et qui ne se règle nulle part.
   degree:
-    "\"too big\", \"too small\", \"too long to cook\", \"too complicated\", \"not varied enough\" — a DEGREE. It is asked in a closed question after the plan, with the person in front of them; it is never filed from a sentence, and the plan they are looking at was already composed with it",
+    "a judgement on the plan as a whole with no axis to move — \"too much food overall\", \"the plan is too long\", \"not enough meals\". ⛔ NOT a share on someone's plate (drawer 4), NOT the cooking being long, hard, or repetitive (drawer 5)",
   setting:
-    "which meals of the day they take, which days they cook, what they spend — SETTINGS they change on their own screen",
+    "which meals of the day they take, which days they cook, what they spend, how often they shop — SETTINGS with no drawer here, that they change on their own screen. ⛔ NOT the cooking time, difficulty, or variety: those have drawer 5",
   meal_story: "what they ate, or did not eat. That is not filed anywhere",
   other: "a thank-you, a question, a remark about the plan being long or short",
 };
@@ -227,7 +313,7 @@ const WHO_RULES = [
  */
 const WHAT_RULES = [
   'WHAT — on the same three drawers, when the note names a food only by a CATEGORY or a PRONOUN ("the meat", "it", "that dish", "the thing on Tuesday") and MORE THAN ONE food in the plan below could be what they mean:',
-  '  Put that entry in "clarify" (see 5) with "about": "what", and in "options" the plan foods it could mean, each copied EXACTLY from the list of plan foods given below. Never a food you rephrase, never one that is not in that list.',
+  '  Put that entry in "clarify" (see 7) with "about": "what", and in "options" the plan foods it could mean, each copied EXACTLY from the list of plan foods given below. Never a food you rephrase, never one that is not in that list.',
   '  If exactly ONE plan food fits, do not ask: file it normally, with that food as "text".',
   '  ⛔ A food they NAMED is never a "what", even when it is not in the plan: "no more curry" is a preference, not a question.',
   '  ⛔ If the list of plan foods below is empty, never use "about": "what" at all.',
@@ -264,7 +350,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   "Return ONE JSON object, and nothing else. No prose, no code fence.",
   "",
-  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "portions": [ ... ], "settings": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
   "",
   "For each thing the note says, try the drawers IN THIS ORDER and file it in the FIRST one that fits. Never in two. Every drawer may be empty, and an empty drawer is a correct answer.",
   "",
@@ -275,7 +361,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
     DRAFT_NOTE_PREFERENCE_KINDS.join(" | ")
   } — NEVER craving here (an urge for this week goes in "next_plan"), and NEVER ${
     DRAFT_NOTE_FORBIDDEN_KINDS.join(", NEVER ")
-  }: those are not preferences, they go in "skipped" (see 4),`,
+  }: those are not preferences, they go in "skipped" (see 6). NEVER a share that is too big or too small either — that has its own drawer (4). NEVER the cooking being too long, too hard, or not varied — that has its own drawer (5),`,
   '  "text": the thing you are filing, in THEIR language and as close to THEIR OWN WORDS as you can. This is the line they will read on their own memory card, and they can edit it. Never a sentence you invented, never longer than what they wrote,',
   '  "member_id": see WHO below',
   "}",
@@ -293,7 +379,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   ),
   "",
   // ── PORTE ③ — la promesse est SUR la ligne du titre, et la clé `when` juste après
-  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree such as too much or too long (that is "skipped"). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
+  '3. "notes" — a FACT about a person that no drawer above can hold and that matters for composing: a rehearsal, a late dinner, a day that is not like the others. NEVER a food or a preparation they like or dislike (that is a preference), NEVER a degree about the WORK such as too long or too complicated (that is "skipped"), and NEVER a share that is too big or too small (that is "portions"). A food someone ALWAYS has at one meal ("apple compote every afternoon") is a FACT with a slot, not a taste: it goes here, with "when". Each entry is exactly:',
   "{",
   '  "text": their fact, in THEIR language and their own words, one line,',
   '  "member_id": see WHO below,',
@@ -302,22 +388,48 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   } or null } when the fact is about one day or one meal — or null when it is about every day. NEVER invent a day or a slot they did not write.`,
   "}",
   "",
+  // ── PORTE ④ — LA PART DE QUELQU'UN. Le sens, jamais l'amplitude.
+  //
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ. « Tu ne donnes que la direction » est écrit
+  // SUR la ligne de `"direction"`, pas trois paragraphes plus bas: une consigne
+  // séparée de sa clé n'est pas lue (mesuré à 0 % dans ce dépôt).
+  '4. "portions" — the note says someone\'s SHARE on the plate is too big or too small: "my mother doesn\'t eat that much", "way too much for her", "I am still hungry after dinner". Each entry is exactly:',
+  "{",
+  '  "direction": exactly one of down | up — "down" when they say it is too much, "up" when they say it is not enough. ⛔ THE DIRECTION AND NOTHING ELSE. Never a number, never a percentage, never a word of size, never "a bit" or "a lot": HOW FAR it moves is not yours to say. It is always ONE notch, and the code sets it — the same one notch a closed question moves at the end of a plan,',
+  '  "text": their own words, exactly as in "preferences" above — this is the line they will read on their memory card,',
+  '  "member_id": see WHO below. ⛔ AND HERE IT MATTERS MORE THAN ANYWHERE: a share belongs to ONE person. When the note does not say clearly whose plate it is about, do NOT guess and do NOT use null — put it in "clarify" with "about": "who" and "gate": "portions", the entry carrying this same "direction" and "text". Taking food off the whole table because one person said they eat less is the exact harm this drawer exists to avoid,',
+  "}",
+  '  ⚠️ A SENTENCE THAT NAMES A MEAL OF THE DAY IS NOT THIS. "in the evening I don\'t eat that much" is about that one meal, not about their whole day: it goes in "notes" (3) with "when". This drawer is for the size of someone\'s day.',
+  '  ⛔ NOT a remark about the plan being long to cook, complicated, or repetitive. Those are about the WORK, and they have their own drawer (5).',
+  "",
+  // ── PORTE ⑤ — LE TRAVAIL DE CUISINE. L'axe et le sens, jamais une valeur.
+  //
+  // ⛔ LA PROMESSE TOUCHE LA CLÉ, comme au tiroir 4: « la direction et rien
+  // d'autre » est SUR la ligne de `"direction"`.
+  '5. "settings" — the note says the COOKING itself was too much or too little, for the whole table: "too long to cook", "too complicated", "not varied enough", "I had more time this week", "too many different dishes". Each entry is exactly:',
+  "{",
+  `  "about": exactly one of ${SETTING_AXES.join(" | ")} — time is how long cooking takes, difficulty is how hard the recipes are, variety is how many different dishes,`,
+  '  "direction": exactly one of down | up — "down" when they want LESS of it (less time, simpler, more repetition), "up" when they want MORE (more time, more ambitious, more variety). ⛔ THE DIRECTION AND NOTHING ELSE. Never a number of minutes, never the name of a level: it moves ONE notch, and the code decides which setting that notch lands on,',
+  "}",
+  '  ⚠️ NO "member_id" here: these are settings of the KITCHEN, not of a person. "my son finds it too complicated" is still about the cooking — file it, without a person.',
+  '  ⛔ NOT how many days they cook, what they spend, how often they shop, or which meals of the day they take. Those have no drawer here and go in "skipped" (6).',
+  "",
   // ── CE QU'ON NE RANGE PAS — dit, et compté ──────────────────────────────
-  '4. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2 or 3 MUST appear here, once: never return four empty lists without saying why. Each entry is exactly:',
+  '6. "skipped" — what you read and deliberately did NOT file, one entry each, so it can be counted. EVERY thing the note says that you did not file in 1, 2, 3, 4 or 5 MUST appear here, once: never return six empty lists without saying why. Each entry is exactly:',
   `{ "why": exactly one of ${DRAFT_NOTE_SKIP_REASONS.join(" | ")} }`,
   ...DRAFT_NOTE_SKIP_REASONS.map((why) => `- ${why} — ${SKIP_BLURBS[why]},`),
   `  The families you never file, each for its own reason:${
     DRAFT_NOTE_FORBIDDEN_KINDS.map((k) => `\n    · ${k} — ${KIND_BLURBS[k]} ${FORBIDDEN_REASONS[k]};`).join("")
   }`,
-  '  ⛔ NEVER use "skipped" for something you could not attribute to a person or to a food. That is not a thing you chose not to file — it is a thing you could not file yet, and it goes in "clarify" (5).',
+  '  ⛔ NEVER use "skipped" for something you could not attribute to a person or to a food. That is not a thing you chose not to file — it is a thing you could not file yet, and it goes in "clarify" (7).',
   "",
   // ── PORTE ⑤ — ce qu'on n'a pas pu ranger FAUTE D'UNE PRÉCISION ──────────
   // La promesse est SUR la ligne du titre, et le schéma juste après: une
   // consigne séparée de sa clé par trois paragraphes n'est pas lue.
-  '5. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about, WHICH food it means, or — for a diet-like rule — whether it holds ALWAYS or only SOMETIMES. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3, 4 or "safety". They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
+  '7. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about, WHICH food it means, or — for a diet-like rule — whether it holds ALWAYS or only SOMETIMES. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3, 4, 5, 6 or "safety". They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
   "{",
   `  "about": exactly one of ${MEMORY_CLARIFICATION_ABOUTS.join(" | ")},`,
-  `  "gate": exactly one of ${DRAFT_NOTE_GATES.join(" | ")} — the drawer it WOULD have gone to,`,
+  `  "gate": exactly one of ${DRAFT_NOTE_CLARIFY_GATES.join(" | ")} — the drawer it WOULD have gone to; "portions" only with "about": "who",`,
   '  "entry": the entry exactly as you would have written it in that drawer (same keys), with "member_id": null when you are asking who,',
   `  "options": between 1 and ${MEMORY_CLARIFICATION_MAX_OPTIONS} candidates — member ids from the roster when "about" is "who", plan foods copied EXACTLY when it is "what", the two words ["always", "sometimes"] when it is "scope". Never a first name, never a food you rephrased, never more than ${MEMORY_CLARIFICATION_MAX_OPTIONS}.`,
   "}",
@@ -517,6 +629,17 @@ export interface DraftNoteClassification {
   readonly notes: DraftNoteGateCount & { readonly lines: readonly MemoLine[] };
   /** L'encart — `{item, anchor, writtenAt}`, forme inchangée. */
   readonly nextPlan: DraftNoteGateCount & { readonly entries: readonly NextPlanEntry[] };
+  /**
+   * ④ — LA PART DE QUELQU'UN (2026-09-08). Un MOUVEMENT, pas un item retenu:
+   * l'appelant en fait un cran d'appétit sur la fiche de cette bouche.
+   */
+  readonly portions: DraftNoteGateCount & { readonly moves: readonly PortionMove[] };
+  /**
+   * ⑤ — LE TRAVAIL DE CUISINE (2026-09-08). Un MOUVEMENT par axe, jamais une
+   * valeur: l'appelant le passe à la porte du BILAN, qui décide quel champ
+   * bouge et refuse les bords. Voir `SettingMove`.
+   */
+  readonly settings: DraftNoteGateCount & { readonly moves: readonly SettingMove[] };
   readonly skipped: DraftNoteSkipped;
   /**
    * ⑤ — ce qui attend UNE précision. Chaque entrée est rangée nulle part
@@ -525,6 +648,12 @@ export interface DraftNoteClassification {
    */
   readonly clarify: DraftNoteGateCount & {
     readonly entries: readonly DraftNoteClarifyEntry[];
+    /**
+     * ⟳ 2026-09-08 (lot 4) — LES PARTS DONT ON NE SAIT PAS LA BOUCHE. À part
+     * des `entries`: une réponse ici ne fabrique pas un item retenu, elle
+     * déplace un appétit. Comptées dans `kept`, rangées nulle part ailleurs.
+     */
+    readonly portions: readonly PortionQuestion[];
     /** Combien portaient sur la personne, sur l'aliment, sur la portée. */
     readonly who: number;
     readonly what: number;
@@ -583,12 +712,15 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
   preferences: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, items: [] },
   notes: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, lines: [] },
   nextPlan: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, entries: [] },
+  portions: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
+  settings: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, moves: [] },
   skipped: EMPTY_SKIPPED,
   clarify: {
     proposed: 0,
     kept: 0,
     refused: EMPTY_REFUSALS,
     entries: [],
+    portions: [],
     who: 0,
     what: 0,
     scope: 0,
@@ -841,8 +973,100 @@ export function readDraftNoteClassification(args: {
     return { items, refused: refusals.freeze() };
   };
 
+  // ── ④ LA PART DE QUELQU'UN — le sens du modèle, le cran du code ────────
+  //
+  // ⛔ CE LECTEUR NE CONSTRUIT PAS DE `RetainedItem`, et c'est la décision du
+  // 2026-09-08: la phrase déplace `appetite` sur la FICHE de cette bouche, pas
+  // une ligne de mémoire. Voir `PortionMove`.
+  //
+  // ⛔ ET LE FOYER EST REFUSÉ. Partout ailleurs `member_id: null` veut dire
+  // « tout le monde à table », et c'est le bon défaut pour un goût. Un appétit
+  // est un fait de CORPS: l'appliquer à tout le monde changerait la fiche de
+  // chaque personne sur une phrase qui n'en nommait aucune. On refuse, et on
+  // compte — c'est la même règle que « ne jamais retirer un aliment à toute la
+  // table parce qu'un enfant ne l'aime pas », dans l'autre sens.
+  const readPortions = (
+    rows: readonly unknown[],
+  ): { moves: PortionMove[]; refused: DraftNoteRefusals } => {
+    const refusals = new Refusals();
+    const moves: PortionMove[] = [];
+    const seen = new Set<string>();
+    for (const row of rows) {
+      const record = asRecord(row);
+      if (!record) {
+        refusals.malformed += 1;
+        continue;
+      }
+      const direction = String(record.direction ?? "").trim().toLowerCase();
+      if (direction !== "down" && direction !== "up") {
+        // Un sens illisible n'est PAS un demi-sens: on ne devine pas « moins ».
+        refusals.malformed += 1;
+        continue;
+      }
+      const memberId = String(record.member_id ?? "").trim().toLowerCase();
+      if (memberId === "" || memberId === "null" || !roster.has(memberId)) {
+        refusals.unknownMember += 1;
+        continue;
+      }
+      // ⚠️ UNE BOUCHE, UN MOUVEMENT. Deux entrées sur la même personne
+      // voudraient dire deux crans depuis une seule phrase — l'amplitude que
+      // ce tiroir refuse justement de laisser dire au modèle.
+      if (seen.has(memberId)) {
+        refusals.malformed += 1;
+        continue;
+      }
+      seen.add(memberId);
+      moves.push({ memberId, direction });
+    }
+    return { moves, refused: refusals.freeze() };
+  };
+
+  // ── ⑤ LE TRAVAIL DE CUISINE — l'axe et le sens, un par axe ─────────────
+  //
+  // ⛔ AUCUN `member_id` LU, même si le modèle en met un: un réglage de cuisine
+  // est celui de la table. Le lire ferait exister, en silence, un réglage par
+  // personne que ni l'écran ni le générateur ne connaissent.
+  //
+  // ⚠️ UN AXE, UN MOUVEMENT. « Trop long » et « pas assez de temps » sont la
+  // même demande: deux entrées sur `time` voudraient dire deux crans depuis une
+  // seule phrase, l'amplitude que ce tiroir refuse de laisser dire au modèle.
+  const readSettings = (
+    rows: readonly unknown[],
+  ): { moves: SettingMove[]; refused: DraftNoteRefusals } => {
+    const refusals = new Refusals();
+    const moves: SettingMove[] = [];
+    const seen = new Set<string>();
+    for (const row of rows) {
+      const record = asRecord(row);
+      if (!record) {
+        refusals.malformed += 1;
+        continue;
+      }
+      const about = String(record.about ?? "").trim().toLowerCase();
+      const direction = String(record.direction ?? "").trim().toLowerCase();
+      if (
+        !(SETTING_AXES as readonly string[]).includes(about) ||
+        (direction !== "down" && direction !== "up")
+      ) {
+        refusals.malformed += 1;
+        continue;
+      }
+      if (seen.has(about)) {
+        refusals.malformed += 1;
+        continue;
+      }
+      seen.add(about);
+      moves.push({ about: about as SettingAxis, direction });
+    }
+    return { moves, refused: refusals.freeze() };
+  };
+
   const prefRows = lists.preferences;
   const pref = readItems(prefRows, DRAFT_NOTE_PREFERENCE_KINDS, "durable");
+  const portionRows = lists.portions;
+  const portionRead = readPortions(portionRows);
+  const settingRows = lists.settings;
+  const settingRead = readSettings(settingRows);
   const nextRows = lists.next_plan;
   const next = readItems(nextRows, DRAFT_NOTE_NEXT_PLAN_KINDS, "next_plan");
   const nextEntries: NextPlanEntry[] = next.items.map((item) => ({
@@ -923,9 +1147,37 @@ export function readDraftNoteClassification(args: {
   const rawSafety = rawSafetyOf(args.raw);
   const clarifyRefusals = new Refusals();
   const clarifyEntries: DraftNoteClarifyEntry[] = [];
+  const portionQuestions: PortionQuestion[] = [];
   let clarifyWho = 0;
   let clarifyWhat = 0;
   let clarifyScope = 0;
+
+  /**
+   * LES CANDIDATS D'UNE QUESTION, OU `null` — ET C'EST LE REFUS QUI COMPTE.
+   * Sur `who`: des ids du rôle, jamais un prénom (jointure par identifiant,
+   * comme partout). Sur `what`: égalité EXACTE avec un aliment du plan —
+   * « ne jamais écrire un matcher maison »: « laitue » n'est pas « lait ».
+   * Vide, trop long, un doublon, un inconnu: `null`, et l'appelant compte.
+   */
+  const optionsOf = (raw: unknown, kind: "who" | "what"): string[] | null => {
+    const rawOptions = Array.isArray(raw) ? raw : [];
+    if (rawOptions.length === 0 || rawOptions.length > MEMORY_CLARIFICATION_MAX_OPTIONS) {
+      return null;
+    }
+    const options: string[] = [];
+    const seen = new Set<string>();
+    for (const item of rawOptions) {
+      const value = String(item ?? "").trim();
+      if (!value) return null;
+      const key = kind === "who" ? value.toLowerCase() : value;
+      const known = kind === "who" ? roster.has(key) : planFoods.has(key);
+      if (!known || seen.has(key)) return null;
+      seen.add(key);
+      options.push(key);
+    }
+    return options;
+  };
+
   for (const row of lists.clarify) {
     const record = asRecord(row);
     const entry = record ? asRecord(record.entry) : null;
@@ -940,11 +1192,48 @@ export function readDraftNoteClassification(args: {
       continue;
     }
     const gate = String(record.gate ?? "").trim().toLowerCase();
-    if (!(DRAFT_NOTE_GATES as readonly string[]).includes(gate)) {
+    if (!(DRAFT_NOTE_CLARIFY_GATES as readonly string[]).includes(gate)) {
       clarifyRefusals.badGate += 1;
       continue;
     }
     const asked = about as ClarificationAbout;
+
+    // ── ⟳ 2026-09-08 (lot 4) — LA PART SANS BOUCHE ───────────────────────
+    //
+    // Même lecture que le tiroir 4 (le sens, et rien d'autre), sauf la bouche:
+    // ici elle est CE QU'ON DEMANDE, donc `member_id` doit être vide et les
+    // candidats viennent de `options`, vérifiés contre le rôle. Une part ne
+    // se demande que sur `who`: « laquelle ? » n'a pas de sens pour une
+    // assiette, et `scope` est une affaire de sécurité.
+    if (gate === "portions") {
+      if (asked !== "who") {
+        clarifyRefusals.badAbout += 1;
+        continue;
+      }
+      const direction = String(entry.direction ?? "").trim().toLowerCase();
+      if (direction !== "down" && direction !== "up") {
+        clarifyRefusals.malformed += 1;
+        continue;
+      }
+      const declared = String(entry.member_id ?? "").trim().toLowerCase();
+      if (declared !== "" && declared !== "null") {
+        clarifyRefusals.badOptions += 1;
+        continue;
+      }
+      const text = textOf(entry);
+      if (text === null) {
+        clarifyRefusals.badText += 1;
+        continue;
+      }
+      const options = optionsOf(record.options, "who");
+      if (options === null) {
+        clarifyRefusals.badOptions += 1;
+        continue;
+      }
+      clarifyWho += 1;
+      portionQuestions.push({ text, direction, options });
+      continue;
+    }
     const drawer = gate as DraftNoteGate;
 
     // ── ⟳ 2026-09-05 — LA PORTÉE: une déclaration en attente, deux jetons ──
@@ -1075,40 +1364,8 @@ export function readDraftNoteClassification(args: {
     }
 
     // ── LES CANDIDATS, ET C'EST LE REFUS QUI COMPTE ───────────────────────
-    const rawOptions = Array.isArray(record.options) ? record.options : [];
-    const options: string[] = [];
-    const seen = new Set<string>();
-    let badOption = rawOptions.length === 0 ||
-      rawOptions.length > MEMORY_CLARIFICATION_MAX_OPTIONS;
-    for (const raw of rawOptions) {
-      if (badOption) break;
-      const value = String(raw ?? "").trim();
-      if (!value) {
-        badOption = true;
-        break;
-      }
-      if (asked === "who") {
-        // Une jointure par identifiant, comme partout: aucun rapprochement par
-        // le prénom, jamais.
-        const id = value.toLowerCase();
-        if (!roster.has(id) || seen.has(id)) {
-          badOption = true;
-          break;
-        }
-        seen.add(id);
-        options.push(id);
-      } else {
-        // Égalité EXACTE avec un aliment du plan. « Ne jamais écrire un matcher
-        // maison »: « laitue » n'est pas « lait ».
-        if (!planFoods.has(value) || seen.has(value)) {
-          badOption = true;
-          break;
-        }
-        seen.add(value);
-        options.push(value);
-      }
-    }
-    if (badOption || options.length === 0) {
+    const options = optionsOf(record.options, asked === "who" ? "who" : "what");
+    if (options === null) {
       clarifyRefusals.badOptions += 1;
       continue;
     }
@@ -1136,11 +1393,24 @@ export function readDraftNoteClassification(args: {
     refused: next.refused,
     entries: nextEntries,
   };
+  const portions = {
+    proposed: portionRows.length,
+    kept: portionRead.moves.length,
+    refused: portionRead.refused,
+    moves: portionRead.moves,
+  };
+  const settings = {
+    proposed: settingRows.length,
+    kept: settingRead.moves.length,
+    refused: settingRead.refused,
+    moves: settingRead.moves,
+  };
   const clarify = {
     proposed: lists.clarify.length,
-    kept: clarifyEntries.length,
+    kept: clarifyEntries.length + portionQuestions.length,
     refused: clarifyRefusals.freeze(),
     entries: clarifyEntries,
+    portions: portionQuestions,
     who: clarifyWho,
     what: clarifyWhat,
     scope: clarifyScope,
@@ -1149,6 +1419,8 @@ export function readDraftNoteClassification(args: {
     preferences.refused,
     notes.refused,
     nextPlan.refused,
+    portions.refused,
+    settings.refused,
     clarify.refused,
   ]);
 
@@ -1157,12 +1429,15 @@ export function readDraftNoteClassification(args: {
     refusal: null,
     classification: {
       proposed: preferences.proposed + notes.proposed + nextPlan.proposed +
-        clarify.proposed,
-      kept: preferences.kept + notes.kept + nextPlan.kept + clarify.kept,
+        portions.proposed + settings.proposed + clarify.proposed,
+      kept: preferences.kept + notes.kept + nextPlan.kept + portions.kept +
+        settings.kept + clarify.kept,
       refused,
       preferences,
       notes,
       nextPlan,
+      portions,
+      settings,
       skipped: {
         total: degree + setting + mealStory + other + unknownSkip,
         degree,
@@ -1191,6 +1466,8 @@ function listsOf(raw: unknown): {
   preferences: unknown[];
   notes: unknown[];
   next_plan: unknown[];
+  portions: unknown[];
+  settings: unknown[];
   skipped: unknown[];
   clarify: unknown[];
   missing: string[];
@@ -1205,7 +1482,15 @@ function listsOf(raw: unknown): {
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
-  const keys = ["preferences", "notes", "next_plan", "skipped", "clarify"] as const;
+  const keys = [
+    "preferences",
+    "notes",
+    "next_plan",
+    "portions",
+    "settings",
+    "skipped",
+    "clarify",
+  ] as const;
   if (!keys.some((k) => k in record)) return null;
   const missing: string[] = [];
   const list = (k: (typeof keys)[number]): unknown[] => {
@@ -1220,6 +1505,8 @@ function listsOf(raw: unknown): {
     preferences: list("preferences"),
     notes: list("notes"),
     next_plan: list("next_plan"),
+    portions: list("portions"),
+    settings: list("settings"),
     skipped: list("skipped"),
     clarify: list("clarify"),
     missing,
@@ -1266,6 +1553,22 @@ export function draftNoteClassifyTrace(
     ...gate("notes", classification.notes),
     notes_refused_bad_when: classification.notes.refused.badWhen,
     ...gate("next", classification.nextPlan),
+    // ④ — LA PART. `portions_proposed > 0 && portions_kept === 0` est la
+    // signature d'un tiroir ouvert dans le prompt et fermé dans le lecteur —
+    // exactement le vert mort que ce lot existe pour éviter. Le sens dans
+    // lequel elles vont se lit à part: sans lui, deux réponses opposées
+    // (`down` puis `up`) ressemblent à deux crans servis alors que la position
+    // ne bouge pas (`portionIndexMoves`).
+    ...gate("portions", classification.portions),
+    portions_down: classification.portions.moves.filter((m) => m.direction === "down").length,
+    portions_up: classification.portions.moves.filter((m) => m.direction === "up").length,
+    // ⑤ — LE TRAVAIL DE CUISINE. Par axe, parce que c'est l'axe qui dit quel
+    // champ le bilan va déplacer: `time` et `difficulty` peuvent tomber sur le
+    // MÊME champ (`cooking_style`) et se neutraliser (`bothPolarities`).
+    ...gate("settings", classification.settings),
+    settings_time: classification.settings.moves.filter((m) => m.about === "time").length,
+    settings_difficulty: classification.settings.moves.filter((m) => m.about === "difficulty").length,
+    settings_variety: classification.settings.moves.filter((m) => m.about === "variety").length,
     // ⑤ — la porte qui ne range rien. `clarify_kept > 0` veut dire qu'une
     // question part; `clarify_refused_bad_options > 0` veut dire que le modèle
     // a proposé des candidats qui n'existent pas, et que la personne ne sera
@@ -1278,6 +1581,9 @@ export function draftNoteClassifyTrace(
     clarify_refused_bad_when: classification.clarify.refused.badWhen,
     clarify_refused_unknown_kind: classification.clarify.refused.unknownKind,
     clarify_who: classification.clarify.who,
+    // ⟳ 2026-09-08 (lot 4) — les parts à demander. `clarify_portions > 0` avec
+    // `questions: 0` côté io = une question fabriquée et jamais posée.
+    clarify_portions: classification.clarify.portions.length,
     clarify_what: classification.clarify.what,
     clarify_scope: classification.clarify.scope,
     skipped: classification.skipped.total,

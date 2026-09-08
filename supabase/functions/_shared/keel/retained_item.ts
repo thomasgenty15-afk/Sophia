@@ -210,6 +210,8 @@ export type PortionDirection = (typeof PORTION_DIRECTIONS)[number];
 export const PORTION_MAGNITUDES = ["slight", "clear"] as const;
 export type PortionMagnitude = (typeof PORTION_MAGNITUDES)[number];
 
+
+
 /**
  * ⛔ AUCUN GRAMME, AUCUNE CALORIE. JAMAIS. C'est un interdit de conception, pas
  * une commodité de schéma.
@@ -598,6 +600,32 @@ export function canProduce(
       return false;
     case "draft_note":
       // ⛔ LOT M5 — `logistics.set` rejoint `rhythm.set` du côté des champs.
+      //
+      // ⟳ 2026-09-08 — `portion.adjust` A ÉTÉ OUVERT ICI PENDANT UNE HEURE,
+      // PUIS REFERMÉ, ET LE MOTIF VAUT D'ÊTRE ÉCRIT — c'est une décision
+      // produit, pas un retour en arrière.
+      //
+      // Une phrase PEUT dire qu'une part est trop grosse: ça, l'amendement
+      // tient. Ce qui a changé, c'est **le paramètre qu'elle déplace**. Le
+      // propriétaire a tranché: « ma mère ne mange pas autant » déplace
+      // `household_member_bodies.appetite` d'un cran (−10 %), pas un
+      // `portion.adjust` en mémoire. La raison est la sienne, et elle est
+      // bonne: l'appétit est un CHAMP que la personne voit sur sa fiche, donc
+      // l'écran et le plan lisent la même valeur. Un item retenu serait une
+      // seconde vérité, à côté de l'écran — exactement ce que le lot M5 avait
+      // fermé pour les réglages.
+      //
+      // ⚠️ ET LES DEUX S'EMPILERAIENT. Les deux visent la MÊME cible du jour
+      // (`mouthTargetKcal`): appétit −10 % et un cran −5 % font −14,5 % sur une
+      // seule phrase. Un seul canal porte la phrase.
+      //
+      // ⛔ `portion.adjust` RESTE LE CANAL DU BILAN, et il n'est pas mort: la
+      // question fermée de fin de plan le produit, avec le foyer sous les yeux,
+      // et il atteint enfin l'assiette (`AnchorMouth.portionIndex`).
+      //
+      // ⚠️ CE QUI RESTE FERMÉ AUSSI: `rhythm.set` et `logistics.set`. Ce sont
+      // des CHAMPS, avec leur écran — et comme l'appétit, ils se déplacent par
+      // leur champ (`keel_write_field_changes_for`), jamais par une copie.
       return kind !== "portion.adjust" && kind !== "rhythm.set" &&
         kind !== "logistics.set";
   }

@@ -309,10 +309,10 @@ Deno.test("M7: une préférence ordinaire ne fait pas mordre le compteur", async
 });
 
 Deno.test("matrice: un `source` sans droit est REFUSÉ et COMPTÉ", async () => {
-  // Le brouillon n'a pas le droit d'écrire un `portion.adjust`: une mesure a
-  // besoin d'un sujet, et seul le bilan pose la question avec la liste du foyer
-  // sous les yeux (§5 ②). ⚠️ Le véhicule était `conversation` avant le lot M1;
-  // ce producteur est désormais refusé À LA PORTE, donc il ne pouvait plus
+  // Le brouillon n'a pas le droit d'écrire un `portion.adjust`: une part venue
+  // d'une phrase déplace `appetite` sur la FICHE de la bouche, pas une ligne de
+  // mémoire (décision du 2026-09-08). ⚠️ Le véhicule était `conversation` avant
+  // le lot M1; ce producteur est refusé À LA PORTE, donc il ne pouvait plus
   // atteindre la matrice — et ce test aurait mesuré l'autre garde.
   const forbidden = {
     kind: "portion.adjust",

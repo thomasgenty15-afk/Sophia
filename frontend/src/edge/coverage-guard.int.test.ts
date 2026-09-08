@@ -177,6 +177,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // la note libre est bien BRANCHÉ, pas seulement écrit) et
       // frontend/src/keel/api/planFeedback.int.test.ts (le câblage écran).
       "keel-plan-feedback-v1",
+      // ⟳ 2026-09-08 — la note d'un brouillon, lue AVANT de composer (lot 3 du
+      // chantier retours/bilan): un appel court qui classe, applique et dit,
+      // pour que la phrase ne parte plus jamais au composeur.
+      "keel-read-note-v1",
       // `keel-meal-plan-v1` a disparu avec la composition 1:1 de la semaine de
       // repas (20260804210000): le coach n'épingle plus une recette sur le jour
       // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève

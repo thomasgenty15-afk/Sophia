@@ -328,6 +328,14 @@ Deno.test("SEUL le questionnaire produit un `portion.adjust`", () => {
   // conversation NE SAIT PAS l'attribuer: « les portions étaient trop grosses »
   // dans un foyer de quatre ne désigne personne. Le questionnaire pose la
   // question avec la liste du foyer sous les yeux.
+  //
+  // ⟳ 2026-09-08 — CETTE PORTE A ÉTÉ OUVERTE AU BROUILLON PENDANT UNE HEURE,
+  // PUIS REFERMÉE. Une phrase PEUT dire qu'une part est trop grosse; ce n'est
+  // pas ça qui a changé d'avis, c'est LE PARAMÈTRE QU'ELLE DÉPLACE. Décision du
+  // propriétaire: elle déplace `household_member_bodies.appetite` d'un cran —
+  // un CHAMP que la personne voit sur sa fiche. Un item retenu serait une
+  // seconde vérité à côté de l'écran, et les deux s'empileraient sur la même
+  // cible du jour (−10 % et −5 % font −14,5 % pour une seule phrase).
   assertEquals(canProduce("questionnaire", "portion.adjust"), true);
   assertEquals(canProduce("conversation", "portion.adjust"), false);
   assertEquals(canProduce("draft_note", "portion.adjust"), false);
@@ -481,6 +489,9 @@ Deno.test("la matrice du §5, cellule par cellule", () => {
       "food.prefer": true,
       "method.avoid": true,
       "method.prefer": true,
+      // ⟳ 2026-09-08 — RESTE `false`, et la part se range quand même: par le
+      // tiroir ④ du classifieur, qui ne produit AUCUN item retenu et déplace
+      // `appetite` sur la fiche. Voir le test du producteur ci-dessus.
       "portion.adjust": false,
       "rhythm.set": false,
       "logistics.set": false,

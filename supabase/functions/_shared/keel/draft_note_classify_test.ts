@@ -35,6 +35,7 @@ import {
   buildDraftNoteClassifyPrompt,
   DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT,
   DRAFT_NOTE_FORBIDDEN_KINDS,
+  DRAFT_NOTE_CLARIFY_GATES,
   DRAFT_NOTE_GATES,
   DRAFT_NOTE_KINDS,
   DRAFT_NOTE_NEXT_PLAN_KINDS,
@@ -47,6 +48,7 @@ import {
   readDraftNoteClassification,
 } from "./draft_note_classify.ts";
 import {
+  answerDraftNotePortion,
   classifyAndPersistDraftNote,
   classifyDraftNoteEarly,
   draftNoteBeltItems,
@@ -54,7 +56,11 @@ import {
   DRAFT_NOTE_CLASSIFY_TIMEOUT_MS,
 } from "./draft_note_classify_io.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
-import { canProduce, defaultScopeFor, HOUSEHOLD_SUBJECT } from "./retained_item.ts";
+import {
+  canProduce,
+  defaultScopeFor,
+  HOUSEHOLD_SUBJECT,
+} from "./retained_item.ts";
 import { KEEL_GENERATION_MODEL_DEFAULT } from "./generation_model.ts";
 
 // ---------------------------------------------------------------------------
@@ -116,7 +122,14 @@ function read(
 Deno.test("⛔ le producteur est `draft_note`, JAMAIS `written`", () => {
   assertEquals(DRAFT_NOTE_PRODUCER, "draft_note");
   assertEquals(canProduce("written", "portion.adjust"), true);
+  // ⟳ 2026-09-08 — TROIS FAMILLES FERMÉES, ET LA PART SE RANGE QUAND MÊME.
+  // Une phrase PEUT dire qu'une part est trop grosse: elle va dans le tiroir ④,
+  // qui n'a pas de clé `kind` et ne produit AUCUN item retenu — elle déplace
+  // `appetite` sur la fiche. Un `portion.adjust` en mémoire serait une seconde
+  // vérité à côté de l'écran, et les deux s'empileraient sur la même cible.
   assertEquals(canProduce(DRAFT_NOTE_PRODUCER, "portion.adjust"), false);
+  assertEquals(canProduce(DRAFT_NOTE_PRODUCER, "rhythm.set"), false);
+  assertEquals(canProduce(DRAFT_NOTE_PRODUCER, "logistics.set"), false);
 });
 
 Deno.test("la matrice ① — CINQ familles permises, trois interdites, quatre préférences", () => {
@@ -222,20 +235,28 @@ Deno.test("⛔ PORTE ③ — « NEVER a food… NEVER a degree » SUR la ligne d
 Deno.test("⛔ RIEN N'EST TU: ce qui n'est pas rangé DOIT apparaître dans `skipped`", () => {
   // Mesuré: un modèle qui ne range rien et ne le dit pas rend un `nothing_to_file`
   // indiscernable d'un prompt cassé. La promesse est SUR la ligne de `skipped`.
-  const d = distance('4. "skipped"', "MUST appear here");
+  const d = distance('6. "skipped"', "MUST appear here");
   assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
 });
 
 Deno.test("⛔ UN DEGRÉ N'EST RANGÉ NULLE PART — et le prompt l'apprend au modèle, sous `skipped`", () => {
   // La PROMESSE de cette porte (« MUST appear here ») est SUR la ligne de la clé
   // (test suivant); la description des motifs vient juste après, sous 600.
-  const d = distance('4. "skipped"', "- degree —");
+  const d = distance('6. "skipped"', "- degree —");
   assert(d >= 0 && d < 600, `description à ${d} caractères de la clé`);
   const degree = PROMPT.split("\n").find((l) => l.startsWith("- degree —"))!;
+  // ⟳ 2026-09-08 — LE DEGRÉ N'A PRESQUE PLUS RIEN: la part a le tiroir 4, le
+  // travail de cuisine a le tiroir 5. Reste un jugement sur le PLAN ENTIER sans
+  // axe à déplacer — et le motif doit renvoyer vers les DEUX tiroirs, sinon le
+  // modèle, devant « file it in the FIRST one that fits », range dans celui qui
+  // ne garde rien parce qu'il vient avant.
   for (const word of ["too big", "too long to cook", "too complicated", "not varied enough"]) {
-    assert(degree.includes(word), `« ${word} » n'est pas nommé comme un degré`);
+    assert(!degree.includes(word), `« ${word} » est encore un degré: il a un tiroir maintenant`);
   }
-  assert(degree.includes("never filed from a sentence"));
+  assert(!degree.includes("never filed from a sentence"), "le prompt interdit encore ce que le code permet");
+  assert(degree.includes("drawer 4") && degree.includes("drawer 5"), "le degré ne renvoie pas vers les deux tiroirs");
+  const setting = PROMPT.split("\n").find((l) => l.startsWith("- setting —"))!;
+  assert(setting.includes("drawer 5"), "le motif `setting` ne renvoie pas le temps/la difficulté/la variété vers leur tiroir");
   for (const why of DRAFT_NOTE_SKIP_REASONS) {
     assert(PROMPT.includes(`- ${why} —`), `le motif ${why} n'est pas enseigné`);
   }
@@ -515,7 +536,9 @@ Deno.test("CE QUE LE MODÈLE A LU ET N'A PAS RANGÉ — compté par motif, et un
   assertEquals(out.classification.kept, 0);
 });
 
-Deno.test("les CINQ listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+Deno.test("les SEPT listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+  // ⟳ 2026-09-08 — SEPT: `portions` puis `settings` sont des listes comme les
+  // autres, et pour la même raison exactement que `clarify` ci-dessous.
   // ⟳ 2026-09-04 — CINQ, ET PAS QUATRE. `clarify` est une liste comme les
   // autres: une clé absente veut dire que le modèle a lu le prompt de travers,
   // et se compte à part d'un vide. Ne pas l'ajouter ici aurait rendu
@@ -525,6 +548,8 @@ Deno.test("les CINQ listes vides sont une réponse correcte; une liste ABSENTE e
     preferences: [],
     notes: [],
     next_plan: [],
+    portions: [],
+    settings: [],
     skipped: [],
     clarify: [],
   });
@@ -536,6 +561,8 @@ Deno.test("les CINQ listes vides sont une réponse correcte; une liste ABSENTE e
   assertEquals(partial.classification.listsMissing, [
     "notes",
     "next_plan",
+    "portions",
+    "settings",
     "skipped",
     "clarify",
   ]);
@@ -583,23 +610,174 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
     ],
     notes: [{ text: "danse", member_id: STRANGER, when: null }],
     next_plan: [{ kind: "craving", text: "", member_id: null }],
+    portions: [{ direction: "down", text: "maman mange moins", member_id: ZOE }],
+    settings: [{ about: "time", direction: "down" }],
     skipped: [{ why: "degree" }],
     clarify: [],
   });
   const t = draftNoteClassifyTrace(out.classification);
   assertEquals(t.pref_proposed, 2);
   assertEquals(t.pref_kept, 1);
+  // ⛔ UNE PORTION RANGÉE DANS ① RESTE REFUSÉE, et c'est le cœur du lot: la
+  // famille est permise au producteur, mais PAS à cette porte-là — parce que ①
+  // relit avec `value: null` et l'aurait perdue en silence.
   assertEquals(t.pref_refused_forbidden_kind, 1);
   assertEquals(t.notes_proposed, 1);
   assertEquals(t.notes_refused_unknown_member, 1);
   assertEquals(t.next_proposed, 1);
   assertEquals(t.next_refused_bad_text, 1);
+  // ④ — la même phrase, dans le BON tiroir, est gardée.
+  assertEquals(t.portions_proposed, 1);
+  assertEquals(t.portions_kept, 1);
+  assertEquals(t.portions_down, 1);
+  assertEquals(t.portions_up, 0);
+  // ⑤ — le travail de cuisine, dans son tiroir.
+  assertEquals(t.settings_proposed, 1);
+  assertEquals(t.settings_kept, 1);
+  assertEquals(t.settings_time, 1);
+  assertEquals(t.settings_difficulty, 0);
   assertEquals(t.skipped_degree, 1);
-  assertEquals(t.proposed, 4);
-  assertEquals(t.kept, 1);
+  assertEquals(t.proposed, 6);
+  assertEquals(t.kept, 3);
   assertEquals(t.refused, 3);
   assertEquals(t.refused_forbidden_kinds, ["portion.adjust"]);
   assertEquals(t.lists_missing, []);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ④ LE TIROIR DES PORTIONS — le sens du modèle, l'amplitude du code
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ LA PART SE RANGE EN MOUVEMENT — qui, et dans quel sens", () => {
+  const out = read({
+    portions: [{ direction: "down", text: "maman ne mange pas autant", member_id: ZOE }],
+  });
+  assertEquals(out.classification.portions.kept, 1);
+  assertEquals(out.classification.portions.moves[0], {
+    memberId: ZOE,
+    direction: "down",
+  });
+  // ⛔ ET AUCUN ITEM RETENU N'EST PRODUIT. La phrase déplacera `appetite` sur la
+  // FICHE de cette bouche; une ligne de mémoire serait une seconde vérité à
+  // côté de l'écran, et les deux s'empileraient sur la même cible du jour.
+  assertEquals(out.classification.preferences.kept, 0);
+});
+
+Deno.test("⛔ AUCUNE AMPLITUDE NE TRAVERSE — le modèle n'a que le sens", () => {
+  const out = read({
+    portions: [{
+      direction: "down",
+      magnitude: "clear",
+      text: "beaucoup trop pour elle",
+      member_id: ZOE,
+    }],
+  });
+  assertEquals(out.classification.portions.kept, 1);
+  assertEquals(
+    Object.keys(out.classification.portions.moves[0]).sort(),
+    ["direction", "memberId"],
+    "une amplitude a traversé: la phrase pèserait plus qu'une case cochée",
+  );
+});
+
+Deno.test("⛔ LE FOYER EST REFUSÉ — un appétit est un fait de CORPS, pas un goût de table", () => {
+  const out = read({
+    portions: [{ direction: "down", text: "on mange moins", member_id: null }],
+  });
+  assertEquals(out.classification.portions.kept, 0);
+  assertEquals(
+    out.classification.portions.refused.unknownMember,
+    1,
+    "`member_id: null` a changé la fiche de tout le monde sur une phrase qui ne nommait personne",
+  );
+});
+
+Deno.test("⛔ DEUX ENTRÉES SUR LA MÊME BOUCHE NE FONT QU'UN CRAN", () => {
+  const out = read({
+    portions: [
+      { direction: "down", text: "trop", member_id: ZOE },
+      { direction: "down", text: "vraiment trop", member_id: ZOE },
+    ],
+  });
+  assertEquals(out.classification.portions.kept, 1);
+  assertEquals(out.classification.portions.refused.malformed, 1);
+});
+
+Deno.test("⛔ UN SENS ILLISIBLE N'EST PAS UN DEMI-SENS — on ne devine pas « moins »", () => {
+  const out = read({
+    portions: [
+      { direction: "less", text: "trop", member_id: null },
+      { direction: "", text: "trop", member_id: null },
+      { text: "trop", member_id: null },
+    ],
+  });
+  assertEquals(out.classification.portions.kept, 0);
+  assertEquals(out.classification.portions.refused.malformed, 3);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑤ LE TIROIR DES RÉGLAGES — l'axe et le sens, jamais une valeur
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ LE TRAVAIL DE CUISINE SE RANGE EN MOUVEMENT — l'axe et le sens", () => {
+  const out = read({
+    settings: [{ about: "time", direction: "down" }, { about: "variety", direction: "up" }],
+  });
+  assertEquals(out.classification.settings.kept, 2);
+  assertEquals(out.classification.settings.moves, [
+    { about: "time", direction: "down" },
+    { about: "variety", direction: "up" },
+  ]);
+  // ⛔ AUCUN ITEM RETENU: un réglage déplace le CHAMP, par la porte du bilan.
+  assertEquals(out.classification.preferences.kept, 0);
+});
+
+Deno.test("⛔ AUCUNE VALEUR NE TRAVERSE — ni minutes, ni nom de cran, ni bouche", () => {
+  const out = read({
+    settings: [{ about: "time", direction: "down", minutes: 30, level: "minimal", member_id: ZOE }],
+  });
+  assertEquals(out.classification.settings.kept, 1);
+  assertEquals(
+    Object.keys(out.classification.settings.moves[0]).sort(),
+    ["about", "direction"],
+    "une valeur ou une bouche a traversé: la phrase déciderait du cran, ou d'un réglage par personne",
+  );
+});
+
+Deno.test("⛔ UN AXE ILLISIBLE, UN SENS ILLISIBLE: refusés, jamais devinés", () => {
+  const out = read({
+    settings: [
+      { about: "budget", direction: "down" },
+      { about: "time", direction: "less" },
+      { direction: "down" },
+    ],
+  });
+  assertEquals(out.classification.settings.kept, 0);
+  assertEquals(out.classification.settings.refused.malformed, 3);
+});
+
+Deno.test("⛔ DEUX ENTRÉES SUR LE MÊME AXE NE FONT QU'UN CRAN", () => {
+  const out = read({
+    settings: [{ about: "time", direction: "down" }, { about: "time", direction: "down" }],
+  });
+  assertEquals(out.classification.settings.kept, 1);
+  assertEquals(out.classification.settings.refused.malformed, 1);
+});
+
+Deno.test("PORTE ⑤ — « THE DIRECTION AND NOTHING ELSE » SUR la ligne de `\"direction\"`", () => {
+  const d = distance('5. "settings"', "THE DIRECTION AND NOTHING ELSE");
+  assert(d >= 0 && d < 700, `promesse à ${d} caractères de la clé`);
+  assert(PROMPT.includes('"about": exactly one of time | difficulty | variety'));
+  // Le tiroir vient AVANT `skipped`: « file it in the FIRST one that fits ».
+  assert(PROMPT.indexOf('5. "settings"') < PROMPT.indexOf('6. "skipped"'));
+});
+
+Deno.test("⛔ UNE BOUCHE HORS RÔLE EST UN REFUS, jamais un repli sur la table", () => {
+  const out = read({
+    portions: [{ direction: "down", text: "elle mange moins", member_id: STRANGER }],
+  });
+  assertEquals(out.classification.portions.kept, 0);
+  assertEquals(out.classification.portions.refused.unknownMember, 1);
 });
 
 // ===========================================================================
@@ -853,9 +1031,38 @@ function wiringVerdict(src: string): string[] {
   if (!/const model = keelGenerationModel\(\);/.test(code)) missing.push("keelGenerationModel_appele");
   if (!/await persistRetainedItemsFor\(\{/.test(code)) missing.push("porte_appelee");
   if (!/producer: DRAFT_NOTE_PRODUCER,/.test(code)) missing.push("producteur_draft_note");
-  if (!/durable: classification\.preferences\.items,/.test(code)) missing.push("preferences_passees");
+  if (!/durable: classification\.preferences\.items,/.test(code)) {
+    missing.push("preferences_passees");
+  }
   if (!/nextPlan: classification\.nextPlan\.entries,/.test(code)) missing.push("next_plan_passe");
   if (!/memo: classification\.notes\.lines,/.test(code)) missing.push("notes_passees");
+  // ⛔ ET L'ABSTENTION CONNAÎT LA QUATRIÈME PORTE. Sans cette ligne, une note
+  // qui ne dit QUE « maman ne mange pas autant » ressort en `nothing_to_file`,
+  // et l'appelant ne voit jamais le mouvement d'appétit qu'il doit appliquer.
+  if (!/classification\.portions\.moves\.length === 0/.test(code)) {
+    missing.push("portions_comptees_dans_abstention");
+  }
+  // ⛔ LA PART DÉPLACE UN APPÉTIT, PAR SA RPC `_for`. Celle que le formulaire
+  // appelle lit `auth.uid()`, NULL sous service_role: un appel à la mauvaise
+  // fonction serait refusé en silence, et « la personne n'avait rien demandé »
+  // et « on n'a pas pu écrire » deviendraient indiscernables.
+  if (!/keel_household_set_member_appetite_for/.test(code)) {
+    missing.push("appetit_ecrit");
+  }
+  // ⛔ ET LES QUATRE ISSUES SE COMPTENT. `asked > 0` avec `moved: 0` et
+  // `at_edge: 0` est la signature exacte d'un câblage rompu; sans les quatre
+  // nombres, un tiroir inerte ressemble trait pour trait à un tiroir qui marche.
+  for (const counter of ["asked", "moved", "at_edge", "failed"]) {
+    if (!new RegExp(`portions_${counter}: appetite\\.${counter},`).test(code)) {
+      missing.push(`portions_${counter}_compte`);
+    }
+  }
+  // ⛔ ET « AU BOUT » N'EST PAS UN ÉCHEC. Les confondre effacerait le seul cas
+  // où la personne mérite une phrase: elle a redemandé moins à quelqu'un qui
+  // est déjà au plus bas de l'échelle.
+  if (!/at_floor" \|\| reason === "at_ceiling"/.test(code)) {
+    missing.push("bout_d_echelle_distingue");
+  }
   return missing;
 }
 
@@ -914,6 +1121,22 @@ Deno.test("CÂBLAGE ② — chaque moitié retirée fait ROUGIR l'assertion", as
     ["porte_appelee", "await persistRetainedItemsFor({", "await Promise.resolve({ ok: true } as any) && ({"],
     ["producteur_draft_note", "producer: DRAFT_NOTE_PRODUCER,", 'producer: "written" as any,'],
     ["preferences_passees", "durable: classification.preferences.items,", "durable: [],"],
+    [
+      "portions_comptees_dans_abstention",
+      "classification.portions.moves.length === 0",
+      "classification.portions.moves.length >= 0",
+    ],
+    [
+      "appetit_ecrit",
+      '"keel_household_set_member_appetite_for",',
+      '"keel_household_set_member_body",',
+    ],
+    ["portions_moved_compte", "portions_moved: appetite.moved,", "portions_moved: 0,"],
+    [
+      "bout_d_echelle_distingue",
+      'reason === "at_floor" || reason === "at_ceiling"',
+      "false",
+    ],
     ["next_plan_passe", "nextPlan: classification.nextPlan.entries,", "nextPlan: [],"],
     ["notes_passees", "memo: classification.notes.lines,", "memo: [],"],
   ];
@@ -1713,4 +1936,299 @@ Deno.test("PRÉCOCE ⑤ — sans `classified`, la persistance appelle elle-même
   });
   assert(res.ok);
   assertEquals(trace.models.length, 1);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑤ L'IO DES RÉGLAGES — une phrase déplace LE CHAMP, par la porte du bilan
+//
+// ⛔ CES CAS PROUVENT LE CHEMIN D'ÉCRITURE SANS RUNTIME. Le tir réel N3 a vu le
+// modèle ranger juste trois fois sur trois, et le runtime tué trois fois sur
+// trois par les éditions d'une autre session sous `supabase/functions/`. Ce
+// que le tir n'a pas pu prouver — la traduction, la porte, la trace — se
+// prouve ici, sur le faux admin, RPC par RPC.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SETTINGS_ONLY = (about: string, direction: string) => ({
+  preferences: [],
+  notes: [],
+  next_plan: [],
+  portions: [],
+  settings: [{ about, direction }],
+  skipped: [],
+  clarify: [],
+});
+
+async function persistWith(
+  lists: Record<string, unknown>,
+  constraints: Record<string, unknown>,
+  note = "C'est trop long à cuisiner",
+) {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, constraints),
+    userId: USER,
+    note: usable(note),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning(lists, trace),
+  });
+  const field = trace.rpcs.find((r) => r.name === "keel_write_field_changes_for");
+  return { res, trace, field };
+}
+
+Deno.test("⛔ « TROP LONG » AVEC UN STYLE DÉCLARÉ: c'est LE STYLE qui descend d'un cran", async () => {
+  const { res, field } = await persistWith(
+    SETTINGS_ONLY("time", "down"),
+    { cooking_style: "balanced" },
+  );
+  assertEquals(res.classification.settings.kept, 1);
+  assert(field, "la porte des champs n'a pas été appelée: le tiroir 5 est vert et sans effet");
+  // Le cadran unique (A2): quand un style est déclaré, `cooking_time_min` et
+  // `recipe_difficulty` ne bougent PAS — ils sont dérivés du style.
+  assertEquals(field!.params.p_patch, { cooking_style: "minimal" });
+  assertEquals(field!.params.p_expected, { cooking_style: "balanced" });
+  const journal = field!.params.p_changes as Array<Record<string, unknown>>;
+  assertEquals(journal.length, 1);
+  assertEquals(journal[0].field, "cooking_style");
+  assertEquals(journal[0].previous, "balanced");
+  assertEquals(journal[0].next, "minimal");
+  // ⛔ LA SOURCE ET LA CITATION SONT LES NÔTRES: pas `questionnaire`, pas le
+  // libellé d'une échelle qu'elle n'a jamais lue — SA phrase.
+  assertEquals(journal[0].source, "draft_note");
+  assertEquals(journal[0].quote, "C'est trop long à cuisiner");
+});
+
+Deno.test("SANS STYLE DÉCLARÉ, « trop long » descend LE TEMPS d'un barreau (60 → 45)", async () => {
+  const { field } = await persistWith(
+    SETTINGS_ONLY("time", "down"),
+    { cooking_time_min: 60 },
+  );
+  assert(field, "la porte des champs n'a pas été appelée");
+  // Un NOMBRE, pas la chaîne « 45 »: `parseLogisticsSetValue` refuserait une
+  // chaîne à la lecture — écrit, puis invisible.
+  assertEquals(field!.params.p_patch, { cooking_time_min: 45 });
+});
+
+Deno.test("⛔ AU PLANCHER, RIEN NE BOUGE — et la porte n'est pas appelée pour rien", async () => {
+  const { res, field } = await persistWith(
+    SETTINGS_ONLY("time", "down"),
+    { cooking_style: "minimal" },
+  );
+  assertEquals(res.classification.settings.kept, 1, "le tiroir a bien rangé la phrase");
+  assertEquals(field, undefined, "un cran a été écrit sous le plancher de l'échelle");
+});
+
+Deno.test("⛔ LES DEUX AXES EN SENS CONTRAIRES SUR LE CADRAN UNIQUE: rien ne bouge (bothPolarities)", async () => {
+  const { res, field } = await persistWith(
+    {
+      ...SETTINGS_ONLY("time", "down"),
+      settings: [{ about: "time", direction: "down" }, { about: "difficulty", direction: "up" }],
+    },
+    { cooking_style: "balanced" },
+  );
+  assertEquals(res.classification.settings.kept, 2);
+  assertEquals(field, undefined, "« moins de temps » et « plus ambitieux » ont été fondus en un cran inventé");
+});
+
+Deno.test("« PAS ASSEZ VARIÉ » sans base déclarée monte la variété — la règle du bilan, pas une nôtre", async () => {
+  const { field } = await persistWith(
+    SETTINGS_ONLY("variety", "up"),
+    {},
+  );
+  assert(field, "la porte des champs n'a pas été appelée");
+  // Le bilan saute en haut de l'échelle sans base (« l'asymétrie des dégâts »):
+  // on RÉUTILISE cette décision, on ne la rejuge pas ici.
+  assertEquals(field!.params.p_patch, { variety: "varied" });
+});
+
+Deno.test("⛔ UNE NOTE QUI NE CONTIENT QU'UN RÉGLAGE ANNONCE LE RÉGLAGE — mesuré au tir N3b", async () => {
+  // Sans goût, sans mémo, sans envie, la porte des items retenus rend
+  // `nothing_to_write`. Le champ bougeait quand même, et la personne ne lisait
+  // rien: l'accusé était sous `if (write.ok)`.
+  const { res, field } = await persistWith(
+    SETTINGS_ONLY("time", "down"),
+    { cooking_style: "balanced" },
+  );
+  assert(field, "la porte des champs n'a pas été appelée");
+  assertEquals(res.ok, true, "le champ a bougé et l'appelant lit un échec");
+  assertEquals(res.reason, "written");
+  // Le faux admin ne sait pas livrer un chat; ce qui compte est que l'accusé
+  // ait été TENTÉ, avec une ligne à dire.
+  assert(
+    res.notice.reason !== "not_attempted",
+    `l'accusé n'a pas été tenté (${res.notice.reason}): la fiche a bougé en silence`,
+  );
+});
+
+// ===========================================================================
+// ⑦ LOT 4 (2026-09-08) — LA PART SANS BOUCHE SE DEMANDE, ET LA RÉPONSE DÉPLACE
+// ===========================================================================
+//
+// Avant ce lot, « ma mère ne mange pas autant » sans prénom reconnaissable
+// n'avait NULLE PART où aller: le tiroir 4 refuse le foyer, et une question
+// `who` avec `kind: "portion.adjust"` tombait en `forbidden_kind` — comptée,
+// jamais posée. La porte `portions` du tiroir 7 est ce qui l'ouvre.
+
+const PORTION_QUESTION = {
+  about: "who",
+  gate: "portions",
+  entry: { direction: "down", text: "ma mère ne mange pas autant", member_id: null },
+  options: [ZOE, MARC],
+};
+
+Deno.test("⑦ `gate: portions` + `about: who` rend une question de part, rangée nulle part ailleurs", () => {
+  const out = read({ ...FULL_LISTS, preferences: [], notes: [], next_plan: [], clarify: [PORTION_QUESTION] });
+  assertEquals(out.ok, true);
+  const c = out.classification.clarify;
+  assertEquals(c.portions.length, 1);
+  assertEquals(c.portions[0], {
+    text: "ma mère ne mange pas autant",
+    direction: "down",
+    options: [ZOE, MARC],
+  });
+  assertEquals(c.entries.length, 0, "une part n'est PAS une entrée à item retenu");
+  assertEquals(c.who, 1);
+  assertEquals(c.kept, 1);
+  assertEquals(out.classification.portions.moves.length, 0, "rien n'est appliqué sans réponse");
+  assertEquals(draftNoteClassifyTrace(out.classification).clarify_portions, 1);
+  assertEquals(DRAFT_NOTE_CLARIFY_GATES.includes("portions"), true);
+  assertEquals(DRAFT_NOTE_GATES.includes("portions" as never), false, "le journal garde ses trois portes");
+});
+
+Deno.test("⑦ la question de part est REFUSÉE quand elle triche: bouche déclarée, sens illisible, option hors rôle, `about` ≠ who", () => {
+  const refusedAs = (patch: Record<string, unknown>) => {
+    const out = read({
+      ...FULL_LISTS, preferences: [], notes: [], next_plan: [],
+      clarify: [{ ...PORTION_QUESTION, ...patch }],
+    });
+    assertEquals(out.classification.clarify.portions.length, 0);
+    return out.classification.clarify.refused;
+  };
+  // Une bouche déjà nommée: demander « pour qui ? » ferait douter.
+  assertEquals(refusedAs({ entry: { ...PORTION_QUESTION.entry, member_id: ZOE } }).badOptions, 1);
+  // « moins » n'est pas un sens: on ne devine pas « down ».
+  assertEquals(refusedAs({ entry: { ...PORTION_QUESTION.entry, direction: "less" } }).malformed, 1);
+  // Un prénom, ou un id hors rôle: jointure par identifiant, jamais par le mot.
+  assertEquals(refusedAs({ options: ["Zoé", MARC] }).badOptions, 1);
+  assertEquals(refusedAs({ options: [] }).badOptions, 1);
+  // « laquelle ? » n'a pas de sens pour une assiette.
+  assertEquals(refusedAs({ about: "what" }).badAbout, 1);
+});
+
+Deno.test("⑦ le prompt nomme `\"gate\": \"portions\"` À CÔTÉ du cas du tiroir 4, et la ligne `gate` du tiroir 7 la liste", () => {
+  const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const share = p.indexOf("a share belongs to ONE person");
+  assert(share >= 0, "la règle « une part appartient à UNE personne » a disparu");
+  const gate = p.indexOf('"gate": "portions"', share);
+  assert(gate >= 0 && gate - share < 400, "`gate: portions` n'est pas à côté de son cas — 0 % sinon");
+  assert(p.includes('"gate": exactly one of preferences | notes | next_plan | portions'));
+});
+
+Deno.test("⑦ io — une note qui ne fait QUE demander rend `questions` AVEC les prénoms, et n'écrit rien", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("ma mère ne mange pas autant"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({ preferences: [], notes: [], next_plan: [], skipped: [], clarify: [PORTION_QUESTION] }, trace),
+  });
+  assertEquals(res.reason, "nothing_to_file");
+  assertEquals(res.questions, [{
+    kind: "portion",
+    text: "ma mère ne mange pas autant",
+    direction: "down",
+    options: [{ memberId: ZOE, label: "Zoé" }, { memberId: MARC, label: "Marc" }],
+  }]);
+  assertEquals(res.announced, []);
+  assertEquals(trace.rpcs.filter((r) => r.name === "keel_household_set_member_appetite_for"), []);
+  // Une bouche candidate sans prénom dans le rôle TOMBE — un bouton sans mot
+  // n'est pas un bouton — et la question avec elle si elle était seule.
+  const res2 = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("ma mère ne mange pas autant"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [{ memberId: ZOE, label: "", ageState: "minor", sex: "female" }],
+    contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
+    now: NOW,
+    run: runnerReturning({ preferences: [], notes: [], next_plan: [], skipped: [], clarify: [{ ...PORTION_QUESTION, options: [ZOE] }] }, trace),
+  });
+  assertEquals(res2.questions, []);
+});
+
+Deno.test("⑦ io — la RÉPONSE déplace UN cran par la RPC `_for`, le dit dans la langue, et revérifie la bouche", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const admin = {
+    ...fakeAdmin(trace),
+    rpc: (name: string, params: Record<string, unknown>) => {
+      trace.rpcs.push({ name, params });
+      return Promise.resolve({
+        data: { ok: true, member_id: params.p_member, previous: "average", appetite: "small" },
+        error: null,
+      });
+    },
+  };
+  const res = await answerDraftNotePortion({
+    admin,
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    move: { memberId: ZOE, direction: "down" },
+    now: NOW,
+  });
+  assertEquals(res.ok, true);
+  assertEquals(res.reason, "moved");
+  const moves = trace.rpcs.filter((r) => r.name === "keel_household_set_member_appetite_for");
+  assertEquals(moves.length, 1);
+  assertEquals(moves[0].params, { p_user: USER, p_member: ZOE, p_direction: "down" });
+  assertEquals(res.announced.length, 1);
+  assertEquals(res.announced[0].who, "Zoé");
+  assertEquals(res.announced[0].kind, "setting");
+  assert(res.announced[0].text.includes("petit"), res.announced[0].text);
+  assertEquals(trace.models, [], "aucun appel modèle: la phrase a déjà été lue");
+
+  // Une bouche hors rôle: `unknown_member`, et la RPC n'est PAS appelée.
+  const before = trace.rpcs.length;
+  const bad = await answerDraftNotePortion({
+    admin,
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    move: { memberId: "00000000-0000-4000-8000-00000000dead", direction: "down" },
+  });
+  assertEquals(bad.ok, false);
+  assertEquals(bad.reason, "unknown_member");
+  assertEquals(trace.rpcs.length, before);
+
+  // Au bout de l'échelle: pas un échec, et rien à dire — `at_edge`.
+  const edge = await answerDraftNotePortion({
+    admin: {
+      ...admin,
+      rpc: (name: string, params: Record<string, unknown>) => {
+        trace.rpcs.push({ name, params });
+        return Promise.resolve({ data: { ok: false, reason: "at_floor" }, error: null });
+      },
+    },
+    userId: USER,
+    members: MEMBERS,
+    contentLocale: "fr-FR",
+    move: { memberId: ZOE, direction: "down" },
+  });
+  assertEquals(edge.reason, "at_edge");
+  assertEquals(edge.announced, []);
 });
