@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { describeSlotFromTap } from "./slotMeal";
+
 const ROOT = resolve(__dirname, "../../../..");
 const read = (rel: string) => readFileSync(resolve(ROOT, rel), "utf8");
 
@@ -136,5 +138,41 @@ describe("le geste « + » du composeur", () => {
     );
     expect(read("frontend/src/keel/components/TrackingDescribeDialog.tsx"))
       .toContain("describeMissedMeal(");
+  });
+});
+
+describe("« Te dire » ouvre le champ, au bon créneau", () => {
+  it("le créneau vient du JETON, jamais d'une inférence", () => {
+    // Il y est déjà (R6), précisément pour que rien en aval n'ait à le
+    // deviner: une déclaration rangée au dernier créneau écoulé tombe juste par
+    // accident, et faux dès qu'on répond le soir.
+    expect(describeSlotFromTap("KEEL_SLOTMEAL_describe|2026-03-10|dinner"))
+      .toBe("dinner");
+    // ⛔ ET SEULEMENT SUR SON ACTION. « Photo » arme le créneau de la photo,
+    // « Passer » n'ouvre rien, et l'extinction encore moins.
+    for (const a of ["photo", "skip", "mute"]) {
+      expect(describeSlotFromTap(`KEEL_SLOTMEAL_${a}|2026-03-10|dinner`), a)
+        .toBeNull();
+    }
+    expect(describeSlotFromTap("KEEL_WEIGHIN_2026-03-10")).toBeNull();
+  });
+
+  it("un créneau qu'on ne sait pas NOMMER n'ouvre rien", () => {
+    // Le dialogue affiche le libellé du créneau. Un slug brut sous les yeux de
+    // quelqu'un est pire que le repli sur le chemin d'avant.
+    expect(describeSlotFromTap("KEEL_SLOTMEAL_describe|2026-03-10|brunch"))
+      .toBeNull();
+  });
+
+  it("le tap part QUAND MÊME au serveur", () => {
+    // Sans quoi R13 désarmerait la question au message suivant, et le tap
+    // n'aurait laissé aucune trace. Même règle que « Photo ».
+    const src = strip(read(CHAT));
+    const at = src.indexOf("describeSlotFromTap(payload)");
+    expect(at).toBeGreaterThan(-1);
+    const after = src.slice(at, at + 600);
+    expect(after).toContain('send({ kind: "button", payload, label }');
+    // ⛔ ET IL NE RETOURNE PAS TÔT. Un `return` ici avalerait l'envoi.
+    expect(after.slice(0, after.indexOf("send("))).not.toContain("return;");
   });
 });

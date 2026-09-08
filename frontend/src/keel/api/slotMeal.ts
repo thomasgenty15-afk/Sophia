@@ -63,6 +63,33 @@ export function parseSlotMealButton(payload: string): SlotMealTap | null {
  * rendent `null`: armer sur elles ferait porter le créneau du midi à une photo
  * envoyée trois heures plus tard pour une tout autre raison.
  */
+/**
+ * LE CRÉNEAU D'UN TAP « TE DIRE », POUR OUVRIR LE CHAMP AU BON MOMENT.
+ *
+ * ⟳ AJOUTÉ LE 2026-09-08. Le bouton « Te dire » partait au serveur, qui
+ * écrivait un fait VIDE et répondait « vas-y, c'était quoi ? » — puis ce que la
+ * personne tapait retombait dans la lane libre du modèle. Il n'y avait donc
+ * aucun CHAMP: la déclaration passait par une conversation, et son créneau se
+ * perdait en route.
+ *
+ * ⛔ LE CRÉNEAU VIENT DU JETON, ET C'EST TOUT L'INTÉRÊT. Il y est déjà (R6),
+ * précisément pour que rien en aval n'ait à le deviner: une déclaration rangée
+ * au dernier créneau écoulé tombe juste par accident, et faux dès qu'on répond
+ * le soir.
+ *
+ * ⚠️ COMME « PHOTO », LE TAP PART QUAND MÊME AU SERVEUR. Le front ouvre le
+ * champ, le serveur voit la réponse — sans quoi R13 désarmerait la question au
+ * message suivant et le tap n'aurait laissé aucune trace.
+ */
+export function describeSlotFromTap(payload: string): string | null {
+  const tap = parseSlotMealButton(payload);
+  if (!tap || tap.action !== "describe") return null;
+  // Si on ne sait pas le NOMMER, on ne l'ouvre pas: le dialogue affiche le
+  // libellé du créneau, et un slug brut sous les yeux de quelqu'un est pire
+  // qu'un repli sur le chemin d'avant.
+  return forcedSlotLabel(tap.slot) ? tap.slot : null;
+}
+
 export function forcedSlotFromPhotoTap(payload: string): string | null {
   const tap = parseSlotMealButton(payload);
   if (!tap || tap.action !== "photo") return null;

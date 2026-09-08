@@ -572,7 +572,15 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
    * indémentable.
    */
   skipped: string;
-  /** L'accusé de « Décrire » quand le fait EST écrit. */
+  /**
+   * L'accusé de « Décrire » quand le fait EST écrit.
+   *
+   * ⟳ 2026-09-08 — LA PHRASE NOMME LE CHAMP. Elle disait « vas-y, c'était
+   * quoi ? », ce qui invitait à taper DANS LE FIL — où la réponse retombait
+   * dans la lane libre du modèle, sans créneau et sans écriture. L'écran ouvre
+   * maintenant le champ de description au créneau que le jeton nomme; un accusé
+   * qui invite ailleurs contredirait ce qui vient de s'afficher.
+   */
   describing: string;
   /** Le même, quand l'écriture a échoué: on invite sans prétendre. */
   describingUnwritten: string;
@@ -621,8 +629,8 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describe: "Tell you",
     skip: "Skip",
     skipped: "No problem — I will not count it as anything.",
-    describing: "Noted. Go ahead — what was it?",
-    describingUnwritten: "Go ahead — what was it?",
+    describing: "Noted. Tell me what it was in the field that just opened.",
+    describingUnwritten: "Tell me what it was in the field that just opened.",
     photoAsked: "Send it over whenever you are ready.",
     mute: "Stop asking me at each meal",
     muted:
@@ -653,8 +661,8 @@ const SLOT_MEAL_COPY: Record<LocalePackKey, {
     describe: "Te dire",
     skip: "Passer",
     skipped: "Pas de souci — je ne compte rien.",
-    describing: "C'est noté. Vas-y — c'était quoi ?",
-    describingUnwritten: "Vas-y — c'était quoi ?",
+    describing: "C'est noté. Dis-moi ce que c'était dans le champ qui vient de s'ouvrir.",
+    describingUnwritten: "Dis-moi ce que c'était dans le champ qui vient de s'ouvrir.",
     photoAsked: "Envoie-la-moi quand tu veux.",
     mute: "Ne plus me demander à chaque repas",
     muted:

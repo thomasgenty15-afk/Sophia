@@ -43,6 +43,7 @@ import {
   weighInTokenFor,
 } from "../api/weighIn";
 import {
+  describeSlotFromTap,
   forcedSlotFromPhotoTap,
   forcedSlotLabel,
   SLOT_ORDER,
@@ -593,6 +594,13 @@ export default function ChatPage() {
       // doit se souvenir du créneau que la question nommait.
       const photoSlot = forcedSlotFromPhotoTap(payload);
       if (photoSlot) setForcedPhotoSlot(photoSlot);
+      // ⟳ « TE DIRE » OUVRE LE CHAMP, exactement comme « Photo » arme le
+      // créneau — et le tap part au serveur dans les deux cas. Avant ce lot, ce
+      // bouton n'ouvrait RIEN: le serveur écrivait un fait vide et invitait, et
+      // ce que la personne tapait ensuite retombait dans la lane libre du
+      // modèle, sans créneau.
+      const describeTapSlot = describeSlotFromTap(payload);
+      if (describeTapSlot) setDescribeSlot(describeTapSlot);
       // L'id de LA BULLE qui portait ce bouton. C'est ce qui permet au serveur
       // de refuser un tap sur un message qu'un plus récent a périmé.
       void send({ kind: "button", payload, label }, label, messageId);
