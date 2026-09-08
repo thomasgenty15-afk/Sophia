@@ -155,12 +155,23 @@ end $$;
 --   `created_at`, c'est `answered_at` — le 42703 est déjà documenté dans
 --   `account-export-v1`.
 --
---     student_daily_checkins (created_at) · meal_share_outcomes (answered_at)
---     memory_clarifications (created_at)  · cooking_session_states (updated_at)
---     grocery_wave_states (updated_at)
---     protocol_events where key like 'ACCIDENT_OFF_PLAN%'
+--     student_daily_checkins  → created_at
+--     meal_share_outcomes     → answered_at
+--     memory_clarifications   → created_at
+--     cooking_session_states  → answered_at
+--     grocery_wave_states     → answered_at
+--     protocol_events         → source_message_id like 'accident_off_plan:%'
 --
---   Attendu: ZÉRO PARTOUT.
+--   ⟳ CES SIX LIGNES ONT ÉTÉ CORRIGÉES LE 2026-09-08, EN LES JOUANT. La
+--   première rédaction nommait `updated_at` sur deux tables qui n'en ont pas,
+--   et `protocol_events.key` — colonne qui N'EXISTE PAS: la clé vit dans
+--   `source_message_id`, et son préfixe est en MINUSCULES
+--   (`accident_off_plan:`), pas en capitales. Les trois erreurs ont fait
+--   planter la requête au premier essai. Une preuve qui plante est une preuve
+--   que personne ne joue — donc une preuve qui n'existe pas.
+--
+--   Attendu: ZÉRO PARTOUT. Mesuré le 2026-09-08 sur la base locale, sur 678
+--   profils: zéro sur les six.
 --
 -- ③ LE DIMANCHE — le discriminant existe déjà, `weekly_flow_io.ts` écrit
 --   `source = 'sunday_flow'` pour le formulaire et `'plan_card'` pour la carte
