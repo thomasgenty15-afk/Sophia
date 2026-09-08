@@ -145,7 +145,11 @@ Deno.test("CÂBLAGE — le générateur compte, relance le flagrant seulement, a
   const src = await read("../../generate-household-meal-v1/index.ts");
   assert(/regime: m\.diet,/.test(src), "les cellules ne portent plus le régime de la bouche");
   assert(/regimeBites: d\.regimeBites,/.test(src), "la vue swap ne porte plus regimeBites");
-  assert(/swap\.counters\.flagrant && !adoptingDraft && strictestRegime !== null/.test(src), "la relance ne se déclenche plus sur le seul cas flagrant");
+  // ⟳ 2026-09-09 — `improvementRetries` = `!adoptingDraft && !editing`: la même
+  // coupure sur l'adoption d'un aperçu ET sur une reprise locale (`edit_cells`),
+  // qui ne doit pas réécrire ce que la fusion garantit intact.
+  assert(/swap\.counters\.flagrant && improvementRetries && strictestRegime !== null/.test(src), "la relance ne se déclenche plus sur le seul cas flagrant");
+  assert(/const improvementRetries = !adoptingDraft && !editing;/.test(src), "la coupure des relances ne nomme plus l'adoption ET la reprise locale");
   assert(/source: `\$\{FN_NAME\}\.swap_retry`/.test(src), "la relance swap n'a plus sa source");
   assert(/after\.counters\.cells_carrying > swap\.counters\.cells_carrying/.test(src), "l'acceptation n'exige plus des cellules qui portent");
   // ⟳ 2026-09-06: le manque n'est plus une condition d'acceptation — la boucle qui suit
