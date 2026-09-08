@@ -267,6 +267,7 @@ const openArgs = {
   planKind: "household" as const,
   requestId: "req-1",
   body: { days: 3, context: "mariage mardi" },
+  lightSlots: [],
   mode: "sync" as const,
   promptVersion: "v31",
   now: new Date("2026-09-06T12:00:00.000Z"),
@@ -370,6 +371,8 @@ Deno.test("`markRunning` pose `started_at` — c'est ce que la balayeuse regarde
 Deno.test("`completeDraft` écrit l'APERÇU ET le payload exact, avec le contexte de garde", async () => {
   const { admin, calls } = fakeAdmin();
   const out = await completeDraft(admin, DRAFT, {
+    sourceText: '{"dishes":[]}',
+    sourceMeal: { dishes: [{ title: "probe-meal" }] },
     response: { dishes: [{ title: "probe" }] },
     writePayload: { plan_kind: "household", dishes: [{ title: "probe" }] },
     adoptionContext: { lane: "household", windowDays: ["mon", "tue"] },
@@ -385,6 +388,9 @@ Deno.test("`completeDraft` écrit l'APERÇU ET le payload exact, avec le context
   assertEquals(patch.status, "done");
   assertEquals(patch.write_payload, { plan_kind: "household", dishes: [{ title: "probe" }] });
   assertEquals(patch.response, { dishes: [{ title: "probe" }] });
+  // ⟳ 2026-09-09 — le texte du modèle, ce que `edit_cells` relit pour repartir.
+  assertEquals(patch.source_text, '{"dishes":[]}');
+  assertEquals(patch.source_meal, { dishes: [{ title: "probe-meal" }] });
   assertEquals(patch.adoption_context, { lane: "household", windowDays: ["mon", "tue"] });
   assertEquals(patch.safety_fingerprint, "deadbeef");
   assertEquals(patch.starts_on, "2026-09-07");
@@ -399,7 +405,7 @@ Deno.test("⛔ UN ÉCHEC DE PERSISTANCE NE LÈVE PAS, ET NE SE LIT PAS « ÉCRIT
   // `adoptability` le dira. Un `ok:true` ici ferait croire à un brouillon
   // adoptable qui n'existe pas.
   const { admin } = fakeAdmin({ update: [{ data: null, error: { message: "boom" } }] });
-  const out = await completeDraft(admin, DRAFT, { response: {}, writePayload: {} });
+  const out = await completeDraft(admin, DRAFT, { response: {}, writePayload: {}, sourceText: null, sourceMeal: null });
   assertEquals(out.ok, false);
   assertEquals(out.reason, "boom");
 });

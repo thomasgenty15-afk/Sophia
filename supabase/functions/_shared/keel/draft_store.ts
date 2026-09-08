@@ -481,6 +481,21 @@ export interface CompleteDraftArgs {
   readonly response: unknown;
   /** ⚠️ LE `p_payload` EXACT de `write_student_meal_plan`, pas une forme voisine. */
   readonly writePayload: unknown;
+  /**
+   * ⟳ 2026-09-09 — LE TEXTE RENDU PAR LE MODÈLE (relances acceptées comprises),
+   * ce que `edit_cells` relit pour REPARTIR de ce plan. REQUIS, jamais `?` :
+   * un appelant qui l'oublierait rendrait des brouillons impossibles à
+   * reprendre localement, sans un mot du compilateur. `null` est une réponse
+   * (« je n'ai pas de texte ») et la reprise le dit (`draft_has_no_source`).
+   */
+  readonly sourceText: string | null;
+  /**
+   * ⟳ 2026-09-09 — LE PLAN FINAL (`GeneratedMeal` après ceintures), tel que
+   * rendu : la BASE de `edit_cells`. Mesuré : le texte du modèle ne suit pas
+   * les relances qui modifient le plan EN PLACE ; lui seul est ce que la
+   * personne a vu. REQUIS, jamais `?`.
+   */
+  readonly sourceMeal: unknown;
   /** Le `GateContext` gelé — sans lui, l'adoption jugerait un autre plan. */
   readonly adoptionContext?: unknown;
   readonly safetyFingerprint?: string | null;
@@ -512,6 +527,8 @@ export async function completeDraft(
       status: "done",
       response: args.response ?? null,
       write_payload: args.writePayload ?? null,
+      source_text: args.sourceText ?? null,
+      source_meal: args.sourceMeal ?? null,
       adoption_context: args.adoptionContext ?? null,
       safety_fingerprint: args.safetyFingerprint ?? null,
       starts_on: args.startsOn ?? null,

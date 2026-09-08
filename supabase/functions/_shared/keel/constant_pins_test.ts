@@ -29,7 +29,7 @@ import {
   EXPLANATION_MAX_CHARS,
   EXPLANATION_MAX_LINES,
 } from "./plan_explanation.ts";
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import { UNANSWERED_EXTRAS_KCAL } from "./meal_extras.ts";
 import {
@@ -53,6 +53,16 @@ import {
 import { FILL_REQUEST_CAP } from "./composition_fill.ts";
 // ── la fournée du lot `X2″` (2026-08-23): ce que le scanner élargi fait entrer
 import { ACTIVITY_FACTORS, APPETITE_FACTORS } from "./meal_envelope.ts";
+import { YIELD_FACTORS } from "./food_composition.ts";
+import { LIGHT_SLOT_WEIGHT } from "./mouth_anchor.ts";
+import {
+  MAX_ASKABLE_DENSITY_PER_100G,
+  PLATE_MASS_BOUNDS_G,
+} from "./portion_sizing.ts";
+import {
+  LIGHT_DISH_MIN_KCAL_PER_100G,
+  NORMAL_DISH_MIN_KCAL_PER_100G,
+} from "./household_meal_generation.ts";
 import {
   MAX_DOCUMENT_BASE64_CHARS,
   MAX_DOCUMENT_BYTES,
@@ -118,11 +128,13 @@ Deno.test("épinglage — DENSITY_CEILING_DEFAULT vaut 1,8 kcal/g", () => {
 // exportée. Elle est fermée en bas de ce fichier, par un épinglage lu sur le
 // disque, et c'est un correctif NOMMÉ, pas une règle.
 //
-// ⚠️ ÉPINGLÉE, PAS DÉFENDUE — même statut que `KEEL_MINOR_AGE`. Le lot `L37`
-// a mesuré que l'élargir au-delà de **0,1055** ferait exécuter, à un adulte
-// ordinaire, un rythme que le produit décrit lui-même comme partant surtout en
-// gras (`surplus_band_bounds_test.ts`). C'est là que vit l'invariant; ici on
-// dit seulement qu'elle ne bouge pas en silence.
+// ⚠️ ÉPINGLÉE, PAS DÉFENDUE — même statut que `KEEL_MINOR_AGE`.
+// ⟳ 2026-09-09: elle ne borne PLUS le rythme exécuté d'une prise (le curseur
+// est le contrat, en-tête de `weight_pace.ts`); `surplus_band_bounds.ts`, qui
+// mesurait sa position face à la ligne d'avertissement, est retiré avec cette
+// prémisse. Elle reste la bande d'ENVELOPPE sur laquelle le modèle compose
+// (`ENERGY_BANDS.muscle_gain`, Helms 2023), et c'est pour ça qu'elle est
+// encore épinglée ici.
 Deno.test("épinglage — MAX_SURPLUS_FRACTION vaut 0,10 (bande `muscle_gain` à +10 %)", () => {
   assertEquals(MAX_SURPLUS_FRACTION, 0.10);
 });
@@ -140,8 +152,10 @@ Deno.test("épinglage — BOX_FACTOR_MIN vaut 0,70", () => {
   assertEquals(BOX_FACTOR_MIN, 0.70);
 });
 
-Deno.test("épinglage — BOX_FACTOR_MAX vaut 1,25", () => {
-  assertEquals(BOX_FACTOR_MAX, 1.25);
+// ⟳ 2026-09-09 — 1,25 → 1,50: le curseur est le contrat, et au plafond d'une
+// prise le facteur structurel atteint 1,477 (balayage de `target_grams_test.ts`).
+Deno.test("épinglage — BOX_FACTOR_MAX vaut 1,50", () => {
+  assertEquals(BOX_FACTOR_MAX, 1.50);
 });
 
 // ── LE RYTHME DE POIDS (`weight_pace.ts`) ────────────────────────────────────
@@ -674,3 +688,160 @@ Deno.test("épinglage — une ligne d'explication tient en 220 caractères", () 
   // ligne », et le bloc cesse d'être survolable à côté du plan.
   assertEquals(EXPLANATION_MAX_CHARS, 220);
 });
+
+Deno.test("épinglage — YIELD_FACTORS, l'objet ENTIER", () => {
+  // ⟳ 2026-09-07 — SORTIE DE `DETTE_NON_EPINGLEE` par le lot 1 du plan solo.
+  //
+  // ⛔ POURQUOI MAINTENANT, ET PAS AVANT. Tant que le rendement était une
+  // propriété de la CLASSE et rien d'autre, ces six nombres étaient la seule
+  // vérité et bouger l'un d'eux se voyait dans une dizaine de tests de
+  // comportement. Depuis la migration `20260907160000`, ils sont devenus la
+  // table de SECOURS: `yield_factor` peut les contredire ligne par ligne. Une
+  // table de secours est exactement le genre de constante qu'on modifie sans
+  // s'en apercevoir — plus personne ne la regarde une fois le vrai chemin
+  // branché.
+  //
+  // ⚠️ CES VALEURS SONT DES ORDRES DE GRANDEUR ASSUMÉS, et c'est écrit à leur
+  // déclaration: 100 g de riz cru rendent 250 à 300 g cuits selon la cuisson.
+  // Le lot 1 a mesuré ce que ça coûte sur le chemin le plus visible: des pâtes
+  // à 2,2 contre 2,6 déplacent 15 g de cru sur UNE ligne de recette, dans le
+  // sens qui sous-nourrit, et 43 kcal sur un plat frit.
+  //
+  // ⛔ ET DEUX DÉCISIONS EN DÉPENDENT ENCORE ENTIÈREMENT, elles ne lisent PAS
+  // `yield_factor`:
+  //   · `stateMattersFor` — « un état est-il exigé sur cet aliment ». Une
+  //     classe qui tomberait à 1,0 cesserait d'exiger l'état, et du riz sans
+  //     état se compterait cru: ~900 kcal d'écart, toujours vers le haut.
+  //   · `meal_cost.ts:411` — `cooked_label_dry_input` est défini comme
+  //     « rendement de classe = 1,0 ». **111 prix** reposent dessus.
+  // Le CHECK `yield_factor_agrees_with_class` est ce qui garantit qu'un
+  // facteur par aliment ne peut pas renverser l'une ou l'autre; ces six
+  // nombres restent donc la source de ces deux verdicts.
+  assertEquals(YIELD_FACTORS, {
+    neutral: 1.0,
+    grain_absorbs: 2.6,
+    legume_absorbs: 2.4,
+    meat_shrinks: 0.7,
+    fish_shrinks: 0.8,
+    veg_shrinks: 0.9,
+  });
+});
+
+Deno.test("épinglage — LIGHT_SLOT_WEIGHT, l'objet ENTIER", () => {
+  // ⟳ 2026-09-07 — « + repas léger », lot 2 du plan solo.
+  //
+  // ⛔ TROIS MOMENTS, ET C'EST UNE SECONDE TABLE À CÔTÉ DE `SLOT_DAY_WEIGHT`,
+  // jamais une modification de la première. La table de base sert quatre autres
+  // lecteurs (`dayCoverageOf`, le plafond de vraisemblance, `pot_demand`, le
+  // bac); la plier pour la déclaration d'une personne les ferait tous bouger.
+  //
+  // ⚠️ CE QUE CES NOMBRES NE DÉCIDENT PAS: combien la personne mange dans la
+  // journée. Les parts sont RENORMALISÉES sur les moments déclarés — ce que le
+  // soir perd, les autres le reprennent. Un dîner léger DÉPLACE la journée, il
+  // ne la fait pas maigrir. Baisser ces valeurs déplace donc plus fort, ça ne
+  // nourrit pas moins.
+  //
+  // ⚠️ À CALIBRER SUR DES RUNS RÉELS, comme le doc de méthode le dit. À peu
+  // près −40 % dans les trois cas (0,25→0,15 · 0,40→0,25 · 0,35→0,20), et
+  // c'est la FORME qui est éprouvée, pas la valeur au centième.
+  assertEquals(LIGHT_SLOT_WEIGHT, {
+    breakfast: 0.15,
+    lunch: 0.25,
+    dinner: 0.20,
+  });
+});
+
+Deno.test("épinglage — PLATE_MASS_BOUNDS_G, l'objet ENTIER", () => {
+  // ⟳ 2026-09-07 — les bornes de l'assiette, lot 2 du plan solo.
+  //
+  // ⛔ UNE CAPACITÉ D'ESTOMAC, PAS UN BESOIN, et c'est la cicatrice qui les a
+  // fait écrire: `8 g/kg` donnait 288 g de plafond à une enfant de 36 kg — un
+  // dîner d'enfant borné à une assiette de poupée. Et un plafond dérivé des
+  // kcal est CIRCULAIRE: on bornerait la masse par une cible qu'on multiplie
+  // ensuite pour l'atteindre.
+  //
+  // ⚠️ LES SIX BORNES DE COLLATION DES TROIS BANDES D'ENFANT SONT DÉRIVÉES,
+  // pas observées: le rapport de leur plafond de REPAS à celui de l'adulte,
+  // appliqué aux bornes de collation adulte. Elles sont écrites en clair pour
+  // être épinglables, mais il faut savoir que ce ne sont pas des mesures.
+  //
+  // ⚠️ CE QUI ARRIVE QUAND ELLES MORDENT EST COMPTÉ (`clamped`, `unmet_band`) —
+  // une borne qui mord toujours est indistinguable d'une borne qui ne mord
+  // jamais si personne ne compte. `ANCHOR_FACTOR_MAX` et `BOX_FACTOR_MIN` ont
+  // coûté cette leçon.
+  assertEquals(PLATE_MASS_BOUNDS_G, {
+    adult: { meal: { min: 250, max: 700 }, snack: { min: 80, max: 300 } },
+    teen: { meal: { min: 250, max: 650 }, snack: { min: 75, max: 280 } },
+    child: { meal: { min: 150, max: 450 }, snack: { min: 50, max: 195 } },
+    toddler: { meal: { min: 100, max: 300 }, snack: { min: 35, max: 130 } },
+  });
+});
+
+Deno.test("épinglage — les deux planchers de densité du prompt v33", () => {
+  // ⟳ 2026-09-07 — lot 3 du plan solo.
+  //
+  // ⛔ CE SONT LES SEULS NOMBRES QUE v33 DONNE ENCORE AU MODÈLE, et c'est
+  // pourquoi ils sont épinglés ici plutôt que noyés dans le texte du bloc. Le
+  // modèle n'a plus le corps de personne: il ne peut pas viser des calories, et
+  // lui en donner rouvrirait exactement la porte que v33 ferme. Une DENSITÉ,
+  // elle, est une propriété du PLAT — vraie quelle que soit la personne qui le
+  // mange — et c'est la seule contrainte de ce genre qu'on puisse lui donner
+  // sans lui redonner le corps.
+  //
+  // ⚠️ 100 EST DÉRIVÉ, PAS MESURÉ: un repas d'adulte plausible pèse 650 g pour
+  // ~650 kcal. Les plats réels du corpus tiennent entre 113 et 156 kcal/100 g,
+  // donc le plancher est SOUS la population — la place d'un plancher. ⛔ Si la
+  // réparation du lot 5 se met à mordre souvent, c'est CE nombre qu'il faut
+  // relever, pas la borne d'assiette de `PLATE_MASS_BOUNDS_G`.
+  //
+  // ⚠️ 60 ET PAS 0 pour un moment léger. « Léger » veut dire « moins que
+  // d'habitude », jamais « une soupe claire »: sous 60 kcal/100 g, la quantité
+  // à manger pour atteindre même une petite cible devient énorme — et c'est
+  // très exactement le défaut que ce plancher existe pour empêcher.
+  //
+  // ⛔ ILS SONT INTERPOLÉS DANS LE TEXTE DU PROMPT, jamais recopiés: une
+  // consigne qui promet 100 et une garde qui accepte 90 laisseraient passer un
+  // plat que le moteur devra réparer, et le modèle aurait raison contre lui.
+  assertEquals(NORMAL_DISH_MIN_KCAL_PER_100G, 100);
+  assertEquals(LIGHT_DISH_MIN_KCAL_PER_100G, 60);
+  assertEquals(
+    LIGHT_DISH_MIN_KCAL_PER_100G < NORMAL_DISH_MIN_KCAL_PER_100G,
+    true,
+    "un plat léger doit pouvoir être moins dense qu'un plat ordinaire",
+  );
+  // ⟳ 2026-09-08 — LE PLAFOND DE CE QU'ON PEUT DEMANDER, né d'un tir réel.
+  // Le `max` sur les jours a exigé 389 kcal/100 g au dîner (la veille de
+  // cuisine ne porte qu'un moment, qui pèse alors la journée entière). Aucun
+  // plat ne tient ça — un gratin fait 180, des lasagnes 150 — et le modèle a
+  // rendu 126,7: il a ignoré la consigne. Une consigne intenable apprend au
+  // modèle que ces nombres-là sont décoratifs, sur toute la ligne.
+  assertEquals(MAX_ASKABLE_DENSITY_PER_100G, 250);
+  assertEquals(
+    MAX_ASKABLE_DENSITY_PER_100G > NORMAL_DISH_MIN_KCAL_PER_100G,
+    true,
+    "le plafond de ce qu'on demande doit rester au-dessus du plancher qu'on promet",
+  );
+});
+
+Deno.test("épingle — l'effort de composition et son timeout tiennent sous la coupure du worker", async () => {
+  const m = await import("./generation_model.ts");
+  // ⛔ `high` et pas `xhigh` : `_shared/gemini.ts` replie le second sur le premier,
+  // et le nom qu'on lit dans le code doit être celui que l'API reçoit.
+  assertEquals(m.PLAN_COMPOSITION_REASONING_EFFORT, "high");
+  assertEquals(m.PLAN_REASONING_EFFORT, "medium");
+  assertEquals(m.PLAN_COMPOSITION_HTTP_TIMEOUT_MS, 380_000);
+  // ⛔ SOUS LES 400 s DU WORKER EDGE, sinon la coupure arrive avant le timeout
+  // et l'erreur perd son nom.
+  assert(m.PLAN_COMPOSITION_HTTP_TIMEOUT_MS < 400_000);
+  assert(m.PLAN_COMPOSITION_HTTP_TIMEOUT_MS > m.PLAN_HTTP_TIMEOUT_MS);
+});
+
+Deno.test("épingle — l'entrée de dernier recours est bornée à DEUX par plan", async () => {
+  const m = await import("./portion_sizing.ts");
+  assertEquals(m.DEDICATED_REPAIR_MAX_PER_PLAN, 2);
+});
+
+// ⟳ 2026-09-09 — la chirurgie locale : trois cases par reprise, et pas plus.
+import { CELL_EDIT_MAX, CELL_EDIT_TEXT_MAX_CHARS } from "./cell_edit.ts";
+Deno.test("épinglage — CELL_EDIT_MAX vaut 3", () => assertEquals(CELL_EDIT_MAX, 3));
+Deno.test("épinglage — CELL_EDIT_TEXT_MAX_CHARS vaut 280", () => assertEquals(CELL_EDIT_TEXT_MAX_CHARS, 280));
