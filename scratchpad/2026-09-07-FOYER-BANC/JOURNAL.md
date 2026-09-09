@@ -1647,3 +1647,41 @@ du générateur (`readCellEdits`), rendu par `keel-read-note-v1` dans
 
 Reste : pièce 4 (le front appelle `edit_cells` quand une case revient et
 qu'un brouillon est ouvert), pièce 5 (banc de bout en bout).
+
+## 2026-09-09 · chirurgie locale, pièce 4 — le front
+
+Quatrième geste du dialogue : `onEditCells(draftId, cells)`. Après la lecture
+(et la réponse à une éventuelle question), si la phrase désigne une case ET
+qu'un brouillon est rangé, le dialogue appelle `editCells` (`operation:
+"edit_cells"`) au lieu de recomposer ; sinon il compose. Un tour dans les
+deux cas. Sous le champ : « J'ai refait vendredi soir ; le reste est identique
+(N plats gardés tels quels) » — depuis `envelope.edit.taken`, jamais depuis la
+demande. Refus (`cell_not_rendered`, `cell_unknown`, `draft_has_no_source`,
+`draft_mismatch`) en rouge sous le champ, l'aperçu courant reste. Lane
+individuelle : recomposition, `edit` reste `null`.
+
+Deux pièges rejoués, réparés : la garde des refus ne lit que les littéraux
+(un ternaire sur `error:` et une fabrique `refuse()` rendaient six jetons
+invisibles au front) ; le test de câblage de l'adoption épinglait
+`!adoptingDraft` sur les deux lanes (la lane foyer nomme désormais la coupure
+`improvementRetries`).
+
+Vérifié par typecheck et tests de câblage (pas de rendu navigateur : il
+faudrait saisir un mot de passe de fixture). Reste : pièce 5, le banc de bout
+en bout — phrase → case → `edit_cells` → aperçu.
+
+## 2026-09-09 · chirurgie locale, pièce 5 — le banc de bout en bout (`31-bout-en-bout.sh`)
+
+Le chemin exact du front, sans case écrite en dur : la phrase est lue par le
+classifieur. Foyer duo, deux jours, fixture restaurée.
+
+| étape | temps | résultat |
+|---|---|---|
+| A · composer (draft) | 313 s | 14 plats, `draft_id` |
+| ① · « vendredi soir, plutôt du poulet et quelque chose de plus léger. » | 4,6 s | `cells: [fri/dinner]`, rien d'écrit |
+| B · `edit_cells` | 91 s | `taken: fri/dinner`, `untouched: 12`, 1 casserole importée, 3 lignes de courses ajoutées |
+
+Diff A/B hors case visée : **11 / 11 identiques** (plat + quantités écrites).
+Case visée : table « Saumon, sarrasin, aubergine » → « Poulet, quinoa,
+courgette, tomates », bouche dédiée « Lentilles, sarrasin » → « Poulet,
+quinoa, courgette, concombre ». Le lot tient de bout en bout.
