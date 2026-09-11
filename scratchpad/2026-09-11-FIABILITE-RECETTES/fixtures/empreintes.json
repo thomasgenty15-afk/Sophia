@@ -1,0 +1,30 @@
+{
+  "gele_le": "2026-09-11",
+  "note": "Le referentiel n'est PAS recopie : il vit dans scratchpad/2026-09-11-REVUE-CAMPAGNE/referentiel.json, qui est une preuve existante a preserver. L'instrument verifie cette empreinte avant de s'en servir et REFUSE de mesurer si elle a bouge.",
+  "referentiel": {
+    "chemin": "../../2026-09-11-REVUE-CAMPAGNE/referentiel.json",
+    "sha256": "aed8a55ae115b7ff6f923fbff70f4b8b8ace6863aadb5029589f0950b9de3fc7"
+  },
+  "fixtures": {
+    "plans.json": "bebe010cd8317c9bc75d48bcab56f8394fd40a4e3cd592b5541cf4ef82433e55",
+    "contextes.json": "efd88a4d7249eb63566a9f3bba264eb9573b7d0e89ca28d8370129c9b8e25106",
+    "echanges.json": "c9b0d7099be7e5452f05f120dff786b95f1cc628c9d3124b5cb25de98c475847",
+    "journaux.json": "4d11e533ccafc83441adfbebef6f48de55592fbc6298ca96db9fb7bb7d41b4a6"
+  },
+  "modules_de_mesure": {
+    "food_composition.ts": "cdaa841cc2a74e18b74c601d57c3e48dfd47d8ca608e32f516fc49142735c357",
+    "food_composition_io.ts": "4c7c7477d1ba9961ee6dfb06eb56d188a9351ddf90b77a89f24d8184214611da",
+    "composition_fill_io.ts": "90ec329f6b5b25940a837edab823e400f1f80ce5fc98e708203d77c2187edec5",
+    "food_reference_manifest.ts": "bcb55143f9cd5c6ef0d4333251568ffaa5d40ccef4411bf305052b889d57bcc2",
+    "plan_energy_read.ts": "1da8e045e947988125a4017b82ce2251c3058a744b2b79ae5822fe2d5baa00b4",
+    "mouth_energy.ts": "cc5135d10e8ff7796290db4dbb8506b5ed56edef0bfa557940c99cb66d4df4fd",
+    "portion_sizing.ts": "ab2969483a73511b8713158dc9d60e0ef95743f7dd5ba1ff16e5787b2f4a5630",
+    "mouth_anchor.ts": "087a90e7fa1c306bbabb3f0efa05fd73733dea72c0334445268ec539a4f829dd",
+    "household_portions.ts": "8fc3044b598806605075a5704dfe3d62b9a5f9b312710e90139972992f64900d",
+    "final_plan_gate.ts": "970f9e938b4ecdd16f1ec2cb0b8e3d7bbf2b0f45552c97916ebee8d9ec1a7c98",
+    "preparation_mass.ts": "3179eab2b431c35236bdfbbc6de4057aa3e039e74bf21e0992f6136d86015e53",
+    "plan_proportion_units.ts": "d8ebfd97ccdba1b259be114eab89460f075b600b12e7b5309a5b14461b4bb977",
+    "household_meal_generation.ts": "828edb8829989a8569cf5267f77bdd6913da31964dd9619bf2eeaceae7211f6d",
+    "plan_energy.ts": "c1f6a6535b1008e1d1a2d19f7c253cf980ac51a6e03877c9c8b1322b38e2b957"
+  }
+}

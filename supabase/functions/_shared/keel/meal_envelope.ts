@@ -53,6 +53,17 @@ import {
   subjectsForPortionAdjust,
 } from "./retained_item.ts";
 import { proteinReferenceWeightKg } from "./protein_reference_weight.ts";
+// ⟳ 2026-09-10 — `plannedEnergyBand` N'EST PLUS IMPORTÉ, `maintenanceMidKcal`
+// L'EST ENCORE — et le second est le REPLI NOMMÉ, pas la source. Voir
+// `adultMaintenanceKcal`: l'équation du corps demande une taille et une bande
+// d'âge, et une fiche qui n'en a pas doit recevoir le raccourci au poids plutôt
+// que rien du tout. C'est exactement le repli que l'écran applique déjà
+// (`meal_energy_shared.ts`, `useBody`).
+import { maintenanceMidKcal } from "./energy_target.ts";
+// ⚠️ IMPORT DE TYPE SEUL, ET C'EST STRUCTUREL: `weight_pace.ts` importe des
+// VALEURS de ce fichier-ci. Un import de valeur ferait un cycle d'exécution.
+// C'est le même geste que celui d'`energy_target.ts` sur `ScaleDirection`.
+import type { EnvelopeDirection } from "./weight_pace.ts";
 
 // ---------------------------------------------------------------------------
 // LE TYPE
@@ -489,18 +500,176 @@ const ENERGY_BANDS: Record<GoalToken, { low: number; high: number }> = {
 /**
  * LE SURPLUS MAXIMAL, EXPOSÉ — ce que A1 fait en bas, lu en haut.
  *
- * DÉRIVÉ de la bande, jamais recopié: `weight_pace.ts` borne le rythme d'une
- * PRISE avec ce nombre, et si Helms 2023 bougeait dans la table ci-dessus
- * pendant qu'un `0.10` dormait dans l'autre module, le slider promettrait un
- * rythme que l'enveloppe refuserait d'exécuter. Le dépôt a déjà payé « deux
- * copies d'un même nombre divergent, et c'est celle qu'on regarde le moins qui
- * garde l'ancienne ».
+ * DÉRIVÉ de la bande, jamais recopié. Le dépôt a déjà payé « deux copies d'un
+ * même nombre divergent, et c'est celle qu'on regarde le moins qui garde
+ * l'ancienne ».
+ *
+ * ⟳ 2026-09-09 — `weight_pace.ts` NE LE LIT PLUS. Il bornait le rythme exécuté
+ * d'une prise; le curseur est désormais le contrat (en-tête de ce module-là),
+ * et le plafond exécuté d'une prise est celui du curseur. Ce nombre reste ce
+ * que le MODÈLE reçoit comme enveloppe de prise — lu par `envelopeCore` et par
+ * la lane solo, qui ne lit pas le curseur —, et il reste épinglé pour ça.
  *
  * L'arrondi n'est pas cosmétique: `1.10 - 1` vaut `0.10000000000000009` en
  * flottant, et ce reste se propagerait dans un kg/semaine affiché.
  */
 export const MAX_SURPLUS_FRACTION =
   Math.round((ENERGY_BANDS.muscle_gain.high - 1) * 1000) / 1000;
+
+/**
+ * ⟳ 2026-09-09 — LA BANDE D'UN OBJECTIF, POSÉE SUR UN ENTRETIEN DONNÉ.
+ *
+ * ⛔ POURQUOI UNE FONCTION ET PAS UN `export` DE `ENERGY_BANDS`. La table reste
+ * privée: `constant_pins_test.ts` l'épingle en LISANT le fichier sur le disque,
+ * précisément parce qu'elle n'est pas exportée, et l'exporter déplacerait ce
+ * contrôle sans que personne le demande. Ce qui sort d'ici est le RÉSULTAT, pas
+ * la table.
+ *
+ * ⚠️ ELLE NE DÉCIDE RIEN SUR LE CORPS. Elle multiplie un entretien qu'on lui
+ * donne; c'est l'appelant qui répond de l'équation qui l'a produit. Les deux
+ * appelants d'aujourd'hui sont `envelopeCore` (la lane du modèle) et
+ * `loadDailyEnergyTarget` (l'écran) — et c'est le point: le même geste, écrit
+ * une seule fois, pour que l'assiette et le chiffre affiché ne puissent plus
+ * diverger sans qu'on l'ait décidé.
+ *
+ * `null` — jamais un repli — sur un entretien absent ou absurde: un moteur sans
+ * bande compose sans cible, un écran sans bande n'affiche rien, et les deux
+ * valent mieux qu'un nombre deviné.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function goalEnergyBandOf(
+  maintenanceKcal: number | null,
+  goal: GoalToken,
+): { low: number; high: number } | null {
+  const m = Number(maintenanceKcal);
+  if (maintenanceKcal === null || !Number.isFinite(m) || m <= 0) return null;
+  const band = ENERGY_BANDS[goal];
+  if (!band) return null;
+  return { low: Math.round(m * band.low), high: Math.round(m * band.high) };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 — L'ENTRETIEN D'UN ADULTE, ET LA BASE QUI L'A PRODUIT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ DEUX ÉQUATIONS, ET LA SECONDE EST UN REPLI NOMMÉ — jamais un choix.
+ * L'équation du corps (Mifflin-St Jeor × facteur d'activité, appétit compris)
+ * demande une TAILLE et une BANDE D'ÂGE. Une fiche qui n'a pas les deux ne peut
+ * pas y entrer, et « pas de bande du tout » serait la mauvaise réponse: un
+ * moteur sans bande compose sans cible, c'est-à-dire au hasard. Elle retombe
+ * donc sur le raccourci au poids — `poids × kcal/kg`, le milieu de la
+ * fourchette affichée — qui est le nombre d'avant ce lot, au caractère près.
+ *
+ * ⚠️ C'EST LE MÊME REPLI QUE L'ÉCRAN, ET C'EST LA CONDITION DU LOT.
+ * `loadDailyEnergyTarget` (`meal_energy_shared.ts`) le pose depuis le
+ * 2026-09-09 avec ces mots: « une fiche sans taille ni âge retombe sur le
+ * raccourci, et le dit ». Un moteur qui n'aurait pas le même repli
+ * afficherait un nombre et en servirait un autre à toute cette population.
+ *
+ * ⛔ LA BASE SORT AVEC LE NOMBRE, ET C'EST OBLIGATOIRE. « L'équation a
+ * gouverné » et « le lot n'est pas branché » rendent le même kcal sur un corps
+ * complet; sans ce jeton, un repli qui mordrait sur toute la base ressemblerait
+ * trait pour trait à une équation qui marche.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export const MAINTENANCE_BASES = ["body_equation", "weight_shortcut", "none"] as const;
+export type MaintenanceBasis = (typeof MAINTENANCE_BASES)[number];
+
+export function adultMaintenanceKcal(args: {
+  weightKg: number | null;
+  heightCm: number | null;
+  ageBand: AgeBand | null;
+  gender: "male" | "female" | "other" | null;
+  activityLevel: ActivityLevel | null;
+  activityAxes: ActivityAxes;
+  appetite: AppetiteLevel | null;
+}): { kcal: number | null; basis: MaintenanceBasis } {
+  const equation = estimatedMaintenanceKcal(args);
+  if (equation !== null && equation > 0) {
+    return { kcal: equation, basis: "body_equation" };
+  }
+  const shortcut = maintenanceMidKcal({
+    weightKg: args.weightKg,
+    activityLevel: args.activityLevel,
+  });
+  if (shortcut !== null && shortcut > 0) {
+    return { kcal: shortcut, basis: "weight_shortcut" };
+  }
+  return { kcal: null, basis: "none" };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 — LA CIBLE DU JOUR D'UNE PERSONNE, SUR DES PRIMITIVES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `entretien + l'écart que le moteur EXÉCUTE`. C'est, mot pour mot,
+ * l'arithmétique de `mouthTargetKcal` (`mouth_anchor.ts`) — et c'est le point:
+ * les deux lanes doivent rendre le MÊME nombre pour la même personne, et la
+ * seule façon de le garantir est que la seconde moitié du calcul soit écrite
+ * une fois.
+ *
+ * ⛔ L'ÉCART VIENT DE `executedPaceFor`, JAMAIS DU CRAN NU. C'est lui qui
+ * porte le plafond de déficit A1 (500 kcal/j), le plancher d'énergie de ce
+ * corps et la fraction du mineur. Reconvertir ici « 0,5 kg/semaine » en
+ * kcal/jour rouvrirait les quatre bornes d'un coup.
+ *
+ * ⚠️ `direction === null` ⇒ la cible EST l'entretien, sans écart et sans
+ * motif: il n'y a rien à expliquer à qui ne vise rien.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function dayTargetKcalOf(
+  maintenanceKcal: number | null,
+  directed: EnvelopeDirection,
+): number | null {
+  const m = Number(maintenanceKcal);
+  if (maintenanceKcal === null || !Number.isFinite(m) || m <= 0) return null;
+  if (directed.direction === null) return m;
+  const delta = Number(directed.dailyDeltaKcal);
+  if (!Number.isFinite(delta) || delta <= 0) return m;
+  return directed.direction === "up" ? m + delta : m - delta;
+}
+
+/**
+ * LA BANDE QUI ENTOURE CETTE CIBLE — sa LARGEUR vient de l'objectif, son
+ * CENTRE de la cible.
+ *
+ * ── POURQUOI UNE BANDE AUTOUR D'UN POINT, ET PAS `ENERGY_BANDS × entretien` ─
+ * `ENERGY_BANDS` est une fraction attachée au JETON d'objectif: `fat_loss`
+ * vaut 0,75-0,85 quel que soit le rythme, donc deux `fat_loss` de rythmes
+ * différents recevaient la même enveloppe. Le lot du 2026-09-09 a fermé ce
+ * défaut en faisant descendre la bande de l'écart EXÉCUTÉ (« le curseur atteint
+ * enfin cette fonction »), et cette propriété-là ne doit pas se reperdre.
+ *
+ * Ce qu'on garde de la table, c'est donc sa LARGEUR — la seule chose qu'elle
+ * dise qui ne soit pas déjà dite par le rythme. Elle est LUE, jamais recopiée:
+ * `muscle_gain` fait 5 points quand les deux autres en font 10, et une
+ * demi-largeur écrite à la main ici aurait figé la mauvaise moitié de la table.
+ *
+ * ⚠️ LE VERDICT RESTE UNE DIRECTION, PAS UNE NOTE. `ENERGY_DIRECTION_MARGIN`
+ * élargit encore ce que `meal_verdict.ts` accepte: la bande n'est pas une
+ * cible à toucher.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function bandAroundDayTarget(args: {
+  targetKcal: number | null;
+  maintenanceKcal: number | null;
+  goal: GoalToken;
+}): EnergyBand | null {
+  const t = Number(args.targetKcal);
+  const m = Number(args.maintenanceKcal);
+  if (args.targetKcal === null || !Number.isFinite(t) || t <= 0) return null;
+  if (args.maintenanceKcal === null || !Number.isFinite(m) || m <= 0) return null;
+  const band = ENERGY_BANDS[args.goal];
+  if (!band) return null;
+  const half = (m * (band.high - band.low)) / 2;
+  return { low: Math.round(t - half), high: Math.round(t + half) };
+}
 
 /**
  * LE PLANCHER PROTÉIQUE, en g/kg de poids corporel et par jour.
@@ -823,6 +992,21 @@ function applyPortionAdjust(
   }
 
   if (energyFloorKcal === null) return envelope;
+  // ── ⟳ 2026-09-09 · UNE BANDE DÉJÀ AU PLANCHER NE REND PLUS RIEN ─────────
+  //
+  // ⛔ CETTE LIGNE REMPLACE UN EFFET DE BORD QUE LE CHANGEMENT DE MODÈLE A
+  // EMPORTÉ. Avant, A1 écrêtait la bande elle-même: sur un grand gabarit en
+  // perte, les DEUX bords étaient déjà remontés à `M − 500` (largeur nulle), et
+  // un `down` ne pouvait donc rien retirer — la propriété tenait par accident
+  // de forme. Depuis que la bande est celle de l'écran, elle garde sa largeur,
+  // et l'écrêtage par le bas laissait le HAUT descendre de 10 %: c'est-à-dire
+  // retirer ~200 kcal/jour à quelqu'un déjà au déficit maximal, « A1 outrepassé
+  // par un adverbe » sous une autre forme.
+  //
+  // Le plancher passé ici vaut `min(bande.bas, max(entretien − A1, plancher du
+  // corps))`: il n'est donc ÉGAL au bas de la bande que dans un seul cas —
+  // celui où la bande est déjà à son plancher. C'est ce cas-là qu'on nomme.
+  if (envelope.energy.low <= energyFloorKcal) return envelope;
   // ── L'ÉCRÊTAGE, SUR LES DEUX BORDS ───────────────────────────────────────
   // Les deux, pour la raison déjà mesurée sur A1: « un plafond qui ne mord que
   // d'un côté n'est pas un plafond ». N'écrêter que le bas laisserait un
@@ -907,12 +1091,123 @@ export function estimatedMaintenanceKcal(args: {
   // ferait deux points de décision, et c'est le second qu'on oublierait de
   // corriger.
   const { factor } = activityFactorOf(args.activityAxes, activityLevel);
-  // ── ⑤ L'APPÉTIT, APPLIQUÉ ICI ET NULLE PART AILLEURS ──────────────────
-  // Sur l'ESTIMATION, jamais sur les grammes: posé plus bas, il se composerait
-  // avec l'ancrage absolu et ferait deux couches qui dimensionnent. Ici, il
-  // entre par le haut et traverse toute la chaîne — bandes, plafond de déficit
-  // A1, plancher protéique, plafond par repas — sans rien doubler.
-  return Math.round(bmr * factor * appetiteFactorOf(args.appetite).factor);
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 — L'APPÉTIT SORT DE L'ENTRETIEN ADULTE. IL NE DÉPENSE RIEN.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Il était appliqué ICI, sur l'estimation, et traversait donc toute la
+  // chaîne: bande, plafond de déficit A1, plancher protéique, plafond par
+  // repas. C'est une erreur de grandeur, et elle se dit en une phrase:
+  //
+  //     ⛔ AVOIR BON APPÉTIT NE FAIT PAS DÉPENSER 10 % DE PLUS.
+  //
+  // Un grand appétit dit combien de VOLUME une personne veut dans son
+  // assiette, pas combien d'énergie son corps brûle. Posé sur l'entretien, il
+  // ajoutait 10 % de calories à quelqu'un en perte de poids parce qu'il aime
+  // manger — c'est-à-dire qu'il annulait une partie de son déficit sans que
+  // rien ne le nomme.
+  //
+  // ⟳ OÙ IL VA: sur les BORNES DE MASSE de l'assiette (`portion_sizing.ts`,
+  // facteur `A` du couloir de densité), là où il décrit ce qu'il décrit — la
+  // taille de l'assiette à énergie CONSTANTE. Une même cible, servie plus
+  // dense à petit appétit et plus volumineuse à grand appétit.
+  //
+  // ⚠️ LE PARAMÈTRE RESTE DANS LA SIGNATURE, ET C'EST VOULU. Il est REQUIS
+  // (2026-08-20) précisément pour que la casse de compilation recense les
+  // appelants qui collectent l'appétit. Le retirer perdrait ce recensement au
+  // moment même où un autre lot en a besoin. Il n'est simplement plus LU ici,
+  // et un test le prouve plutôt que ce commentaire.
+  //
+  // ⛔ LE CHEMIN PÉDIATRIQUE GARDE LE SIEN (`childAppetiteFactor`,
+  // `estimatedChildMaintenanceKcal`): il ne peut que MONTER (`Math.max(1, …)`),
+  // et un enfant qui mange peu ne doit pas voir sa cible baisser.
+  void args.appetite;
+  return Math.round(bmr * factor);
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * L'ÉNERGIE D'UNE JOURNÉE — UN SEUL RÉSULTAT, TROIS CONSOMMATEURS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QU'IL Y AVAIT AVANT, ET POURQUOI C'ÉTAIT DEUX PRODUITS DIFFÉRENTS.
+ * Deux constructions de bande coexistaient, chacune avec son unique lecteur:
+ *
+ *   A. `bandAroundDayTarget(dayTargetKcalOf(entretien, écart))` — le MOTEUR.
+ *      Centre = entretien ± l'écart EXÉCUTÉ (le cran réglé par la personne,
+ *      plafonné par A1), largeur = la table `ENERGY_BANDS`.
+ *   B. `goalEnergyBandOf(entretien)` — l'ÉCRAN. Entretien × les BORNES de
+ *      `ENERGY_BANDS[goal]`, c'est-à-dire une fraction attachée au JETON
+ *      d'objectif, que le rythme de la personne n'atteint jamais.
+ *
+ * Sur `fat_loss` (0,75-0,85), B applique **−20 % de l'entretien quel que soit
+ * le rythme**, là où A applique l'écart exécuté, plafonné à 500 kcal/j. Sur un
+ * entretien de 3 000 kcal: B centre à 2 400, A à 2 500. Deux `fat_loss` de
+ * rythmes différents recevaient de B la MÊME bande — le curseur ne servait à
+ * rien à l'écran, et à quelque chose dans l'assiette.
+ *
+ * ── CE QUE CETTE FONCTION EST ─────────────────────────────────────────────
+ * A, et A seulement, plus les deux gardes qui vivaient collées à elle dans
+ * `envelopeCore`: le plafond de déficit A1 et le plancher d'énergie du corps.
+ * L'écran, la lane solo et la lane du foyer l'appellent tous les trois.
+ *
+ * ⚠️ ELLE NE LIT NI PORTE NI CONDITION. Grossesse, allaitement, plancher TCA,
+ * mineur, âge inconnu, coach qui ne compte pas: tout cela agit EN AMONT, sur
+ * `directed.dailyDeltaKcal` (mis à zéro) ou en empêchant l'appel. Les rejouer
+ * ici ferait une seconde copie, et une seconde copie diverge.
+ */
+export type DayEnergyResult = {
+  /** L'entretien qu'on lui a donné, rendu tel quel pour que le lecteur le cite. */
+  readonly maintenanceKcal: number | null;
+  /** Entretien ± écart exécuté. `null` si l'entretien l'est. */
+  readonly dayTargetKcal: number | null;
+  /** La bande finale, planchers appliqués. */
+  readonly band: EnergyBand | null;
+  /** Le plancher retenu, pour l'écrêtage d'un réglage de portion à la baisse. */
+  readonly energyFloorKcal: number | null;
+};
+
+export function dayEnergyFor(args: {
+  maintenanceKcal: number | null;
+  goal: GoalToken;
+  directed: EnvelopeDirection;
+}): DayEnergyResult {
+  const maintenance = args.maintenanceKcal;
+  const dayTargetKcal = dayTargetKcalOf(maintenance, args.directed);
+  let band = bandAroundDayTarget({
+    targetKcal: dayTargetKcal,
+    maintenanceKcal: maintenance,
+    goal: args.goal,
+  });
+  let energyFloorKcal: number | null = null;
+  // ══════════════════════════════════════════════════════════════════════
+  // A1 — LE PLAFOND DE DÉFICIT, ET IL MORD SUR LES DEUX BORDS
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⚠️ IL EST DÉJÀ APPLIQUÉ UNE FOIS, EN AMONT, SUR L'ÉCART: `executedPaceFor`
+  // écrête le cran à 500 kcal/j (`clampedBy: "deficit_cap"`) avant que
+  // `directed` n'existe. Ce qui reste à garder ici, c'est la LARGEUR de la
+  // bande: son bord bas descend d'une demi-largeur SOUS la cible, et cette
+  // demi-largeur-là n'a traversé aucune ceinture.
+  //
+  // ⛔ « Un plafond qui ne mord que d'un côté n'est pas un plafond » — les deux
+  // bords sont donc remontés ensemble. Sur un grand gabarit en perte, les deux
+  // peuvent se retrouver égaux: c'est la forme que prend A1 quand il mord.
+  if (maintenance !== null && band !== null) {
+    const floor = Math.max(
+      maintenance - MAX_DAILY_DEFICIT_KCAL,
+      args.directed.energyFloorKcal,
+    );
+    const low = Math.max(band.low, floor);
+    band = { low, high: Math.max(band.high, low) };
+    // ⚠️ LE `min` FINAL EST LA MOITIÉ QU'ON OUBLIE. Un plancher PLUS HAUT que
+    // la bande ferait MONTER l'assiette quand la personne dit « c'était
+    // trop »: `applyPortionAdjust` prend un `Math.max(plancher, mis à
+    // l'échelle)`. Le `min` dit la seule chose juste dans ce cas-là — **rien
+    // de plus à retirer**.
+    energyFloorKcal = Math.min(band.low, floor);
+  }
+  return { maintenanceKcal: maintenance, dayTargetKcal, band, energyFloorKcal };
 }
 
 // ---------------------------------------------------------------------------
@@ -1005,6 +1300,23 @@ export function envelopeFor(
    * ailleurs.
    */
   portion: PortionAdjustFor | null,
+  /**
+   * ── ⟳ 2026-09-09 · CE QUE LA BALANCE FAIT À LA BANDE ──────────────────
+   * `envelopeDirectionFor(...)` (`weight_pace.ts`), qui porte la direction,
+   * l'écart EXÉCUTÉ (A1, plancher, fraction du mineur) et le plancher
+   * d'énergie de ce corps.
+   *
+   * ⛔ REQUIS ET POSITIONNEL, comme les cinq paramètres au-dessus, et pour la
+   * même raison: c'est la casse de compilation qui recense les appelants. Un
+   * `?` aurait laissé chaque lane servir la bande d'entretien à quelqu'un qui
+   * vise une perte, sans qu'aucun compilateur ne les nomme.
+   *
+   * ⚠️ L'OBJECTIF NE SUFFIT PLUS. La bande descend maintenant du CRAN de la
+   * personne, pas d'une fraction attachée au jeton `goal` — c'est très
+   * exactement ce que « le moteur suit l'écran » veut dire, et le curseur
+   * n'atteignait pas cette fonction avant ce lot.
+   */
+  directed: EnvelopeDirection,
 ): Envelope {
   // ── LA BRANCHE UNIQUE ───────────────────────────────────────────────────
   // Sous flag OU corps absent OU poids inconnu. Trois causes, une seule
@@ -1033,6 +1345,7 @@ export function envelopeFor(
     activityAxes,
     appetite,
     portion,
+    directed,
   });
 }
 
@@ -1072,6 +1385,8 @@ function envelopeCore(args: {
   /** ⑤ (2026-08-20). Requis; `null` = neutre vrai. Voir `APPETITE_FACTORS`. */
   appetite: AppetiteLevel | null;
   portion: PortionAdjustFor | null;
+  /** ⟳ 2026-09-09 — voir le paramètre homonyme d'`envelopeFor`. */
+  directed: EnvelopeDirection;
 }): Envelope {
   const {
     goal,
@@ -1085,52 +1400,113 @@ function envelopeCore(args: {
     activityAxes,
     appetite,
     portion,
+    directed,
   } = args;
-  const maintenance = estimatedMaintenanceKcal({
-    weightKg,
-    heightCm,
-    ageBand,
-    gender,
-    activityLevel,
-    activityAxes,
-    appetite,
-  });
 
-  const band = ENERGY_BANDS[goal];
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-09 — LA BANDE EST CELLE DE L'ÉCRAN. UNE SEULE, POUR LES DEUX.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ── CE QUI VIVAIT ICI, ET LE RUN RÉEL QUI L'A FAIT TOMBER ──────────────
+  // `estimatedMaintenanceKcal` (métabolisme de base × facteur d'activité) ×
+  // `ENERGY_BANDS[goal]` (une fraction attachée au JETON d'objectif), écrêté
+  // par A1 (`maintenance − 500`). Mesuré le 2026-09-09 sur un homme de 82 kg,
+  // 180 cm, 36 ans, `trains_some`, `fat_loss` 0,5 kg/sem:
+  //
+  //     ce moteur-ci                                2 677 – 2 700 kcal/j
+  //     ce que l'écran annonçait à la même personne  1 950 – 2 200 kcal/j
+  //
+  // Deux modèles du corps, ~500 kcal/jour d'écart, et l'assiette suivait celui
+  // que personne ne voyait. Décision du propriétaire, 2026-09-09: **« Le moteur
+  // doit suivre l'écran : 1950-2200 partout. »**
+  //
+  // ── CE QUE LE CHANGEMENT DÉPLACE, NOMMÉ PLUTÔT QUE DÉCOUVERT ───────────
+  //   · **Le CURSEUR atteint enfin cette fonction.** La bande descendait d'une
+  //     fraction du jeton `goal`; elle descend maintenant de l'écart EXÉCUTÉ au
+  //     cran de la personne. Deux `fat_loss` de rythmes différents recevaient la
+  //     même enveloppe — ce n'est plus le cas.
+  //   · **A1 n'est plus écrêté ici, il est exécuté en amont.** Le plafond de
+  //     500 kcal/j vit dans `executedPaceFor` (`clampedBy: "deficit_cap"`), qui
+  //     produit `dailyDeltaKcal`. Un seul endroit, celui qui NOMME la borne qui
+  //     mord — au lieu d'un `Math.max` muet ici.
+  //   · **L'APPÉTIT ET LES DEUX AXES CESSENT DE DÉPLACER L'ÉNERGIE.** La bande
+  //     affichée ne lit que le poids et le cran d'activité. Ils restent
+  //     collectés sur la fiche d'une bouche de foyer et n'ont plus de lecteur
+  //     pour la journée d'un adulte: c'est une moitié DÉBRANCHÉE, écrite ici
+  //     pour qu'on la retrouve. La sortie cohérente est de les faire entrer
+  //     dans `ACTIVITY_KCAL_PER_KG` — c'est-à-dire de les faire VOIR à la
+  //     personne — jamais de les rebrancher sur un second calcul.
+  //   · **La hauteur ne décide plus de l'énergie**, seulement de la protéine
+  //     (`proteinReferenceWeightKg`). `maintenanceRange` ne la lit pas.
+  //
+  // ⚠️ `ageBand === null` GARDE SON SENS ET SA GARDE. Il vaut pour un mineur
+  // comme pour un âge inconnu, et `AgeBand` ne porte que des bandes d'adultes:
+  // `ACTIVITY_KCAL_PER_KG` est une échelle d'ADULTE, et l'appliquer à un enfant
+  // serait le sous-nourrir. Les mineurs passent par `childEnvelopeFromBody`,
+  // qui garde son équation pédiatrique et n'entre pas ici.
   let energy: EnergyBand | null = null;
   /**
-   * LE PLANCHER D'ÉNERGIE A1, CALCULÉ UNE FOIS ET PARTAGÉ PAR SES DEUX
-   * LECTEURS: l'écrêtage de la bande ci-dessous, et celui d'un `portion.adjust`
-   * à la baisse tout en bas de cette fonction.
+   * LE PLANCHER D'ÉNERGIE, PARTAGÉ PAR SES DEUX LECTEURS: la bande elle-même
+   * et l'écrêtage d'un `portion.adjust` à la baisse, tout en bas de cette
+   * fonction.
    *
-   * ⚠️ UNE SEULE VARIABLE, EXPRÈS. Deux copies du même nombre divergent, et
-   * c'est celle qu'on regarde le moins qui garde l'ancienne — le dépôt le paie
-   * en boucle (`MAX_SURPLUS_FRACTION` est dérivé pour cette raison). Ici, la
-   * seconde copie aurait été celle qui protège l'assiette de quelqu'un.
+   * ⟳ 2026-09-09 — CE N'EST PLUS `maintenance − 500` SEUL, C'EST LE PLUS HAUT
+   * DES DEUX: le plafond de déficit A1 et le plancher de ce corps
+   * (`energyFloorFor(gender)`, porté par `directed`).
    */
   let energyFloorKcal: number | null = null;
-  if (maintenance !== null) {
-    energyFloorKcal = Math.round(maintenance - MAX_DAILY_DEFICIT_KCAL);
-    const low = Math.round(maintenance * band.low);
-    const high = Math.round(maintenance * band.high);
-    // ── LE PLAFOND DE DÉFICIT MORD ICI, ET IL GAGNE (A1) ─────────────────
-    // Sur un grand gabarit, « M − 25 % » vaut bien plus que 500 kcal: c'est
-    // exactement le cas que ce plafond existe pour couvrir, et c'est celui
-    // qu'un pourcentage seul laisserait passer.
+  if (ageBand !== null) {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-10 — LA MÊME ÉQUATION DU CORPS QUE L'ÉCRAN, ET QUE LE FOYER
+    // ══════════════════════════════════════════════════════════════════════
     //
-    // IL REMONTE LES DEUX BORDS, PAS SEULEMENT LE BAS. Mesuré par le test de
-    // ce module au premier passage: sur un gabarit de 140 kg, « M − 15 % » est
-    // DÉJÀ un déficit de 556 kcal — le haut de la bande violait le plafond
-    // pendant que le bas le respectait, et l'enveloppe prescrivait donc un
-    // déficit supérieur au plafond sur toute sa largeur.
+    // ── LES TROIS ÉTATS QU'A CONNUS CETTE LIGNE, PARCE QU'ON LES CONFOND ──
+    //   · jusqu'au 2026-09-09 matin : `estimatedMaintenanceKcal × ENERGY_BANDS[goal]`,
+    //     écrêté par A1. L'équation du corps, mais une bande attachée au JETON
+    //     d'objectif — donc le rythme de la personne n'entrait pas;
+    //   · 2026-09-09 matin : `plannedEnergyBand` (poids × kcal/kg, décalé de
+    //     l'écart exécuté), au nom de « le moteur doit suivre l'écran ». Le
+    //     rythme entrait enfin; la taille, la bande d'âge, le sexe, les deux
+    //     axes et l'appétit sortaient — sans lecteur, tous;
+    //   · 2026-09-09 après-midi : **l'écran a bougé**. `meal_energy_shared.ts`
+    //     affiche l'équation du corps dès qu'une fiche le permet
+    //     (`ENERGY_TARGET_BASIS_BODY`), parce que `28-33 kcal/kg` produit un PAL
+    //     implicite de 1,13-1,35 sur un corps grand et mince — sous le plancher
+    //     de 1,40 du rapport FAO/WHO/UNU 2004. Le moteur, lui, est resté au
+    //     raccourci: l'écart que le lot du matin fermait s'est rouvert le même
+    //     jour, dans l'autre sens.
     //
-    // Le résultat peut être une bande de largeur NULLE: « le seul niveau
-    // acceptable est exactement 500 kcal sous la maintenance ». C'est la
-    // lecture juste, et le régime « direction » lui rend sa largeur par la
-    // marge de ±10 % (§2.3) — largeur qui vient de l'INCERTITUDE de la mesure,
-    // pas d'une tolérance qu'on s'accorderait.
-    const cappedLow = Math.max(low, energyFloorKcal);
-    energy = { low: cappedLow, high: Math.max(high, cappedLow) };
+    // ── CE QUE CETTE LIGNE-CI GARDE DES DEUX ──────────────────────────────
+    // L'ÉQUATION de l'écran d'aujourd'hui (tous les champs collectés sont lus)
+    // ET le RYTHME du lot du matin (`directed` porte l'écart exécuté, A1 et le
+    // plancher déjà appliqués dessus). Ce ne sont pas deux modèles à arbitrer:
+    // l'un dit ce que ce corps dépense, l'autre de combien on s'en écarte.
+    //
+    // ⛔ ET C'EST EXACTEMENT LA CIBLE DE LA LANE FOYER. `maintenanceKcalOf`
+    // (`mouth_anchor.ts`) appelle `estimatedMaintenanceFor`, qui appelle cette
+    // MÊME fonction pour un adulte; `goalGapKcalOf` appelle le MÊME
+    // `executedPaceFor`. Une fixture passée aux deux chemins rend le même
+    // kcal/jour, et un test le vérifie plutôt que ce commentaire.
+    //
+    // ⚠️ `ageBand === null` GARDE SON SENS ET SA GARDE. Il vaut pour un mineur
+    // comme pour un âge inconnu, et `AgeBand` ne porte que des bandes
+    // d'adultes: les mineurs passent par `childEnvelopeFromBody`, qui garde son
+    // équation pédiatrique et n'entre pas ici.
+    const maintenance = adultMaintenanceKcal({
+      weightKg,
+      heightCm,
+      ageBand,
+      gender,
+      activityLevel,
+      activityAxes,
+      appetite,
+    }).kcal;
+    // ⟳ 2026-09-10 — LE MÊME RÉSULTAT QUE L'ÉCRAN, PAR LA MÊME FONCTION.
+    // Voir `dayEnergyFor`: la bande, A1 et le plancher d'énergie y vivent
+    // ensemble, et cette lane n'en garde aucune copie.
+    const day = dayEnergyFor({ maintenanceKcal: maintenance, goal, directed });
+    energy = day.band;
+    energyFloorKcal = day.energyFloorKcal;
   }
 
   const floorPerKg = Math.max(
@@ -1250,6 +1626,25 @@ export interface MouthBody {
 }
 
 /**
+ * L'ENVELOPPE D'UNE MAINTENANCE PURE — aucune direction, donc aucun écart.
+ *
+ * ⛔ ELLE VIT ICI, ET PAS DANS `weight_pace.ts` QUI PRODUIT LE TYPE: ce
+ * fichier-ci ne peut importer de `weight_pace.ts` qu'un TYPE (l'autre sens est
+ * un import de valeurs, donc un cycle). Une constante est une valeur.
+ *
+ * ⛔ CE N'EST PAS UN « DÉFAUT COMMODE ». Il existe pour les appelants dont le
+ * corps ne peut PAS acheter d'objectif (`maintenanceEnvelopeFromBody`: une
+ * bouche de foyer sans compte, donc sans plancher TCA derrière elle). Leur
+ * passer une direction serait leur faire exécuter une restriction que rien ne
+ * surveille — la garde est écrite dans l'en-tête de cette fonction-là.
+ */
+export const MAINTENANCE_ENVELOPE_DIRECTION: EnvelopeDirection = Object.freeze({
+  direction: null,
+  dailyDeltaKcal: 0,
+  energyFloorKcal: 0,
+});
+
+/**
  * L'ENVELOPPE DE MAINTENANCE D'UN ADULTE, DEPUIS UN CORPS DE FICHE.
  *
  * ── ELLE NE PREND PAS D'OBJECTIF, ET C'EST LA GARDE ──────────────────────
@@ -1293,6 +1688,10 @@ export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
     activityAxes: body.activityAxes,
     appetite: body.appetite,
     portion: null,
+    // ⛔ AUCUNE DIRECTION: voir l'en-tête. Ce corps-là ne peut acheter qu'une
+    // maintenance, et lui en passer une lui ferait exécuter une restriction
+    // que rien ne surveille.
+    directed: MAINTENANCE_ENVELOPE_DIRECTION,
   });
 }
 

@@ -291,12 +291,12 @@ function HabitsFields(
           // dont le refus serait exact mais inutile.
           disabled={busy || blocked.length > 0}
           onClick={async () => {
-            // ⛔ `habits?.extras ?? {}` EST OBLIGATOIRE, ET SON OUBLI EFFACE.
+            // ⛔ `habits?.light ?? {}` EST OBLIGATOIRE, ET SON OUBLI EFFACE.
             // La porte REMPLACE la liste entière, et cette carte n'édite que la
-            // prose: sans le report, enregistrer ici effacerait en silence les
-            // bulles cochées depuis la fiche de la bouche.
+            // prose: sans le report, enregistrer ici effacerait en silence la
+            // bulle « + repas léger » cochée depuis la fiche de la bouche.
             const ok = await onSave(
-              habitPayload(draft, habits?.extras ?? {}),
+              habitPayload(draft, { light: habits?.light ?? {} }),
               note.trim() || null,
             );
             if (ok) setSaved(true);

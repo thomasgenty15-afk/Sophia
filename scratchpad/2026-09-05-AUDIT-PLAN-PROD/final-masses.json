@@ -1,0 +1,771 @@
+[
+  {
+    "id": "B02-opposed-multiword",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti, pommes de terre et courgettes",
+        "ready_g": 5569,
+        "drawn_g": 5552,
+        "ratio": 0.997,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_lentils",
+        "title": "Lentilles, carottes et tomates",
+        "ready_g": 1289,
+        "drawn_g": 284,
+        "ratio": 0.22,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chickpeas",
+        "title": "Pois chiches, carottes et tomates",
+        "ready_g": 1289,
+        "drawn_g": 501,
+        "ratio": 0.389,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_fish",
+        "title": "Poisson blanc, pommes de terre et haricots verts",
+        "ready_g": 1910,
+        "drawn_g": 1367,
+        "ratio": 0.716,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_lasagne",
+        "title": "Lasagnes de bœuf et courgettes",
+        "ready_g": null,
+        "drawn_g": 4123,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey",
+        "title": "Dinde rôtie, semoule et aubergines",
+        "ready_g": 4162,
+        "drawn_g": 4164,
+        "ratio": 1,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A03-vegan4-7-r2",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_chicken_sun",
+        "title": "Poulet rôti",
+        "ready_g": 2967.5,
+        "drawn_g": 2126,
+        "ratio": 0.716,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_sun",
+        "title": "Tofu rôti",
+        "ready_g": 3285,
+        "drawn_g": 818,
+        "ratio": 0.249,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_roast_veg_sun",
+        "title": "Légumes rôtis du dimanche",
+        "ready_g": 4005,
+        "drawn_g": 3792,
+        "ratio": 0.947,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_beef_tue",
+        "title": "Bœuf mijoté à la tomate",
+        "ready_g": null,
+        "drawn_g": 2110,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_tue",
+        "title": "Tofu mijoté à la tomate",
+        "ready_g": 3134,
+        "drawn_g": 752,
+        "ratio": 0.24,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_pasta_tue",
+        "title": "Pâtes aux aubergines et tomates",
+        "ready_g": 3710,
+        "drawn_g": 3616,
+        "ratio": 0.975,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_fish_thu",
+        "title": "Poisson blanc rôti",
+        "ready_g": 2932.5,
+        "drawn_g": 2224,
+        "ratio": 0.758,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_thu",
+        "title": "Tofu rôti au citron",
+        "ready_g": 2887.5,
+        "drawn_g": 854,
+        "ratio": 0.296,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_couscous_thu",
+        "title": "Couscous aux légumes",
+        "ready_g": 4005,
+        "drawn_g": 3762,
+        "ratio": 0.939,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_breakfast_sun__r",
+        "title": "Œufs, pommes de terre et courgettes",
+        "ready_g": 2479,
+        "drawn_g": 2474,
+        "ratio": 0.998,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_breakfast_sun_vegan",
+        "title": "Tofu, pommes de terre et courgettes",
+        "ready_g": 840,
+        "drawn_g": 826,
+        "ratio": 0.983,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A01-solo3",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_roast_chicken_couscous",
+        "title": "Poulet rôti, couscous et légumes",
+        "ready_g": null,
+        "drawn_g": 2180,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A03-vegan4-7-r1",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_quinoa_sun",
+        "title": "Quinoa aux herbes",
+        "ready_g": 1590,
+        "drawn_g": 1701,
+        "ratio": 1.07,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_roasted_veg_sun",
+        "title": "Légumes rôtis du dimanche",
+        "ready_g": 1507.5,
+        "drawn_g": 1577,
+        "ratio": 1.046,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken_sun",
+        "title": "Poulet rôti aux herbes",
+        "ready_g": 1502.5,
+        "drawn_g": 1652,
+        "ratio": 1.1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_sun",
+        "title": "Tofu rôti au paprika",
+        "ready_g": 1960,
+        "drawn_g": 644,
+        "ratio": 0.329,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_potatoes_tue",
+        "title": "Pommes de terre rôties",
+        "ready_g": 1125,
+        "drawn_g": 1191,
+        "ratio": 1.059,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_greenbeans_tue",
+        "title": "Haricots verts citronnés",
+        "ready_g": 1090.5,
+        "drawn_g": 1115,
+        "ratio": 1.022,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken_tue",
+        "title": "Poulet du mardi",
+        "ready_g": 1200,
+        "drawn_g": 1320,
+        "ratio": 1.1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_tue",
+        "title": "Tofu poêlé du mardi",
+        "ready_g": 1605,
+        "drawn_g": 712,
+        "ratio": 0.444,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_couscous_thu",
+        "title": "Couscous aux herbes",
+        "ready_g": 3308,
+        "drawn_g": 3520,
+        "ratio": 1.064,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_roasted_veg_thu",
+        "title": "Légumes rôtis du jeudi",
+        "ready_g": 2175,
+        "drawn_g": 2094,
+        "ratio": 0.963,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_fish_thu",
+        "title": "Poisson rôti au citron",
+        "ready_g": null,
+        "drawn_g": 1750,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_thu",
+        "title": "Tofu rôti du jeudi",
+        "ready_g": 2100,
+        "drawn_g": 720,
+        "ratio": 0.343,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A06-allergy-pizza-r2",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_chickpea_couscous__r",
+        "title": "Pois chiches, couscous et légumes rôtis",
+        "ready_g": null,
+        "drawn_g": 2807,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_pizza__r",
+        "title": "Pizza aux légumes rôtis et mozzarella",
+        "ready_g": null,
+        "drawn_g": 2721,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_ravioli_shared",
+        "title": "Raviolis aux champignons, épinards et ricotta",
+        "ready_g": null,
+        "drawn_g": 1949,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_ravioli_marc",
+        "title": "Raviolis aux épinards et ricotta",
+        "ready_g": null,
+        "drawn_g": 984,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_stew",
+        "title": "Tofu, légumes mijotés et pommes de terre",
+        "ready_g": null,
+        "drawn_g": 2857,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "B01-budget-no-oven",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_eggs",
+        "title": "Œufs durs",
+        "ready_g": null,
+        "drawn_g": 200,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken",
+        "title": "Poulet à la poêle",
+        "ready_g": null,
+        "drawn_g": 600,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_couscous",
+        "title": "Couscous cuit",
+        "ready_g": null,
+        "drawn_g": 460,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken_lentils",
+        "title": "Poulet aux lentilles et tomate",
+        "ready_g": null,
+        "drawn_g": 2150,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A05-vegan-one-session",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_couscous",
+        "title": "Couscous aux légumes",
+        "ready_g": 5520,
+        "drawn_g": 4588,
+        "ratio": 0.831,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_rice",
+        "title": "Riz aux légumes",
+        "ready_g": 4620,
+        "drawn_g": 4505,
+        "ratio": 0.975,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_potatoes",
+        "title": "Pommes de terre et légumes rôtis",
+        "ready_g": 4575,
+        "drawn_g": 2947,
+        "ratio": 0.644,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti aux herbes",
+        "ready_g": 1420,
+        "drawn_g": 1420,
+        "ratio": 1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_chicken",
+        "title": "Tofu grillé aux herbes",
+        "ready_g": 2020,
+        "drawn_g": 666,
+        "ratio": 0.33,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_salmon",
+        "title": "Saumon au four",
+        "ready_g": 1675,
+        "drawn_g": 1622,
+        "ratio": 0.968,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_salmon",
+        "title": "Tofu citronné",
+        "ready_g": 2040,
+        "drawn_g": 666,
+        "ratio": 0.326,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_beef",
+        "title": "Bœuf haché aux herbes",
+        "ready_g": 691.5,
+        "drawn_g": 528,
+        "ratio": 0.764,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_beef",
+        "title": "Tofu aux oignons",
+        "ready_g": 814,
+        "drawn_g": 222,
+        "ratio": 0.273,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey",
+        "title": "Dinde rôtie",
+        "ready_g": 1420,
+        "drawn_g": 1420,
+        "ratio": 1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_turkey",
+        "title": "Tofu au paprika",
+        "ready_g": 2020,
+        "drawn_g": 666,
+        "ratio": 0.33,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A07-solo-one-session",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti aux légumes",
+        "ready_g": null,
+        "drawn_g": 640,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey_chili",
+        "title": "Chili de dinde aux haricots",
+        "ready_g": null,
+        "drawn_g": 2000,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_salmon_vegetables",
+        "title": "Saumon et légumes rôtis",
+        "ready_g": null,
+        "drawn_g": 1880,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_rice",
+        "title": "Riz complet cuit",
+        "ready_g": null,
+        "drawn_g": 1320,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "B05-note-allergy-child",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_fajita_chicken",
+        "title": "Garniture de poulet pour fajitas",
+        "ready_g": null,
+        "drawn_g": 2066,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_salmon_tray",
+        "title": "Plaque de saumon et légumes",
+        "ready_g": null,
+        "drawn_g": 1502,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A03-vegan4-7-r4",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_oats_sun",
+        "title": "Avoine aux fruits du week-end",
+        "ready_g": null,
+        "drawn_g": 2870,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_nora_breakfast_sun",
+        "title": "Tofu cannelle du petit-déjeuner",
+        "ready_g": 305,
+        "drawn_g": 94,
+        "ratio": 0.308,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_chicken_sun__r",
+        "title": "Poulet rôti aux légumes",
+        "ready_g": 4395,
+        "drawn_g": 1628,
+        "ratio": 0.37,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_quinoa_sun__r",
+        "title": "Quinoa aux courgettes et tomates",
+        "ready_g": 4392,
+        "drawn_g": 4679,
+        "ratio": 1.065,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_lentils_sun",
+        "title": "Lentilles aux légumes",
+        "ready_g": 655,
+        "drawn_g": 655,
+        "ratio": 1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_oats_tue",
+        "title": "Avoine aux raisins et figues",
+        "ready_g": null,
+        "drawn_g": 3134,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_nora_breakfast_tue",
+        "title": "Tofu cannelle du mardi",
+        "ready_g": 455,
+        "drawn_g": 204,
+        "ratio": 0.448,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey_tue__r",
+        "title": "Dinde rôtie aux légumes",
+        "ready_g": 4461,
+        "drawn_g": 1616,
+        "ratio": 0.362,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_couscous_tue__r",
+        "title": "Semoule aux aubergines et poivrons",
+        "ready_g": 4465.5,
+        "drawn_g": 4912,
+        "ratio": 1.1,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_lentils_tue",
+        "title": "Lentilles du mardi",
+        "ready_g": 975,
+        "drawn_g": 544,
+        "ratio": 0.558,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_oats_thu",
+        "title": "Avoine aux pêches",
+        "ready_g": null,
+        "drawn_g": 1388,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_beef_thu__r",
+        "title": "Bœuf sauté aux haricots verts",
+        "ready_g": 4397.5,
+        "drawn_g": 1628,
+        "ratio": 0.37,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_bulgur_thu__r",
+        "title": "Boulgour aux haricots verts",
+        "ready_g": 4395,
+        "drawn_g": 4363,
+        "ratio": 0.993,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_lentils_thu",
+        "title": "Lentilles du jeudi",
+        "ready_g": 975,
+        "drawn_g": 975,
+        "ratio": 1,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A06-allergy-pizza-r3",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_mushroom_ravioli",
+        "title": "Raviolis aux champignons et épinards",
+        "ready_g": null,
+        "drawn_g": 1958,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_cheese_ravioli",
+        "title": "Raviolis au fromage et épinards",
+        "ready_g": null,
+        "drawn_g": 1002,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_pizza",
+        "title": "Pizzas aux légumes et mozzarella",
+        "ready_g": null,
+        "drawn_g": 2857,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_tofu_curry",
+        "title": "Curry de tofu, pois chiches, courgettes et riz",
+        "ready_g": 6495,
+        "drawn_g": 5901,
+        "ratio": 0.909,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "C01-adopt-memory",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_fajita_chicken_veg",
+        "title": "Poulet et légumes pour fajitas",
+        "ready_g": null,
+        "drawn_g": 0,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_fajita_rice",
+        "title": "Riz pour les bols fajita",
+        "ready_g": null,
+        "drawn_g": 0,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey_couscous",
+        "title": "Boulettes de dinde, légumes et couscous",
+        "ready_g": null,
+        "drawn_g": 0,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "B04-memory-owner",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_egg_muffins",
+        "title": "Muffins d’œufs aux épinards et tomates",
+        "ready_g": 1365,
+        "drawn_g": 706,
+        "ratio": 0.517,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_fajita_filling",
+        "title": "Poulet aux poivrons et aux oignons",
+        "ready_g": 2050,
+        "drawn_g": 1725,
+        "ratio": 0.841,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_rice",
+        "title": "Riz basmati",
+        "ready_g": 637,
+        "drawn_g": 466,
+        "ratio": 0.732,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_turkey_meatballs",
+        "title": "Boulettes de dinde à la sauce tomate",
+        "ready_g": 1140,
+        "drawn_g": 709,
+        "ratio": 0.622,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A06-allergy-pizza-r4",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": [
+      {
+        "id": "prep_ravioli_shared",
+        "title": "Raviolis aux champignons, ricotta et épinards",
+        "ready_g": null,
+        "drawn_g": 1906,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_pizza_shared",
+        "title": "Pizza aux courgettes, tomates, champignons et mozzarella",
+        "ready_g": null,
+        "drawn_g": 1797,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_couscous__r",
+        "title": "Couscous, légumes rôtis, pois chiches et feta",
+        "ready_g": null,
+        "drawn_g": 3214,
+        "ratio": null,
+        "over_tolerance": false
+      },
+      {
+        "id": "prep_curry_shared",
+        "title": "Tofu, riz, courgettes et tomates au curry",
+        "ready_g": null,
+        "drawn_g": 1798,
+        "ratio": null,
+        "over_tolerance": false
+      }
+    ]
+  },
+  {
+    "id": "A03-vegan4-7-r3",
+    "reference_snapshot_at": "2026-09-06T11:09:23.328Z",
+    "pots": []
+  }
+]

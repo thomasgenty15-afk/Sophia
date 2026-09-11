@@ -6,6 +6,7 @@ import {
   householdDietBlock,
   memberRegime,
   regimeCapsProtein,
+  regimeCovers,
   strictestRegimeAt,
 } from "./household_diet.ts";
 import {
@@ -30,6 +31,7 @@ Deno.test("les quatre réponses, et `omnivore` n'est PAS un régime", () => {
     "vegetarian",
     "vegan",
     "pescatarian",
+    "gluten_free",
   ]);
   // ⚠️ LE POINT DU TEST: « je mange de tout » ne pose AUCUNE restriction, donc
   // il traverse en `null` comme « personne n'a demandé ». La distinction entre
@@ -45,29 +47,69 @@ Deno.test("les quatre réponses, et `omnivore` n'est PAS un régime", () => {
 // R4 — L'ORDRE DES RÉGIMES EST TOTAL, ET C'EST CE QUI AUTORISE LE CLASSEMENT
 // ---------------------------------------------------------------------------
 
-Deno.test("R4 — les exclusions des régimes sont EMBOÎTÉES, paire par paire", () => {
-  // ⚠️ CE TEST EST LA PRÉMISSE DE `strictestRegimeAt`, PAS UNE CURIOSITÉ.
-  // Ce module classe les régimes par NOMBRE de groupes exclus, et ce nombre n'a
-  // le droit de les ordonner que si leurs exclusions s'emboîtent. Le jour où un
-  // régime non comparable entre (« pas de poisson mais de la viande »), c'est
-  // CE test qui rougit — avant qu'un plus-strict n'ait été choisi sans exclure
-  // tout ce que la table exclut, c'est-à-dire avant qu'on ne serve du poisson à
-  // quelqu'un qui a dit qu'il n'en mangeait pas.
-  for (const a of DIETARY_REGIMES) {
-    for (const b of DIETARY_REGIMES) {
-      const ga = new Set<string>(excludedGroupsFor(a));
-      const gb = new Set<string>(excludedGroupsFor(b));
-      const aCoversB = [...gb].every((g) => ga.has(g));
-      const bCoversA = [...ga].every((g) => gb.has(g));
-      assert(
-        aCoversB || bCoversA,
-        `${a} et ${b} ne sont pas comparables: le classement par taille ` +
-          `choisirait un « plus strict » qui n'exclut pas tout ce que la ` +
-          `table exclut.`,
-      );
-      // Et la taille dit bien lequel contient l'autre.
-      if (ga.size > gb.size) assert(aCoversB, `${a} plus gros que ${b} sans le contenir`);
+Deno.test("R4 — `REGIME_COVERS` est l'autorité, et elle est cohérente", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-08 — CE TEST DEMANDAIT L'EMBOÎTEMENT. IL NE PEUT PLUS.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il vérifiait que les exclusions de deux régimes s'emboîtent toujours, parce
+  // que `strictestRegimeAt` les classait par NOMBRE de groupes exclus. Il
+  // promettait de rougir « le jour où un régime non comparable entre ».
+  //
+  // ⛔ IL N'A PAS ROUGI, ET LA RAISON MÉRITE D'ÊTRE ÉCRITE. `gluten_free`
+  // n'exclut AUCUN groupe — aucun groupe ne porte « contient du gluten », et
+  // `whole_grain` tient le riz autant que le blé. Son ensemble est donc VIDE,
+  // et l'ensemble vide est sous-ensemble de tout: la garde le lisait
+  // « comparable, et le moins strict de tous ». Elle était armée contre un
+  // régime non comparable NON VIDE; elle ne l'était pas contre un régime dont
+  // la garantie vit ailleurs que dans les groupes.
+  //
+  // ⇒ LE CLASSEMENT PAR COMPTAGE EST MORT. L'autorité est `REGIME_COVERS`, une
+  // table DÉCLARÉE (`household_diet.ts`), et c'est elle qu'on éprouve ici.
+  for (const r of DIETARY_REGIMES) {
+    // ① CHAQUE RÉGIME SE COUVRE LUI-MÊME. Le plat végane est mangeable par un
+    //    végane; sans ça, tout le monde reçoit un plat à soi et la casserole
+    //    commune n'existe plus.
+    assert(regimeCovers(r, r), `${r} ne se couvre pas lui-même`);
+    // ② UNE BOUCHE SANS RÉGIME MANGE TOUT. Elle n'exclut rien.
+    assert(regimeCovers(r, null), `${r} ne couvre pas une bouche sans régime`);
+    // ③ ET UN PLAT SANS RÉGIME NE COUVRE AUCUN RÉGIME. C'est la direction
+    //    d'échec: l'inconnu donne un plat à part, jamais un plat partagé.
+    assert(!regimeCovers(null, r), `un plat sans régime a couvert ${r}`);
+  }
+
+  // ④ LA COHÉRENCE AVEC LES GROUPES, DANS LE SENS QUI COMPTE. Si un plat
+  //    couvre une bouche, il doit exclure AU MOINS ce que la bouche exclut.
+  //    L'inverse n'est pas vrai — un plat peut exclure plus sans couvrir
+  //    (végane exclut tout ce que `gluten_free` exclut, c'est-à-dire rien, et
+  //    ne le couvre pourtant pas) —, et c'est précisément ce que la table
+  //    déclare et qu'aucun comptage ne pouvait deviner.
+  for (const dish of DIETARY_REGIMES) {
+    for (const mouth of DIETARY_REGIMES) {
+      if (!regimeCovers(dish, mouth)) continue;
+      const gd = new Set<string>(excludedGroupsFor(dish));
+      for (const g of excludedGroupsFor(mouth)) {
+        assert(
+          gd.has(g),
+          `${dish} couvre ${mouth} mais n'exclut pas ${g}: une bouche ` +
+            `${mouth} recevrait ${g} dans le plat de sa case.`,
+        );
+      }
     }
+  }
+
+  // ⑤ ET LE CAS QUI A MOTIVÉ TOUT ÇA, NOMMÉ. Aucun régime animal ne couvre le
+  //    sans-gluten, et le sans-gluten n'en couvre aucun. Les deux axes ne se
+  //    rencontrent jamais: chacun a son plat.
+  for (const r of ["vegetarian", "vegan", "pescatarian"] as const) {
+    assert(
+      !regimeCovers(r, "gluten_free"),
+      `${r} a couvert gluten_free: du blé dans le plat d'un cœliaque`,
+    );
+    assert(
+      !regimeCovers("gluten_free", r),
+      `gluten_free a couvert ${r}`,
+    );
   }
 });
 

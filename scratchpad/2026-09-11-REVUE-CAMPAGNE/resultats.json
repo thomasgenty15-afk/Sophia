@@ -1,0 +1,363 @@
+[
+  {
+    "id": "1f8a8988-b3ed-4b83-a4d0-93297ac0d652",
+    "indexAsked": 1,
+    "indexKept": 1,
+    "boxes": [
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "title": "Poulet, pain complet, tomate, laitue et tahini",
+        "measured": {
+          "boxId": "box_fri_dinner_0",
+          "day": "fri",
+          "slot": "dinner",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 356,
+          "kcal": 859.0945366121261,
+          "proteinG": 61.5,
+          "gap": null
+        }
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "title": "Poulet, tortilla complète, tomate, laitue et yaourt",
+        "measured": {
+          "boxId": "box_sat_breakfast_1",
+          "day": "sat",
+          "slot": "breakfast",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 551,
+          "kcal": 613.4191039748605,
+          "proteinG": 55.8,
+          "gap": null
+        }
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "title": "Bœuf à l'oignon, pita complète, tomate, laitue, tahini et citron",
+        "measured": null
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "title": "Saumon, couscous complet, tomate, tahini et huile d'olive",
+        "measured": {
+          "boxId": "box_sat_dinner_3",
+          "day": "sat",
+          "slot": "dinner",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 352,
+          "kcal": 858.6675190513027,
+          "proteinG": 38,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "title": "Yaourt grec, avoine, pêche, framboises et amandes",
+        "measured": {
+          "boxId": "box_sun_breakfast_4",
+          "day": "sun",
+          "slot": "breakfast",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 555,
+          "kcal": 614,
+          "proteinG": 18.5,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "title": "Saumon, couscous complet, tomate, laitue, feta et citron",
+        "measured": {
+          "boxId": "box_sun_lunch_5",
+          "day": "sun",
+          "slot": "lunch",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 674,
+          "kcal": 982.1915552608228,
+          "proteinG": 53.3,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "title": "Bœuf à l'oignon, pain complet, tomate, laitue, fromage de chèvre et tahini",
+        "measured": {
+          "boxId": "box_sun_dinner_6",
+          "day": "sun",
+          "slot": "dinner",
+          "memberIds": [
+            "3cd7524e-9e74-4141-b595-a5baa86341a8"
+          ],
+          "grams": 357,
+          "kcal": 859.4999563331453,
+          "proteinG": 54.3,
+          "gap": null
+        }
+      }
+    ],
+    "counterfactualPetitSuisse": [
+      {
+        "boxId": "box_sat_breakfast_1",
+        "day": "sat",
+        "slot": "breakfast",
+        "memberIds": [
+          "3cd7524e-9e74-4141-b595-a5baa86341a8"
+        ],
+        "grams": 551,
+        "kcal": 613.4191039748605,
+        "proteinG": 55.8,
+        "gap": null
+      }
+    ],
+    "shoppingRefusals": [
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "citron",
+        "detail": "« citron » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "tomate",
+        "detail": "« tomate » n'est ni sur la liste de courses ni au garde-manger"
+      }
+    ]
+  },
+  {
+    "id": "1eada05b-2c3d-4ed5-aa85-14edf2840b77",
+    "indexAsked": 2,
+    "indexKept": 1,
+    "boxes": [
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "title": "Agneau, pita complète, tahini et tomate",
+        "measured": null
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "title": "Petits-suisses, avoine, fraises et noix",
+        "measured": {
+          "boxId": "box_sat_breakfast_1",
+          "day": "sat",
+          "slot": "breakfast",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 523,
+          "kcal": null,
+          "proteinG": null,
+          "gap": "dish_incomplete"
+        }
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "title": "Agneau, couscous complet, légumes rôtis, feta et citron",
+        "measured": {
+          "boxId": "box_sat_lunch_2",
+          "day": "sat",
+          "slot": "lunch",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 691,
+          "kcal": 1161.882892913501,
+          "proteinG": 52.9,
+          "gap": null
+        }
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "title": "Saumon, tortilla complète, tahini, laitue et tomate",
+        "measured": {
+          "boxId": "box_sat_dinner_3",
+          "day": "sat",
+          "slot": "dinner",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 413,
+          "kcal": 1018.8791029654045,
+          "proteinG": 51.7,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "title": "Yaourt grec, avoine, pêche et amandes",
+        "measured": {
+          "boxId": "box_sun_breakfast_4",
+          "day": "sun",
+          "slot": "breakfast",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 576,
+          "kcal": 727,
+          "proteinG": 22.7,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "title": "Saumon, pommes de terre, feta, laitue et citron",
+        "measured": {
+          "boxId": "box_sun_lunch_5",
+          "day": "sun",
+          "slot": "lunch",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 697,
+          "kcal": 1164.4353569600942,
+          "proteinG": 53.4,
+          "gap": null
+        }
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "title": "Lentilles, couscous complet, légumes rôtis, tahini et parmesan",
+        "measured": {
+          "boxId": "box_sun_dinner_6",
+          "day": "sun",
+          "slot": "dinner",
+          "memberIds": [
+            "07965f74-c04e-40f8-acd5-54917b3739ed"
+          ],
+          "grams": 449,
+          "kcal": 1024.7091833990953,
+          "proteinG": 32.4,
+          "gap": null
+        }
+      }
+    ],
+    "counterfactualPetitSuisse": [
+      {
+        "boxId": "box_sat_breakfast_1",
+        "day": "sat",
+        "slot": "breakfast",
+        "memberIds": [
+          "07965f74-c04e-40f8-acd5-54917b3739ed"
+        ],
+        "grams": 523,
+        "kcal": 546,
+        "proteinG": 35.8,
+        "gap": null
+      }
+    ],
+    "shoppingRefusals": [
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "carotte",
+        "detail": "« carotte » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "citron",
+        "detail": "« citron » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "oignon",
+        "detail": "« oignon » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "pita complète",
+        "detail": "« pita complète » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "pomme de terre",
+        "detail": "« pomme de terre » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "ingredient_not_bought",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "tomate",
+        "detail": "« tomate » n'est ni sur la liste de courses ni au garde-manger"
+      },
+      {
+        "cause": "unclassified_perishable",
+        "severity": "count",
+        "day": null,
+        "slot": null,
+        "dish": null,
+        "preparation_id": null,
+        "member_id": null,
+        "term": "petits-suisses nature",
+        "detail": "« petits-suisses nature » est au rayon « dairy » sans groupe d'aliment — sa fenêtre crue est inconnue"
+      }
+    ]
+  }
+]

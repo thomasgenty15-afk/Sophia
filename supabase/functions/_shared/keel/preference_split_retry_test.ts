@@ -2,7 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { preferenceSplitRetryInstruction, SPLIT_RETRY_MIN_CELLS } from "./preference_split_retry.ts";
 
 Deno.test("la relance nomme le mot, la bouche qui le veut, le plancher de repas, et interdit la boîte de l'autre", () => {
-  const text = preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: ["Claire"] }], 13) ?? "";
+  const text = preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: ["Claire"] }], 13, "boxes") ?? "";
   assert(text.includes('"asperges"'), text);
   assert(text.includes("asked for Paul in a box of their own"), text);
   assert(text.includes(`At least ${SPLIT_RETRY_MIN_CELLS} lunches or dinners`), text);
@@ -15,13 +15,13 @@ Deno.test("la relance nomme le mot, la bouche qui le veut, le plancher de repas,
 Deno.test("épinglage — SPLIT_RETRY_MIN_CELLS vaut 2", () => assertEquals(SPLIT_RETRY_MIN_CELLS, 2));
 
 Deno.test("sans demandeur privé, ou sans cellule, pas de relance", () => {
-  assertEquals(preferenceSplitRetryInstruction([], 13), null);
-  assertEquals(preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: [] }], 0), null);
-  assertEquals(preferenceSplitRetryInstruction([{ term: "", wanter: "Paul", refusers: [] }], 13), null);
+  assertEquals(preferenceSplitRetryInstruction([], 13, "boxes"), null);
+  assertEquals(preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: [] }], 0, "boxes"), null);
+  assertEquals(preferenceSplitRetryInstruction([{ term: "", wanter: "Paul", refusers: [] }], 13, "boxes"), null);
 });
 
 Deno.test("le plancher ne dépasse jamais les cellules vérifiées", () => {
-  const text = preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: [] }], 1) ?? "";
+  const text = preferenceSplitRetryInstruction([{ term: "asperges", wanter: "Paul", refusers: [] }], 1, "boxes") ?? "";
   assert(text.includes("At least 1 lunches"), text);
 });
 

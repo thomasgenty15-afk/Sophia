@@ -1,0 +1,189 @@
+{
+  "identiques": [
+    "perte fri/breakfast",
+    "perte fri/lunch",
+    "perte sat/breakfast",
+    "perte sun/breakfast",
+    "gain fri/breakfast",
+    "gain sat/breakfast",
+    "gain sun/breakfast"
+  ],
+  "ecarts": [
+    {
+      "plan": "perte",
+      "jour": "fri",
+      "moment": "dinner",
+      "titre": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+      "avant": {
+        "kcal": 971,
+        "g": 746,
+        "d": 130.1
+      },
+      "apres": {
+        "kcal": 969.6666666666666,
+        "g": 746,
+        "d": 130
+      }
+    },
+    {
+      "plan": "perte",
+      "jour": "sat",
+      "moment": "lunch",
+      "titre": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+      "avant": {
+        "kcal": 1409,
+        "g": 896,
+        "d": 157.2
+      },
+      "apres": {
+        "kcal": 1407.6666666666665,
+        "g": 896,
+        "d": 157.2
+      }
+    },
+    {
+      "plan": "perte",
+      "jour": "sat",
+      "moment": "dinner",
+      "titre": "Saumon, pommes de terre, haricots verts et yaourt",
+      "avant": {
+        "kcal": 796,
+        "g": 640,
+        "d": 124.4
+      },
+      "apres": {
+        "kcal": 796,
+        "g": 640,
+        "d": 124.5
+      }
+    },
+    {
+      "plan": "perte",
+      "jour": "sun",
+      "moment": "lunch",
+      "titre": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+      "avant": {
+        "kcal": 1317,
+        "g": 901,
+        "d": 146.1
+      },
+      "apres": {
+        "kcal": 1316.6666666666665,
+        "g": 901,
+        "d": 146.2
+      }
+    },
+    {
+      "plan": "perte",
+      "jour": "sun",
+      "moment": "dinner",
+      "titre": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+      "avant": {
+        "kcal": 964,
+        "g": 745,
+        "d": 129.4
+      },
+      "apres": {
+        "kcal": 963,
+        "g": 745,
+        "d": 129.3
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "fri",
+      "moment": "lunch",
+      "titre": "Poulet, quinoa, salade verte, feta et citron",
+      "avant": {
+        "kcal": 1047,
+        "g": 561,
+        "d": 186.7
+      },
+      "apres": {
+        "kcal": 1046,
+        "g": 560,
+        "d": 186.8
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "fri",
+      "moment": "dinner",
+      "titre": "Lentilles mijotées, pain complet et feta",
+      "avant": {
+        "kcal": 1261,
+        "g": 724,
+        "d": 174.3
+      },
+      "apres": {
+        "kcal": 1260,
+        "g": 723,
+        "d": 174.3
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "sat",
+      "moment": "lunch",
+      "titre": "Lentilles, couscous, feta, amandes et pain",
+      "avant": {
+        "kcal": 1437,
+        "g": 811,
+        "d": 177.2
+      },
+      "apres": {
+        "kcal": 1858,
+        "g": 1027,
+        "d": 180.9
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "sat",
+      "moment": "dinner",
+      "titre": "Saumon, couscous, légumes rôtis et amandes",
+      "avant": {
+        "kcal": 2053,
+        "g": 991,
+        "d": 207.3
+      },
+      "apres": {
+        "kcal": 1559.5,
+        "g": 846,
+        "d": 184.3
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "sun",
+      "moment": "lunch",
+      "titre": "Poulet, quinoa, salade, houmous et feta",
+      "avant": {
+        "kcal": 1025,
+        "g": 596,
+        "d": 172.1
+      },
+      "apres": {
+        "kcal": 1024,
+        "g": 595,
+        "d": 172.1
+      }
+    },
+    {
+      "plan": "gain",
+      "jour": "sun",
+      "moment": "dinner",
+      "titre": "Saumon, couscous, légumes rôtis, feta et tahini",
+      "avant": {
+        "kcal": 1708,
+        "g": 928,
+        "d": 184.1
+      },
+      "apres": {
+        "kcal": 1704.5,
+        "g": 921,
+        "d": 185.1
+      }
+    }
+  ]
+}

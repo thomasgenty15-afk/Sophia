@@ -243,6 +243,20 @@ export interface PlanEnergyView {
 export const ENERGY_TARGET_BASES = [
   "weight_range",
   "weight_range_with_direction",
+  /**
+   * ⟳ 2026-09-09 — LA TROISIÈME BASE, et c'est celle qui s'affiche par défaut
+   * depuis cette date: l'équation du corps (taille, âge, sexe, poids et les
+   * DEUX axes d'activité) portée par la bande de l'objectif, au lieu du
+   * raccourci `poids × kcal/kg`. Le jeton du serveur est
+   * `ENERGY_TARGET_BASIS_BODY` (`_shared/keel/energy_target.ts`), qui porte la
+   * mesure ayant produit la décision.
+   *
+   * ⚠️ ELLE SE LIT COMME `weight_range_with_direction`: la bande DESCEND de
+   * l'objectif, donc la phrase dirigée est la vraie. Les deux anciens jetons
+   * restent servis — une fiche sans taille ni bande d'âge ne peut pas entrer
+   * dans l'équation et retombe sur le raccourci, en le disant.
+   */
+  "body_equation_with_goal_band",
 ] as const;
 
 /**
@@ -297,6 +311,32 @@ export interface EnergyTargetView {
    * qu'on refuse de l'afficher. Le champ voyage pour être COMPTÉ, pas dit.
    */
   directionGap: string | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-10 · LOT 3 — L'OBJECTIF NE S'EXÉCUTE PAS, ET ON SAIT POURQUOI.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * `"pace_unavailable_missing_body"` ou `null`. Écrit par
+   * `loadDailyEnergyTarget` (`_shared/keel/meal_energy_shared.ts`), vocabulaire
+   * FERMÉ et épinglé côté serveur (`constant_pins_test.ts`).
+   *
+   * ⛔ LE DÉFAUT QU'IL FERME, ET IL EST MUET SANS LUI. Sur une fiche SANS
+   * TAILLE, la cible passe par le raccourci au poids — donc une fourchette
+   * sort — pendant que l'entretien du rythme rend `null`, donc l'écart vaut
+   * ZÉRO. L'écran disait « pour perdre à ton rythme » au-dessus de nombres
+   * d'entretien: l'objectif de la personne était annulé sans un mot.
+   *
+   * ⚠️ IL NE SE CONFOND PAS AVEC `directionGap`. Celui-là dit pourquoi la
+   * DIRECTION n'a pas suivi (`no_pace`, `below_energy_floor`,
+   * `condition_cancelled`), et il ne se raconte pas. Celui-ci dit qu'un rythme
+   * RÉGLÉ n'a pas pu être calculé faute d'une donnée que la personne peut
+   * ajouter — donc il se DIT, et il dit où réparer.
+   *
+   * ⚠️ CONTRAIREMENT À `direction`, IL N'EST PAS TOUT-OU-RIEN AVEC LA BASE. Le
+   * lire seulement quand la direction sort ferait taire le motif exactement
+   * dans le cas où il compte le plus.
+   */
+  paceUnavailable: string | null;
 }
 
 export type EnergyReading =
@@ -581,7 +621,12 @@ export function readTarget(raw: unknown): EnergyTargetView | null {
   const declaredBasis = String(t.basis ?? "");
   const declaredDirection = String(t.direction ?? "");
   const directed = both &&
-    declaredBasis === "weight_range_with_direction" &&
+    // ⟳ 2026-09-09 — DEUX BASES DIRIGÉES, PAS UNE. `body_equation_with_goal_band`
+    // porte la direction par construction (sa bande EST celle de l'objectif).
+    // L'oublier ici ferait dire « pour ton poids » à des nombres bâtis sur une
+    // prise — le contresens exact que ce test de base existe pour empêcher.
+    (declaredBasis === "weight_range_with_direction" ||
+      declaredBasis === "body_equation_with_goal_band") &&
     (ENERGY_TARGET_DIRECTIONS as readonly string[]).includes(declaredDirection);
 
   return {
@@ -596,6 +641,14 @@ export function readTarget(raw: unknown): EnergyTargetView | null {
     directionGap: t.direction_gap === null || t.direction_gap === undefined
       ? null
       : String(t.direction_gap),
+    // ⟳ 2026-09-10 · LOT 3 — MÊME LECTURE QUE SES DEUX VOISINS, ET LA MÊME
+    // GARDE: absent, `null` ou chaîne vide ⇒ `null`. Une chaîne vide qui
+    // survivrait ici serait « truthy: non » côté écran mais « il y a un motif »
+    // côté compteur — deux lectures d'un même champ, dont la plus permissive
+    // décide.
+    paceUnavailable: t.pace_unavailable === null || t.pace_unavailable === undefined
+      ? null
+      : String(t.pace_unavailable).trim() || null,
   };
 }
 
@@ -616,12 +669,29 @@ export function readTarget(raw: unknown): EnergyTargetView | null {
  */
 export async function loadMealEnergy(
   planIds: readonly string[],
+  /**
+   * ⟳ 2026-09-08 — LES BROUILLONS RANGÉS (`student_meal_drafts`).
+   *
+   * ⛔ REQUIS, jamais `?`. Ce dépôt paie en boucle le « paramètre optionnel =
+   * garde désarmée »: un champ facultatif ici aurait laissé l'appelant existant
+   * compiler sans le voir, et le chiffre du brouillon serait construit puis
+   * débranché — un lot désarmé qui ressemble trait pour trait à un lot qui
+   * marche. `[]` est la valeur de qui regarde un plan écrit.
+   *
+   * ⚠️ CE N'EST PAS UN CALCULATEUR. On envoie des IDENTIFIANTS, jamais des
+   * grammes: le serveur lit une ligne qu'il a écrite lui-même. Le référentiel de
+   * composition est révoqué pour `anon` et `authenticated` exprès — un client ne
+   * peut pas convertir des grammes en kilocalories, même s'il le voulait, et
+   * cette fonction ne doit pas devenir le service qui le fait pour lui.
+   */
+  draftIds: readonly string[],
 ): Promise<EnergyReading> {
   const ids = [...new Set(planIds.map((v) => String(v ?? "").trim()).filter(Boolean))];
-  if (ids.length === 0) return closed("no_plan");
+  const drafts = [...new Set(draftIds.map((v) => String(v ?? "").trim()).filter(Boolean))];
+  if (ids.length === 0 && drafts.length === 0) return closed("no_plan");
 
   const { data, error } = await supabase.functions.invoke("meal-energy-v1", {
-    body: { plan_ids: ids },
+    body: { plan_ids: ids, draft_ids: drafts },
   });
   if (error) return closed("unavailable");
 

@@ -123,7 +123,7 @@ function complete(branch: FunnelBranch): FunnelState {
       // ⛔ ON PART DU CONSTRUCTEUR, PAS D'UN LITTÉRAL, ET C'EST LA LEÇON DU
       // 2026-09-03. Cette fixture énumérait ses champs à la main: le jour où
       // `FunnelPerson` en a gagné six requis (`dayActivity`, `sportFrequency`,
-      // `takesDessert`, `takesCheese`…), elle a cessé de compiler — et
+      // `appetite`…), elle a cessé de compiler — et
       // personne ne l'a vu, parce qu'aucune porte ne typait les tests.
       // `emptyFunnelPerson()` est la SEULE définition de « une personne
       // complète mais vide »; partir d'elle fait que le prochain champ requis

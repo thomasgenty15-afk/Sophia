@@ -1,0 +1,44 @@
+le kcal d'une boîte à un nom sort sous la ceinture de sa bouche, plus du lecteur
+
+Point 5 de la campagne (lot F). Décision de l'utilisateur, 2026-09-04 :
+« dès qu'il y a un objectif de perte ou de gain de poids, c'est affiché, peu
+importe qui regarde ».
+
+Ce que ça renverse : `canEmitMouthEnergy` répondait NON à la question §11 n°4
+de FF-059 (« les chiffres des autres bouches sont-ils visibles du maître ? »),
+avec trois raisons écrites. La nouvelle porte, `canEmitBoxEnergy`, répond à
+chacune plutôt que retourner un booléen : la ceinture est celle de LA BOUCHE
+(son âge sur `household_members.birth_date`, son plancher si elle a un compte,
+la doctrine du foyer, sa direction sur `household_members.goal`) ; ce qui sort
+est une quantité DU PLAN (`plan_quantities`), jamais un corps ; et le conseil du
+midi (C9) garde l'ancienne règle, parce qu'un conseil est une consigne adressée.
+
+Où « peu importe qui regarde » s'arrête, et c'est écrit : un lecteur fermé par
+le plancher, l'âge ou son coach ne reçoit rien ; un lecteur qui a EXPLICITEMENT
+éteint ne reçoit rien (R7). Seule une fermeture PAR DÉFAUT du lecteur
+(maintenance, rien choisi) laisse passer les boîtes des bouches à objectif —
+le cas exact de la décision.
+
+  · `meal-energy-v1` rend `boxes[]` par plan, avec `boxes_gate` écrit même à
+    zéro (single, unreadable, unknown_mouth, emitted, refused par motif) ;
+  · l'écran lit `boxes` sur une lecture ouverte ET sur une fermeture par
+    défaut du lecteur, et `BoxTable` rend le chiffre sur la ligne à UN nom
+    seulement, jamais sur un bac ;
+  · un kcal de boîte ne s'affiche jamais sans sa note de base (trois écrans).
+
+Trois gardes ont mordu en route, à raison : la liste des appelants relus de la
+chaîne de sécurité, l'inventaire clos des clés i18n qui écrivent un kcal, et
+la parité FR/EN. Chacune a reçu son inscription explicite, pas un contournement.
+
+Ce commit RÉ-APPLIQUE aussi le lot C dans cooking_plan.ts et son test : le
+commit `567585ae` (lane densification) portait une version de ces deux fichiers
+antérieure à `36871f48`, et HEAD ne typecheckait plus — `CookingPlan` avait
+perdu `runs` pendant que les deux lanes le lisaient (`capacity.plan?.runs`).
+Le hook n'a rien vu : il gate l'arbre de travail, où le lot C vivait toujours.
+Les hunks du lot « offre de courses » (tiers injoignable) restent hors du commit.
+
+Ce que ce commit ne prouve PAS : aucun tir réel n'a encore montré un kcal sur
+la boîte du mari sur l'écran de la femme. Le tir suit ce commit ; s'il infirme,
+le suivant le dira. Doc : docs/keel/BOITES-PAR-REPAS.md, amendement daté.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

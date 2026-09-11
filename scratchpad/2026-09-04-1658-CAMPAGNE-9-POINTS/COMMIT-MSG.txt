@@ -1,0 +1,39 @@
+la campagne des neuf points : sept lots, trois tirs réels, et deux verdicts que j'ai dû reprendre
+
+Neuf comportements du plan de foyer vérifiés par générations réelles, puis
+corrigés là où ils tombaient. Rapport : scratchpad/2026-09-04-1658-CAMPAGNE-9-POINTS/RAPPORT.md
+
+  A  l'explication du modèle (point 9) — une sortie de plus du plan, gardée par
+     cinq portes qui jettent le bloc entier, rendue au-dessus des phrases fixes
+  B  le délai de courses du jour même (point 8) — à 12 h le déjeuner tombe et le
+     dit ; l'union passés ∪ retenus atteint le prompt, les deux listes la phrase
+  D  le Boxing marque ce qui part au congélateur (point 4), par preparation_id
+  G  « remplir des moules », « étaler la pâte » : la portée éteint l'homographe
+  H  une phrase de rythme ne devient plus un régime strict du foyer
+  I  « pâtes » n'est plus « pâté » : l'accent tranche, `matchedText` rend le brut,
+     et un troisième compteur sépare l'orthographe de la portée
+  C  les courses ne décident plus des sessions (point 1) — `runs <= sessions`,
+     le repli des vagues marque le cru « à congeler à l'achat », sauf ce qui ne
+     se congèle pas, et l'écran LIT la date écrite au lieu de la recalculer
+
+Le lot C renverse la règle A2 du 2026-09-03 (« une course ⇒ une session »),
+juste sans congélateur et déjà couverte là, fausse avec : elle interdisait
+d'acheter dimanche pour cuisiner aussi mercredi. Prouvé sur trois tirs : une
+course déclarée donne trois sessions et une vague, avec ses lignes marquées.
+
+Le lot « offre de courses » (`offerableGroceryRuns`, `GroceryRunsOffer`), non
+commité depuis le 03/09 par une session qui n'a plus d'adresse, partage deux
+fichiers avec ce commit (cooking_plan.ts et son test). Ses hunks n'en font PAS
+partie : découpés par marqueur, laissés dans l'arbre de travail, intacts, avec
+sa moitié écran. L'arbre de ce commit a été matérialisé à part et vérifié
+(deno check, suite keel, tsc, vitest) avant d'être écrit — le hook joue le gate
+sur l'arbre de travail, ce qui ne prouve rien de HEAD.
+
+Deux verdicts corrigés en relisant les compteurs : les barquettes marchent à
+1, 2, 4 et 5 bouches (zéro oubli ; 34 retraits de ceinture, 12 de dénominateur),
+et le modèle écrit des items propres mais ne sépare la casserole qu'une fois
+sur trois — la ceinture retire, et elle a raison.
+
+Dette de types tolérée dans les tests front : 87 → 70.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

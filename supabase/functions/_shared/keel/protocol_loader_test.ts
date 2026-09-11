@@ -93,7 +93,7 @@ function db(over: Record<string, Outcome> = {}) {
 
 Deno.test("ce que le coach coche arrive dans le prompt du générateur", async () => {
   const loaded = await loadPublishedProtocol(
-    db({ student_goals: { data: { goal: "health" } } }),
+    db({ student_goals: { data: { goal: "maintenance" } } }),
     "student-1",
   );
   assertEquals(loaded.reason, "loaded");
@@ -119,21 +119,21 @@ Deno.test("ce que le coach coche arrive dans le prompt du générateur", async (
 });
 
 Deno.test("la portée par objectif s'applique au mapping comme à la doctrine", async () => {
-  const health = await loadPublishedProtocol(
-    db({ student_goals: { data: { goal: "health" } } }),
+  const held = await loadPublishedProtocol(
+    db({ student_goals: { data: { goal: "maintenance" } } }),
     "s",
   );
   const fatLoss = await loadPublishedProtocol(
     db({ student_goals: { data: { goal: "fat_loss" } } }),
     "s",
   );
-  assertEquals(health.goal, "health");
+  assertEquals(held.goal, "maintenance");
   assertEquals(fatLoss.goal, "fat_loss");
 
-  assert(!protocolBlockFor(health, "Marlow").includes("refined_grain"));
+  assert(!protocolBlockFor(held, "Marlow").includes("refined_grain"));
   assert(protocolBlockFor(fatLoss, "Marlow").includes("refined_grain"));
   // Le noyau atteint les deux.
-  for (const l of [health, fatLoss]) {
+  for (const l of [held, fatLoss]) {
     assert(protocolBlockFor(l, "Marlow").includes("green stuff"));
     assert(protocolBlockFor(l, "Marlow").includes("alcohol"));
   }
@@ -149,7 +149,7 @@ Deno.test("un élève sans objectif ne reçoit que les règles GLOBALES", async 
 
 Deno.test("le mode test du coach choisit la variante du mapping", async () => {
   const loaded = await loadPublishedProtocol(
-    db({ student_goals: { data: { goal: "health" } } }),
+    db({ student_goals: { data: { goal: "maintenance" } } }),
     "s",
     { goalOverride: "fat_loss" },
   );
@@ -162,7 +162,7 @@ Deno.test("⚠️ un `excluded` de coach ne se formule JAMAIS comme un risque vi
   // chemin. Une aversion de coach durcie en danger apprend au modèle à traiter
   // les deux registres pareil — et donc, tôt ou tard, l'inverse.
   const block = protocolBlockFor(
-    await loadPublishedProtocol(db({ student_goals: { data: { goal: "health" } } }), "s"),
+    await loadPublishedProtocol(db({ student_goals: { data: { goal: "maintenance" } } }), "s"),
     "Marlow",
   );
 
@@ -190,7 +190,7 @@ Deno.test("⚠️ un `excluded` de coach ne se formule JAMAIS comme un risque vi
 
 Deno.test("aucun protocole publié: bloc VIDE, jamais une invention", async () => {
   const loaded = await loadPublishedProtocol(
-    db({ coach_protocols: { data: null }, student_goals: { data: { goal: "health" } } }),
+    db({ coach_protocols: { data: null }, student_goals: { data: { goal: "maintenance" } } }),
     "s",
   );
   assertEquals(loaded.reason, "no_published_protocol");
@@ -204,7 +204,7 @@ Deno.test("un protocole publié mais VIDE ne se dit pas chargé", async () => {
     db({
       coach_food_rules: { data: [] },
       coach_timing_rules: { data: [] },
-      student_goals: { data: { goal: "health" } },
+      student_goals: { data: { goal: "maintenance" } },
     }),
     "s",
   );
@@ -224,7 +224,7 @@ Deno.test("toutes les règles ciblées ailleurs: rien pour cet élève, et pas u
         }],
       },
       coach_timing_rules: { data: [] },
-      student_goals: { data: { goal: "health" } },
+      student_goals: { data: { goal: "maintenance" } },
     }),
     "s",
   );
@@ -242,7 +242,7 @@ Deno.test("chaque lecture ratée dégrade en bloc vide, elle n'interrompt pas", 
   ];
   for (const [label, over, expected] of cases) {
     const loaded = await loadPublishedProtocol(
-      db({ ...over, student_goals: { data: { goal: "health" } } }),
+      db({ ...over, student_goals: { data: { goal: "maintenance" } } }),
       "s",
     );
     assertEquals(loaded.reason, expected, label);
@@ -264,7 +264,7 @@ Deno.test("un identifiant vide ne touche jamais la base", async () => {
 
 Deno.test("sans nom de coach, l'en-tête retombe sur la formule neutre", async () => {
   const loaded = await loadPublishedProtocol(
-    db({ student_goals: { data: { goal: "health" } } }),
+    db({ student_goals: { data: { goal: "maintenance" } } }),
     "s",
   );
   assert(protocolBlockFor(loaded, null).includes("THE COACH'S FOOD MAPPING"));

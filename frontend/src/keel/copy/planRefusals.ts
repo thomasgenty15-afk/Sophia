@@ -68,17 +68,53 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   window_required: "plan.refusal.window_required",
   bad_window: "plan.refusal.bad_window",
   // ── C2 · CE QUI SE DÉCIDE AVANT LE MODÈLE, ET QUI SE PAYAIT APRÈS ────────
-  // Les deux sont NEUFS côté serveur et tous deux mesurés en HTTP réel:
-  // `window_beyond_this_week` remplace un `422 empty_meal` à 6,2 s (les jetons
-  // de jour ne vont pas au-delà de dimanche), et `plan_overlaps_existing`
-  // reprend MOT POUR MOT le refus de `write_student_meal_plan` — celui que la
-  // fusion payait 16,1 s avant que L10 ne le ferme de son côté.
-  window_beyond_this_week: "plan.refusal.window_beyond_this_week",
+  // `plan_overlaps_existing` reprend MOT POUR MOT le refus de
+  // `write_student_meal_plan` — celui que la fusion payait 16,1 s avant que L10
+  // ne le ferme de son côté.
+  //
+  // ⛔ `window_beyond_this_week` ÉTAIT ICI, ET IL EST PARTI LE 2026-09-06 AVEC
+  // LE REFUS. Il remplaçait un `422 empty_meal` à 6,2 s facturées; la date de
+  // départ est libre depuis, les deux générateurs ne l'émettent plus, et
+  // `n'invente aucun jeton que le serveur ne rend pas` refuse — à raison — une
+  // entrée orpheline: une phrase prête pour un refus impossible finit par être
+  // lue comme une règle vivante.
   plan_overlaps_existing: "plan.refusal.plan_overlaps_existing",
   unknown_intent: "plan.refusal.unknown_intent",
+  // ⟳ 2026-09-08 — UNE COMPOSITION EST DÉJÀ EN VOL POUR CE COMPTE.
+  // L'index `student_meal_drafts_one_inflight_per_user` arbitre DANS
+  // l'insertion: le second tap ne lance pas un second appel modèle facturé, il
+  // reçoit ce refus. La phrase dit donc « c'est en cours », pas « c'est
+  // refusé » — l'autre composition va bien aboutir.
+  draft_in_flight: "plan.refusal.draft_in_flight",
   replaces_required: "plan.refusal.replaces_required",
-  mode_required: "plan.refusal.mode_required",
-  pantry_required: "plan.refusal.pantry_required",
+  // ⟳ 2026-09-11 · LOT 2 — LE PLAN NOMMÉ N'EST PAS REMPLAÇABLE. La base
+  // refusait déjà (`write_student_meal_plan`), mais UNE GÉNÉRATION PLUS TARD.
+  // Le contrôle est remonté avant l'appel modèle: un onglet resté ouvert qui
+  // nomme un plan déjà retiré se voit répondre en quelques millisecondes.
+  plan_not_replaceable: "plan.refusal.plan_not_replaceable",
+  // ⟳ 2026-09-11 · LOT 2 — LA SESSION VIDE SORT AUSSI DE LA COMPOSITION.
+  //
+  // ⛔ Elle n'était couverte que dans `VALIDATION_REFUSAL_KEYS`, la table de
+  // `keel_validate_meal_plan`. Depuis que l'admission est commune
+  // (`generation_context.ts`), le générateur rend `not_authenticated` lui aussi
+  // — et il le rend par une EXPRESSION (`error: admission.refusal`), donc
+  // invisible au scan de littéraux. Sans cette entrée, un jeton expiré donnait
+  // un mur muet à l'écran.
+  //
+  // ⚠️ MÊME PHRASE QUE LA VALIDATION, exprès: c'est le même fait pour la
+  // personne — « ta session a expiré » — et deux formulations pour une seule
+  // cause est une dette que le front paie deux fois.
+  not_authenticated: "plan.validate.error.not_authenticated",
+  // ⟳ 2026-09-11 · LOT 7 — `mode_required` N'EST PLUS RENDU PAR AUCUN SERVEUR.
+  // Seule `generate-meal-v1` l'émettait, et elle est supprimée. La clé est
+  // RETIRÉE plutôt que gardée « au cas où »: une entrée qui ne peut plus
+  // arriver fait croire à une couverture qu'on n'a pas, et le test d'inventaire
+  // la compte comme un jeton inventé.
+  // ⟳ 2026-09-11 · LOT 7 — `pantry_required` N'EST PLUS RENDU PAR AUCUN SERVEUR.
+  // Seule `generate-meal-v1` l'émettait, et elle est supprimée. La clé est
+  // RETIRÉE plutôt que gardée « au cas où »: une entrée qui ne peut plus
+  // arriver fait croire à une couverture qu'on n'a pas, et le test d'inventaire
+  // la compte comme un jeton inventé.
   unknown_operation: "plan.refusal.unknown_operation",
 
   // ── LA TABLE EST VIDE (L2, L3) ──────────────────────────────────────────
@@ -104,6 +140,18 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // une date vaut mieux qu'un rouge qui n'en a pas.
   draft_not_composed: "plan.refusal.draft_not_composed",
   note_unusable: "plan.refusal.note_unusable",
+  // ⟳ 2026-09-09 — LA REPRISE LOCALE (`edit_cells`). L'aperçu courant reste :
+  // aucun de ces refus n'a composé quoi que ce soit à la place.
+  cell_not_rendered: "plan.refusal.cell_not_rendered",
+  cell_unknown: "plan.refusal.cell_unknown",
+  draft_has_no_source: "plan.refusal.draft_has_no_source",
+  draft_mismatch: "plan.refusal.draft_mismatch",
+  draft_not_done: "plan.refusal.draft_mismatch",
+  draft_not_found: "plan.refusal.draft_mismatch",
+  // Deux erreurs de programme (un corps sans `draft_id` ou sans case lisible) :
+  // le front ne les construit jamais ; s'il les reçoit, il les nomme.
+  draft_id_required: "plan.refusal.unknown_operation",
+  cells_required: "plan.refusal.unknown_operation",
 
   // ── CE QUI TOMBE APRÈS LE MODÈLE ────────────────────────────────────────
   // Chacune de ces phrases dit « ton plan précédent est intact », parce que
@@ -120,12 +168,35 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ligne, le refus atteindrait l'écran sans phrase — et `planRefusals.int.test`
   // scanne les littéraux `error:` du générateur pour l'empêcher.
   mouth_unfed: "plan.refusal.mouth_unfed",
+  // ⛔ LE PLAN N'EST PAS LIVRABLE (2026-09-11 · lot E, mots posés par le lot F).
+  //
+  // La garde finale a trouvé au moins un défaut BLOQUANT — un ingrédient
+  // interdit, une référence refusée nécessaire au calcul, une case sans
+  // portion — et le handler rend 422 **avant** l'écriture. L'ancien plan de la
+  // personne est donc INTACT, et c'est la première chose que la phrase dit.
+  //
+  // ⚠️ CE JETON EST ARRIVÉ SANS MOTS. Le lot E a posé le refus côté serveur et
+  // n'a touché aucun fichier de `frontend/` ; `planRefusals.int.test.ts` l'a vu
+  // et a rougi — c'est exactement ce pour quoi ce test existe. Le lot F lui
+  // donne ses mots. La branche, elle, reste INATTEIGNABLE sous
+  // `FINAL_GATE_POLICY_LOT_1` : aucune cause n'y est armée en « refuse ».
+  //
+  // ⛔ ET LA PHRASE NE RECOMPOSE RIEN. Le corps 422 porte `refusals[].detail`,
+  // déjà en français, plus `unevaluated` et `incomplete` — trois listes qui ne
+  // se fondent jamais : l'une accuse le plan, l'autre dit qu'on n'a pas pu
+  // vérifier, la troisième qu'on n'a pas regardé. Aucune cause interne
+  // (`cell_energy_off`…) ne se rend telle quelle.
+  plan_not_deliverable: "plan.refusal.plan_not_deliverable",
   // ⛔ LA JOURNÉE EST FINIE (2026-09-04). Une fenêtre d'UN jour dont tous les
   // moments sont passés ne compose rien. Elle rendait `draft_not_composed`,
   // c'est-à-dire « l'aperçu n'a pas abouti » — la phrase d'une panne, pour une
   // cause connue dont la personne PEUT faire quelque chose. Un seul `error:`
   // servait deux causes; il en sert désormais une chacune.
-  day_already_spent: "plan.refusal.day_already_spent",
+  // ⟳ 2026-09-11 · LOT 7 — `day_already_spent` N'EST PLUS RENDU PAR AUCUN SERVEUR.
+  // Seule `generate-meal-v1` l'émettait, et elle est supprimée. La clé est
+  // RETIRÉE plutôt que gardée « au cas où »: une entrée qui ne peut plus
+  // arriver fait croire à une couverture qu'on n'a pas, et le test d'inventaire
+  // la compte comme un jeton inventé.
 
   // ── LES ONZE REFUS DE FUSION (L4/D6, D15, D16) ──────────────────────────
   merge_member_required: "plan.refusal.merge_member_required",

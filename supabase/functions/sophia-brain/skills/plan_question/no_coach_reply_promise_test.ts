@@ -54,7 +54,8 @@ const FORBIDDEN_PROMISES = [
  */
 const DETERMINISTIC_RENDERERS = [
   "./renderer.ts",
-  "../keel_reengagement_resume/renderer.ts",
+  // ⟳ 2026-09-09 — `../keel_reengagement_resume/renderer.ts` est parti avec son
+  // flow: il ne possédait plus aucun tour, donc plus aucune phrase servie.
 ];
 
 Deno.test("aucun renderer KEEL deterministe ne promet une reponse du coach", async () => {

@@ -4,6 +4,25 @@
 > huit lanes ; la phase B a écrit le flow de reprise. **Rien de tout ça n'a
 > tourné sur la stack.** Ce fichier est la campagne qui le juge.
 
+> ## ⚠️ PÉRIMÉ EN PARTIE — LE FLOW DE REPRISE N'EXISTE PLUS (2026-09-09)
+>
+> `keel_reengagement_resume_v1` a été **retiré**. Toute assertion de ce fichier
+> qui attend `response_owner = keel_reengagement_resume_v1`, un état armé dans
+> `__active_conversation_skill_v1`, ou le gabarit « Content de te lire… » est
+> **fausse aujourd'hui** : cases 2 et 4 du tableau de la boucle de relance, et
+> le §399. Le reste de la campagne tient.
+>
+> **Ce qui l'a tué**, mesuré sur poul : la relance du matin POSE une question
+> (« quel repas te paraît le plus facile à préparer aujourd'hui ? »). Onze
+> heures plus tard, l'élève demande « je peux manger une barre Mars ? » et lit
+> le gabarit. C'est le pari déjà perdu au 2ᵉ tour le 2026-08-06 — le flow avait
+> été coupé de deux tours à un pour cette raison exacte —, reperdu au 1ᵉʳ.
+>
+> **Ce qui RESTE** : la fermeture de l'épisode à la réponse
+> (`closeKeelReengagementEpisodeOnInbound`). Sans elle, `nudgedThisEpisode`
+> verrouille définitivement chaque élève passé une fois par la boucle. Le
+> message, lui, part au dispatcher normal et reçoit une vraie réponse.
+
 ## La règle qui rend cette campagne utile
 
 Ce dépôt a mesuré deux choses qui invalident la façon naturelle de tester :

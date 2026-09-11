@@ -1,36 +1,39 @@
 /**
- * QUEL GÉNÉRATEUR, ET C'EST UN FAIT — PAS UNE BRANCHE RECOPIÉE.
+ * AI-JE LE DROIT DE COMPOSER — ET C'EST LA SEULE QUESTION QUI RESTE.
  *
- * ── LA RÈGLE, EXTRAITE DE `SetupPage.tsx` ─────────────────────────────────
- * `generate-household-meal-v1` si le foyer a AU MOINS DEUX bouches ET que je
- * suis le maître; sinon `generate-meal-v1`.
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 · LOT 7 — IL N'Y A PLUS QU'UN MOTEUR
+ * ══════════════════════════════════════════════════════════════════════════
  *
- * ── POURQUOI ELLE VIT DANS UN MODULE, MAINTENANT ──────────────────────────
- * Elle n'avait qu'un seul appelant tant que le couloir d'entrée était le seul
- * endroit où l'on composait. `/app/plan` accueille désormais la demande POUR
- * TOUT LE MONDE, maître compris: la règle a deux appelants, et deux copies
- * d'une règle de routage divergent — celle qui se trompe envoie un maître sur
- * le générateur individuel, c'est-à-dire trente secondes d'attente, un appel
- * modèle PAYÉ, et rien à l'écran (`cookedPlans` masque le plan personnel
- * derrière la ligne `household`).
+ * Ce module portait `chooseGenerator`: « `generate-household-meal-v1` si le
+ * foyer a AU MOINS DEUX bouches ET que je suis le maître; sinon
+ * `generate-meal-v1` ». Cette règle n'existe plus, et sa disparition n'est pas
+ * un nettoyage — c'est la décision produit du chantier: **une personne seule
+ * est un foyer d'une personne.** Tout appel autorisé vise
+ * `generate-household-meal-v1`, que la table compte une bouche ou six.
  *
- * ⚠️ `isOwner` EST LA MOITIÉ DU ROUTAGE, pas une précaution.
- * `generate-household-meal-v1` rend 403 `not_owner` à un secondaire — et c'est
- * voulu: son plan à lui est PERSONNEL (D2 du modèle foyer). Router sur le seul
- * nombre de bouches enverrait toute personne ayant réclamé son profil droit
- * dans un refus que rien ne peut fermer.
+ * ⛔ ON NE REMPLACE PAS LE ROUTAGE PAR UN CHOIX « POUR MOI / POUR LE FOYER ».
+ * Le périmètre n'est pas une préférence: le serveur le résout depuis le foyer
+ * rattaché au compte. Un sélecteur d'écran serait une SECONDE autorité sur le
+ * même fait, et c'est toujours celle que l'écran ne montre pas qui gagne.
  *
- * ⚠️ LE COMPTE DE BOUCHES INCLUT LE MAÎTRE. La liste des bouches d'un foyer ne
- * contient PAS la ligne du maître: l'appelant historique écrit
- * `fresh.mouths.length + (fresh.householdId ? 1 : 0)`. D'où `otherMouths` —
- * nommé pour ce qu'il est, « les bouches AUTRES que moi », plutôt qu'un
- * `mouthCount` que chaque appelant recalculerait à sa façon. Un foyer de deux
- * personnes parti sur le générateur individuel est exactement le défaut que ce
- * nom empêche.
+ * ⛔ ET SURTOUT PAS DE BRANCHE SUR LE NOMBRE DE BOUCHES. C'est très exactement
+ * la règle qu'on retire ici: `otherMouths` a disparu de la signature pour que
+ * personne ne puisse la reconstruire « juste pour cet écran ». Un foyer d'une
+ * bouche et un foyer de six passent par le même appel.
  *
- * ⚠️ AUCUN PARAMÈTRE OPTIONNEL. Un appelant qui ne sait pas s'il est maître ne
- * doit pas hériter de `false`: `false` est une AFFIRMATION. Sept paramètres
- * optionnels ont déjà été des gardes désarmées dans ce dépôt.
+ * ── CE QUI RESTE, ET POURQUOI IL RESTE ────────────────────────────────────
+ * `isOwner` était « la moitié du routage »; il en est maintenant la TOTALITÉ,
+ * sous une autre question. `generate-household-meal-v1` rend **403
+ * `not_owner`** à un membre secondaire, sur toutes ses entrées (composer,
+ * recomposer, éditer un brouillon, adopter, remplacer). Ce module dit à
+ * l'écran s'il doit PROPOSER le geste — pas s'il a le droit de le faire.
+ *
+ * ⚠️ CE N'EST PAS LA GARDE. La garde est le `not_owner` du serveur, et elle
+ * doit le rester: une limite d'UI n'est pas une limite. Ce que ce module
+ * empêche est un BOUTON MORT — un geste offert dont la seule issue est un
+ * refus. Cicatrice mesurée trois fois sur `SetupPage`: « refus loin du geste =
+ * bouton mort ».
  *
  * PURE. Aucune I/O, aucune horloge, aucun `t()`, AUCUN IMPORT D'i18n — et ce
  * dernier point est une contrainte de couture, pas une élégance: le scanner de
@@ -40,28 +43,62 @@
  * `/app/plan`, qui ne le déclare pas. D'où ce fichier, sans aucun import.
  */
 
-export type PlanGenerator = "household" | "personal";
+/**
+ * Ce que l'écran a le droit de PROPOSER.
+ *
+ * `"not_owner"` porte le nom exact du refus serveur, et ce n'est pas une
+ * coquetterie: l'écran affiche la même phrase (`plan.refusal.not_owner`) que
+ * si l'appel était parti. Deux vocabulaires pour un seul refus finiraient par
+ * décrire deux règles.
+ */
+export type ComposeRight = "allowed" | "not_owner";
 
-export function chooseGenerator(place: {
-  /** Suis-je dans un foyer ? REQUIS. */
+/**
+ * MA PLACE, TELLE QUE `loadMyHouseholdPlace` LA REND.
+ *
+ * ⚠️ AUCUN CHAMP OPTIONNEL. Un appelant qui ne sait pas s'il est maître ne doit
+ * pas hériter de `false`: `false` est une AFFIRMATION. Sept paramètres
+ * optionnels ont déjà été des gardes désarmées dans ce dépôt. L'ignorance se
+ * dit par `null` sur l'objet entier, pas par un champ absent.
+ */
+export interface ComposePlace {
+  /** Suis-je rattaché à un foyer ? REQUIS. */
   inHousehold: boolean;
-  /** Suis-je le maître ? REQUIS. `false` est une affirmation, pas un défaut. */
+  /** Suis-je le maître de ce foyer ? REQUIS. */
   isOwner: boolean;
-  /**
-   * Le nombre de bouches AUTRES que le maître. REQUIS.
-   * `0` dit « personne d'autre »; ce n'est pas la même chose qu'un foyer non lu,
-   * qui se dit par `inHousehold: false`.
-   */
-  otherMouths: number;
-}): PlanGenerator {
-  // L'ORDRE DES TROIS CONDITIONS N'EST PAS INDIFFÉRENT. `inHousehold` d'abord:
-  // un `isOwner: true` sur un compte sans foyer est un état INCOHÉRENT, et la
-  // direction sûre est le générateur individuel — celui qui ne peut pas rendre
-  // `no_household`.
-  if (!place.inHousehold) return "personal";
-  if (!place.isOwner) return "personal";
-  // « Au moins deux bouches » = moi + au moins une autre. Un foyer commencé
-  // puis laissé à une seule bouche compose comme un solo, et c'est juste: il
-  // n'y a pas de table à arbitrer.
-  return place.otherMouths >= 1 ? "household" : "personal";
+}
+
+/**
+ * LE DROIT DE COMPOSER, EN UNE RÈGLE.
+ *
+ * @param place `null` = la place n'a pas encore été lue, ou sa lecture a
+ *        échoué. **Et alors on autorise**, exprès:
+ *
+ *        · le chemin MAJORITAIRE est le maître de son propre foyer — cacher le
+ *          bouton pendant une lecture lente ferait disparaître l'écran entier
+ *          pour tout le monde;
+ *        · `loadMyHouseholdPlace` rend `{inHousehold:false, isOwner:false}`
+ *          quand la lecture ÉCHOUE, donc « pas maître » n'y est jamais une
+ *          preuve — seul `inHousehold: true` l'est;
+ *        · et le refus existe de toute façon: le serveur rend `not_owner`, que
+ *          l'écran affiche à l'endroit du clic.
+ *
+ *        Fermer sur du non-lu serait le mauvais côté de l'arbitrage: un maître
+ *        sans bouton n'a AUCUN recours, un secondaire qui clique lit une
+ *        phrase.
+ */
+export function composeRight(place: ComposePlace | null): ComposeRight {
+  // ⚠️ L'ORDRE COMPTE, ET C'EST TOUT LE MODULE. `inHousehold` D'ABORD: un
+  // compte sans foyer n'est pas un secondaire, c'est un foyer d'une personne
+  // que le serveur crée à l'entrée du générateur (lot 1). Tester `isOwner`
+  // seul refuserait tous les comptes qui n'ont pas encore été rattachés —
+  // c'est-à-dire, le jour de la bascule, la majorité d'entre eux.
+  if (place === null) return "allowed";
+  if (!place.inHousehold) return "allowed";
+  return place.isOwner ? "allowed" : "not_owner";
+}
+
+/** Raccourci de lecture pour les écrans: `composeRight(...) === "allowed"`. */
+export function mayCompose(place: ComposePlace | null): boolean {
+  return composeRight(place) === "allowed";
 }

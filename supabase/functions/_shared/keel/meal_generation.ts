@@ -81,9 +81,22 @@ import {
   type CompositionState,
   type CompositionUnit,
   gramsRawOf,
+  resolveCompositionLine,
   resolveIngredient,
-  YIELD_FACTORS,
+  yieldFactorOf,
 } from "./food_composition.ts";
+// ⟳ LOT C (2026-09-11) — LE CONTRAT DE COMPOSITION: le catalogue montré au
+// modèle et la lecture de l'identifiant qu'il rend. Voir `composition_contract.ts`.
+import {
+  type ComposablePredicate,
+  readRefSlug,
+  type RefOutcome,
+  type RefReading,
+} from "./composition_contract.ts";
+// ⟳ LOT C — LA PORTE DE COMPOSITION DU LOT A, ARMÉE PAR DÉFAUT. Voir
+// `composable` sur `parseGeneratedMeal`: elle est arrivée pendant l'écriture de
+// ce lot, et un défaut OUVERT n'avait plus de raison d'être.
+import { isComposable } from "./food_reference_manifest.ts";
 import {
   daysOutOfBatchReach,
   sessionCeilingMinutes,
@@ -98,7 +111,7 @@ import {
   emptyFridgeWindowCounts,
   type FridgeWindowCounts,
 } from "./fridge_window.ts";
-import { rawReachLines } from "./raw_keeping.ts";
+import { type RawReachCadence, rawReachLines } from "./raw_keeping.ts";
 import { fixedIntakePromptLines, slotIsTaken } from "./fixed_intakes.ts";
 import type { FixedIntake } from "./fixed_intakes.ts";
 import {
@@ -520,6 +533,46 @@ export interface PantryItem {
 export interface DishIngredient {
   term: string;
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C (2026-09-11) — L'IDENTIFIANT DE RÉFÉRENCE, À CÔTÉ DU TERME
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ UN CHAMP DE PLUS, JAMAIS UN REMPLACEMENT. `term` reste le libellé
+   * humain: il est dans la langue de l'élève, il est sur l'écran et sur la
+   * liste de courses, et il est dans `MEAL_TRANSLATABLE_FIELDS`. Le slug, lui,
+   * est anglais et n'est jamais montré. Les confondre traduirait l'identifiant.
+   *
+   * ⛔ CE QU'IL FERME, MESURÉ (enquête du 2026-09-11 §2): `resolveIngredient`
+   * essaie le slug direct AVANT les alias, donc le mot français « prune »
+   * rencontre l'identifiant anglais `prune` (fruit SEC, 229 kcal/100 g) et
+   * « raisin » rencontre `raisin` (raisin SEC, 321) — sans qu'aucune erreur de
+   * résolution ne puisse apparaître. Contrefactuel à quantités inchangées: le
+   * petit-déjeuner PERTE du samedi passe de 614 kcal à **388**. Un identifiant
+   * lu dans une liste ne se trompe pas de langue.
+   *
+   * `null` dans trois cas, qui ne veulent pas dire la même chose et que
+   * `ref_absent` / `ref_unknown` / `ref_not_composable` séparent en `issues`:
+   * le modèle ne l'a pas écrit, il a écrit un identifiant qui n'existe pas, ou
+   * il a écrit un identifiant que le manifeste refuse.
+   */
+  ref: string | null;
+  /**
+   * LE MODÈLE A ÉCRIT UN IDENTIFIANT, ET IL A ÉTÉ REFUSÉ.
+   *
+   * ⛔ CE BOOLÉEN EXISTE POUR QUE LE REFUS SURVIVE AU PARSEUR. Sans lui,
+   * `regramMeal` — qui repasse sur tout le plan après le sas de composition —
+   * repèserait la ligne par son TERME libre, c'est-à-dire exactement le
+   * rapprochement approximatif que le chantier interdit (« sans rapprochement
+   * approximatif de secours »). Un refus qui ne dure qu'une fonction n'est pas
+   * un refus.
+   *
+   * ⚠️ `false` QUAND LE MODÈLE N'A RIEN ÉCRIT. « Il n'a pas donné
+   * d'identifiant » et « il en a donné un faux » ne sont pas la même faute et
+   * n'appellent pas la même correction: la première durcit la consigne, la
+   * seconde répare le référentiel.
+   */
+  refRefused: boolean;
+  /**
    * LA QUANTITÉ EN PROSE, destinée à l'humain. Inchangée par FF-038: c'est
    * elle que l'élève lit sur sa liste de courses, et `ENERGY_UNIT_RE` reste
    * armé dessus. Les trois champs structurés en dessous la DOUBLENT, ils ne la
@@ -600,6 +653,44 @@ export interface DishIngredient {
    * c'est le cas NOMINAL — pas une anomalie.
    */
   group: FoodGroupRef | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ LOT D (2026-09-11) — LE COMPOSANT CULINAIRE QUE CETTE LIGNE CITE.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ C'EST LUI QUI DIT CE QUI TIENT UNE SAUCE. Les bornes par groupe
+   * alimentaire savent qu'une huile ne double pas; elles ne savent pas que
+   * 45 g de tahini et 20 g de citron sont UNE vinaigrette. Mesuré sur la
+   * campagne du 2026-09-11 (revue §5): l'ajusteur a réécrit quatre recettes —
+   * tahini 45 → 40 g, huile 25 → 20 g, laitue 50 → 68,7 g — sans qu'aucune
+   * contrainte ne porte le rapport sauce/base.
+   *
+   * `null` quand le modèle ne l'a pas écrit, et c'est le cas NOMINAL de tous
+   * les plans antérieurs au contrat: leur bloc devient alors non ajustable en
+   * proportions (`contract_absent`), ce que le plan demande en toutes lettres
+   * pour « les réponses archivées antérieures au contrat ».
+   */
+  part: string | null;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ LOT D (2026-09-11) — UN COMPOSANT CULINAIRE D'UN PLAT OU D'UNE CUISSON.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Trois champs, et pas un de plus: ce qu'il EST (`role`), ce qu'il ACCOMPAGNE
+ * (`partOf`), et le jeton que ses lignes citent (`id`). Le vocabulaire des
+ * rôles et la politique vivent dans `culinary_structure.ts`; ici on transporte.
+ *
+ * ⛔ AUCUNE LIGNE N'EST NOMMÉE ICI, ET C'EST LE SENS DU CONTRAT. C'est la LIGNE
+ * qui cite son composant (`DishIngredient.part`), pas le composant qui liste
+ * ses lignes: un modèle qui compte des index se trompe d'index, et « une ligne
+ * appartient exactement à un composant » devient vrai par construction.
+ */
+export interface MealComponent {
+  id: string;
+  role: string | null;
+  partOf: string | null;
 }
 
 /**
@@ -835,6 +926,42 @@ export interface GeneratedDish {
    */
   memberId: string | null;
   /**
+   * ⟳ 2026-09-10 — LA DENSITÉ QUE LE MODÈLE DIT AVOIR CALCULÉE, en kcal pour
+   * 100 g de plat CUIT. Déclarée par lui, jamais lue pour décider.
+   *
+   * ⛔ ELLE NE REMPLACE PAS LA MESURE, ET C'EST TOUT L'INTÉRÊT. Le moteur pèse
+   * le plat avec `food_composition_refs` comme avant; ce champ sert à COMPARER
+   * les deux. Mesuré le 2026-09-09/10 sur 40 densités demandées: l'écart entre
+   * la consigne et la recette rendue allait de −23 % à +63 %, médiane +3,1 %.
+   * Une médiane juste avec cette amplitude, c'est un modèle qui devine.
+   *
+   * L'écart entre ce champ et notre mesure dit LAQUELLE des deux fautes il
+   * commet, et elles n'appellent pas le même correctif:
+   *   · son chiffre ≈ le nôtre, mais sous la consigne ⇒ il calcule bien et
+   *     vise mal — c'est la consigne qu'il faut durcir.
+   *   · son chiffre ≫ le nôtre ⇒ il calcule sur le CRU, ou sur d'autres
+   *     valeurs que CIQUAL — c'est la méthode qu'il faut préciser.
+   *
+   * ⚠️ ÉCRIRE UN NOMBRE FORCE À LE CALCULER. C'est la raison d'être du champ,
+   * autant que sa valeur de mesure.
+   *
+   * `null` = il ne l'a pas rendu. Absent n'est pas zéro: un plat sans
+   * vérification et un plat vérifié à 0 kcal/100 g sont deux choses.
+   */
+  densityCheck: number | null;
+  /**
+   * ⟳ 2026-09-09 — LE PLAT À SON NOM QUI S'AJOUTE À LA TABLE, au lieu de la
+   * remplacer : l'entrée de dernier recours du foyer. Son porteur reste
+   * mangeur du plat partagé de la case ; le moteur rabote sa part à la borne
+   * et dimensionne ce plat à la différence (`splitPlateWithComplement`).
+   *
+   * ⚠️ UN SEUL ÉCRIVAIN : `appendDedicatedDishes`. Le parseur ne le pose
+   * jamais (le modèle ne le déclare pas), donc ABSENT = un plat dédié qui
+   * remplace, le cas nominal d'aujourd'hui — même posture que `member_id`
+   * absent. Persisté `complements_shared`, toujours écrit, `false` compris.
+   */
+  complementsShared?: true;
+  /**
    * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, DIT PLUTÔT QUE DEVINÉ.
    *
    * `null` = le modèle ne l'a pas déclaré, ou l'a déclaré illisible. Ce n'est PAS
@@ -849,6 +976,8 @@ export interface GeneratedDish {
    * plat qui se cuisine et se mange.
    */
   sameDay: DishSameDay | null;
+  /** ⟳ LOT D — les composants culinaires du FRAIS de ce plat. Voir `MealComponent`. */
+  components: MealComponent[];
 }
 
 export interface ShoppingItem {
@@ -953,6 +1082,14 @@ export interface MealPreparation {
   totalMinutes: number | null;
   /** Jour de cuisson, quand une session le fixe. */
   cookOn: string | null;
+  /**
+   * ⟳ LOT D (2026-09-11) — LES COMPOSANTS CULINAIRES DE CETTE CUISSON.
+   *
+   * Les lignes les citent par `part`. Vide ⇒ la casserole n'est pas ajustable
+   * en proportions: ses rapports restent ceux que le modèle a écrits, et seules
+   * la mise à l'échelle globale et la recomposition modèle restent possibles.
+   */
+  components: MealComponent[];
 }
 
 /**
@@ -1094,6 +1231,25 @@ export interface BoxItem {
   preparationId: string | null;
   term: string;
   grams: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ LOT A (2026-09-11) — L'IDENTITÉ D'UNE LIGNE FRAÎCHE DE CONTENANT
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE QU'ELLE FERME. `box_densify.ts::densityFromComposition` retrouvait
+   * l'aliment d'un item frais par `resolveIngredient(index, item.term)` —
+   * c'est-à-dire par son LIBELLÉ, alors que la ligne d'ingrédient dont cet
+   * item est né portait un identifiant vérifié. Le chantier le nomme en toutes
+   * lettres: « ne plus retrouver son aliment par son libellé ».
+   *
+   * ⚠️ `null` SUR UN ITEM CITANT UNE CASSEROLE (`preparationId !== null`): son
+   * énergie vient de la casserole entière, pas d'une fiche. Et `null` aussi sur
+   * un contenant écrit par le MODÈLE, qui ne rend pas d'identifiant sur ses
+   * items — chemin historique par le terme, conservé tel quel.
+   */
+  ref: string | null;
+  /** Voir `CompositionInput.refRefused`: le refus doit survivre à l'écriture. */
+  refRefused: boolean;
 }
 
 /**
@@ -2280,7 +2436,38 @@ export const SOLO_BOX_BLOCK = [
   'on the day has no "boxes": nothing was weighed ahead for it.',
 ].join("\n");
 
-export const MEAL_PROMPT_VERSION = "meal.en.v27_a_plate_weighs_what_it_feeds";
+// ⟳ v28 (2026-09-06) — LA LISTE DES JOURS EST ANCRÉE SUR LA DATE D'OUVERTURE
+// DE LA FENÊTRE, plus sur « aujourd'hui ». Le message ne peut donc plus se
+// contredire quand la fenêtre démarre la semaine prochaine, et la garde qui
+// interdisait ce départ (`window_beyond_this_week`) est retirée. Le prompt
+// change pour TOUTE la population — les deux lanes passent par
+// `buildMealPrompt` —, et c'est très exactement le prix que le lot du
+// 2026-08-12 avait refusé de payer parce que « l'écran n'a jamais proposé »
+// cette fenêtre. L'écran la propose depuis aujourd'hui.
+// ⟳ v29 (2026-09-07) — UNE RECETTE SE CUISINE UNE FOIS DANS LA FENÊTRE. Un lot
+// couvre plusieurs jours; une seconde session ne refait pas la même
+// préparation, et la renommer par son jour ne la rend pas différente. Les
+// petits-déjeuners comptent. Mesuré avant: trois casseroles de muffins aux
+// œufs, six matins identiques. Le tronc change pour les deux lanes.
+// ⟳ v30 (2026-09-09) — LA CADENCE DE COURSES ATTEINT LA CONSIGNE. Population
+// qui voit une consigne différente: celle qui a répondu aux deux questions de
+// P2 ET dont le plan s'appuie sur le congélateur (`usesFreezer`) — une course
+// pour plusieurs sessions. Pour elle, la sortie de la fenêtre crue devient
+// « congelé à l'achat, sorti la veille » au lieu de « racheté la veille ».
+// Mesuré avant: la liste disait « dinde achetée mercredi, à congeler », le
+// déroulé de dimanche disait « acheter la dinde fraîche le jour même ». Pour
+// tous les autres, la consigne est celle de v29 au caractère près.
+// ⟳ v32 (2026-09-11, LOT D) — LA RECETTE DIT CE QUI LA TIENT. Le tronc gagne le
+// bloc `== SAY WHAT HOLDS THE RECIPE TOGETHER ==`, la clé `components` sur les
+// plats et les préparations, et `part` sur chaque ligne. Population concernée:
+// TOUTE, les deux lanes passent par `buildMealPrompt`. Ce que ça achète est
+// mesuré (revue du 2026-09-11 §5): sans cette structure, l'ajusteur de
+// proportions a réécrit quatre recettes de la campagne — tahini 45 → 40 g,
+// huile 25 → 20 g, laitue 50 → 68,7 g — parce qu'aucune contrainte ne portait
+// le rapport sauce/base. Sans `components`, un bloc reste désormais NON
+// AJUSTABLE en proportions: le prompt et le moteur changent ensemble, dans le
+// même lot, et la promesse touche sa clé de schéma.
+export const MEAL_PROMPT_VERSION = "meal.en.v32_the_recipe_says_what_holds_it";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -2919,24 +3106,26 @@ You are told how many people are at the table. Every quantity you write is for
 THAT many people, for the number of servings the dish actually makes — and for
 nothing more.
 
+If you are given a block headed WRITE ONE STANDARD RECIPE PER DISH, that block
+is the one that governs: there, every dish is written for ONE serving whatever
+the table holds, and the app multiplies it.
+
 Measured failure, and it is the one that makes a plan unusable: "2 salmon
 fillets, 500 g potatoes" written for ONE person eating ONE dinner. That is three
 dinners on a plate. If a quantity only makes sense because the dish is cooked in
 a batch, then say so in \`batch\` — do not silently inflate a single plate.
 
-Sanity, before you write a quantity: a full lunch or dinner for one adult is a
-plate of roughly 600 to 750 g of cooked food, and most of that weight is food
-that carries energy — about 200 to 250 g of cooked grains, pasta, potatoes or
-pulses, about 120 to 180 g of the protein food, and a fat (oil, butter, cheese,
-nuts, avocado) — with vegetables ON TOP of it, never instead of it. Breakfast is
-about two thirds of that. Measured failure, and it is the quiet one: a palm of
-chicken on a bed of courgettes and salad looks like a meal and carries a third
-of one — a whole week composed that way left the table hungry. If the method
-takes the starch off the plate, that weight moves to the protein food, the
-pulses and the fat; it does not vanish. Scale from there for children and for
-what you are told about the person. You never tell the student those figures;
-you use them so the numbers you DO write are believable — each named portion is
-sized afterwards by the app, from these.
+What you decide is the SHAPE of the plate; the app decides how much of it lands
+in front of each person. So write shares, not a plate weight: roughly a third of
+the plate is cooked grains, pasta, potatoes or pulses, roughly a quarter is the
+protein food, there is a fat (oil, butter, cheese, nuts, avocado) — and
+vegetables ON TOP of it, never instead of it. Measured failure, and it is the
+quiet one: a palm of chicken on a bed of courgettes and salad looks like a meal
+and carries a third of one — a whole week composed that way left the table
+hungry. If the method takes the starch off the plate, that weight moves to the
+protein food, the pulses and the fat; it does not vanish. You never tell the
+student any of this; you use it so that when the app scales your recipe, the
+plate it serves is food and not water.
 
 ${PROTEIN_ANCHOR_PROMPT_LINE}
 
@@ -3133,6 +3322,18 @@ nut butter, tahini, nuts, seeds, honey, syrup, chocolate.
 "A drizzle of olive oil" is a tablespoon -- write 1 and "tbsp". A spoon of oil
 weighs what a whole plate of vegetables weighs; a blank makes the dish unreadable.
 
+== THE METHOD NAMES THE FOOD, IT DOES NOT REPEAT ITS WEIGHT ==
+
+Write "method" and "run_through" with the ingredients NAMED — "brown the
+chicken, add the rice and the stock" — and never with their amounts written out
+again: not "add the 180 g of rice", not "use half of the 400 g tin".
+
+The list of ingredients is the only place a quantity lives. The app adjusts
+those quantities after you answer, and a number left inside a sentence is not
+adjusted with them: it stays behind and contradicts the list, on the page the
+person actually cooks from. This has happened twice in this product, on two
+different sentences, and both times the prose was the half that was believed.
+
 == WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==
 
 The phrase in a DISH's "quantity" is either a weight -- "100 g dried pasta",
@@ -3155,6 +3356,42 @@ mode = from_pantry
 
 mode = to_shop
   Compose freely, then give the shopping list the dish actually needs.
+
+== SAY WHAT HOLDS THE RECIPE TOGETHER ==
+
+The app may resize a recipe to fit somebody's plate. Scaling everything by one
+factor is safe. Changing the RATIO between a sauce and what it dresses is not:
+45 g of tahini with 20 g of lemon is a sauce, and 40 with 25 is another one.
+The app cannot tell the two apart from your prose, and it will not try.
+
+So say it in data. On every dish and every preparation, list its "components",
+and on EVERY ingredient line write "part": the id of the component it belongs
+to. One line, exactly one component. No line without a "part".
+
+Each component has a "role", one of exactly these:
+  main             the principal thing: the meat, the base, the gratin
+  separable_side   an accompaniment that stands on its own, plain rice beside
+                   a chicken in sauce. Its amount can move on its own.
+  sauce            a sauce
+  seasoning        a dressing, a marinade, weighed spices
+  stuffing         a stuffing
+  batter           a batter or a dough
+  binder           egg, starch, breadcrumbs -- what holds it
+  bound_hydration  a cooking whose liquid is part of the recipe: risotto,
+                   couscous, pilaf
+  garnish_fat      oil, tahini, cheese or nuts used to finish a component
+
+Every role EXCEPT main and separable_side must name what it goes with, in
+"part_of": the id of another component of the same block. Those ratios are then
+kept exactly as you wrote them -- internally, and against what they dress.
+
+ids and roles are ASCII snake_case, never translated. Write them even when the
+dish has a single component: one component named "main" with every line in it is
+a complete, correct answer, and it is better than leaving components out.
+
+A block with no components, a line with no "part", a "part_of" that names
+nothing: the whole block keeps your proportions untouched. Nothing breaks -- the
+app simply has one less way to fit the plate, and may ask you to recompose it.
 
 == EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==
 
@@ -3189,9 +3426,12 @@ a "name" identical to the title is a line that says nothing.
       "ingredients": [{ "term": "...", "quantity": "..."|null,
                         "amount": <number>|null,
                         "unit": "g"|"ml"|"unit"|"tbsp"|"tsp"|null,
-                        "state": "raw"|"cooked"|null }],
+                        "state": "raw"|"cooked"|null,
+                        "part": "<id from this dish's components>" }],
+      "components": [{ "id": "sauce", "role": "sauce", "part_of": "main" }],
       "method": "how to make it, plainly, in a short paragraph",
       "why": "one sentence: why THIS dish for THIS student this week",
+      "density_check": <REQUIRED. kcal per 100 g you computed for this dish, cooked>,
       "uses": [{ "preparation_id": "prep_chicken", "servings": 1,
                  "kept": "fridge"|"freezer" }],
       "same_day": { "kind": "none"|"reheat_only"|"assemble"|"cook_fresh",
@@ -3205,7 +3445,9 @@ a "name" identical to the title is a line that says nothing.
       "ingredients": [{ "term": "...", "quantity": "<for the WHOLE batch>",
                         "amount": <number>|null,
                         "unit": "g"|"ml"|"unit"|"tbsp"|"tsp"|null,
-                        "state": "raw"|"cooked"|null }],
+                        "state": "raw"|"cooked"|null,
+                        "part": "<id from this preparation's components>" }],
+      "components": [{ "id": "main", "role": "main", "part_of": null }],
       "method": "how to cook the batch",
       "active_minutes": <minutes of HANDS-ON work>,
       "total_minutes": <minutes from starting to finished, waiting included>,
@@ -3297,6 +3539,23 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   // eux, ne sont pas de la langue — ce sont des noms propres, et ils traversent
   // tels quels.
   "dishes[].boxes[].id (ASCII snake_case, English words only)",
+  // ⟳ LOT C (2026-09-11) — L'IDENTIFIANT DE RÉFÉRENCE EST UN JETON, ET IL EST
+  // LE PIÈGE DE `preparation_id` SUR UN TROISIÈME CHAMP. Il est LU dans une
+  // liste anglaise servie au modèle, comparé caractère pour caractère contre
+  // `food_composition_refs.slug`, et refusé s'il ne correspond pas. Un
+  // `haricots_verts` dans un plan français ne se rapproche plus de rien: la
+  // ligne n'est alors pesée par personne.
+  "dishes[].ingredients[].ref (an id from the food list, never translated)",
+  "preparations[].ingredients[].ref (an id from the food list, never translated)",
+  // ⟳ LOT D (2026-09-11) — LE NOM D'UN COMPOSANT ET SON RÔLE SONT DES JETONS,
+  // et c'est le piège de `preparation_id` sur un cinquième champ. `part` est
+  // comparé caractère pour caractère au `components[].id` du même bloc: un
+  // « sauce » côté composant et un « la sauce » côté ligne ne se rapprochent
+  // plus, et le bloc ENTIER retombe sur le traitement conservateur — c'est-à-
+  // dire qu'il devient non ajustable, en silence, dans la seule langue qui
+  // n'est pas l'anglais. Le rôle, lui, est comparé à `CULINARY_ROLES`.
+  "dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only)",
+  "preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only)",
 ];
 
 /**
@@ -3467,11 +3726,16 @@ export function buildMealPrompt(args: {
    * corps, et en choisir un dimensionnerait l'assiette de tout le monde sur
    * lui).
    *
-   * C'est ce qui dimensionne une portion. Le prompt système DEMANDE de
+   * C'est ce qui dimensionne une portion. Le prompt système DEMANDAIT de
    * dimensionner (« a full lunch or dinner for one adult is a plate of roughly
-   * 600 to 750 g ») et rien
-   * ne lui disait de qui: `height_cm` avait un écran, une colonne, une
-   * contrainte de bornes et zéro lecteur.
+   * 600 to 750 g ») et rien ne lui disait de qui: `height_cm` avait un écran,
+   * une colonne, une contrainte de bornes et zéro lecteur.
+   *
+   * ⟳ LOT C (2026-09-11) — CETTE PHRASE N'EXISTE PLUS, et le champ reste. Le
+   * prompt ne donne plus AUCUN poids d'assiette: il donne la FORME (un tiers de
+   * féculent, un quart de protéine, un gras, les légumes par-dessus) et laisse
+   * la masse au moteur. Le corps continue donc de dimensionner, mais il le fait
+   * seul — plus aucune phrase générique ne peut le contredire.
    *
    * REQUIS, `T | null`, jamais `T?`, et le type porte sa propre garde: le
    * plancher TCA est un champ OBLIGATOIRE de `MealBodyContext` (FF-030 R5).
@@ -3591,6 +3855,28 @@ export function buildMealPrompt(args: {
    */
   today?: string | null;
   /**
+   * LA DATE D'OUVERTURE DE LA FENÊTRE (ISO), dans le fuseau de l'élève.
+   *
+   * ⛔ ELLE EXISTE PARCE QUE LES JETONS DE JOUR NE SUFFISENT PAS À SITUER UNE
+   * SEMAINE. `mon`…`sun` sont SEPT noms: ils ordonnent les jours d'une fenêtre,
+   * ils ne disent pas DE QUELLE semaine il s'agit. Tant que le produit
+   * n'acceptait qu'un départ dans la semaine en cours, « today is: wed » suffisait
+   * à l'ancrer. Depuis le 2026-09-06, le départ est LIBRE (seul le passé est
+   * refusé), et deux fenêtres peuvent porter exactement la même liste de jetons —
+   * à sept jours d'écart, le premier jeton est même celui d'AUJOURD'HUI.
+   *
+   * ⚠️ C'EST DONC ELLE QUI REMPLACE LA GARDE RETIRÉE, et pas une reformulation
+   * de plus. `windowStartsBeyondDayTokens` refusait `400 window_beyond_this_week`
+   * pour que la contradiction n'atteigne jamais le modèle; on la rend maintenant
+   * IMPOSSIBLE en nommant la date, au lieu d'interdire le geste qui la produit.
+   * Voir la tombe dans `meal_plan_window.ts`.
+   *
+   * `null`/absent ⇒ aucune ligne, et la liste des jours reste ordonnée par
+   * elle-même — le comportement d'avant ce lot pour tout appelant qui ne la
+   * passe pas.
+   */
+  windowStartsOn?: string | null;
+  /**
    * LE PAYS OÙ L'ÉLÈVE FAIT SES COURSES (ISO-3166 alpha-2), ou `null`.
    *
    * Une saison n'existe pas dans l'absolu: août est l'été en France et l'hiver
@@ -3647,6 +3933,31 @@ export function buildMealPrompt(args: {
    * propriété manquante ne compile pas.
    */
   budgetAmount: number | null;
+  /**
+   * ⛔ LE PLANCHER DE CE PLAN-LÀ — sous lui, le plafond ne s'écrit PAS.
+   *
+   * ── POURQUOI UN PLAFOND IMPOSSIBLE EST PIRE QU'AUCUN PLAFOND ─────────────
+   * Le modèle ne refuse jamais un budget: il COUPE, dans l'ordre que la ligne
+   * suivante lui donne, et quand l'ordre ne suffit plus il rend un plan qui a
+   * l'air de tenir. « budget for this plan: 1 » pour sept jours à quatre fait
+   * donc arbitrer toute la composition contre une contrainte imaginaire, et le
+   * seul poste qui reste à rogner est celui que tout le reste de ce prompt
+   * calcule. Ne rien dire rend un plan honnête; dire l'impossible rend un
+   * mensonge.
+   *
+   * ⚠️ PROPRIÉTÉ REQUISE, VALEUR NULLABLE — la même distinction que
+   * `budgetAmount` juste au-dessus, et pour la même cicatrice (`safetyBand`).
+   * `null` est une réponse: « cette demande n'a pas de plancher » (hors des
+   * deux marchés de la grille de prix, ou rien à nourrir). Une propriété
+   * manquante, elle, ne compile pas — et c'est ce qui a fait remonter les deux
+   * appelants au compilateur.
+   *
+   * ⛔ ET CE N'EST PAS UN REFUS. La fonction edge continue de composer: le
+   * refus appartient au CHAMP, sur les deux écrans qui composent, parce que
+   * c'est le seul endroit où quelqu'un peut corriger sa réponse. Ici on cesse
+   * seulement de faire semblant.
+   */
+  budgetFloor: number | null;
   /**
    * CE QUE L'ÉLÈVE A DIT SUR SA BOUFFE, promu depuis la conversation.
    *
@@ -3800,6 +4111,24 @@ export function buildMealPrompt(args: {
   hasFreezer: boolean;
   /**
    * ═════════════════════════════════════════════════════════════════════════
+   * LA CADENCE DE COURSES, TELLE QUE LE MOTEUR L'A DÉRIVÉE — 2026-09-09.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Neuvième fois que ce fichier écrit cette
+   * phrase, et le cas mesuré est exactement celui qu'un `?` aurait laissé
+   * passer: le plan de cuisine (`cooking_plan.ts`) savait « une course, trois
+   * sessions, congélateur », le moteur des vagues congelait la dinde à
+   * l'achat — et la consigne, qui n'en savait rien, faisait écrire au modèle
+   * « acheter la dinde fraîche le jour même ». `usesFreezer` n'avait AUCUN
+   * lecteur côté prompt.
+   *
+   * `null` = la cadence n'a jamais été déclarée (`capacity.plan === null`):
+   * le bloc de la fenêtre crue est alors celui d'avant ce lot, au caractère
+   * près. Sinon: la lecture de `capacity.plan`, jamais un second calcul.
+   */
+  groceryCadence: RawReachCadence | null;
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
    * « TOUT DANS UNE SESSION DE CUISINE » — LA DEMANDE, 2026-09-01.
    * ═════════════════════════════════════════════════════════════════════════
    *
@@ -3853,6 +4182,17 @@ export function buildMealPrompt(args: {
    * l'autre déclare inexistantes).
    */
   soloBoxes: boolean;
+  /**
+   * ⟳ 2026-09-07 — LE MODÈLE A-T-IL ÉCRIT UNE RECETTE STANDARD ? (v33)
+   *
+   * `true` quand le prompt lui a demandé UNE portion par plat et interdit les
+   * boîtes: la relecture change alors sur deux points, et seulement deux.
+   *
+   * ⛔ REQUIS ET SANS DÉFAUT, comme `soloBoxes` juste au-dessus. Un `?` ferait
+   * relire une sortie v33 avec les règles de v32 — c'est-à-dire jeter les
+   * casseroles d'une seule portion, qui sont le CAS NOMINAL de v33.
+   */
+  standardRecipe: boolean;
   /**
    * LA LANGUE DANS LAQUELLE CES PLATS SONT ÉCRITS. REQUIS, jamais `T?`.
    *
@@ -4191,7 +4531,10 @@ export function buildMealPrompt(args: {
     // veille quand il y en a une, puisque c'est ce jour-là qu'on achète pour
     // cuisiner. Compter depuis le premier jour QUI PORTE DES REPAS donnerait
     // une journée de fraîcheur de trop, dans le sens permissif.
-    ...rawReachLines(windowDays),
+    // ⟳ 2026-09-09 — ET LA SORTIE EST CELLE DE LA CADENCE: « une course »
+    // avec congélateur fait congeler à l'achat, pas racheter la veille. Voir
+    // `RawReachCadence`.
+    ...rawReachLines(windowDays, args.groceryCadence),
     ...(args.cookingTimeMin
       ? [
         `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
@@ -4252,7 +4595,13 @@ export function buildMealPrompt(args: {
     // La consigne dit QUOI SACRIFIER, dans l'ordre. « Reste dans le budget »
     // seul laisse le modèle rogner sur les portions — c'est-à-dire sur la
     // seule chose que le reste de ce prompt calcule.
-    ...(args.budgetAmount !== null
+    // ⛔ SOUS LE PLANCHER, CE BLOC ENTIER DISPARAÎT — les deux lignes, pas
+    // seulement le chiffre. Garder l'ordre de sacrifice sans le montant
+    // demanderait au modèle de renoncer à la viande sans lui dire pourquoi,
+    // c'est-à-dire d'appauvrir un plan au nom d'une contrainte qu'on vient de
+    // juger inapplicable.
+    ...(args.budgetAmount !== null &&
+        (args.budgetFloor === null || args.budgetAmount >= args.budgetFloor)
       ? [
         `budget for this plan: ${args.budgetAmount}, in the local currency of ` +
         "their country. It covers the WHOLE shopping list for this stretch, " +
@@ -4351,10 +4700,16 @@ export function buildMealPrompt(args: {
     "== THIS STUDENT ==",
     // ⛔ v15 — NOMMER L'IGNORANCE DU CORPS A ÉTÉ TENTÉ ICI, PUIS RENDU.
     //
-    // Le constat tient: pour un compte neuf, la section entière disparaît, et
+    // Le constat tenait: pour un compte neuf, la section entière disparaît, et
     // rien ne dit au modèle qu'il ne sait rien — pendant que le prompt système
-    // lui DEMANDE de dimensionner (« a full lunch or dinner for one adult is a
-    // plate of roughly 600 to 750 g ») sans jamais dire de qui.
+    // lui DEMANDAIT de dimensionner (« a full lunch or dinner for one adult is
+    // a plate of roughly 600 to 750 g ») sans jamais dire de qui.
+    //
+    // ⟳ LOT C (2026-09-11) — LA MOITIÉ QUI RENDAIT CE TROU COÛTEUX EST PARTIE.
+    // Le prompt système ne demande plus de masse d'assiette du tout: il demande
+    // une FORME, et c'est `applySizing` qui décide des grammes. Ne rien savoir
+    // du corps ne fait donc plus écrire de nombre au hasard — ça fait écrire une
+    // recette, ce qui est exactement ce qu'on veut d'un compte neuf.
     //
     // ⚠️ ET LA LIGNE QUI LE DIRAIT EST INTERDITE PAR UNE RAISON DE SÉCURITÉ,
     // pas par du goût. `meal_body_test.ts::"un corps entièrement inconnu SOUS
@@ -4730,16 +5085,76 @@ export function buildMealPrompt(args: {
         "stretch. Most lunches and dinners must therefore come from BATCHES — " +
         "one cooking session, several servings, several days, declared in " +
         "`batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.",
+        // ── ⛔ UNE RECETTE SE CUISINE UNE FOIS DANS LA FENÊTRE — 2026-09-07 ──
+        //
+        // Mesuré sur le run `be373339…` (foyer de trois, six jours): TROIS
+        // casseroles de muffins aux œufs, une par session (lundi, mercredi,
+        // vendredi), 18 œufs chacune, et le même petit-déjeuner six matins de
+        // suite. Le modèle avait respecté la lettre de « never three days in a
+        // row »: il avait renommé ses casseroles « du lundi », « du mercredi »,
+        // « du vendredi » et changé un légume. Rapporté à l'écran: « pourquoi il
+        // y a des muffins aux œufs toute la semaine ».
+        //
+        // Décision produit, mot pour mot: « le but est de varier, il ne peut pas
+        // y avoir deux identiques cuisinés la même semaine (dans deux sessions de
+        // cuisine différentes bien entendu) ». Un LOT qui couvre plusieurs jours
+        // reste le geste voulu — c'est la phrase juste au-dessus —; ce qui est
+        // refusé est de REFAIRE la même préparation dans une autre session.
+        //
+        // ⚠️ ELLE NOMME L'ÉCHAPPATOIRE MESURÉE (renommer par le jour), et elle
+        // dit que les petits-déjeuners comptent: « main dish » dans la ligne de
+        // variété laissait le modèle en exclure le matin. Sans les deux, une
+        // règle qualitative est une règle qu'il applique quand ça l'arrange.
+        "A batch may feed several days, but a recipe is cooked ONCE in the " +
+        "stretch: no two cooking sessions make the same preparation, and " +
+        "renaming it by its day (\"Monday's egg muffins\", \"Wednesday's egg " +
+        "muffins\") or swapping one vegetable does not make it a different " +
+        "one. Breakfasts count like any other meal. When the same slot needs " +
+        "covering again later in the stretch, cook something else.",
       ]
       : []),
     args.slot ? `meal: ${args.slot}` : "meal: whichever fits",
     // LE JOUR OÙ L'ON EST, et il n'y était pas. Le modèle repartait de lundi
     // par habitude: un plan généré le mercredi rendait trois jours déjà passés.
     ...(args.todayToken ? [`today is: ${args.todayToken}`] : []),
+    // ── ⛔ LA CONSIGNE DES JOURS, ET ELLE A CHANGÉ DE PIVOT (2026-09-06) ──
+    //
+    // Elle finissait par « Do not start earlier than today ». Cette phrase
+    // n'était juste que tant que la fenêtre commençait forcément dans la
+    // semaine en cours: demandée un mercredi pour un départ mardi prochain,
+    // elle disait au modèle de ne pas commencer avant `wed` au-dessus d'une
+    // liste qui commence par `tue`. Il a refusé EN TOUTES LETTRES — `422
+    // empty_meal`, `lock: disarmed_empty_text`, **après 6,2 s facturées**
+    // (mesuré en HTTP réel le 2026-08-12). Ce n'était pas de la
+    // désobéissance: les deux lignes se contredisaient, et aucune réponse
+    // n'était juste.
+    //
+    // Le lot du 2026-08-12 a répondu en INTERDISANT le geste
+    // (`windowStartsBeyondDayTokens`). Le 2026-09-06 a renversé cette décision
+    // — un départ libre est une demande produit, « n'importe qui peut
+    // sélectionner la date de début librement » —, donc la contradiction doit
+    // être réparée plutôt qu'évitée.
+    //
+    // ⛔ LE PIVOT EST LA FENÊTRE, PLUS AUJOURD'HUI. La liste est ancrée par sa
+    // DATE d'ouverture, qui est un fait non ambigu, et non par sa position
+    // relative à `today`. « today is: … » et « today's date: … » restent
+    // au-dessus: ils servent la saison et le ton, ils ne commandent plus
+    // l'ordre.
+    //
+    // ⚠️ ET « ne décale pas pour commencer aujourd'hui » REMPLACE LA MOITIÉ
+    // UTILE de l'ancienne phrase. Elle existait aussi contre un défaut réel —
+    // le modèle repartait de lundi par habitude et rendait des jours déjà
+    // passés. Une liste ancrée sur une date dit la même chose sans jamais
+    // pouvoir se contredire.
     ...(daysToEat.length > 0
       ? [
+        ...(args.windowStartsOn
+          ? [`the stretch opens on ${args.windowStartsOn} (ISO date)`]
+          : []),
         `days to fill, in this order: ${daysToEat.join(", ")}`,
-        "Do not use any other day token. Do not start earlier than today.",
+        "Do not use any other day token. Fill exactly those days, in that " +
+        "order, starting at the first one -- do not shift the list to begin " +
+        "today, and do not add a day before it.",
       ]
       : []),
     // ── LE JOUR DE CUISINE QUI NE PORTE AUCUN REPAS ────────────────────────
@@ -4838,6 +5253,49 @@ function readDeclaredGroup(
 }
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ LOT D (2026-09-11) — LA STRUCTURE DE CUISSON, DÉCLARÉE PAR LE MODÈLE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ MÊME PATRON QUE `for_member_id`, `preparation_id`, `same_day` ET `group`:
+ * inventé par le modèle, vérifié contre une liste fermée, JETÉ et COMPTÉ quand
+ * il n'y est pas. Ce qui est refusé ici, c'est de DÉCOUPER LA PROSE de la
+ * recette pour deviner ce qui tient une sauce — le plan l'interdit nommément,
+ * et ce dépôt a mesuré 12 faux positifs sur 12 la dernière fois qu'il a écrit
+ * un rapprochement maison.
+ *
+ * ⚠️ CE PARSEUR NE VALIDE NI LES RÔLES, NI LES LIENS, NI LA COUVERTURE DES
+ * LIGNES. Il TRANSPORTE ce que le modèle a écrit; c'est `bodiesOfUnit`
+ * (`culinary_structure.ts`) qui décide, et qui retombe sur le traitement
+ * conservateur au premier défaut. Deux endroits pour une même décision
+ * rendraient le jour où elle change deux réponses différentes.
+ */
+function readComponents(
+  raw: Record<string, unknown>,
+): { id: string; role: string | null; partOf: string | null }[] {
+  const list = raw.components;
+  if (!Array.isArray(list)) return [];
+  const out: { id: string; role: string | null; partOf: string | null }[] = [];
+  for (const item of list) {
+    if (typeof item !== "object" || item === null) continue;
+    const rec = item as Record<string, unknown>;
+    const id = cleanText(rec.id);
+    if (!id) continue;
+    out.push({
+      id,
+      role: cleanText(rec.role) || null,
+      partOf: cleanText(rec.part_of ?? rec.partOf) || null,
+    });
+  }
+  return out;
+}
+
+/** Le composant qu'une ligne cite. Vide ⇒ `null`, et le bloc devient conservateur. */
+function readPart(ing: Record<string, unknown>): string | null {
+  return cleanText(ing.part) || null;
+}
+
+/**
  * Une durée en minutes, ou `null`.
  *
  * ── PAS DE ZÉRO PAR DÉFAUT ────────────────────────────────────────────────
@@ -4888,7 +5346,20 @@ function readStructuredQuantity(
   ing: Record<string, unknown>,
   composition: CompositionIndex | null,
   term: string,
-): Pick<DishIngredient, "amount" | "unit" | "state" | "gramsRaw" | "quantitySource"> {
+  /**
+   * ⟳ LOT C (2026-09-11) — CE QU'ON A DÉCIDÉ DE L'IDENTIFIANT DE CETTE LIGNE.
+   *
+   * ⛔ REQUIS, jamais `?`. Les grammes se calculent DEPUIS la référence: laisser
+   * ce paramètre optionnel ferait retomber un appelant oublieux sur le chemin
+   * par terme libre — c'est-à-dire sur le défaut mesuré que le lot ferme — et
+   * la seule preuve serait une assiette. Le compilateur est le seul recenseur
+   * d'appelants qui ne mente pas.
+   */
+  reading: RefReading,
+): Pick<
+  DishIngredient,
+  "ref" | "refRefused" | "amount" | "unit" | "state" | "gramsRaw" | "quantitySource"
+> {
   const rawAmount = Number(ing.amount);
   const amount = Number.isFinite(rawAmount) && rawAmount > 0 ? rawAmount : null;
   const unitRaw = cleanText(ing.unit).toLowerCase();
@@ -4924,12 +5395,20 @@ function readStructuredQuantity(
   // `null`, et 60+ chaînes de refus sont testées une par une.
   const weighable = weighableQuantityOf({ amount, unit, quantity: cleanText(ing.quantity) });
 
+  const ref = reading.slug;
+  const refRefused = reading.outcome === "unknown" ||
+    reading.outcome === "not_composable";
+
   return {
+    ref,
+    refRefused,
     amount,
     unit,
     state,
     gramsRaw: gramsRawForIngredient(composition, {
       term,
+      ref,
+      refRefused,
       quantity: cleanText(ing.quantity),
       amount,
       unit,
@@ -4963,10 +5442,58 @@ function readStructuredQuantity(
  *
  * PURE: aucun I/O, aucune horloge. `composition === null` ⇒ `null`, comme avant.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C (2026-09-11) — LA RÉFÉRENCE D'UNE LIGNE: L'IDENTIFIANT D'ABORD, LE
+ * TERME ENSUITE, ET RIEN DU TOUT QUAND L'IDENTIFIANT A ÉTÉ REFUSÉ.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ UN SEUL CORPS, TROIS LECTEURS. `gramsRawForIngredient`,
+ * `preparationReadyGrams` et `preparationReadyKcal` résolvaient chacun par
+ * `resolveIngredient(composition, ing.term)`. Trois copies de la même décision
+ * auraient divergé au premier ajustement — et c'est celle qu'on relit le moins
+ * qui aurait gardé le chemin par terme libre.
+ *
+ * ⛔ L'ORDRE EST LE CONTRAT: un identifiant ACCEPTÉ gagne sur le terme, sans
+ * exception. C'est ce qui ferme le défaut mesuré de l'enquête du 2026-09-11:
+ * `resolveIngredient` essaie le slug direct avant les alias, donc le terme
+ * français « prune » atteint le slug anglais `prune` (fruit sec, 229 kcal) et
+ * aucune erreur de résolution ne peut apparaître. L'identifiant, lui, a été lu
+ * dans une liste.
+ *
+ * ⛔ ET UN IDENTIFIANT REFUSÉ REND `null`, il ne retombe PAS sur le terme.
+ * « Sans rapprochement approximatif de secours » est la demande explicite du
+ * chantier, et c'est la seule lecture honnête: un modèle qui écrit un
+ * identifiant AFFIRME savoir de quel aliment il parle. Le peser quand même par
+ * son terme reviendrait au chemin qui a servi du raisin sec (321 kcal/100 g)
+ * pour du raisin frais (68,9).
+ */
+/**
+ * ⟳ LOT A (2026-09-11) — LE CORPS EST PARTI DANS `food_composition.ts`.
+ *
+ * ⛔ POURQUOI IL A DÛ DÉMÉNAGER. Il vivait ici, c'est-à-dire dans le PARSEUR de
+ * génération — donc hors de portée de tout ce qui mesure une portion. Trois
+ * lecteurs de ce fichier l'appelaient; les quatre qui décident réellement d'une
+ * boîte (`preparation_mass`, `plan_proportion_units`, `plan_energy`,
+ * `box_densify`) repartaient du libellé. Le module commun de composition est le
+ * seul endroit que les deux moitiés partagent.
+ *
+ * ⚠️ CE N'EST PLUS QU'UNE FAÇADE, et elle reste parce que ~cinq appelants la
+ * nomment. Aucune règle n'est écrite ici: `resolveCompositionLine` décide.
+ */
+export function refForIngredient(
+  composition: CompositionIndex | null,
+  ing: { term: string; ref: string | null; refRefused: boolean },
+): CompositionRef | null {
+  return resolveCompositionLine(composition, ing).ref;
+}
+
 export function gramsRawForIngredient(
   composition: CompositionIndex | null,
   ing: {
     term: string;
+    ref: string | null;
+    refRefused: boolean;
     quantity: string | null;
     amount: number | null;
     unit: CompositionUnit | null;
@@ -4974,7 +5501,7 @@ export function gramsRawForIngredient(
   },
 ): number | null {
   if (!composition) return null;
-  const ref = resolveIngredient(composition, ing.term);
+  const ref = refForIngredient(composition, ing);
   if (!ref) return null;
   const weighable = weighableQuantityOf({
     amount: ing.amount,
@@ -4986,6 +5513,7 @@ export function gramsRawForIngredient(
     unit: weighable.unit,
     state: ing.state,
     yieldClass: ref.yieldClass,
+    yieldFactor: ref.yieldFactor,
     unitGrams: ref.unitGrams,
   });
 }
@@ -5073,7 +5601,10 @@ export function preparationReadyGrams(
   const refs: { ref: CompositionRef; gramsRaw: number }[] = [];
   for (const ing of ingredients) {
     if (ing.gramsRaw === null) return null;
-    const ref = resolveIngredient(composition, ing.term);
+    // ⟳ LOT C (2026-09-11) — `refForIngredient` et plus `resolveIngredient`:
+    // l'identifiant rendu par le modèle gagne sur le terme libre, et un
+    // identifiant REFUSÉ ne retombe pas sur le terme.
+    const ref = refForIngredient(composition, ing);
     if (!ref) return null;
     refs.push({ ref, gramsRaw: ing.gramsRaw });
   }
@@ -5081,7 +5612,60 @@ export function preparationReadyGrams(
   let total = 0;
   for (const { ref, gramsRaw } of refs) {
     if (absorbs && ref.foodGroupRef === "water") continue;
-    total += gramsRaw * YIELD_FACTORS[ref.yieldClass];
+    total += gramsRaw * yieldFactorOf(ref);
+  }
+  return total;
+}
+
+/**
+ * ⟳ 2026-09-10 · LOT 5 — L'ÉNERGIE D'UNE CASSEROLE, MESURÉE COMME SA MASSE.
+ *
+ * ⛔ ELLE EXISTE POUR UNE VÉRIFICATION, PAS POUR UN CALCUL DE PLUS. Le
+ * chantier exige que « le résultat mesuré soit le payload réellement
+ * enregistré ». Or la lane du foyer MESURE les plats (`measureDish`, bloc L9),
+ * puis REGRAMME les casseroles bien plus bas (croissance et rétrécissement
+ * d'identité) — et écrit ensuite la ligne. Entre les deux, deux choses peuvent
+ * déplacer la densité réelle du pot:
+ *   · un ingrédient PLAFONNÉ par `scaleIngredients` casse la proportionnalité;
+ *   · une casserole RETIRÉE emporte ce que des plats y puisaient.
+ * Sans une seconde lecture, la ligne écrite porte une énergie mesurée sur un
+ * pot qui n'existe plus.
+ *
+ * ⚠️ MÊME RÉSOLUTION, MÊMES ABSTENTIONS QUE `preparationReadyGrams`: un
+ * ingrédient sans grammes ou sans référence rend `null` pour la casserole
+ * entière. Un demi-total serait pire qu'aucun — il aurait l'air d'une mesure.
+ *
+ * ⚠️ ET LA MÊME RÈGLE D'EAU: l'eau listée à côté d'un grain qui absorbe est
+ * déjà dans le facteur de rendement, donc elle ne compte ni en masse ni en
+ * énergie (elle n'en porte pas, mais l'exclure des deux garde les deux
+ * fonctions strictement parallèles).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function preparationReadyKcal(
+  ingredients: readonly DishIngredient[],
+  composition: CompositionIndex | null,
+): number | null {
+  if (composition === null || ingredients.length === 0) return null;
+  let total = 0;
+  const refs: { ref: CompositionRef; gramsRaw: number }[] = [];
+  for (const ing of ingredients) {
+    if (ing.gramsRaw === null) return null;
+    // ⟳ LOT C (2026-09-11) — `refForIngredient` et plus `resolveIngredient`:
+    // l'identifiant rendu par le modèle gagne sur le terme libre, et un
+    // identifiant REFUSÉ ne retombe pas sur le terme.
+    const ref = refForIngredient(composition, ing);
+    if (!ref) return null;
+    refs.push({ ref, gramsRaw: ing.gramsRaw });
+  }
+  const absorbs = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs");
+  for (const { ref, gramsRaw } of refs) {
+    if (absorbs && ref.foodGroupRef === "water") continue;
+    // ⚠️ `energyKcal` EST POUR 100 g CRUS, et `gramsRaw` est cru: les deux se
+    // touchent sans facteur de rendement. C'est le rendement qui change la
+    // MASSE servie, pas l'énergie — une casserole ne gagne pas de calories en
+    // absorbant de l'eau.
+    total += (gramsRaw * ref.energyKcal) / 100;
   }
   return total;
 }
@@ -5422,6 +6006,15 @@ export function parseGeneratedMeal(
      */
     soloBoxes: boolean;
     /**
+     * ⟳ 2026-09-07 — RECETTE STANDARD (v33). Voir la déclaration jumelle sur
+     * `MealPromptArgs`: `true` fait accepter `servings_made: 1`, qui est le cas
+     * NOMINAL quand chaque plat tire une portion de sa casserole.
+     *
+     * ⛔ REQUIS ET SANS DÉFAUT: un `?` relirait une sortie v33 avec les règles
+     * de v32 et jetterait ses casseroles.
+     */
+    standardRecipe: boolean;
+    /**
      * LE JOUR DE CUISINE QUI NE PORTE AUCUN REPAS — « je cuisine la veille ».
      *
      * ⛔ REQUIS ET NULLABLE, et il traverse jusqu'ici parce que DEUX gardes en
@@ -5495,6 +6088,30 @@ export function parseGeneratedMeal(
      * doit jamais coûter un dîner à un élève.
      */
     composition: CompositionIndex | null;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * LOT C (2026-09-11) — LA PORTE DE COMPOSITION DU LOT A, INJECTÉE.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ⚠️ OPTIONNEL, ET SON DÉFAUT EST LA PORTE FERMÉE — c'est ce qui évite ici
+     * la cicatrice « paramètre optionnel = garde désarmée ». Le défaut est
+     * `isComposable` (`food_reference_manifest.ts`, lot A): un appelant qui
+     * l'oublie obtient la règle, pas son absence. Le rendre REQUIS aurait cassé
+     * le typecheck des fonctions edge, qui appartiennent au lot E et que ce lot
+     * n'a pas le droit de modifier.
+     *
+     * ⛔ CE QUE CE PARAMÈTRE SERT ALORS À FAIRE: l'OUVRIR sciemment, et
+     * seulement pour une MESURE. Arbitrage ② du socle — « la porte est à la
+     * COMPOSITION, pas à la mesure »: rejouer un plan historique doit rester
+     * possible, et `ANY_INDEXED_REF` est le prédicat qui le permet, nommé pour
+     * qu'on voie ce qu'il désarme.
+     *
+     * ⚠️ ET LE COMPTEUR RESTE: `ref_refused` sépare `unknown` (identifiant
+     * inventé) de `not_composable` (identifiant réel que le manifeste refuse).
+     * Sans lui, une porte jamais franchie et une porte jamais armée rendraient
+     * le même zéro.
+     */
+    composable?: ComposablePredicate;
     /**
      * FF-051 — LES MÊMES APPORTS QUE CEUX PASSÉS À `buildMealPrompt`.
      *
@@ -5628,6 +6245,9 @@ export function parseGeneratedMeal(
   },
 ): GeneratedMeal {
   const issues: string[] = [];
+  // ⟳ LOT C — LE DÉFAUT EST RÉSOLU UNE FOIS, ICI, ET C'EST LA PORTE FERMÉE.
+  // Le répéter à chaque site d'appel ferait deux lectures de la même décision.
+  const composable = args.composable ?? isComposable;
   const rejectedNumeric: string[] = [];
   /**
    * COMBIEN DE DÉROULÉS DE SESSION PORTENT ENCORE UN POIDS OU UN COMPTE DE
@@ -5637,6 +6257,29 @@ export function parseGeneratedMeal(
    */
   let runThroughQuantity = 0;
   const rejectedAisles: string[] = [];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C (2026-09-11) — CE QUE LE MODÈLE A FAIT DES IDENTIFIANTS
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ QUATRE CASES, ET C'EST LE POINT. Ce dépôt sait qu'un champ déclaré par le
+   * modèle sans compteur ressemble exactement à un champ qu'il honore
+   * (`model-declared-fields-need-a-counter`). Un seul chiffre — « 12 lignes non
+   * pesées » — confondrait trois causes qui appellent trois corrections
+   * opposées:
+   *   · `absent`         le catalogue n'a pas été servi, ou l'aliment n'y est
+   *                      pas: c'est ATTENDU, et ce n'est pas une faute;
+   *   · `unknown`        l'identifiant a été INVENTÉ: durcir la consigne;
+   *   · `not_composable` il existe mais le manifeste le refuse: lot A;
+   *   · `accepted`       le dénominateur sans lequel les trois autres ne
+   *                      veulent rien dire.
+   */
+  const refTally: Record<RefOutcome, number> = {
+    absent: 0,
+    accepted: 0,
+    unknown: 0,
+    not_composable: 0,
+  };
   let unstructuredIngredients = 0;
   /** Les aliments DENSES laissés sans grammes — la part qui coûte le verdict. */
   const unweighedDenseTerms: string[] = [];
@@ -5994,7 +6637,16 @@ export function parseGeneratedMeal(
       continue;
     }
     const made = Number(prep.servings_made);
-    if (!Number.isFinite(made) || (secondDishAsked ? made < 1 : made <= 1)) {
+    // ⟳ 2026-09-07 — v33 ACCEPTE `servings_made: 1`, ET C'EST LE CAS NOMINAL.
+    // Sous recette standard, une casserole est écrite POUR LES PLATS QUI LA
+    // TIRENT et chaque plat en tire UNE portion: « une casserole cuisinée la
+    // veille pour un seul plat » est exactement ce que le prompt demande. La
+    // garde d'origine — « une préparation d'une portion n'en est pas une » —
+    // était vraie quand le modèle écrivait des plats de tablée; elle jette
+    // maintenant le nominal, et c'est le défaut que `secondDishAsked` avait
+    // déjà mesuré une fois (`prep_zoe_tuna_pasta`, run réel du 2026-08-12).
+    const onePortionOk = secondDishAsked || args.standardRecipe;
+    if (!Number.isFinite(made) || (onePortionOk ? made < 1 : made <= 1)) {
       // ── UNE PORTION: ÇA DÉPEND DE COMBIEN DE BOUCHES ON SERT ────────────
       //
       // SANS FUSION, LA GARDE RESTE ENTIÈRE, et elle est juste: une préparation
@@ -6017,7 +6669,7 @@ export function parseGeneratedMeal(
       // `servings_made` illisible tombent dans les deux cas: une préparation qui
       // ne nourrit personne n'est pas un plat dédié, c'est une erreur de sortie.
       issues.push(
-        secondDishAsked
+        onePortionOk
           ? `preparations[${i}]: servings_made must be >= 1, dropped`
           : `preparations[${i}]: servings_made must be > 1, dropped`,
       );
@@ -6046,12 +6698,20 @@ export function parseGeneratedMeal(
         if (prepGroup.group === null) regimeBelt.groups_refused++;
         else regimeBelt.groups_valid++;
       }
+      // ⟳ LOT C — L'IDENTIFIANT EST LU ICI AUSSI. Une casserole porte l'essentiel
+      // de la masse et de l'énergie d'une assiette (`preparationReadyGrams`):
+      // n'exiger l'identifiant que sur les plats laisserait le gros du calcul au
+      // terme libre, c'est-à-dire au chemin qui a confondu raisin frais et sec.
+      const prepReading = readRefSlug(ing.ref, args.composition, composable);
+      refTally[prepReading.outcome]++;
       prepIngredients.push({
         term,
         quantity,
         in_pantry: isInPantry(term, args.pantry),
-        ...readStructuredQuantity(ing, args.composition, term),
+        ...readStructuredQuantity(ing, args.composition, term, prepReading),
         group: prepGroup.group,
+        // ⟳ LOT D — le composant culinaire cité par la ligne, transporté tel quel.
+        part: readPart(ing),
       });
     }
     if (prepNumeric) {
@@ -6069,6 +6729,8 @@ export function parseGeneratedMeal(
       activeMinutes: readMinutes(prep.active_minutes),
       totalMinutes: readMinutes(prep.total_minutes),
       cookOn: DAY_TOKENS.includes(cookOnRaw) ? cookOnRaw : null,
+      // ⟳ LOT D — la structure de cuisson déclarée; VALIDÉE plus tard, jamais ici.
+      components: readComponents(prep),
     });
   }
   const preparationIds = new Set(preparations.map((p) => p.id));
@@ -6827,7 +7489,9 @@ export function parseGeneratedMeal(
         if (declaredGroup.group === null) regimeBelt.groups_refused++;
         else regimeBelt.groups_valid++;
       }
-      const structured = readStructuredQuantity(ing, args.composition, term);
+      const reading = readRefSlug(ing.ref, args.composition, composable);
+      refTally[reading.outcome]++;
+      const structured = readStructuredQuantity(ing, args.composition, term, reading);
       // ── CE QUI N'A PAS PU ÊTRE PESÉ EST COMPTÉ ────────────────────────
       // Sans ce compteur, un contrat de quantités structurées que le modèle
       // ignore ressemble exactement à un contrat qu'il honore: des grammes
@@ -6844,7 +7508,14 @@ export function parseGeneratedMeal(
         // se ressemblent, alors que le second coûte le plan et le premier
         // rien.
         if (args.composition) {
-          const ref = resolveIngredient(args.composition, term);
+          // ⟳ LOT C — la MÊME référence que celle qui a (ou n'a pas) pesé.
+          // Relire par terme libre ici ferait dire « cette huile est dense »
+          // à partir d'une ligne que le moteur a refusé de peser.
+          const ref = refForIngredient(args.composition, {
+            term,
+            ref: structured.ref,
+            refRefused: structured.refRefused,
+          });
           if (ref?.energyDense) unweighedDenseTerms.push(term);
         }
       }
@@ -6858,6 +7529,8 @@ export function parseGeneratedMeal(
         in_pantry: isInPantry(term, args.pantry),
         ...structured,
         group: declaredGroup.group,
+        // ⟳ LOT D — le composant culinaire cité par la ligne, transporté tel quel.
+        part: readPart(ing),
       });
     }
     if (numericInIngredients) {
@@ -7361,7 +8034,20 @@ export function parseGeneratedMeal(
                 `over the ${BOX_MAX_GRAMS}-gram ceiling for one item -- capped`,
             );
           }
-          items.push({ preparationId: rawPrep || null, term, grams });
+          // ⟳ LOT A — LE MODÈLE N'ÉCRIT PAS D'IDENTIFIANT SUR SES ITEMS DE
+          // CONTENANT, et on ne lui en invente pas un en rapprochant le terme
+          // d'une ligne d'ingrédient homonyme: deux lignes du même plat peuvent
+          // porter le même nom (sel de cuisson et sel de finition). Ces items
+          // suivent donc le chemin historique par le terme. Ceux que le MOTEUR
+          // écrit ensuite (`applySizing`) portent, eux, l'identité de leur
+          // ligne — et ce sont eux qui survivent sur la lane v4.
+          items.push({
+            preparationId: rawPrep || null,
+            term,
+            grams,
+            ref: null,
+            refRefused: false,
+          });
         }
       }
       // ══ CE QUI TOMBE, ET AVEC QUEL MOTIF ══════════════════════════════════
@@ -7693,6 +8379,26 @@ export function parseGeneratedMeal(
       method,
       // FF-061: la phrase EFFACÉE quand elle culpabilise, jamais la brute.
       why: safeWhy,
+      // ⟳ 2026-09-10 — LA VÉRIFICATION QUE LE MODÈLE DIT AVOIR FAITE.
+      // ⛔ LU, JAMAIS CRU. Rien ne décide sur ce nombre: le moteur pèse le plat
+      // comme avant. Il sert à comparer ce qu'il DIT avoir calculé à ce qu'on
+      // MESURE — et donc à savoir s'il calcule mal ou s'il vise mal.
+      // ⚠️ Une valeur absurde ne vaut pas mieux qu'une absence: au-delà de
+      // 900 kcal/100 g on est au-dessus de l'huile pure (884), donc ce n'est
+      // pas une densité de plat. On rend `null` plutôt que de journaliser un
+      // écart calculé contre un nombre qui ne veut rien dire.
+      densityCheck: (() => {
+        // ⛔ `d`, LE PLAT BRUT — PAS `raw`. Mesuré le 2026-09-10: écrit
+        // `raw.density_check`, le champ ressortait `null` sur 16 plats sur 16,
+        // et j'ai cru que le modèle ignorait la consigne. `raw` désigne autre
+        // chose dans cette portée; le plat rendu par le modèle est `d`. Un
+        // champ neuf lu sur le mauvais objet ressemble EXACTEMENT à un modèle
+        // qui n'obéit pas — et c'est le genre de conclusion qui fait durcir un
+        // prompt pour rien.
+        const brut = Number((d as Record<string, unknown>).density_check);
+        if (!Number.isFinite(brut) || brut <= 0 || brut > 900) return null;
+        return Math.round(brut * 10) / 10;
+      })(),
       honours_belief_keys: honours,
       uses,
       // LES CONTENANTS DU REPAS, POSÉS À LA CRÉATION comme `memberId` et
@@ -7706,6 +8412,10 @@ export function parseGeneratedMeal(
       exclusionBites: dishExclusionBites,
       memberId,
       sameDay,
+      // ⟳ LOT D — la structure de cuisson du FRAIS de ce plat, transportée
+      // telle quelle. `d` est le plat rendu par le modèle; `readComponents`
+      // ne valide rien, `bodiesOfUnit` décide.
+      components: readComponents(d as Record<string, unknown>),
     });
     keptSameDayFaults.push({
       invalid: sameDayInvalid,
@@ -8068,6 +8778,40 @@ export function parseGeneratedMeal(
   if (ingredientCount > 0 && unstructuredIngredients > 0) {
     issues.push(
       `structured_quantity_missing: ${unstructuredIngredients}/${ingredientCount} ingredients`,
+    );
+  }
+  // ══════════════════════════════════════════════════════════════════════════
+  // LOT C (2026-09-11) · CE QUE LES IDENTIFIANTS DE RÉFÉRENCE ONT DONNÉ
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ DEUX `issues` ET PAS UNE, PARCE QUE CE SONT DEUX FAITS DIFFÉRENTS.
+  //
+  //   · `ref_absent` — le modèle n'a écrit aucun identifiant. C'est le cas
+  //     NOMINAL tant que le catalogue n'est pas servi, et c'est aussi le cas
+  //     ATTENDU pour un aliment hors catalogue. Il sort avec son dénominateur:
+  //     sans lui, « 40 absents » ne dit pas si c'est tout le plan ou un quart.
+  //   · `ref_refused` — il a écrit un identifiant faux. Celui-là est une
+  //     DÉSOBÉISSANCE ou un référentiel troué, et les deux causes sont
+  //     séparées (`unknown` / `not_composable`).
+  //
+  // ⚠️ AUCUN PLAT N'EST JETÉ POUR ÇA. Le refus porte sur la PESÉE, jamais sur
+  // l'assiette: perdre un dîner parce qu'un modèle a mal recopié un slug
+  // échangerait le repas contre le confort du parseur. La ligne survit, elle
+  // n'est simplement pesée par personne — et ce silence-là est compté.
+  //
+  // ⚠️ LE DÉNOMINATEUR EST CELUI DES IDENTIFIANTS, PAS `ingredientCount`.
+  // `ingredientCount` ne compte que les lignes des PLATS; `refTally` compte
+  // aussi celles des préparations, où vit l'essentiel de la masse. Les diviser
+  // l'un par l'autre rendrait des taux au-dessus de 100 %.
+  const refLines = refTally.absent + refTally.accepted + refTally.unknown +
+    refTally.not_composable;
+  if (refTally.absent > 0 && refLines > 0) {
+    issues.push(`ref_absent: ${refTally.absent}/${refLines} ingredients`);
+  }
+  if (refTally.unknown > 0 || refTally.not_composable > 0) {
+    issues.push(
+      `ref_refused: ${refTally.unknown} unknown, ${refTally.not_composable} not_composable, ` +
+        `${refTally.accepted} accepted`,
     );
   }
   // ── LA PART DENSE, NOMMÉE ───────────────────────────────────────────────
@@ -8621,15 +9365,18 @@ export function parseGeneratedMeal(
     const groups = new Set<string>();
     let dishesWith = 0;
     for (const dish of dishes) {
-      const terms = [
-        ...dish.ingredients.map((i) => i.term),
-        ...dish.uses.flatMap((u) =>
-          (byId.get(u.preparationId)?.ingredients ?? []).map((i) => i.term)
-        ),
+      // ⟳ LOT A (2026-09-11) — LES LIGNES, PAS LEURS LIBELLÉS. Ce compteur
+      // aplatissait les ingrédients en `string[]` puis les résolvait par le
+      // terme: une ancre protéique dont le libellé français n'a pas d'alias ne
+      // comptait pas, alors que sa ligne portait un identifiant vérifié. Le
+      // plan sortait « moins varié » qu'il ne l'est.
+      const lignes: DishIngredient[] = [
+        ...dish.ingredients,
+        ...dish.uses.flatMap((u) => byId.get(u.preparationId)?.ingredients ?? []),
       ];
       let has = false;
-      for (const term of terms) {
-        const ref = resolveIngredient(index, term);
+      for (const ligne of lignes) {
+        const ref = resolveCompositionLine(index, ligne).ref;
         if (!ref || !set.has(String(ref.foodGroupRef))) continue;
         groups.add(String(ref.foodGroupRef));
         has = true;
@@ -8877,10 +9624,40 @@ export function parseGeneratedMeal(
     meals: boxedMeals.length,
     withBox: boxedMeals.filter((d) => d.boxes.length > 0).length,
   });
+  // ⟳ 2026-09-08 — CE QUE CETTE LIGNE MESURE, ET CE QU'ELLE NE MESURE PAS.
+  //
+  // ⛔ ELLE EST CALCULÉE DANS `parseGeneratedMeal`, donc sur LA SORTIE DU
+  // MODÈLE — pas sur le plan livré. L'ancienne formulation (« NOT ONE carries
+  // a box », « zero came back ») décrivait le PLAN, et c'est faux dès qu'un
+  // chemin déterministe autore les contenants en aval: `applySizing`
+  // (`portion_sizing.ts`, chemin `portion_v1`) fabrique les boîtes lui-même,
+  // avec des ids `box_<jour>_<créneau>_<rang>`, et la lane foyer les recolle
+  // dans `meal.dishes` AVANT le verrou des règles de maison.
+  //
+  // Mesuré le 2026-09-08, brouillon `65238bf8` (foyer d'une bouche, 1 jour):
+  // cette ligne annonçait « 3 containers were owed, zero came back » pendant
+  // que les QUATRE plats du plan livré portaient chacun leur boîte, grammes et
+  // destinataire compris (`box_wed_lunch_2`, 700 g). Un lecteur — humain ou
+  // agent — conclut « le plan est cassé » sur un plan correct.
+  //
+  // ⚠️ ON NE DÉSARME PAS L'ALARME, ON LA RENOMME. Le fait qu'elle porte reste
+  // vrai et reste utile: la consigne `SOLO_BOX_BLOCK` a été servie au modèle,
+  // et le modèle ne l'a pas suivie. C'est le signal qui dira s'il faut
+  // corriger le PROMPT — précédent explicite du run `5058be6a`, où le modèle
+  // avait obéi EN PROSE et sauté la clé de schéma. La taire rendrait cette
+  // régression invisible.
+  //
+  // ⛔ CE QUI RESTE OUVERT, NOMMÉ: les compteurs `boxes` de la réponse sont
+  // eux aussi figés à la lecture, donc un plan dont les boîtes sont autorées
+  // en aval sort avec `with_box: 0`. Les recalculer après `applySizing`
+  // demande de décider où vit la source de vérité des contenants — ce lot ne
+  // le fait pas, et ne touche NI un gramme, NI un couvercle, NI un nom.
   if (boxDelivery === "none_delivered") {
     issues.push(
-      `${boxedMeals.length} meals take from a batch and NOT ONE carries a box -- ` +
-        `${boxesExpected} containers were owed, zero came back`,
+      `model_returned_no_box: 0/${boxesExpected} -- ${boxedMeals.length} meals ` +
+        `take from a batch and the model emitted no box key; a deterministic ` +
+        `sizing path may still author them downstream, so this line is about ` +
+        `the MODEL's output, not about the shipped plan`,
     );
   }
   // ══════════════════════════════════════════════════════════════════════════
@@ -9040,6 +9817,39 @@ export function parseGeneratedMeal(
 function ingredientPayload(i: DishIngredient): Record<string, unknown> {
   return {
     term: i.term,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT C · L'IDENTIFIANT DE RÉFÉRENCE — 2026-09-11
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ÉCRIT MÊME À `null`, comme `group` et `quantity_source`, et pour la
+    // même raison: une clé absente ne se distingue pas d'un lot débranché. La
+    // conséquence à connaître avant de mesurer est la même aussi —
+    // `ing ? 'ref'` devient vrai partout, et la seule mesure qui dise quelque
+    // chose est `ing->>'ref' is not null`.
+    //
+    // ⛔ IL EST DANS `MEAL_TOKEN_FIELDS`, PAS DANS LES CHAMPS TRADUISIBLES. Le
+    // slug est anglais et ne paraît sur aucun écran; c'est `term` que l'élève
+    // lit. Le traduire le détacherait de la table qui le pèse — le piège de
+    // `preparations[].id`, mot pour mot.
+    ref: i.ref,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT A · LE REFUS SURVIT À L'ÉCRITURE — 2026-09-11
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ SANS CETTE CLÉ, UN REFUS NE DURAIT QUE LE TEMPS D'UNE GÉNÉRATION.
+    // `readRefSlug` ne rend JAMAIS un slug refusé: `ref` part donc à `null`
+    // pour « le modèle n'a rien écrit » ET pour « il a écrit un identifiant
+    // inventé ». Relu depuis la base, le second redevenait le premier, et la
+    // ligne repassait par le terme libre — c'est-à-dire par le rapprochement
+    // approximatif que le chantier interdit. Le plan l'écrit: « une ligne
+    // refusée ne redevient pas valide parce que sa référence a disparu à la
+    // sérialisation ».
+    //
+    // ⚠️ ÉCRITE MÊME À `false`, comme `group` et `quantity_source`. Conséquence
+    // à connaître avant de mesurer: `ing ? 'ref_refused'` devient vrai partout,
+    // et la seule mesure qui dise quelque chose est
+    // `(ing->>'ref_refused')::boolean`.
+    ref_refused: i.refRefused,
     quantity: i.quantity,
     in_pantry: i.in_pantry,
     amount: i.amount,
@@ -9081,6 +9891,17 @@ function ingredientPayload(i: DishIngredient): Record<string, unknown> {
     // mesurer — `ing ? 'quantity_source'` devient vrai partout, et la seule
     // mesure qui dise quelque chose est `ing->>'quantity_source' = 'prose'`.
     ...quantitySourcePayload(i.quantitySource),
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT D · LE COMPOSANT CULINAIRE — 2026-09-11
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ÉCRIT MÊME À `null`, comme `ref`, `group` et `quantity_source`: une
+    // clé absente ne se distingue pas d'un lot débranché. Il DOIT survivre à
+    // l'écriture, sinon un brouillon relu (`draft_adopt`) rejouerait
+    // l'ajustement sans structure — c'est-à-dire retomberait exactement sur la
+    // politique que ce lot retire. La seule mesure SQL qui dise quelque chose
+    // est `ing->>'part' is not null`.
+    part: i.part,
   };
 }
 
@@ -9145,6 +9966,12 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
         preparation_id: it.preparationId,
         term: it.term,
         grams: it.grams,
+        // ⟳ LOT A (2026-09-11) — L'IDENTITÉ SURVIT À L'ÉCRITURE, sinon elle
+        // n'a servi qu'à l'intérieur d'une fonction. Écrites MÊME À
+        // `null`/`false`, comme `group` et `quantity_source`: une clé absente
+        // ne se distingue pas d'un lot débranché.
+        ref: it.ref,
+        ref_refused: it.refRefused,
       })),
       legacy_total_grams: box.legacyTotalGrams,
     })),
@@ -9160,6 +9987,10 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
     // absence comme `null`, c'est-à-dire comme le plat de la table — ce que ces
     // plans-là étaient déjà pour tout le monde.
     member_id: d.memberId,
+    // ⟳ 2026-09-09 — LE COMPLÉMENT, ÉCRIT MÊME À `false`, même posture: le
+    // front lit `true` pour garder le plat de la table dans la case de cette
+    // personne au lieu de le cacher derrière son plat à elle.
+    complements_shared: d.complementsShared === true,
     // ── LOT 2 · LE GESTE DU JOUR J, ÉCRIT MÊME À `null` ──────────────────
     //
     // ⚠️ MÊME POSTURE QUE `member_id` JUSTE AU-DESSUS, ET POUR LA MÊME RAISON:
@@ -9175,7 +10006,16 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
       kind: d.sameDay.kind,
       minutes: d.sameDay.minutes,
     },
+    // ⟳ LOT D — LA STRUCTURE DE CUISSON, ÉCRITE MÊME VIDE. `[]` DIT « ce plat
+    // n'a pas déclaré de composants », ce qu'est tout plan antérieur au
+    // contrat; une clé absente ne le dirait pas.
+    components: d.components.map(componentPayload),
   }));
+}
+
+/** ⟳ LOT D — un composant culinaire en base. R1: clés ASCII, `part_of` en serpent. */
+function componentPayload(c: MealComponent): Record<string, unknown> {
+  return { id: c.id, role: c.role, part_of: c.partOf };
 }
 
 export function mealPreparationsPayload(
@@ -9190,6 +10030,8 @@ export function mealPreparationsPayload(
     active_minutes: p.activeMinutes,
     total_minutes: p.totalMinutes,
     cook_on: p.cookOn,
+    // ⟳ LOT D — voir `mealDishesPayload`: écrite même vide.
+    components: p.components.map(componentPayload),
   }));
 }
 

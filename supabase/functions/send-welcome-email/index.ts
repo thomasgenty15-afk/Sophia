@@ -6,19 +6,18 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 import { renderWelcomeEmail } from "./welcome_email.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
+import { appBaseUrl, unsubscribeUrl } from "../_shared/keel/lifecycle_email.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Adresse expéditeur (à configurer dans Resend)
-const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>"; 
+const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>";
 
-function appBaseUrl(): string {
-  // Pas de repli silencieux sur un domaine deviné: un lien d'email est une
-  // promesse, et une mauvaise URL dans un premier contact est irrattrapable.
-  return (Deno.env.get("APP_BASE_URL") ?? "https://sophia-coach.ai").trim()
-    .replace(/\/+$/, "");
-}
+// FF-063 lot 2 — `appBaseUrl()` vivait ICI, en local et non exporté. Elle est
+// passée dans `_shared/keel/lifecycle_email.ts` MOT POUR MOT, repli compris:
+// onze e-mails vont construire des liens, et une seconde définition de la
+// racine est une seconde façon d'envoyer quelqu'un sur un domaine mort.
 
 serve(async (req) => {
   let ctx = getRequestContext(req)
@@ -93,39 +92,67 @@ serve(async (req) => {
 
     // 3. Contenu Email
     //
-    // ── DE-WHATSAPP ──────────────────────────────────────────────────────────
-    // Cet email envoyait un lien `wa.me` à CHAQUE inscription, avec la phrase
-    // « ton téléphone a dû vibrer à l'instant ». C'était faux depuis la
-    // suppression de `whatsapp-optin`, et un premier contact qui ment sur ce
-    // qui vient de se passer est la pire façon d'ouvrir une relation.
-    // Il pointe maintenant vers la conversation, qui existe réellement.
-    const chatLink = `${appBaseUrl()}/app/chat`;
+    // ── FF-063 — LE LIEN VA SUR `/app/plan` ─────────────────────────────────
+    // Il pointait sur `/app/chat`, l'écran du produit PRÉCÉDENT. Depuis FF-060
+    // l'entrée est `/app/setup`, et elle se termine par une génération.
+    //
+    // On ne vise pourtant PAS `/app/setup` directement: `/app/plan` empile
+    // `KeelHouseholdRoute` (l'union solo/foyer, qui renvoie sur `/auth` sans
+    // session) et `KeelOnboardingGate` (qui renvoie sur `/app/setup` tant que
+    // `student_goals` est vide). Une seule adresse, correcte dans les trois
+    // cas — et ça retire le besoin de retarder l'envoi ou de brancher le texte
+    // sur un état qui, à la confirmation d'e-mail, est TOUJOURS vide.
+    //
+    // ⛔ NE PAS VISER `/app/today`: il est sous `KeelStudentRoute` seul, donc
+    // il exige `profiles.keel_role = 'student'`, posé par l'inscription libre
+    // et l'acceptation d'invitation — pas par la confirmation d'adresse.
+    const planLink = `${appBaseUrl()}/app/plan`;
 
-    // ── LA LANGUE DU COMPTE ───────────────────────────────────────────────
+    // ── LA LANGUE DU COMPTE, ET LE JETON DE SORTIE ────────────────────────
     //
     // Le webhook porte la ligne `profiles` entière, donc `locale` est là dans
     // le cas nominal. L'appel de secours (`{ email, name }`) ne la porte pas —
     // on la relit alors, plutôt que de deviner: se tromper ici coûte le PREMIER
     // mot qu'on adresse à quelqu'un, et il n'y a pas de deuxième premier mot.
+    //
+    // Le JETON, lui, se relit toujours: il n'est dans aucun webhook, et un
+    // premier contact sans lien de désinscription est celui qu'on n'a pas le
+    // droit d'envoyer.
     let profileLocale: string | null =
       String(userRecord.locale ?? "").trim() || null;
-    if (!profileLocale && userId) {
-      const { data: localeRow } = await supabase
+    let unsubscribeToken: string | null = null;
+    if (userId) {
+      const { data: profileRow } = await supabase
         .from("profiles")
-        .select("locale")
+        .select("locale, unsubscribe_token")
         .eq("id", userId)
         .maybeSingle();
-      profileLocale =
-        String((localeRow as { locale?: string | null } | null)?.locale ?? "")
-          .trim() || null;
+      const row = profileRow as
+        | { locale?: string | null; unsubscribe_token?: string | null }
+        | null;
+      if (!profileLocale) {
+        profileLocale = String(row?.locale ?? "").trim() || null;
+      }
+      unsubscribeToken = String(row?.unsubscribe_token ?? "").trim() || null;
     }
+    if (!unsubscribeToken) {
+      // R7 — fail loud. La colonne est `not null default gen_random_uuid()`
+      // depuis la migration 20260910120000: son absence veut dire que la base
+      // n'a pas reçu ce lot, et envoyer quand même produirait un e-mail sans
+      // sortie. On refuse, et le journal reste vierge pour que la prochaine
+      // tentative reparte proprement.
+      throw new Error("unsubscribe_token manquant: la migration FF-063 lot 0 n'est pas appliquée");
+    }
+
+    const locale = resolveArtifactLocale({
+      studentProfile: profileLocale,
+      tenantDefault: null,
+    });
     const rendered = renderWelcomeEmail({
       firstName: prenom,
-      chatUrl: chatLink,
-      locale: resolveArtifactLocale({
-        studentProfile: profileLocale,
-        tenantDefault: null,
-      }),
+      planUrl: planLink,
+      unsubscribeUrl: unsubscribeUrl(unsubscribeToken, locale),
+      locale,
     });
 
     // 4. Envoi via Resend (with MEGA_TEST_MODE skip + 429 retry/backoff)

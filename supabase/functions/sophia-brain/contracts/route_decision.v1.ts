@@ -8,7 +8,9 @@ export type ResponseOwner =
   // de `plan_realignment` qui est la lane de DÉCROCHAGE. Non collante: aucune
   // branche de continuation, la question se répond en un tour.
   | "plan_question"
-  | "keel_reengagement_resume_v1"
+  // ⟳ 2026-09-09 — `keel_reengagement_resume_v1` retiré de l'union: plus aucun
+  // owner possible, comme `feature_opportunity` en W2.A. Le pourquoi est dans
+  // `chat-inbound-v1`, à l'endroit qui armait l'état.
   // FF-056 — la divergence constatée. CONTINUATION SEULE: cet owner n'est
   // jamais sélectionné par un signal du dispatcher. Il s'arme hors
   // conversation, quand le batch du soir ouvre un épisode, et le runtime relit

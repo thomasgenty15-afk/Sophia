@@ -139,6 +139,8 @@ const PARSE_BASE = {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
 };
@@ -320,18 +322,21 @@ const PROMPT_ARGS = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   dietBlock: "",
   doctrineBlock: "",
   coachNoteBlock: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health",
+  goal: "maintenance",
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -358,12 +363,12 @@ const PROMPT_ARGS = {
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {
   assertEquals(dayPropertyPromptLines([]), []);
 
-  const empty = buildMealPrompt({ ...PROMPT_ARGS, dayProperties: [] });
+  const empty = buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, dayProperties: [] });
   const declared = parseDayProperties([
     { day: "sun", properties: ["batch_cook"] },
     { day: "mon", properties: ["leftovers"] },
   ]);
-  const with_ = buildMealPrompt({ ...PROMPT_ARGS, dayProperties: declared });
+  const with_ = buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, dayProperties: declared });
 
   // La branche EXISTE — sans ça le désarmement serait vrai parce que rien ne
   // marche, le piège de tous les tests de désarmement.

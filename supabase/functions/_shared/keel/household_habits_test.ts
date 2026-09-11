@@ -19,9 +19,9 @@ import {
   habitNoteFragment,
   ownMealSlots,
   type MemberHabit,
-  parseMemberExtras,
   parseMemberHabits,
   readHabitText,
+  parseMemberLight,
 } from "./household_habits.ts";
 import { EATING_OCCASIONS } from "./meal_generation.ts";
 import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
@@ -361,9 +361,11 @@ const MERE: PortionMember = {
   goal: "maintenance",
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 
 const FILS: PortionMember = {
@@ -372,16 +374,18 @@ const FILS: PortionMember = {
   goal: "muscle_gain",
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 
 Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS", () => {
   // ⚠️ LA SECONDE MOITIÉ DE LA GARANTIE D'ADDITIVITÉ. Les fragments sont vides,
   // la conséquence ne sort pas, et rien d'autre n'a bougé: un foyer qui n'a
   // rien déclaré reçoit le prompt d'hier.
-  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1);
+  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1, "legacy_measure");
   assertEquals(
     brief,
     [
@@ -478,6 +482,7 @@ Deno.test("L'HABITUDE ENTRE SUR SA LIGNE, ET SA CONSÉQUENCE EST DITE UNE FOIS",
     "one_dish",
     0,
     1,
+  "legacy_measure",
   );
   assert(
     brief.includes(
@@ -496,7 +501,7 @@ Deno.test("SANS PERSONNE DE MARQUÉE, la conséquence N'EST PAS énoncée", () =
   // ⚠️ MÊME DISCIPLINE QUE `anyBodyFacts` / `anyRhythm`: une consigne « quand
   // quelqu'un a son habitude… » servie à un foyer où personne n'en a apprend au
   // modèle qu'il existe un marquage, et l'invite à en inventer un.
-  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1);
+  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1, "legacy_measure");
   for (const line of HABIT_CONSEQUENCE) {
     assert(!brief.includes(line), `la conséquence sort sans prémisse: ${line}`);
   }
@@ -511,6 +516,7 @@ Deno.test("LA LIGNE LIBRE N'ARME PAS LA CONSÉQUENCE — elle ne marque personne
     "one_dish",
     0,
     1,
+  "legacy_measure",
   );
   assert(brief.includes("— usually: elle prend son cafe avant"), brief);
   for (const line of HABIT_CONSEQUENCE) {
@@ -571,77 +577,35 @@ Deno.test("⛔ la consigne RÉCLAME le plat et nomme sa clé", () => {
 });
 
 // ===========================================================================
-// LES EXTRAS PAR MOMENT — LE SECOND LECTEUR DE LA MÊME COLONNE
+// ⟳ 2026-09-10 — LE SECOND LECTEUR DES EXTRAS A ÉTÉ SUPPRIMÉ
 //
-// ⛔ POURQUOI DEUX PARSEURS SUR `slots`, ET PAS UN. `parseMemberHabits` JETTE
-// les entrées sans prose: une entrée muette ferait inventer le modèle. Or une
-// entrée « midi, rien à côté du plat » est exactement ça — muette et porteuse.
-// Les fondre perdrait la réponse la plus fréquente du lot.
+// ⛔ NEUF CAS ONT DISPARU D'ICI. `parseMemberExtras` lisait
+// `household_member_habits.slots[].extras` — les cinq jetons de ce qui était
+// pris À CÔTÉ du plat — pour les retrancher de la cible du repas. Décision
+// produit du 2026-09-10: le plan dimensionne les aliments qu'il prévoit.
+//
+// ⚠️ LA COLONNE N'EST PAS TOUCHÉE, ET LES RÉPONSES DÉJÀ ÉCRITES Y RESTENT.
+// C'est la LECTURE qui est retirée; c'est ce qui suffit à les neutraliser, et
+// le cas ci-dessous le prouve: le parseur du « léger », qui lit la MÊME
+// colonne, continue de fonctionner sur une entrée qui porte encore des extras.
 // ===========================================================================
 
-Deno.test("les extras se lisent moment par moment, jetons filtrés", () => {
-  const out = parseMemberExtras([
-    { slot: "lunch", extras: ["bread", "cheese"] },
-    { slot: "dinner", extras: ["fruit"] },
-  ]);
-  assertEquals(out, { lunch: ["bread", "cheese"], dinner: ["fruit"] });
-});
-
-Deno.test("⛔ UNE CLÉ ABSENTE N'EST PAS UN TABLEAU VIDE", () => {
-  // C'est TOUT le lot. Absente = « ce moment n'a pas été renseigné » (repli sur
-  // la convention); vide = « renseigné, rien à côté » (le plat porte tout).
-  const sansCle = parseMemberExtras([{ slot: "lunch", usual: "une salade" }]);
-  assert(!Object.prototype.hasOwnProperty.call(sansCle, "lunch"));
-  const vide = parseMemberExtras([{ slot: "lunch", extras: [] }]);
-  assert(Object.prototype.hasOwnProperty.call(vide, "lunch"));
-  assertEquals(vide.lunch, []);
-});
-
-Deno.test("une entrée SANS PROSE porte quand même ses extras", () => {
-  // ⚠️ LE CAS QUI SÉPARE LES DEUX PARSEURS. `parseMemberHabits` écarte cette
-  // même entrée, et c'est correct pour lui: elle n'a rien à dire au modèle.
-  const raw = [{ slot: "dinner", kind: "own_usual", extras: ["yoghurt"] }];
-  assertEquals(parseMemberExtras(raw), { dinner: ["yoghurt"] });
-  assertEquals(parseMemberHabits(raw), []);
-});
-
-Deno.test("un jeton hors des cinq est ÉCARTÉ, il ne vide pas l'entrée", () => {
-  const out = parseMemberExtras([
-    { slot: "lunch", extras: ["bread", "caviar", "cheese"] },
-  ]);
-  assertEquals(out, { lunch: ["bread", "cheese"] });
-});
-
-Deno.test("les doublons et la casse ne comptent qu'une fois", () => {
-  assertEquals(
-    parseMemberExtras([{ slot: "lunch", extras: ["Bread", " bread ", "BREAD"] }]),
-    { lunch: ["bread"] },
+Deno.test("⛔ UNE ENTRÉE QUI PORTE ENCORE DES EXTRAS SE LIT SANS EUX", () => {
+  // Une ligne d'avant ce lot. Le parseur du léger la lit; celui de la prose la
+  // lit; personne ne lit `extras`, et rien ne casse.
+  const slots = [
+    { slot: "dinner", kind: "own_usual", usual: "du poisson", extras: ["bread"], light: true },
+  ];
+  assertEquals(parseMemberLight(slots), { dinner: true });
+  assertEquals(parseMemberHabits(slots).map((h) => h.usual), ["du poisson"]);
+  // Et le module n'exporte plus de lecteur d'extras.
+  const src = Deno.readTextFileSync(
+    new URL("./household_habits.ts", import.meta.url),
   );
-});
-
-Deno.test("un moment hors de la liste fermée n'entre pas", () => {
-  assertEquals(parseMemberExtras([{ slot: "brunch", extras: ["bread"] }]), {});
-});
-
-Deno.test("⛔ LE PREMIER MOMENT GAGNE, on ne fusionne pas", () => {
-  // Deux entrées d'un même moment sont une erreur d'écrivain; fusionner leurs
-  // extras inventerait une déclaration que personne n'a faite.
-  assertEquals(
-    parseMemberExtras([
-      { slot: "lunch", extras: ["bread"] },
-      { slot: "lunch", extras: ["cheese"] },
-    ]),
-    { lunch: ["bread"] },
+  assert(
+    !src.includes("parseMemberExtras"),
+    "`parseMemberExtras` est revenue dans household_habits.ts",
   );
-});
-
-Deno.test("ce qui n'est pas un tableau rend `{}`, jamais une exception", () => {
-  // La colonne est un jsonb: elle peut porter n'importe quoi si quelqu'un a
-  // écrit à la main. Un parseur qui lève ferait échouer une GÉNÉRATION.
-  for (const raw of [null, undefined, {}, "lunch", 3, [null], [["lunch"]]]) {
-    assertEquals(parseMemberExtras(raw), {});
-  }
-  assertEquals(parseMemberExtras([{ slot: "lunch", extras: "bread" }]), {});
 });
 
 // ---------------------------------------------------------------------------
@@ -665,7 +629,7 @@ Deno.test("⛔ le brief ne dit plus « the swaps »: un échange est une BOÎTE"
   // phrase remplace le gramme. Un `1` ne rend pas ces lignes du tout — et une
   // assertion posée sur un brief à un seul groupe resterait verte quoi qu'on
   // écrive dans la branche.
-  const sized = buildPortionBrief([MERE, FILS], "one_dish", 0, 2);
+  const sized = buildPortionBrief([MERE, FILS], "one_dish", 0, 2, "legacy_measure");
   assert(
     sized.includes("the manner, the order, the sides and the care"),
     "la branche des deux groupes n'a pas été atteinte: le test ne mesure rien\n" +
@@ -677,4 +641,64 @@ Deno.test("⛔ le brief ne dit plus « the swaps »: un échange est une BOÎTE"
     "le brief de service réinvite le modèle à écrire les échanges dans " +
       "`member_portions`, pendant que le bloc de régime les lui interdit",
   );
+});
+
+// ---------------------------------------------------------------------------
+// « CE MOMENT-LÀ PÈSE MOINS QUE D'HABITUDE » — 2026-09-07
+// ---------------------------------------------------------------------------
+
+Deno.test("`light` se lit sur les trois repas, et le premier gagne", () => {
+  assertEquals(
+    parseMemberLight([
+      { slot: "dinner", kind: "household_dish", usual: "", light: true },
+      { slot: "breakfast", light: false },
+    ]),
+    { dinner: true, breakfast: false },
+  );
+  // Deux entrées d'un même moment sont une erreur d'écrivain: en fusionner les
+  // réponses inventerait une déclaration que personne n'a faite.
+  assertEquals(
+    parseMemberLight([{ slot: "lunch", light: true }, { slot: "lunch", light: false }]),
+    { lunch: true },
+  );
+});
+
+Deno.test("⛔ LES TROIS ÉTATS NE SE CONFONDENT PAS: absent ≠ false ≠ true", () => {
+  // C'est tout le lot. Un écran qui confond « pas posé » et « répondu non »
+  // repose la question à quelqu'un qui a déjà répondu.
+  assertEquals(parseMemberLight([{ slot: "dinner", kind: "own_usual", usual: "x" }]), {});
+  assertEquals(parseMemberLight([{ slot: "dinner", light: false }]), { dinner: false });
+  assertEquals(parseMemberLight([{ slot: "dinner", light: true }]), { dinner: true });
+});
+
+Deno.test("une COLLATION ne se marque pas légère — la lecture refuse ce que la base refuse", () => {
+  // Une collation pèse déjà 0,10 de la journée; la marquer légère demanderait
+  // au plan de composer ~40 kcal. La contrainte SQL le refuse aussi: si les
+  // deux divergeaient, la plus permissive des deux déciderait.
+  assertEquals(parseMemberLight([{ slot: "snack_pm", light: true }]), {});
+  assertEquals(parseMemberLight([{ slot: "before_bed", light: true }]), {});
+  assertEquals(parseMemberLight([{ slot: "snack_am", light: true }]), {});
+});
+
+Deno.test("seul un VRAI booléen compte — « yes », 1 et « true » sont écartés", () => {
+  assertEquals(parseMemberLight([{ slot: "dinner", light: "yes" }]), {});
+  assertEquals(parseMemberLight([{ slot: "dinner", light: 1 }]), {});
+  assertEquals(parseMemberLight([{ slot: "dinner", light: "true" }]), {});
+  assertEquals(parseMemberLight([{ slot: "dinner", light: null }]), {});
+});
+
+Deno.test("une entrée SANS PROSE porte quand même son `light`", () => {
+  // ⚠️ LE CAS QUI SÉPARE LES DEUX PARSEURS. `parseMemberHabits` écarte cette
+  // même entrée, et c'est correct pour lui: elle n'a rien à dire au modèle.
+  const slots = [{ slot: "dinner", kind: "household_dish", usual: "", light: true }];
+  assertEquals(parseMemberLight(slots), { dinner: true });
+  assertEquals(parseMemberHabits(slots), []);
+});
+
+Deno.test("une forme illisible rend `{}`, jamais une exception", () => {
+  assertEquals(parseMemberLight(null), {});
+  assertEquals(parseMemberLight("light"), {});
+  assertEquals(parseMemberLight([null, "light", 3, { slot: "dinner", light: true }]), {
+    dinner: true,
+  });
 });

@@ -104,6 +104,17 @@ export interface ExpectedDish {
    * contenant.
    */
   boxable: boolean;
+  /**
+   * ⟳ 2026-09-09 — UN PLAT À SON NOM QUI S'AJOUTE AU PLAT DE LA TABLE, au lieu
+   * de le remplacer : l'entrée de dernier recours (`appendDedicatedDishes`).
+   * Son porteur reste mangeur du plat partagé de la case ; le moteur rabote sa
+   * part à la borne et dimensionne ce plat à la différence.
+   *
+   * ⚠️ ABSENT = `false` = le plat dédié d'aujourd'hui (régime, « mon repas à
+   * moi »), qui remplace. Même posture que `member_id` absent : le cas nominal
+   * est une affirmation, et il n'y a qu'UN écrivain de `true`.
+   */
+  complementsShared?: boolean;
 }
 
 export interface MouthsFedOutcome {
@@ -116,6 +127,8 @@ export interface MouthsFedOutcome {
   fedByDish: (ReadonlySet<string> | null)[];
   /** Combien de fois une bouche a quitté un plat de table pour son plat dédié. */
   excluded: number;
+  /** Les plats à un nom qui COMPLÈTENT la table (leur porteur y reste). */
+  complements: number;
   /**
    * Les cases où le plat de la table ne nourrit plus PERSONNE. Nommées, jamais
    * silencieuses: un plat de table sans mangeur est une contradiction, et
@@ -151,11 +164,18 @@ export function mouthsFedByDish(
 ): MouthsFedOutcome {
   const dedicatedByCell = new Map<string, Set<string>>();
   const dedicatedOffRoster: string[] = [];
+  let complements = 0;
   for (const dish of dishes) {
     const owner = dish.memberId;
     if (!owner) continue;
     if (!roster.has(owner)) {
       dedicatedOffRoster.push(owner);
+      continue;
+    }
+    // ⟳ 2026-09-09 — UN COMPLÉMENT NE RETIRE PAS SON PORTEUR DE LA TABLE :
+    // il nourrit sa bouche (passe ②) ET sa bouche garde le plat partagé.
+    if (dish.complementsShared === true) {
+      complements++;
       continue;
     }
     const cell = cellOf(dish);
@@ -193,7 +213,7 @@ export function mouthsFedByDish(
     fedByDish.push(fed);
   }
 
-  return { fedByDish, excluded, sharedFedNobody, dedicatedOffRoster };
+  return { fedByDish, excluded, complements, sharedFedNobody, dedicatedOffRoster };
 }
 
 /**

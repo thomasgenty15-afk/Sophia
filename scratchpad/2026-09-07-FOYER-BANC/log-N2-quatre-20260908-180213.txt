@@ -1,0 +1,1 @@
+{"tag":"keel.household_meal.window_overlaps","user_id":"2b252884-e267-4d2f-8394-9edaaef85ee2","household_id":"e2f70120-2795-4ad4-ab80-50e6ebf20b93","window":["2026-09-09",1],"clash":["70e16027-9317-45d6-90c3-a52abd7ca1d9","2026-09-08",2],"verdict":"starts_at_or_after"}

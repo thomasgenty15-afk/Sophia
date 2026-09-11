@@ -92,3 +92,66 @@ Deno.test("⛔ LE FAIL-CLOSED EST NOMMÉ, ET IL JOURNALISE LISIBLEMENT", async (
     "le dépliage naïf est revenu",
   );
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LA MÊME FAUTE, UNE TABLE PLUS LOIN — MESURÉE LE 2026-09-09
+//
+// `memberIdOf` (`slot_meal_io.ts`) demandait `household_members.id`. Cette
+// colonne n'existe pas: la table est clavetée `(household_id, user_id)` et
+// l'identité d'une bouche s'appelle `member_id` depuis `20260810120000`.
+// Vérifié contre la base locale:
+//
+//     select id from public.household_members limit 1;
+//     ERROR: column "id" does not exist
+//
+// L'effet est le jumeau exact de celui du haut de ce fichier: PostgREST lève,
+// `resolveMemberId` est attrapé, `memberId` vaut `null`, et `dishIsForMouth`
+// écarte TOUT plat dédié. Or un plan de foyer ne porte que des plats dédiés —
+// une boîte par bouche. La question du repas ne pouvait donc jamais nommer un
+// plat de foyer, et le compte-rendu ressemblait à un canal qui se tait.
+//
+// ⛔ LA GARDE LIT LA MIGRATION, PAS UNE LISTE RECOPIÉE. Une liste de colonnes
+// tapée ici serait une seconde source de vérité: elle resterait verte le jour
+// où la colonne est renommée en base, c'est-à-dire au seul moment qui compte.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("LA BOUCHE — `memberIdOf` nomme une colonne que la migration crée", async () => {
+  const io = await read("./slot_meal_io.ts");
+
+  // Ce que le module demande à `household_members`.
+  const asked = [
+    ...io.matchAll(
+      /\.from\("household_members"\)\s*\.select\("([a-z_]+)"\)/g,
+    ),
+  ].map((m) => m[1]);
+  assertEquals(
+    asked.length,
+    1,
+    "`slot_meal_io.ts` ne lit plus exactement une fois `household_members` — " +
+      "cette garde vise `memberIdOf` et doit être révisée avec lui.",
+  );
+
+  // Ce que la base porte vraiment. `20260810120000` est la migration qui donne
+  // son identité à une bouche; c'est elle qu'on lit, jamais une liste à jour
+  // « de mémoire ».
+  const migration = await Deno.readTextFile(
+    new URL(
+      "../../../migrations/20260810120000_household_member_identity.sql",
+      HERE,
+    ),
+  );
+  assert(
+    /add column if not exists member_id uuid/.test(migration),
+    "`member_id` n'est plus créée par cette migration — la garde vise le " +
+      "mauvais fichier, et il faut la repointer avant de la croire.",
+  );
+
+  assertEquals(
+    asked[0],
+    "member_id",
+    `\`memberIdOf\` demande \`${asked[0]}\`. La colonne d'identité d'une ` +
+      "bouche est `member_id`; `id` n'existe pas, et la demander fait lever " +
+      "PostgREST, ce que le fail-closed de l'appelant transforme en « aucun " +
+      "plat dédié » — silencieusement.",
+  );
+});

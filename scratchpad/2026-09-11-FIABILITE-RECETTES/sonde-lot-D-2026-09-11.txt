@@ -1,0 +1,44 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║ SONDE LOT D — ce que l'ajusteur a le DROIT de toucher, avant et après    ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+── plan 1f8a8988 · fr-FR ─────────────────────────────────
+   unités                                   10
+   lignes                                   47
+   lignes dans un corps MOBILE — avant      47
+   lignes dans un corps MOBILE — après      0
+   blocs dont le contrat est ACCEPTÉ        0
+   blocs retombés sur le conservateur       10
+     · contract_absent          10
+   rétrogradations « dense »                0
+
+── plan 1eada05b · fr-FR ─────────────────────────────────
+   unités                                   13
+   lignes                                   49
+   lignes dans un corps MOBILE — avant      49
+   lignes dans un corps MOBILE — après      0
+   blocs dont le contrat est ACCEPTÉ        0
+   blocs retombés sur le conservateur       13
+     · contract_absent          13
+   rétrogradations « dense »                0
+
+══ VERDICT ════════════════════════════════════════════════════════════════
+
+   lignes du plan                                   96
+   lignes ajustables sous l'ANCIENNE politique      96
+   lignes ajustables sous la NOUVELLE               0
+
+   ⛔ LES CINQ CORRECTIONS DE DENSITÉ ARCHIVÉES
+   Les deux plans figés sont ANTÉRIEURS au contrat: aucun bloc ne déclare
+   de `components`, aucune ligne ne porte de `part`. Chaque bloc retombe
+   donc sur `contract_absent`, et l'ajusteur n'a AUCUNE ligne à déplacer.
+   Sous la nouvelle politique, ces recettes-là ferment **0 des 5** défauts
+   de densité que la campagne du 2026-09-11 leur avait fermés. Les cinq
+   partent en recomposition — ou restent non conformes et le DISENT.
+
+   ⚠️ CE CHIFFRE MESURE UNE POPULATION SANS CONTRAT, PAS UN MOTEUR CASSÉ.
+   Un plan neuf reçoit la consigne `== SAY WHAT HOLDS THE RECIPE TOGETHER ==`
+   et le schéma qui va avec; ce que le modèle en fera n'est pas mesurable
+   sans un tir réel, que ce lot n'a pas le droit de faire.
+
+   ⚠️ ET AUCUN DE CES NOMBRES NE DIT QUOI QUE CE SOIT DU GOÛT.

@@ -1,0 +1,3668 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 6
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+      "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+      "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+      "Ce qui se cuisine jeudi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+      "Les quantités sont faites pour 4 bouches.",
+      "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+      "Chaque personne a chacun de ses repas.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "J'ai gardé une base commune de céréales et de légumes, avec la protéine animale ou végétale séparée par boîte afin que chaque assiette reste cohérente.",
+      "Les trois sessions utilisent des légumes et des fruits de fin d'été, tout en variant les protéines et les formes pour éviter trois jours identiques."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 36,
+    "declared": 36,
+    "kept": 30,
+    "refused": 6
+  },
+  "food_groups": {
+    "declared": 112,
+    "valid": 112,
+    "refused": 0,
+    "persisted": 86,
+    "lines": 86
+  },
+  "household": {
+    "id": "e2f70120-2795-4ad4-ab80-50e6ebf20b93",
+    "member_count": 4,
+    "dish_owners": {
+      "asked": 0,
+      "declared": 0,
+      "attributed": 0,
+      "refused": 0
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 1,
+      "dishes": 36,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 3,
+      "ranks_without_object": 2,
+      "by_rank": {
+        "rank_1": 1,
+        "rank_2": 6,
+        "rank_3": 8,
+        "rank_4": 0,
+        "rank_5": 0
+      }
+    },
+    "boxes": {
+      "meals": 12,
+      "with_box": 12,
+      "boxes": 24,
+      "expected": 36,
+      "delivery": "served",
+      "refused": 0,
+      "names": 36,
+      "names_refused": 12,
+      "items": 95,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 12,
+      "sum_checked": 11,
+      "sum_over": 10,
+      "sum_unverifiable": 1,
+      "mouth_slots": 48,
+      "mouths_unboxed": 12,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 24,
+      "mouths_no_box_cell": 96,
+      "mouths": 4
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 77,
+      "unquantified": 0
+    },
+    "vague_portions": {
+      "notes": 4,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 0,
+      "unknown": 12,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 1,
+      "checked": 12,
+      "kept": 0,
+      "refused": 12,
+      "bites": 12,
+      "separated": 0,
+      "not_separated": 12,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 12,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 112,
+      "groups_valid": 112,
+      "groups_refused": 0,
+      "group_excluded": 12,
+      "group_plant_only": 108,
+      "group_undecided": 84
+    },
+    "swap": {
+      "strictest": "vegan",
+      "bound_mouths": 1,
+      "free_mouths": 3,
+      "cells_checked": 12,
+      "cells_carrying": 12,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": [],
+      "retry_attempts": 0,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "box_scoped": 0
+    },
+    "meals_delivered": {
+      "mouths": 4,
+      "expected": 102,
+      "fed": 102,
+      "missing": 0,
+      "by_cause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 0,
+      "retried": true,
+      "retry_attempts": 1,
+      "retry_accepted": 1,
+      "retry_merged_cells": 17,
+      "retry_on": {
+        "held_off_regime": 17
+      },
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": []
+    },
+    "box_sizing": {
+      "boxes": 51,
+      "common": 17,
+      "items": 91,
+      "sized": 89,
+      "unchanged": 2,
+      "capped_by_pot": 3,
+      "unverifiable": 1,
+      "mouths": {
+        "sized": 1,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 1,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 2,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 4,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 4,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 8,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 12
+      },
+      "anchor_applied": 22,
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 0,
+        "pot_ceiling": 0,
+        "both": 8,
+        "not_anchored": 16
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 8
+      },
+      "densify": {
+        "mouth_days": 8,
+        "boxes_touched": 8,
+        "moved_g": 716,
+        "closed_kcal": 137,
+        "stopped": {
+          "closed": 0,
+          "floor": 0,
+          "ceiling": 1,
+          "pot_exhausted": 7,
+          "no_dense_target": 0,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 0,
+        "remaining_gte_200": 8
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 4,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 4,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 4
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 4
+      },
+      "appetite": {
+        "declared": 4,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 4,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Bol de saison aux prunes",
+      "title": "Flocons d'avoine, yaourt de soja et prunes",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "flocons d'avoine",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 32,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de tournesol",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir les ingrédients dans quatre bols et servir immédiatement.",
+      "why": "Une répétition pratique avec un fruit différent et de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Fruit et amandes",
+      "title": "Pêches et amandes",
+      "slot": "snack_am",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "pêches",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les pêches et les servir avec les amandes.",
+      "why": "Une pause portable qui utilise les fruits de fin d'été.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Prunes croquantes",
+      "title": "Prunes et noix",
+      "slot": "snack_am",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "prunes",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 32,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les prunes et les accompagner de noix.",
+      "why": "Une collation sans cuisson, simple à garder à heure régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": null,
+      "title": "Raisins et noisettes",
+      "slot": "snack_am",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "raisins",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer les raisins et les servir avec les noisettes.",
+      "why": "Une pause fraîche avec un fruit local de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Figues et noix",
+      "slot": "snack_am",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "figues",
+          "quantity": "6 unités",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper les figues en quartiers et les servir avec les noix.",
+      "why": "Une collation de saison qui ne demande aucune cuisine.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Abricots et amandes",
+      "slot": "snack_am",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "abricots",
+          "quantity": "6 unités",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les abricots et les accompagner d'amandes.",
+      "why": "Une pause légère adaptée aux fruits encore disponibles en saison.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Raisins et graines",
+      "title": "Raisins et graines de courge",
+      "slot": "snack_am",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "raisins",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer les raisins et les servir avec les graines.",
+      "why": "Une option rapide pour maintenir le rythme des repas.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Pomme et noix",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "pommes",
+          "quantity": "3 unités",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les pommes et les servir avec les noix.",
+      "why": "Une pause simple qui complète la journée sans préparation.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": null,
+      "title": "Poires et noisettes",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "poires",
+          "quantity": "3 unités",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les poires et les servir avec les noisettes.",
+      "why": "Une collation croquante et régulière, sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Raisins frais",
+      "title": "Raisins et amandes",
+      "slot": "snack_pm",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "raisins",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer les raisins et les accompagner d'amandes.",
+      "why": "Une collation de saison facile à emporter.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Figues croquantes",
+      "title": "Figues et amandes",
+      "slot": "snack_pm",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "figues",
+          "quantity": "6 unités",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper les figues et les servir avec les amandes.",
+      "why": "Une pause fraîche avec un fruit de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Pêches et graines",
+      "title": "Pêches et graines de courge",
+      "slot": "snack_pm",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "pêches",
+          "quantity": "3 unités",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 390,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver et couper les pêches, puis les servir avec les graines.",
+      "why": "Une pause estivale qui se prépare en quelques minutes.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Prunes et noisettes",
+      "slot": "snack_pm",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "prunes",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 32,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les prunes et les accompagner de noisettes.",
+      "why": "Une collation rapide pour finir la semaine sans complication.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Yaourt soja aux fruits",
+      "title": "Yaourt de soja et raisins",
+      "slot": "before_bed",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisins",
+          "quantity": "200 g",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt dans les bols et ajouter les raisins rincés.",
+      "why": "Une fin de journée calme et sans cuisson.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Soja et poire",
+      "title": "Yaourt de soja et poire",
+      "slot": "before_bed",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poires",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt avec les poires coupées.",
+      "why": "Une petite préparation régulière qui utilise un fruit de saison.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Bol soja et figues",
+      "title": "Yaourt de soja et figues",
+      "slot": "before_bed",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "figues",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt et ajouter les figues en quartiers.",
+      "why": "Une option fraîche et légère après le dîner.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Soja et pêches",
+      "title": "Yaourt de soja et pêches",
+      "slot": "before_bed",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêches",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper les pêches et les mélanger au yaourt.",
+      "why": "Un dessert simple qui garde une structure régulière le soir.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Soja aux prunes",
+      "title": "Yaourt de soja et prunes",
+      "slot": "before_bed",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 32,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper les prunes et les ajouter au yaourt.",
+      "why": "Une fin de journée fraîche avec des fruits de saison.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Soja aux raisins",
+      "title": "Yaourt de soja et raisins",
+      "slot": "before_bed",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisins",
+          "quantity": "200 g",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer les raisins et les répartir sur le yaourt.",
+      "why": "Une conclusion de journée rapide et constante.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Avoine aux prunes",
+      "title": "Flocons d'avoine, yaourt de soja et prunes",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Réchauffez la portion d'avoine à la casserole avec un peu d'eau, puis ajoutez le yaourt de soja et les prunes.",
+      "why": "Un petit-déjeuner chaud et fruité, préparé à l'avance.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_oats_sun",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_breakfast_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "portion d'avoine aux prunes",
+              "grams": 444
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_breakfast_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "portions d'avoine aux prunes",
+              "grams": 685
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_breakfast_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "avoine et prunes",
+              "grams": 306
+            },
+            {
+              "preparation_id": "prep_nora_breakfast_sun",
+              "term": "tofu cannelle",
+              "grams": 47
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Poulet quinoa d'été",
+      "title": "Poulet, quinoa, courgettes et tomates",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Réchauffez la portion à la casserole ou au four et servez-la directement.",
+      "why": "Un déjeuner complet avec des courgettes et tomates de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_quinoa_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 358
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 602
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_sun",
+              "term": "lentilles",
+              "grams": 211
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 200
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Poulet quinoa du soir",
+      "title": "Poulet, quinoa, courgettes et tomates",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Réchauffez la portion à la casserole ou au four, puis servez-la.",
+      "why": "Une assiette chaude qui réutilise la préparation sans être compliquée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_quinoa_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 358
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 527
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_sun",
+              "term": "lentilles",
+              "grams": 192
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 219
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Avoine aux poires",
+      "title": "Flocons d'avoine, yaourt de soja et poires",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffez l'avoine à la casserole, puis ajoutez le yaourt de soja et les poires.",
+      "why": "Un petit-déjeuner simple qui garde une place régulière au matin.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_oats_sun",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_breakfast_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "avoine aux poires",
+              "grams": 444
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_breakfast_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "avoine aux poires",
+              "grams": 685
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_breakfast_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_sun",
+              "term": "avoine et poires",
+              "grams": 306
+            },
+            {
+              "preparation_id": "prep_nora_breakfast_sun",
+              "term": "tofu cannelle",
+              "grams": 47
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Poulet quinoa croquant",
+      "title": "Poulet, quinoa, concombre et tomates",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffez le poulet et le quinoa à la casserole, puis ajoutez les légumes frais.",
+      "why": "Le concombre apporte une touche fraîche à une base déjà prête.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_quinoa_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 358
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 602
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_sun",
+              "term": "lentilles",
+              "grams": 126
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 285
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Poulet quinoa léger",
+      "title": "Poulet, quinoa, courgettes et tomates",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffez les deux préparations à la casserole ou au four et servez.",
+      "why": "Une assiette chaude et familière pour finir la journée sans longue cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_quinoa_sun__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 358
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_sun__r",
+              "term": "poulet",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 527
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_sun",
+              "term": "lentilles",
+              "grams": 126
+            },
+            {
+              "preparation_id": "prep_quinoa_sun__r",
+              "term": "quinoa et légumes",
+              "grams": 285
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Avoine aux raisins",
+      "title": "Flocons d'avoine, yaourt de soja et raisins",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [],
+      "method": "Réchauffez l'avoine à la casserole et ajoutez le yaourt de soja et les raisins.",
+      "why": "Un petit-déjeuner fruité qui accompagne la nouvelle préparation de la semaine.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_oats_tue",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_breakfast_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine aux raisins",
+              "grams": 437
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_breakfast_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine aux raisins",
+              "grams": 850
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_breakfast_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine et raisins",
+              "grams": 280
+            },
+            {
+              "preparation_id": "prep_nora_breakfast_tue",
+              "term": "tofu cannelle",
+              "grams": 102
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Dinde aux légumes",
+      "title": "Dinde, semoule, aubergines et poivrons",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [],
+      "method": "Réchauffez la dinde, la semoule et les légumes à la casserole ou au four.",
+      "why": "Un plat coloré et rassasiant avec des légumes de fin d'été.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 155
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 353
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 604
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_tue",
+              "term": "lentilles",
+              "grams": 136
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Dinde semoule du soir",
+      "title": "Dinde, semoule, aubergines et poivrons",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [],
+      "method": "Réchauffez la portion à la casserole ou au four et servez-la.",
+      "why": "Un dîner chaud qui utilise efficacement la session de cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 155
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 353
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 528
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_tue",
+              "term": "lentilles",
+              "grams": 136
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Avoine aux figues",
+      "title": "Flocons d'avoine, yaourt de soja et figues",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [],
+      "method": "Réchauffez l'avoine à la casserole, puis ajoutez le yaourt de soja et les figues.",
+      "why": "Les figues donnent une note douce à un petit-déjeuner régulier.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_oats_tue",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_breakfast_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine aux figues",
+              "grams": 437
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_breakfast_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine aux figues",
+              "grams": 850
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_breakfast_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_tue",
+              "term": "avoine et figues",
+              "grams": 280
+            },
+            {
+              "preparation_id": "prep_nora_breakfast_tue",
+              "term": "tofu cannelle",
+              "grams": 102
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Dinde semoule méridienne",
+      "title": "Dinde, semoule, aubergines et poivrons",
+      "slot": "lunch",
+      "day": "wed",
+      "ingredients": [],
+      "method": "Réchauffez la portion à la casserole ou au four.",
+      "why": "Un déjeuner pratique qui reste dans la limite de conservation de la préparation.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 155
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 353
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 604
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_tue",
+              "term": "lentilles",
+              "grams": 136
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Dinde aux aubergines",
+      "title": "Dinde, semoule, aubergines et poivrons",
+      "slot": "dinner",
+      "day": "wed",
+      "ingredients": [],
+      "method": "Réchauffez les préparations dans une casserole ou au four.",
+      "why": "Un dîner coloré qui termine la seconde préparation avant sa limite.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous_tue__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 155
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 353
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_tue__r",
+              "term": "dinde",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 528
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_tue",
+              "term": "lentilles",
+              "grams": 136
+            },
+            {
+              "preparation_id": "prep_couscous_tue__r",
+              "term": "semoule et légumes",
+              "grams": 309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Avoine aux pêches",
+      "title": "Flocons d'avoine, yaourt de soja et pêches",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [],
+      "method": "Réchauffez l'avoine à la casserole, puis ajoutez le yaourt de soja et les pêches.",
+      "why": "Un petit-déjeuner aux fruits de saison pour commencer la nouvelle session.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_oats_thu",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_breakfast_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_thu",
+              "term": "avoine aux pêches",
+              "grams": 444
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_breakfast_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_thu",
+              "term": "avoine aux pêches",
+              "grams": 685
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_breakfast_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_oats_thu",
+              "term": "avoine et pêches",
+              "grams": 259
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Bœuf boulgour vert",
+      "title": "Bœuf, boulgour, haricots verts et tomates",
+      "slot": "lunch",
+      "day": "thu",
+      "ingredients": [],
+      "method": "Réchauffez le bœuf, le boulgour et les légumes à la casserole ou au four.",
+      "why": "Un plat chaud avec des haricots verts et des tomates de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_beef_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_bulgur_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 359
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 602
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_thu",
+              "term": "lentilles",
+              "grams": 252
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 159
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bœuf boulgour du soir",
+      "title": "Bœuf, boulgour, haricots verts et tomates",
+      "slot": "dinner",
+      "day": "thu",
+      "ingredients": [],
+      "method": "Réchauffez les portions à la casserole ou au four et servez-les.",
+      "why": "Un dîner nourrissant préparé pendant la session de jeudi.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_beef_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_bulgur_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 359
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 527
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_thu",
+              "term": "lentilles",
+              "grams": 252
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 159
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Boulgour au bœuf",
+      "title": "Bœuf, boulgour, haricots verts et tomates",
+      "slot": "lunch",
+      "day": "fri",
+      "ingredients": [],
+      "method": "Réchauffez le bœuf et le boulgour à la casserole ou au four.",
+      "why": "Un déjeuner rapide qui profite de la préparation récente.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_beef_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_bulgur_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 359
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 266
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 602
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_thu",
+              "term": "lentilles",
+              "grams": 252
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 159
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Boulgour aux légumes",
+      "title": "Bœuf, boulgour, haricots verts et tomates",
+      "slot": "dinner",
+      "day": "fri",
+      "ingredients": [],
+      "method": "Réchauffez les portions à la casserole ou au four et servez-les.",
+      "why": "Une fin de semaine simple, chaude et déjà portionnée.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_beef_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_bulgur_thu__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 158
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 359
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_beef_thu__r",
+              "term": "bœuf",
+              "grams": 232
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 527
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils_thu",
+              "term": "lentilles",
+              "grams": 219
+            },
+            {
+              "preparation_id": "prep_bulgur_thu__r",
+              "term": "boulgour et légumes",
+              "grams": 192
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_oats_sun",
+      "title": "Avoine aux fruits du week-end",
+      "servings_made": 8,
+      "ingredients": [
+        {
+          "term": "flocons d'avoine",
+          "quantity": "1425 g",
+          "in_pantry": false,
+          "amount": 1425,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1425,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "boisson de soja",
+          "quantity": "4 ml",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 4,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "10 unités",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poires",
+          "quantity": "10 unités",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 1500,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites mijoter les flocons avec la boisson de soja et l'huile dans une grande casserole, ajoutez les fruits en fin de cuisson et répartissez dans les boîtes.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_nora_breakfast_sun",
+      "title": "Tofu cannelle du petit-déjeuner",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Émiettez le tofu et faites-le dorer doucement à la poêle avec l'huile et la cannelle.",
+      "active_minutes": 10,
+      "total_minutes": 15,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_chicken_sun__r",
+      "title": "Poulet rôti aux légumes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "poulet",
+          "quantity": "1565 g",
+          "in_pantry": false,
+          "amount": 1565,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1565,
+          "group": "poultry",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1955 g",
+          "in_pantry": false,
+          "amount": 1955,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1955,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "1465 g",
+          "in_pantry": false,
+          "amount": 1465,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1465,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "5 tbsp",
+          "in_pantry": false,
+          "amount": 5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 75,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites rôtir le poulet, les courgettes et les tomates au four avec l'huile, puis refroidissez et portionnez.",
+      "active_minutes": 15,
+      "total_minutes": 50,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_quinoa_sun__r",
+      "title": "Quinoa aux courgettes et tomates",
+      "servings_made": 8,
+      "ingredients": [
+        {
+          "term": "quinoa",
+          "quantity": "905 g",
+          "in_pantry": false,
+          "amount": 905,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 905,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1210 g",
+          "in_pantry": false,
+          "amount": 1210,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1210,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "905 g",
+          "in_pantry": false,
+          "amount": 905,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 905,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3 tbsp",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 45,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincez et cuisez le quinoa dans une casserole. Faites revenir les légumes à la poêle, mélangez et répartissez.",
+      "active_minutes": 20,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_lentils_sun",
+      "title": "Lentilles aux légumes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "lentilles cuites",
+          "quantity": "640 g",
+          "in_pantry": false,
+          "amount": 640,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 640,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffez les lentilles dans une casserole avec l'huile et des herbes, puis portionnez-les séparément.",
+      "active_minutes": 5,
+      "total_minutes": 10,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_oats_tue",
+      "title": "Avoine aux raisins et figues",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "flocons d'avoine",
+          "quantity": "900 g",
+          "in_pantry": false,
+          "amount": 900,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 900,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "boisson de soja",
+          "quantity": "2.2 l",
+          "in_pantry": false,
+          "amount": 2.2,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 2.2,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisins",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": null,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "figues",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites mijoter l'avoine et la boisson de soja, ajoutez les fruits, puis répartissez dans les boîtes.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_nora_breakfast_tue",
+      "title": "Tofu cannelle du mardi",
+      "servings_made": 3,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "450 g",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites dorer le tofu émietté à la poêle avec l'huile et la cannelle.",
+      "active_minutes": 10,
+      "total_minutes": 15,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_turkey_tue__r",
+      "title": "Dinde rôtie aux légumes",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "dinde",
+          "quantity": "2085 g",
+          "in_pantry": false,
+          "amount": 2085,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2085,
+          "group": "poultry",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "1955 g",
+          "in_pantry": false,
+          "amount": 1955,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1955,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "1305 g",
+          "in_pantry": false,
+          "amount": 1305,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1305,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "4.5 tbsp",
+          "in_pantry": false,
+          "amount": 4.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 67.5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites rôtir la dinde et les légumes au four, refroidissez rapidement et répartissez dans les boîtes.",
+      "active_minutes": 15,
+      "total_minutes": 50,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_couscous_tue__r",
+      "title": "Semoule aux aubergines et poivrons",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "semoule",
+          "quantity": "1080 g",
+          "in_pantry": false,
+          "amount": 1080,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1080,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "1080 g",
+          "in_pantry": false,
+          "amount": 1080,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1080,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "720 g",
+          "in_pantry": false,
+          "amount": 720,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 720,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2.5 tbsp",
+          "in_pantry": false,
+          "amount": 2.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 37.5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Cuisez la semoule à l'eau chaude. Faites revenir les légumes à la poêle, mélangez et répartissez.",
+      "active_minutes": 20,
+      "total_minutes": 30,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_lentils_tue",
+      "title": "Lentilles du mardi",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "lentilles cuites",
+          "quantity": "960 g",
+          "in_pantry": false,
+          "amount": 960,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 960,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffez les lentilles avec l'huile et des herbes puis répartissez-les dans les boîtes.",
+      "active_minutes": 5,
+      "total_minutes": 10,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_oats_thu",
+      "title": "Avoine aux pêches",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "flocons d'avoine",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "boisson de soja",
+          "quantity": "750 ml",
+          "in_pantry": false,
+          "amount": 750,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 750,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêches",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 520,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites mijoter les flocons avec la boisson de soja, ajoutez les pêches et répartissez.",
+      "active_minutes": 10,
+      "total_minutes": 25,
+      "cook_on": "thu"
+    },
+    {
+      "id": "prep_beef_thu__r",
+      "title": "Bœuf sauté aux haricots verts",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "bœuf",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "red_meat",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "1875 g",
+          "in_pantry": false,
+          "amount": 1875,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1875,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "1250 g",
+          "in_pantry": false,
+          "amount": 1250,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1250,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "4 tbsp",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Saisissez le bœuf à la poêle, ajoutez les haricots verts et les tomates, puis répartissez après refroidissement.",
+      "active_minutes": 20,
+      "total_minutes": 35,
+      "cook_on": "thu"
+    },
+    {
+      "id": "prep_bulgur_thu__r",
+      "title": "Boulgour aux haricots verts",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "boulgour",
+          "quantity": "1045 g",
+          "in_pantry": false,
+          "amount": 1045,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1045,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "1045 g",
+          "in_pantry": false,
+          "amount": 1045,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1045,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "700 g",
+          "in_pantry": false,
+          "amount": 700,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 700,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2.5 tbsp",
+          "in_pantry": false,
+          "amount": 2.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 37.5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Cuisez le boulgour. Faites revenir les légumes à la poêle, mélangez et répartissez.",
+      "active_minutes": 20,
+      "total_minutes": 30,
+      "cook_on": "thu"
+    },
+    {
+      "id": "prep_lentils_thu",
+      "title": "Lentilles du jeudi",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "lentilles cuites",
+          "quantity": "960 g",
+          "in_pantry": false,
+          "amount": 960,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 960,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffez les lentilles avec l'huile et des herbes puis répartissez-les dans les boîtes.",
+      "active_minutes": 5,
+      "total_minutes": 10,
+      "cook_on": "thu"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_oats_sun",
+        "prep_nora_breakfast_sun",
+        "prep_chicken_sun__r",
+        "prep_quinoa_sun__r",
+        "prep_lentils_sun"
+      ],
+      "run_through": "Préchauffer le four, acheter le poulet frais le jour même ou la veille, rincer le quinoa et le mettre à cuire, préparer le poulet, le tofu et les légumes, enfourner les plaques, aérer le quinoa, laisser tiédir puis portionner dans les boîtes nommées.",
+      "total_minutes": 60
+    },
+    {
+      "day": "tue",
+      "preparation_ids": [
+        "prep_oats_tue",
+        "prep_nora_breakfast_tue",
+        "prep_turkey_tue__r",
+        "prep_couscous_tue__r",
+        "prep_lentils_tue"
+      ],
+      "run_through": "Acheter la dinde fraîche le jour même ou la veille, lancer la semoule, couper les légumes et les mettre au four, former les boulettes, dorer le tofu dans une autre poêle, cuire la dinde, égrener la semoule puis portionner dans les boîtes nommées.",
+      "total_minutes": 60
+    },
+    {
+      "day": "thu",
+      "preparation_ids": [
+        "prep_oats_thu",
+        "prep_beef_thu__r",
+        "prep_bulgur_thu__r",
+        "prep_lentils_thu"
+      ],
+      "run_through": "Acheter le bœuf frais le jour même ou la veille, démarrer le boulgour et le bœuf mijoté, cuire les haricots verts, faire mijoter le tofu dans une autre poêle, couper les tomates, finir les cuissons puis portionner dans les boîtes nommées.",
+      "total_minutes": 60
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "flocons d'avoine",
+      "quantity": "1.5 kg",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "quinoa",
+      "quantity": "555 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "boulgour",
+      "quantity": "555 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tofu ferme",
+      "quantity": "1.5 kg",
+      "aisle": "protein",
+      "food_group": "tofu_tempeh",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt de soja nature",
+      "quantity": "7 kg",
+      "aisle": "other",
+      "food_group": "tofu_tempeh",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "1110 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates",
+      "quantity": "1.5 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "aubergines",
+      "quantity": "1110 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivrons",
+      "quantity": "925 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots verts",
+      "quantity": "1110 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prunes",
+      "quantity": "22 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poires",
+      "quantity": "13 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "raisins",
+      "quantity": "1.2 kg",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "figues",
+      "quantity": "26 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pêches",
+      "quantity": "17 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "abricots",
+      "quantity": "11 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes",
+      "quantity": "6 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "370 g",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "295 g",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noisettes",
+      "quantity": "220 g",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de courge",
+      "quantity": "150 g",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de tournesol",
+      "quantity": "75 g",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d'olive",
+      "quantity": "460 ml",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "boisson de soja",
+      "quantity": "8 l",
+      "aisle": "dairy",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poulet",
+      "quantity": "1185 g",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "dinde",
+      "quantity": "1775 g",
+      "aisle": "protein",
+      "food_group": "lean_protein",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "bœuf",
+      "quantity": "1775 g",
+      "aisle": "protein",
+      "food_group": "red_meat",
+      "buy_on": "2026-09-07",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "lentilles cuites",
+      "quantity": "5 kg",
+      "aisle": "grains",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "semoule",
+      "quantity": "1665 g",
+      "aisle": "grains",
+      "food_group": "refined_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "b60378e6-1956-4dbd-b8dc-7480578a8282",
+      "display_name": "Paul",
+      "portion_note": "Au petit-déjeuner, servir les composants ensemble. Aux déjeuners et dîners, mettre les légumes en premier, puis la protéine et enfin le quinoa, la semoule ou le boulgour; ne rien ajouter aux collations.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "620d929d-3c61-4af5-8575-150442486648",
+      "display_name": "Claire",
+      "portion_note": "Servir tous les composants ensemble aux petits-déjeuners, déjeuners et dîners, avec la collation de l'après-midi.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "49375b46-a94a-43d3-8a3e-e2df1a8151cf",
+      "display_name": "Leo",
+      "portion_note": "Servir tous les composants ensemble à chaque moment prévu, y compris les collations.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+      "display_name": "Nora",
+      "portion_note": "Servir tous les composants ensemble aux petits-déjeuners, déjeuners et dîners, avec la collation de l'après-midi; utiliser le tofu à la place de la viande.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": []
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+    "freeze_on_purchase: 0/29",
+    "raw_keeping_needs_later_shop: 1/14 preparations",
+    "preparations[prep_quinoa_sun__r]: the sized meals would take 6660 g but the batch makes about 4392 g, every share that draws on it scaled back to fit",
+    "preparations[prep_couscous_tue__r]: the sized meals would take 6752 g but the batch makes about 4466 g, every share that draws on it scaled back to fit",
+    "preparations[prep_bulgur_thu__r]: the sized meals would take 6660 g but the batch makes about 4395 g, every share that draws on it scaled back to fit",
+    "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[7]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[8]: name repeats the title (\"Raisins et noisettes\") -- dropped, one line is enough",
+    "dishes[8]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[9]: name repeats the title (\"Figues et noix\") -- dropped, one line is enough",
+    "dishes[9]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[10]: name repeats the title (\"Abricots et amandes\") -- dropped, one line is enough",
+    "dishes[10]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[12]: name repeats the title (\"Pomme et noix\") -- dropped, one line is enough",
+    "dishes[12]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[13]: name repeats the title (\"Poires et noisettes\") -- dropped, one line is enough",
+    "dishes[13]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[14]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[15]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[16]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[17]: name repeats the title (\"Prunes et noisettes\") -- dropped, one line is enough",
+    "dishes[17]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[24].boxes[\"box_sun_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+    "dishes[25].boxes[\"box_sun_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+    "dishes[26].boxes[\"box_mon_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, concombre et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+    "dishes[27].boxes[\"box_mon_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+    "dishes[28].boxes[\"box_tue_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+    "dishes[29].boxes[\"box_tue_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+    "dishes[30].boxes[\"box_wed_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+    "dishes[31].boxes[\"box_wed_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+    "dishes[32].boxes[\"box_thu_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+    "dishes[33].boxes[\"box_thu_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+    "dishes[34].boxes[\"box_fri_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+    "dishes[35].boxes[\"box_fri_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+    "shopping_list_unattributed: 6/36 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "preparations[0]: the meals that take from \"Poulet rôti\" hold 1800 g but it makes about 505 g ready -- the boxes cannot all be filled",
+    "preparations[1]: the meals that take from \"Tofu rôti\" hold 600 g but it makes about 525 g ready -- the boxes cannot all be filled",
+    "preparations[2]: the meals that take from \"Quinoa cuit\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+    "preparations[3]: the meals that take from \"Courgettes et tomates rôties\" hold 3520 g but it makes about 1170 g ready -- the boxes cannot all be filled",
+    "preparations[4]: the meals that take from \"Boulettes de dinde\" hold 1800 g but it makes about 589 g ready -- the boxes cannot all be filled",
+    "preparations[5]: the meals that take from \"Tofu aux épices\" hold 600 g but it makes about 525 g ready -- the boxes cannot all be filled",
+    "preparations[6]: the meals that take from \"Semoule cuite\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+    "preparations[7]: the meals that take from \"Aubergines et poivrons rôtis\" hold 3520 g but it makes about 1020 g ready -- the boxes cannot all be filled",
+    "preparations[10]: the meals that take from \"Boulgour cuit\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+    "preparations[11]: the meals that take from \"Haricots verts et tomates\" hold 3520 g but it makes about 1070 g ready -- the boxes cannot all be filled",
+    "sun/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "sun/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "mon/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "mon/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "tue/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "tue/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "wed/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "wed/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "thu/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "thu/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "fri/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "fri/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+    "uses_kept_freezer: 0/48",
+    "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_chicken_sun",
+    "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_turkey_tue",
+    "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_beef_thu",
+    "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_chicken_sun",
+    "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_turkey_tue",
+    "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_beef_thu",
+    "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_chicken_sun",
+    "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_turkey_tue",
+    "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_beef_thu",
+    "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_sun",
+    "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_tue",
+    "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_thu"
+  ],
+  "request_id": "26c904e1-6f48-4aa5-a692-78793da09b5d"
+}

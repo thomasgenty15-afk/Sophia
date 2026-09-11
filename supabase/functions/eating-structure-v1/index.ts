@@ -199,8 +199,19 @@ Deno.serve(async (req) => {
       direction: goal === null ? null : scaleDirectionOf(goal as never),
       paceKgPerWeek,
       declaredSlots,
-      slotExtraKcal: null,
       conditionRefs: [],
+      // ⟳ 2026-09-08 — `null`, ET C'EST UNE DÉCISION, PAS UN REMPLISSAGE.
+      //
+      // ⛔ CET ENDPOINT RÉPOND « COMBIEN DE MOMENTS », PAS « QUELLE TAILLE ».
+      // Un cran de part fait varier le TOTAL du jour; le laisser entrer ici
+      // ferait varier le NOMBRE DE MOMENTS que l'écran annonce — c'est-à-dire
+      // qu'un « je mange un peu moins » retirerait un repas de la fiche. Le
+      // document des retours sépare exactement ces deux axes.
+      //
+      // ⚠️ ET CET ÉCRAN N'A PAS DE MAGASIN: il dimensionne un BROUILLON
+      // (`memberId ?? "draft"`), avant qu'aucune réponse de part n'existe.
+      // Charger les items retenus ici serait aussi une lecture qu'on n'a pas.
+      portionIndex: null,
     }, "no_position");
 
     const structure = eatingStructureFor({

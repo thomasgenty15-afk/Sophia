@@ -1,0 +1,71 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 8,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Skyr, flocons d’avoine, pêche et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 434,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 395,
+      "density_kcal_per_100g": 109.9,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 112,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 165,
+      "density_kcal_per_100g": 67.9,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, riz et légumes rôtis",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux herbes ÷1",
+        "Riz basmati ÷1",
+        "Légumes rôtis de septembre ÷1"
+      ],
+      "standard_kcal": 1744,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 1505,
+      "density_kcal_per_100g": 115.9,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Lentilles, pommes de terre, carottes et tomates",
+      "member_id": null,
+      "pots": [
+        "Lentilles mijotées aux légumes ÷1"
+      ],
+      "standard_kcal": 1327,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 1573,
+      "density_kcal_per_100g": 84.4,
+      "boxes": 0
+    }
+  ]
+}

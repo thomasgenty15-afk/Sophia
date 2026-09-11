@@ -36,8 +36,6 @@
 import {
   paceCeilingFor,
   type PaceBound,
-  type PaceSaturation,
-  paceSaturation,
   type PaceWarning,
   paceWarning,
   roundPace,
@@ -85,11 +83,7 @@ import { goalForAge } from "../api/household";
 import type { ShakerToWrite } from "../api/mouthProfile";
 import { EATING_OCCASIONS, type EatingOccasionSlot } from "../api/mealGeneration";
 import type { HabitSlotWrite } from "../api/householdHabits";
-import {
-  type ExtrasDraft,
-  habitEntriesToWrite,
-  type MealExtra,
-} from "./mealExtras";
+import { habitEntriesToWrite, type LightDraft } from "./mealExtras";
 
 // ---------------------------------------------------------------------------
 // LES SIX BLOCS
@@ -179,19 +173,6 @@ export interface MouthFormDraft {
   dayActivity: DayActivityLevel | "";
   sportFrequency: SportFrequency | "";
   /**
-   * ── LES TROIS CASES DU REPAS (2026-08-20) ───────────────────────────────
-   *
-   * ⛔ TRI-ÉTAT, ET C'EST LA DÉCISION DU LOT. `false` = « non, je n'en prends
-   * pas », une réponse qui fait MONTER la part du plat composé; `null` = pas
-   * répondu, et la moyenne 0,42 reprend la main. Une case décochée ne peut pas
-   * dire les deux — sinon un formulaire enregistré sans être lu écrirait « ni
-   * pain ni fromage ni dessert », c'est-à-dire un plat qui porte 100 % du
-   * repas, c'est-à-dire deux fois et demie la part d'aujourd'hui.
-   */
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
-  /**
    * ── ⑤ L'APPÉTIT (2026-08-20) — ET IL EST TRANSITOIRE ───────────────────
    * `""` = pas répondu ⇒ ×1,00, un neutre VRAI. Même décision que les crans
    * au-dessus: aucun défaut, parce qu'un défaut ferait d'une non-réponse une
@@ -201,17 +182,8 @@ export interface MouthFormDraft {
   // ── Bloc 4 · ce qu'elle mange déjà ──────────────────────────────────────
   /** Une ligne libre par moment nommé. La clé est le moment. */
   habits: Readonly<Record<string, string>>;
-  /**
-   * CE QU'ELLE PREND À CÔTÉ DU PLAT, par moment — les bulles (2026-09-01).
-   *
-   * ⛔ UNE CLÉ ABSENTE N'EST PAS UN TABLEAU VIDE, et c'est tout l'objet du lot:
-   * absente = « personne n'a demandé » (le moteur retire sa convention de
-   * 58 %), vide = « on a demandé, rien à côté » (le plat porte tout le repas).
-   * Cinq bulles éteintes ont pourtant la MÊME apparence dans les deux cas —
-   * ce qui les sépare est la clé, posée au premier clic. Voir
-   * `lib/mealExtras.ts::toggleExtra`.
-   */
-  extras: ExtrasDraft;
+  /** ⟳ 2026-09-07 — « + repas léger », par moment. Trois états, cf. `LightDraft`. */
+  light: LightDraft;
   /** Le shaker, ou `null`. Voir `ShakerDraft`. */
   shaker: ShakerDraft | null;
   // ── Bloc 5 · les allergies ──────────────────────────────────────────────
@@ -284,12 +256,9 @@ export function emptyMouthDraft(): MouthFormDraft {
     // Même décision, et pour la même raison — voir le champ.
     dayActivity: "",
     sportFrequency: "",
-    takesDessert: null,
-    takesCheese: null,
-    takesBread: null,
     appetite: "",
     habits: {},
-    extras: {},
+    light: {},
     shaker: null,
     allergies: [],
     allergiesNone: false,
@@ -333,20 +302,17 @@ export interface KnownMouth {
    */
   dayActivity: DayActivityLevel | null;
   sportFrequency: SportFrequency | null;
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
   appetite: AppetiteLevel | null;
   /** Les habitudes DÉJÀ écrites, par moment. Voir l'avertissement ci-dessous. */
   habits: Readonly<Record<string, string>>;
   /**
-   * LES EXTRAS DÉJÀ ÉCRITS, par moment RÉPONDU.
+   * LE « + REPAS LÉGER » DÉJÀ ÉCRIT, par moment RÉPONDU.
    *
    * ⛔ MÊME CICATRICE QUE `habits` ET `rhythm` JUSTE AU-DESSUS: la porte
    * REMPLACE la liste d'entrées. Ouvrir la fiche sans cette semence puis
-   * enregistrer effacerait des bulles cochées, sans un mot.
+   * enregistrer effacerait une bulle allumée, sans un mot.
    */
-  extras: Readonly<Record<string, MealExtra[]>>;
+  light: Readonly<Record<string, boolean>>;
   /**
    * SES MOMENTS, tels que la base les porte — `null` = « comme la maison ».
    *
@@ -442,20 +408,18 @@ export function knownMouthForOwner(input: {
     activityLevel: ActivityLevel | null;
     dayActivity: DayActivityLevel | null;
     sportFrequency: SportFrequency | null;
-    takesDessert: boolean | null;
-    takesCheese: boolean | null;
-    takesBread: boolean | null;
     appetite: AppetiteLevel | null;
   } | null;
   /** `null` = PAS LU. `[]` = lu, et elle n'en a aucune. */
   habits: readonly { slot: string; usual: string }[] | null;
   /**
-   * ⚠️ REQUIS, ET PAS `?`. Un appelant qui oublie la clé rendrait `undefined`,
-   * lu comme « aucun moment répondu » — c'est-à-dire une fiche qui s'ouvre sur
-   * des bulles éteintes alors que la base en porte, puis les efface au Save.
-   * `{}` se lit et se compare; `undefined` se traverse.
+   * ⟳ 2026-09-07 — « + repas léger ». ⚠️ REQUIS, ET PAS `?`: un appelant qui
+   * oublie la clé rendrait `undefined`, lu comme « aucun moment répondu » —
+   * c'est-à-dire une fiche qui s'ouvre sur une bulle éteinte alors que la base
+   * la porte, puis l'efface au Save. `{}` se lit et se compare; `undefined` se
+   * traverse.
    */
-  extras: Readonly<Record<string, MealExtra[]>>;
+  light: Readonly<Record<string, boolean>>;
 }): KnownMouth | null {
   if (!input.isOwner) return null;
   if (input.ownMouth === null || input.habits === null) return null;
@@ -471,12 +435,9 @@ export function knownMouthForOwner(input: {
     activityLevel: input.body?.activityLevel ?? null,
     dayActivity: input.body?.dayActivity ?? null,
     sportFrequency: input.body?.sportFrequency ?? null,
-    takesDessert: input.body?.takesDessert ?? null,
-    takesCheese: input.body?.takesCheese ?? null,
-    takesBread: input.body?.takesBread ?? null,
     appetite: input.body?.appetite ?? null,
     habits: Object.fromEntries(input.habits.map((h) => [h.slot, h.usual])),
-    extras: input.extras,
+    light: input.light,
     // ⚠️ `undefined` DEVIENT `null`, ET LES DEUX DISENT LA MÊME CHOSE ICI:
     // « rien sur sa ligne » = « aux moments de la maison ». L'appelant qui ne
     // sait pas encore passe donc la même réponse que celui qui sait qu'elle
@@ -501,16 +462,9 @@ export function draftFromKnown(known: KnownMouth): MouthFormDraft {
     activityLevel: known.activityLevel ?? "",
     dayActivity: known.dayActivity ?? "",
     sportFrequency: known.sportFrequency ?? "",
-    // `?? null` ET PAS UNE LECTURE DIRECTE: un appelant JavaScript (ou un banc
-    // d'essai) qui omet la clé rendrait `undefined`, et `undefined` n'est ni
-    // « oui », ni « non », ni « pas répondu » — c'est une quatrième valeur qui
-    // ne veut rien dire et que `toEqual` ne compare pas comme `null`.
-    takesDessert: known.takesDessert ?? null,
-    takesCheese: known.takesCheese ?? null,
-    takesBread: known.takesBread ?? null,
     appetite: known.appetite ?? "",
     habits: { ...known.habits },
-    extras: { ...known.extras },
+    light: { ...known.light },
     rhythm: known.rhythm ?? null,
   };
 }
@@ -700,18 +654,9 @@ export type PaceControl =
      * et les séparer laisse l'un bouger sans l'autre.
      */
     warning: PaceWarning | null;
-    /**
-     * ③ — CE CRAN CHANGE-T-IL ENCORE QUELQUE CHOSE, OU EST-IL SATURÉ ?
-     *
-     * `null` = il est exécuté tel quel. Non nul = ce cran et tous les plus
-     * rapides produisent LA MÊME assiette (`MAX_SURPLUS_FRACTION`), et l'écran
-     * doit le dire — sans quoi quelqu'un pousse à 1,0 en croyant accélérer.
-     *
-     * ⚠️ CHAMP SÉPARÉ DE `warning`, ET C'EST LA DÉCISION. Les deux phrases sont
-     * vraies en même temps sur un grand corps au-delà de 0,5 kg/semaine; un
-     * champ unique en ferait taire une, et ce serait celle qui parle du corps.
-     */
-    saturation: PaceSaturation | null;
+    // ⟳ 2026-09-09 — `saturation` est parti avec le plafond caché de +10 %:
+    // un cran du curseur est exécuté tel quel, dans les deux sens (en-tête de
+    // `weight_pace.ts`). Il n'y a plus de cran qui « ne change plus rien ».
   };
 
 /**
@@ -732,10 +677,6 @@ export function paceControlFor(
   if (direction === null) return { kind: "folded" };
 
   const body = bodyOfDraft(draft, todayLocalIso);
-  // ⚠️ UN SEUL `PaceSubject` POUR LE PLAFOND ET POUR LA SATURATION. Deux objets
-  // construits séparément divergeraient au premier champ ajouté à `MouthBody`,
-  // et l'écran dirait alors « ça ne change plus » sur le corps de quelqu'un
-  // d'autre que celui dont il montre le curseur.
   const subject = {
     body,
     isMinor: ageStateOfDraft(draft, todayLocalIso) === "minor",
@@ -763,10 +704,6 @@ export function paceControlFor(
     bound: ceiling.bound,
     value,
     warning: paceWarning(direction, value),
-    // ③ — LA QUESTION EST POSÉE SUR LE CRAN AFFICHÉ (`value`), pas sur le
-    // maximum: la phrase doit apparaître au moment exact où le curseur cesse
-    // de servir à quelque chose, pas seulement tout en haut de sa course.
-    saturation: paceSaturation(direction, subject, value),
   };
 }
 
@@ -842,30 +779,20 @@ export function targetWeightStateFor(
 // BLOC 3 — LE CRAN D'ACTIVITÉ, ET QUAND IL EST RÉCLAMÉ
 // ---------------------------------------------------------------------------
 
-/**
- * OBLIGATOIRE SEULEMENT QUAND LA BALANCE DOIT BOUGER — décision du 2026-08-18.
- *
- * ── LA CONTRADICTION QUE ÇA SOLDE ────────────────────────────────────────
- * Ce pop-up réclamait le cran de TOUT LE MONDE; l'entonnoir voisin le laissait
- * facultatif. Les deux versions coexistaient, donc la même question était à la
- * fois indispensable et sautable selon la porte d'entrée — et personne ne
- * pouvait dire laquelle était la règle.
- *
- * ── POURQUOI LA DIRECTION DÉCIDE ─────────────────────────────────────────
- * Sans activité, la fourchette d'entretien va de 28 à 33 kcal/kg: trop large
- * pour VISER un rythme, assez juste pour le TENIR. Qui veut seulement maintenir
- * n'a donc rien à gagner à répondre, et on ne demande que quand ça change
- * quelque chose.
- *
- * ⚠️ `""` NE RÉCLAME RIEN, ET C'EST DÉLIBÉRÉ. Une direction non choisie retient
- * déjà le bouton par son propre bloc (`direction`). Empiler `body` par-dessus
- * nommerait à la personne un manque qu'elle ne peut pas encore comprendre — on
- * lui réclamerait son activité pour un objectif qu'elle n'a pas posé.
- */
-export function activityIsRequired(goal: MemberGoal | ""): boolean {
-  if (goal === "") return false;
-  return scaleDirectionOf(goal) !== null;
-}
+// ── ⛔ ICI VIVAIT `activityIsRequired` — RETIRÉE LE 2026-09-06 ──────────────
+// Elle rendait `true` sous une direction qui bouge, et c'est ce booléen qui
+// faisait des quatre crans d'activité un champ BLOQUANT de la fiche. Le champ
+// est parti (voir la pierre tombale dans `MouthFormDialog.tsx`, au bloc du
+// corps): il posait en une question ce que les deux axes posent en deux, et
+// `activityFactorOf` le JETTE dès que les deux axes sont remplis. On retenait
+// donc l'inscription sur une réponse dont on savait déjà qu'elle ne serait pas
+// lue.
+//
+// ⚠️ ET ON N'A PAS DÉPLACÉ LA GARDE SUR LES DEUX AXES. Les rendre obligatoires
+// serait un autre lot, avec une autre conséquence: `null` est aujourd'hui une
+// lecture juste (`assumed`, facteur 1,5), et forcer une réponse pour sortir de
+// l'entonnoir ferait cocher au hasard — c'est-à-dire remplacer une hypothèse
+// annoncée par une déclaration fausse que plus rien ne pourra démentir.
 
 // ---------------------------------------------------------------------------
 // BLOC 4 — LE SHAKER
@@ -947,15 +874,13 @@ export function shakerToWrite(draft: MouthFormDraft): ShakerToWrite | null {
  * Vide = le bouton d'inscription est actif. Ce n'est PAS ce qui ferme la
  * fenêtre: elle se ferme toujours.
  *
- * ⚠️ `activityLevel` NE COMPTE DANS LE BLOC 3 QUE SOUS UNE DIRECTION QUI BOUGE
- * (décision du 2026-08-18, `activityIsRequired`). Le champ reste le « trou n°1
- * du produit » quand on VISE un rythme — sans lui, `energy_target.ts` multiplie
- * un métabolisme par une constante devinée et « produit une cible fausse avec
- * l'aplomb d'un tableau ». Mais la fourchette d'entretien (28 à 33 kcal/kg) est
- * assez juste pour TENIR un poids, et ce pop-up le réclamait de tout le monde
- * pendant que l'entonnoir voisin le laissait facultatif: deux règles pour une
- * question. `null` reste la lecture juste d'une non-réponse, et le moteur la
- * traite déjà (facteur d'hypothèse).
+ * ⟳ 2026-09-06 — LE BLOC DU CORPS NE RÉCLAME PLUS `activityLevel`. Il le
+ * réclamait sous une direction qui bouge, et c'était le seul champ bloquant que
+ * l'entonnoir voisin ne posait même pas: la fiche retenait l'inscription sur
+ * les quatre crans périmés pendant que les deux axes — les seuls que
+ * `activityFactorOf` lit quand ils sont là — restaient facultatifs. Le champ est
+ * parti avec sa garde. `null` reste la lecture juste d'une non-réponse, et le
+ * moteur la traite déjà (facteur d'hypothèse, 1,5).
  */
 export function missingRequiredBlocks(
   draft: MouthFormDraft,
@@ -974,8 +899,7 @@ export function missingRequiredBlocks(
   if (
     numberOrNull(draft.heightCm) === null ||
     numberOrNull(draft.weightKg) === null ||
-    draft.gender === "" ||
-    (activityIsRequired(draft.goal) && draft.activityLevel === "")
+    draft.gender === ""
   ) {
     out.push("body");
   }
@@ -1041,11 +965,15 @@ export function filledPreferenceBlocks(
   const out: MouthFormBlock[] = [];
   const anyHabit = Object.values(draft.habits).some((v) => v.trim() !== "");
   // ⚠️ UNE BULLE ÉTEINTE COMPTE QUAND MÊME, si son moment a été RÉPONDU.
-  // « J'ai regardé, je ne prends rien à côté » est une réponse, et la
+  // « J'ai regardé, ce moment est comme d'habitude » est une réponse, et la
   // distinguer d'un bloc jamais ouvert est exactement ce que la clé existe
   // pour faire — même décision que `allergiesNone` deux lignes plus bas.
-  const anyExtras = Object.keys(draft.extras).length > 0;
-  if (anyHabit || anyExtras || draft.shaker !== null) out.push("habits");
+  //
+  // ⟳ 2026-09-07 — une réponse « + repas léger » suffit à remplir le bloc.
+  // Sans elle, quelqu'un qui n'aurait répondu QUE ça verrait sa fiche annoncée
+  // comme vide — et un bloc annoncé vide se repropose.
+  const anyLight = Object.keys(draft.light).length > 0;
+  if (anyHabit || anyLight || draft.shaker !== null) out.push("habits");
   if (draft.allergies.length > 0 || draft.allergiesNone) out.push("allergies");
   if (draft.dislikes.length > 0 || draft.diet !== "") out.push("tastes");
   return out;
@@ -1143,9 +1071,6 @@ export interface MouthPersistPayload {
   activityLevel: ActivityLevel | null;
   dayActivity: DayActivityLevel | null;
   sportFrequency: SportFrequency | null;
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
   /** ⑤ (2026-08-20), TRANSITOIRE. `null` = pas répondu ⇒ ×1,00. */
   appetite: AppetiteLevel | null;
   targetWeightKg: number | null;
@@ -1193,9 +1118,6 @@ export function mouthToPersist(
     // est pas une et il retombe sur la moyenne.
     dayActivity: draft.dayActivity === "" ? null : draft.dayActivity,
     sportFrequency: draft.sportFrequency === "" ? null : draft.sportFrequency,
-    takesDessert: draft.takesDessert,
-    takesCheese: draft.takesCheese,
-    takesBread: draft.takesBread,
     appetite: draft.appetite === "" ? null : draft.appetite,
     // ⛔ LE VIDE REDEVIENT `null`: la base refuse `empty_rhythm`, et « rien
     // coché » veut dire « comme la maison », pas « elle ne mange jamais ».
@@ -1206,13 +1128,13 @@ export function mouthToPersist(
     // vide (`bad_slots`), et surtout: un champ laissé blanc veut dire « rien à
     // dire », pas « elle ne mange rien ». Le filtrer ici plutôt qu'au rendu
     // garde le brouillon fidèle à ce qui est tapé.
-    // ⛔ ET LES BULLES PASSENT PAR LA MÊME LISTE. Une entrée qui ne porte QUE
-    // des extras n'a pas de prose, donc pas de `own_usual` possible: elle part
-    // en `household_dish` (« le plat de la maison, plus du pain »). Le
+    // ⛔ ET LA BULLE « + REPAS LÉGER » PASSE PAR LA MÊME LISTE. Une entrée qui
+    // ne porte QUE ça n'a pas de prose, donc pas de `own_usual` possible: elle
+    // part en `household_dish` (« le plat de la maison, en plus petit »). Le
     // découpage vit dans `habitEntriesToWrite`, avec ses tests.
     habits: habitEntriesToWrite({
       habits: draft.habits,
-      extras: draft.extras,
+      light: draft.light,
       occasions: EATING_OCCASIONS,
     }),
     // ⚠️ LA MÊME LIGNE QUE LES HABITUDES, ET LA FRONTIÈRE ENTRE LES DEUX EST LE
@@ -1252,13 +1174,11 @@ export const SELF_SHEET_FIELDS = [
   "allergies",
   "allergiesNone",
   "habits",
-  // ⛔ SANS CETTE LIGNE, LES BULLES NE SE COCHENT PAS. Le brouillon du
-  // titulaire est DÉRIVÉ de `self` à chaque rendu: un champ absent de cette
-  // liste nommée est recalculé à l'ancienne au rendu suivant, et le clic
-  // semble ne rien faire. C'est le défaut mesuré le 2026-08-24 sur les trois
-  // « Oui / Non » que ces bulles remplacent — une liste-garde nommée ne garde
-  // que ce qu'elle nomme.
-  "extras",
+  // ⛔ SANS CETTE LIGNE, LA BULLE NE SE COCHE PAS. Le brouillon du titulaire
+  // est DÉRIVÉ de `self` à chaque rendu: un champ absent de cette liste nommée
+  // est recalculé à l'ancienne au rendu suivant, et le clic semble ne rien
+  // faire. Une liste-garde nommée ne garde que ce qu'elle nomme.
+  "light",
   "dislikes",
   "shaker",
   "rhythm",
@@ -1278,9 +1198,6 @@ export const SELF_SHEET_FIELDS = [
   // arrivés dans la fenêtre. Le test lit CETTE liste — il ne pouvait donc pas
   // signaler ce qu'elle ne nomme pas. Tout champ ajouté à la fenêtre s'ajoute
   // ici DANS LE MÊME LOT, sans quoi la garde ne garde rien.
-  "takesDessert",
-  "takesCheese",
-  "takesBread",
   "appetite",
 ] as const;
 

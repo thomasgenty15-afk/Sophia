@@ -1,0 +1,9 @@
+{
+  "at": "2026-09-05T19:02:34.855Z",
+  "user_id": "6bd2ad69-6a4e-4ca7-9240-11c5264a0716",
+  "status": 200,
+  "data": {
+    "ok": false,
+    "reason": "not_owner"
+  }
+}

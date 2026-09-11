@@ -46,6 +46,7 @@
  */
 
 import { goalApplies, type MemberAgeState } from "./household.ts";
+import type { RequiredDensity, SlotDensity } from "./portion_sizing.ts";
 import { GOAL_TOKENS, type GoalToken } from "./tokens.ts";
 // ⛔ L8 — LA PORTE TCA EST IMPORTÉE, JAMAIS RÉÉCRITE. `energy_gate.ts` est en
 // LECTURE SEULE pour ce lot: il porte la seule écriture de la chaîne ①②③, et ce
@@ -57,15 +58,16 @@ import {
   type CountingStance,
   energySafetyGates,
 } from "./energy_gate.ts";
-import { KEEL_MINOR_AGE, type BirthDateVerdict } from "./student_age.ts";
+import { type BirthDateVerdict, KEEL_MINOR_AGE } from "./student_age.ts";
 import type { MouthBody } from "./meal_envelope.ts";
 // L8 — LE RYTHME **EXÉCUTÉ**, pas celui que le curseur autorise. Voir
 // `mouthTargetFactor`: c'est toute la différence entre un grammage tenable et
 // une promesse que la casserole ne livre pas.
 import {
+  DEFAULT_PACE_KG_PER_WEEK,
   estimatedMaintenanceFor,
-  executedPaceFor,
   type ExecutedPace,
+  executedPaceFor,
   type PaceSubject,
   type ScaleDirection,
   scaleDirectionOf,
@@ -74,16 +76,19 @@ import {
   conditionGatePopulationOf,
   conditionGateReason,
 } from "./condition_energy_gate.ts";
-import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
+import {
+  findForbiddenMatches,
+  type ForbiddenTerm,
+} from "./forbidden_matcher.ts";
 import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
 // G4 — LE MODULE DES HABITUDES EST IMPORTÉ, JAMAIS RECOPIÉ. Le fragment de
 // ligne et sa phrase de conséquence vivent avec la lecture du jsonb: deux
 // endroits qui écriraient le marqueur `has their own` finiraient par en écrire
 // deux formes différentes, et la conséquence ne s'attacherait plus à rien.
 import {
+  HABIT_CONSEQUENCE,
   habitFragment,
   habitNoteFragment,
-  HABIT_CONSEQUENCE,
   type MemberHabit,
 } from "./household_habits.ts";
 // LA TAILLE D'UN MOMENT VIENT DU MOTEUR, ELLE N'EST PAS REDÉCLARÉE ICI. Une
@@ -135,6 +140,37 @@ export interface PortionMember {
    * construit sans être branché — le mode d'échec n°1 d'ici.
    */
   body: MealBodyContext | null;
+  /**
+   * ⟳ 2026-09-07 — LES MOMENTS QU'ELLE A MARQUÉS « LÉGER ».
+   *
+   * ⛔ REQUIS, jamais `?`, pour la raison écrite juste au-dessus pour `body`:
+   * un champ facultatif ne fait remonter aucun appelant au compilateur, et le
+   * marqueur `(light)` serait écrit, testé, servi à personne.
+   *
+   * `[]` = aucun moment marqué. C'est le cas de toute la base d'avant le lot 2.
+   */
+  lightSlots: readonly string[];
+  /**
+   * ⟳ 2026-09-08 — CE QUE LES PLATS SERVIS À CETTE BOUCHE DOIVENT PESER EN
+   * ÉNERGIE, moment par moment (`requiredDensityFor`, `portion_sizing.ts`).
+   *
+   * ── POURQUOI UNE DENSITÉ ET PAS UNE CIBLE ─────────────────────────────
+   * « au moins 182 kcal pour 100 g » est un fait sur une CASSEROLE; « tu vises
+   * 3 180 kcal » est un fait sur quelqu'un. Le premier peut se dire au modèle
+   * (v33 lui a retiré le corps de tout le monde, et ce champ ne le lui rend
+   * pas); le second ne sort jamais du moteur. Mesuré le 2026-09-07: sans ce
+   * fait, le modèle écrit des plats à 113 kcal/100 g pour une cible qui en
+   * demande 159, et 383 kcal sur 3 080 meurent au plafond d'assiette.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un champ facultatif ne fait remonter
+   * AUCUN appelant au compilateur: la ligne serait écrite, testée, et servie à
+   * personne — le mode d'échec n°1 de ce fichier, déjà payé par `body`.
+   *
+   * `null` = PERSONNE N'A CALCULÉ (chemin legacy, référentiel absent), ce qui
+   * n'est pas « le calcul n'a rien trouvé » — ce cas-là rend un objet dont les
+   * deux listes sont vides et dont `reason` dit pourquoi.
+   */
+  requiredDensity: RequiredDensity | null;
   /**
    * LES MOMENTS OÙ CETTE BOUCHE MANGE — `null` quand personne ne l'a dit.
    *
@@ -258,8 +294,7 @@ export interface MemberPortion {
  * « because you are cutting » se lirait aussi, et par tout le monde.
  */
 export const SERVING_DIRECTION: Record<MemberGoal, string> = {
-  fat_loss:
-    "generous vegetables, full protein share, smaller starch share",
+  fat_loss: "generous vegetables, full protein share, smaller starch share",
   // ── LES QUATRE NUANCES SE REPLIENT ICI (2026-08-18) ──────────────────────
   // `recomposition`, `performance` et `health` avaient chacune leur chaîne, et
   // ce fichier porte la MESURE qui justifie le repli: `health` a rendu
@@ -276,10 +311,8 @@ export const SERVING_DIRECTION: Record<MemberGoal, string> = {
   // pas (jours d'entraînement déclarés: aucun). Une consigne conditionnée à
   // une donnée absente est une consigne inconditionnelle, et celle-ci servait
   // donc du féculent en plus tous les jours à qui cochait « performance ».
-  maintenance:
-    "balanced share of every component",
-  muscle_gain:
-    "larger protein and starch share, same vegetables",
+  maintenance: "balanced share of every component",
+  muscle_gain: "larger protein and starch share, same vegetables",
 };
 
 /**
@@ -344,9 +377,15 @@ export const CHILD_DIRECTION = "child-size share of the same dish";
  * règle divergeraient, et celle-ci gouverne une phrase lue à voix haute.
  */
 const SIZE_FREE_DIRECTIONS: ReadonlyArray<readonly [string, string]> = [
-  [SERVING_DIRECTION.fat_loss, "vegetables first on the plate, then the protein, then the starch"],
+  [
+    SERVING_DIRECTION.fat_loss,
+    "vegetables first on the plate, then the protein, then the starch",
+  ],
   [SERVING_DIRECTION.maintenance, "all the components together on the plate"],
-  [SERVING_DIRECTION.muscle_gain, "protein and starch first on the plate, then the vegetables"],
+  [
+    SERVING_DIRECTION.muscle_gain,
+    "protein and starch first on the plate, then the vegetables",
+  ],
   [NEUTRAL_DIRECTION, "all the components together on the plate"],
   [CHILD_DIRECTION, "all the components together on the plate"],
 ];
@@ -357,7 +396,8 @@ const SIZE_FREE_DIRECTIONS: ReadonlyArray<readonly [string, string]> = [
  * objectif casse le banc avant d'atteindre une assiette. Il existe parce qu'une
  * chaîne inconnue ne doit pas rendre `undefined` dans un prompt.
  */
-export const SIZE_FREE_FALLBACK_DIRECTION = "all the components together on the plate";
+export const SIZE_FREE_FALLBACK_DIRECTION =
+  "all the components together on the plate";
 
 /**
  * LA DIRECTION DE SERVICE **SANS TAILLE** DE CETTE BOUCHE.
@@ -471,8 +511,14 @@ export const NO_DEMAND: ServingAxisDemands = Object.freeze({
  * ment.
  */
 export function readServingDemands(direction: string): ServingAxisDemands {
-  const out: ServingAxisDemands = { protein: null, starch: null, vegetables: null };
-  const words = String(direction ?? "").toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  const out: ServingAxisDemands = {
+    protein: null,
+    starch: null,
+    vegetables: null,
+  };
+  const words = String(direction ?? "").toLowerCase().split(/[^a-z]+/).filter(
+    Boolean,
+  );
   let current: ServingDemand | null = null;
   for (const word of words) {
     const qualifier = QUALIFIERS[word];
@@ -1060,6 +1106,440 @@ export function dedicatedDishesFor(
  *      annonce à tout le monde qui a rempli son profil, et laisse entendre que
  *      la précision est une faveur. Personne ne l'a demandée.
  */
+/**
+ * ⟳ 2026-09-08 — CE QU'UNE DENSITÉ EST, ET CE QU'ELLE N'EST PAS.
+ *
+ * ⛔ « as served » EST LA MOITIÉ QUI COMPTE. Sans elle, un modèle atteint la
+ * densité demandée en écrivant les grammes CRUS d'un riz qui triple à la
+ * cuisson: la recette annonce 180 kcal/100 g et l'assiette en sert 60. C'est le
+ * même piège que `cooked-rows-read-as-raw-in-the-referential`, du côté du
+ * prompt cette fois.
+ *
+ * ⛔ ET ON NOMME L'ÉCHAPPATOIRE. « Rends ce plat plus dense » se satisfait en
+ * servant moins — ce qui laisse la personne avec la même assiette rabotée, par
+ * l'autre bout. La consigne dit donc que la MASSE ne bouge pas: c'est la
+ * recette qu'on change.
+ */
+/**
+ * LA DENSITÉ REQUISE, EN BOUT DE LIGNE — ou rien.
+ *
+ * ⛔ « dishes served here », PAS « <prénom> needs ». La formule décide de ce que
+ * le modèle croit lire: la première décrit une casserole, la seconde décrit
+ * quelqu'un — et v33 lui a retiré le corps de tout le monde exprès. Un test lit
+ * le prompt entier et refuse tout `kcal` qui ne soit pas suivi de `per 100 g`.
+ *
+ * ⚠️ LE PREMIER MOMENT PORTE L'UNITÉ, LES SUIVANTS NON. « at least 182 kcal per
+ * 100 g at lunch, 159 at dinner » se lit d'un trait; répéter l'unité quatre
+ * fois fait une ligne qu'on saute.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+/**
+ * ⛔ EXPORTÉE LE 2026-09-08 POUR LE BRIEF DU FOYER, et sans toucher un mot.
+ * Les cartes v34 doivent porter la MÊME phrase que la ligne de portion v33:
+ * deux rédactions du même fait divergeraient au premier ajustement, et c'est
+ * celle qu'on relit le moins qui écrirait les recettes.
+ */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C · C4 (2026-09-11) — LA VISÉE ET LA DENSITÉ DE LA CIBLE, LES DEUX
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE TYPE EXISTE POUR NE PAS SUPPOSER UN CHAMP QUI N'EST PAS ENCORE LÀ.
+ * `targetAnchoredPer100G` (= `100 × E / Gpréf`) est ajouté à `SlotDensity` par
+ * le lot B, dans `portion_sizing.ts`. Tant qu'il n'y est pas, `undefined` se lit
+ * comme « ce couloir ne dit rien de sa cible », et on s'abstient — jamais un
+ * `as` sur le type du voisin, qui rendrait un `undefined` indiscernable d'un
+ * nombre (`as-cast-on-foreign-type-disarms-typecheck`).
+ *
+ * ⚠️ `SlotDensity[]` EST ASSIGNABLE À CE TYPE: la propriété est optionnelle, donc
+ * aucun appelant ne change, et le jour où le lot B pose le champ il arrive ici
+ * tout seul.
+ */
+export type SlotDensityWithAnchor = SlotDensity & {
+  readonly targetAnchoredPer100G?: number | null;
+};
+
+/**
+ * L'ÉCART À PARTIR DUQUEL ON NOMME LES DEUX NOMBRES.
+ *
+ * ⛔ 15 %, ET CE N'EST PAS UN RÉGLAGE DE GOÛT. Ce dépôt assume déjà ±10 à 15 %
+ * d'erreur de table et de cuisson (`food_composition.ts`, pavé `ML_TO_G`).
+ * En dessous de ce bruit, « 145 » et « 152 » décrivent la même assiette, et
+ * écrire les deux ferait une ligne plus longue pour une distinction que
+ * personne ne peut agir. Au-dessus, ce sont deux assiettes différentes — et
+ * c'est exactement le cas mesuré sous le nom A15: un déjeuner de 1 120 kcal
+ * dont la cible seule demanderait **236 kcal/100 g** quand les plats réels de
+ * ce dépôt vivent entre **113 et 156**.
+ */
+export const ANCHOR_DIVERGENCE_RATIO = 1.15;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ POURQUOI ON NOMME LES DEUX, ET POURQUOI ON NE SUBSTITUE PAS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le chantier demande `Dpréf = 100 × cible / grammage préféré` (lot C.4). Ce
+ * dépôt a tranché l'INVERSE, avec des mesures, sous le nom **A15**
+ * (`docs/keel/CHANTIER-DENSITE-PORTIONS-ET-FAST.md:573`): cette formule rend
+ * 236 kcal/100 g sur un déjeuner de 1 120 kcal, et on a mesuré **389 demandés
+ * au dîner, 126,7 rendus** — consigne ignorée. Y revenir réintroduirait un
+ * défaut mesuré.
+ *
+ * ⛔ CE QU'ON RETIENT DE LA DEMANDE, C'EST LE MOT « SILENCIEUSEMENT ». La visée
+ * ne vient PAS de la cible, elle vient du bas du couloir (l'assiette la plus
+ * grande, la plus facile à composer). Présenter ce nombre seul le fait lire
+ * comme s'il venait de la cible. Quand les deux divergent, la ligne dit les
+ * deux et dit lequel vise: rien n'est substitué en silence, et la mesure qui a
+ * fondé A15 n'est pas jetée.
+ */
+function anchorClause(d: SlotDensityWithAnchor, aim: number): string {
+  const anchored = d.targetAnchoredPer100G;
+  if (typeof anchored !== "number" || !Number.isFinite(anchored)) return "";
+  if (anchored <= 0 || aim <= 0) return "";
+  const ratio = anchored > aim ? anchored / aim : aim / anchored;
+  if (ratio < ANCHOR_DIVERGENCE_RATIO) return "";
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-11 (fin de chantier) — LE NOMBRE PAR MOMENT, L'EXPLICATION UNE
+  // SEULE FOIS
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ MESURÉ EN BRANCHANT LE TÉMOIN. L'écart entre la visée et
+  // `100 × E / Gpréf` n'est PAS un cas rare: il vaut à peu près
+  // `(Gmax / Gpréf) / 1,10`, donc ~1,34 partout. Sur le premier tir réel
+  // branché, la clause est sortie sur **4 moments sur 4** — et l'explication,
+  // identique, 4 fois dans la même phrase. Sur une table de quatre bouches,
+  // c'est 16 fois le même membre de phrase dans un prompt déjà à sa limite.
+  //
+  // ⚠️ UN BRIEF QUI RÉPÈTE CESSE D'ÊTRE LU: c'est l'objection déjà retenue au
+  // lot 4 pour la borne basse redondante, et elle vaut ici mot pour mot. On
+  // sépare donc les deux moitiés — le NOMBRE est une donnée du moment et il
+  // reste sur le moment; l'EXPLICATION est la même partout et se dit une fois,
+  // en queue de phrase (`anchorNote`). Même propriété que l'unité, écrite sur
+  // la première entrée seulement.
+  return `, not ${Math.round(anchored)}`;
+}
+
+/**
+ * L'EXPLICATION DES DEUX NOMBRES — UNE FOIS PAR PHRASE, JAMAIS PAR MOMENT.
+ *
+ * Vide quand aucun moment n'a divergé: une note qui explique un « not N » qui
+ * n'existe pas serait une consigne sans objet.
+ */
+function anchorNote(slots: readonly SlotDensityWithAnchor[]): string {
+  const diverges = slots.some((d) =>
+    anchorClause(d, d.preferredPer100G) !== ""
+  );
+  if (!diverges) return "";
+  return ` (the "not N" numbers are the target spread over an average plate; ` +
+    `we ask for the bigger plate, so aim for the first number)`;
+}
+
+export function densityFragment(slots: readonly SlotDensityWithAnchor[]): string {
+  if (slots.length === 0) return "";
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 — UN COULOIR, PLUS « AU MOINS N »
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ « AU MOINS N » N'A PAS DE HAUT, ET ÇA S'EST MESURÉ DANS LES DEUX SENS.
+  // Sur 40 densités demandées puis pesées (2026-09-09/10), l'écart consigne↔
+  // recette va de **−23 % à +63 %**, médiane +3,1 %. Le centre était bon; la
+  // DISPERSION coûtait. Et au tir SPLICE3, la consigne inverse (« reste sous
+  // 145 ») sans plancher a rendu un bouillon à 57,8: une assiette passée de
+  // trop petite à trop grosse. Un seul bout, quel qu'il soit, laisse le modèle
+  // partir de l'autre côté.
+  //
+  // ⚠️ LA VISÉE EST DITE, ET ELLE EST À L'INTÉRIEUR. C'est ce qui remplace
+  // `REPAIR_DENSITY_HEADROOM` sur ce chemin: on ne pousse plus la cible de
+  // 10 % au-delà du nécessaire (ça déplace un centre déjà juste), on donne le
+  // centre et les deux bords.
+  //
+  // ⛔ ET LA FORME RESTE LA GARDE. « dishes served here » décrit une casserole;
+  // « <prénom> needs » décrirait quelqu'un — et v33 a retiré le corps de tout
+  // le monde exprès. Un test lit le prompt entier et refuse tout `kcal` qui ne
+  // soit pas suivi de `per 100 g`: les bornes s'écrivent donc « A to B kcal per
+  // 100 g », jamais « A kcal to B kcal ».
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 · LOT 4 — LA BORNE BASSE REDONDANTE NE SE RÉPÈTE PAS
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE QUI A CHANGÉ EN AMONT: `requiredDensityFor` ne JETTE plus un moment
+  // dont la borne basse ne dépasse pas le plancher commun du bloc. Il le
+  // jetait pour éviter de répéter « au moins 100 » — mais il emportait le
+  // PLAFOND, que le plancher du bloc ne porte pas et que rien d'autre ne
+  // porte.
+  //
+  // ⚠️ L'OBJECTION ÉTAIT JUSTE, ET ELLE VIT ICI MAINTENANT. Un brief qui
+  // répète cesse d'être lu: quand `redundantMin` est vrai, on écrit le
+  // PLAFOND seul (« up to N »), pas la bande. Le nombre bas continue
+  // d'atteindre le modèle par le plancher commun, comme avant; ce qui est
+  // nouveau, c'est que le nombre haut l'atteint aussi.
+  const one = (d: SlotDensityWithAnchor, unit: boolean) => {
+    const suffix = unit ? " kcal per 100 g" : "";
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-11 — UNE BANDE INTENABLE SE DIT, ELLE NE SE DÉGUISE PAS
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT QUE CECI FERME. `incompatible` était calculé, épinglé par
+    // des tests, écrit dans le type — et AUCUN lecteur. La consigne envoyée au
+    // modèle pour une intersection VIDE était indistinguable d'une bande
+    // parfaitement tenable: on lui demandait poliment de viser un point qui
+    // n'existe pas, et on comptait son échec comme une désobéissance.
+    //
+    // ⛔ ET CE N'EST PAS UNE CONSIGNE DE PLUS: c'est un AVEU. Le modèle ne peut
+    // rien faire d'une bande vide; lui dire « fais au plus près » est la seule
+    // chose vraie qu'on puisse lui demander. Le taire lui apprend que ces
+    // nombres-là sont décoratifs — ce que ce dépôt a déjà mesuré (389 demandés
+    // au dîner, 126,7 rendus).
+    //
+    // ⚠️ LE NOMBRE RESTE, ET C'EST VOULU. On ne retire pas la cible: une case
+    // sans aucun chiffre se compose au hasard. On dit le chiffre ET on dit
+    // qu'il est hors de portée.
+    if (d.incompatible !== null) {
+      const cause = d.incompatible === "above_askable_cap"
+        // Le besoin dépasse ce qu'on s'autorise à demander: la part ne TIENT
+        // pas dans l'assiette, quelle que soit la recette.
+        ? `its share does not fit the plate; get as close as you can`
+        // Deux occurrences de ce moment n'ont aucune densité commune: aucune
+        // recette unique ne peut servir les deux jours.
+        : `these days need different recipes; cook them apart if you must`;
+      return `${d.preferredPer100G}${suffix} at ${d.slot} — ${cause}`;
+    }
+    if (d.redundantMin && d.maxPer100G > d.minPer100G) {
+      // ⚠️ « up to N », ET LA VISÉE AVEC. Sans la visée, « au plus 135 » fait
+      // partir le modèle vers le bas — l'erreur miroir de « au moins N », et
+      // elle a été mesurée (tir SPLICE3, un bouillon à 57,8).
+      return `up to ${d.maxPer100G}${suffix} at ${d.slot} (aim ${d.preferredPer100G}${
+        anchorClause(d, d.preferredPer100G)
+      })`;
+    }
+    const range = d.maxPer100G > d.minPer100G
+      ? `${d.minPer100G} to ${d.maxPer100G}`
+      : `${d.minPer100G}`;
+    const head = `${range}${suffix}`;
+    return `${head} at ${d.slot} (aim ${d.preferredPer100G}${
+      anchorClause(d, d.preferredPer100G)
+    })`;
+  };
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-11 · LOT B — QUAND UN MOMENT PORTE DEUX BANDES, ON DIT LES JOURS
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ « NE PAS FUSIONNER TOUS LES DÎNERS PAR LEUR VALEUR MAXIMALE. Une
+  // consigne commune n'est possible que si les contrats sont effectivement
+  // compatibles et LES CASES CONCERNÉES RESTENT IDENTIFIABLES. » C'est la règle
+  // du chantier, et sans les jours elle est impossible à tenir: deux lignes
+  // « at dinner » côte à côte se lisent comme une contradiction, pas comme deux
+  // journées.
+  //
+  // ⚠️ ET LE CAS NOMINAL NE CHANGE PAS D'UN CARACTÈRE. Un moment qui ne porte
+  // QU'UNE bande n'a rien à dater: ses jours sont tous ses jours. La phrase
+  // archivée du 2026-09-11 reste reproductible telle quelle.
+  const lignesParMoment = new Map<string, number>();
+  for (const d of slots) {
+    lignesParMoment.set(d.slot, (lignesParMoment.get(d.slot) ?? 0) + 1);
+  }
+  const all = slots.map((d, i) => {
+    const texte = one(d, i === 0);
+    const jours = d.days ?? [];
+    if ((lignesParMoment.get(d.slot) ?? 1) < 2 || jours.length === 0) {
+      return texte;
+    }
+    // ⚠️ LE JOUR SE COLLE AU MOMENT, pas à la fin de la phrase: `at dinner on
+    // fri` se lit d'un trait, `at dinner (… ) on fri` fait chercher à quoi il
+    // se rapporte.
+    return texte.replace(
+      ` at ${d.slot}`,
+      ` at ${d.slot} on ${[...jours].join("/")}`,
+    );
+  });
+  return ` — dishes served here: ${all.join(", ")}${anchorNote(slots)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOT C · C3 (2026-09-11) — LE COULOIR D'UNE CASE, ET SES CONSOMMATEURS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * CE QU'UNE CASSEROLE PARTAGÉE DOIT TENIR POUR TOUS CEUX QUI Y PUISENT.
+ *
+ * ⛔ LE DÉFAUT QUE CECI FERME, ET IL EST ÉCRIT DANS LE PROMPT LUI-MÊME.
+ * `methodBlock` étape 3 demande au modèle de « lire les cartes, prendre le plus
+ * grand chiffre » — c'est-à-dire de faire une INTERSECTION à la main, sur
+ * quatre cartes et trois moments. Mesuré au tir DENSITE (2026-09-08): les
+ * quatre cartes demandaient 105, 122, 139 et **167** au déjeuner, et le modèle
+ * a écrit **136** — la moyenne. Une personne s'est retrouvée avec 724 g dans
+ * l'assiette. Un calcul déterministe qu'on délègue au modèle est un calcul
+ * qu'on paie deux fois: en jetons, et en erreurs.
+ *
+ * ⛔ LES BOUCHES QUI ONT LEUR PROPRE PLAT NE COMPTENT PAS DANS L'INTERSECTION.
+ * C'est tout l'intérêt d'un plat dédié: la casserole commune n'a plus à les
+ * servir. Les garder resserrerait la bande commune au nom de quelqu'un qui ne
+ * mange pas dedans — exactement le conflit que le plat dédié existe pour
+ * dénouer.
+ *
+ * ⛔ ET L'INTERSECTION VIDE EST CONSERVÉE, jamais rabotée. « Si aucune densité
+ * commune n'existe, le dire » est la demande du chantier, et c'est la même
+ * règle que `empty_intersection` applique déjà entre deux JOURS d'un même
+ * moment: une consigne intenable présentée comme tenable apprend au modèle que
+ * ces nombres-là sont décoratifs (mesuré: 389 demandés, 126,7 rendus).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export interface CellDensity {
+  minPer100G: number;
+  maxPer100G: number;
+  /** La visée: le plus haut `preferred` des mangeurs, ramené dans la bande. */
+  aimPer100G: number;
+  /** Vrai quand le plancher commun dépasse le plafond commun. */
+  empty: boolean;
+  /** Qui impose le plancher, et qui impose le plafond. Nommés dans le conflit. */
+  floorFrom: string;
+  ceilingFrom: string;
+  /** Combien de mangeurs de la case portent un couloir NOMMÉ. */
+  eatersWithCorridor: number;
+}
+
+export function cellDensityOf(
+  eaters: readonly { name: string; slots: readonly SlotDensity[] }[],
+  slot: string,
+  /**
+   * ⟳ 2026-09-11 · LOT B — LE JOUR DE CETTE CASE. ⛔ REQUIS, jamais `?`.
+   *
+   * Depuis le lot B, un moment peut porter DEUX couloirs — un par grappe de
+   * jours compatibles. Chercher « le » couloir du dîner sans dire QUEL dîner
+   * rendrait celui de l'autre jour, c'est-à-dire ferait exactement ce que le
+   * lot répare: le vendredi imposant sa bande au dimanche. Un `?` aurait laissé
+   * « le premier trouvé » être la réponse silencieuse de tous les appelants.
+   *
+   * ⚠️ UNE LIGNE SANS JOURS (`days: []`) VAUT POUR TOUS LES JOURS: c'est le
+   * décor de test, et le comportement d'avant ce lot.
+   */
+  day: string,
+): CellDensity | null {
+  let floor = -Infinity;
+  let ceiling = Infinity;
+  let aim = -Infinity;
+  let floorFrom = "";
+  let ceilingFrom = "";
+  let counted = 0;
+  for (const e of eaters) {
+    // ⚠️ `?? []` PARCE QUE CETTE LIGNE PEUT VENIR D'UN PAYLOAD RELU ou d'un
+    // décor antérieur au lot B: sans jours, elle vaut pour tous les jours —
+    // le comportement d'avant, et jamais une exception silencieuse.
+    const corridor = e.slots.find((d) => {
+      const jours = d.days ?? [];
+      return d.slot === slot && (jours.length === 0 || jours.includes(day));
+    });
+    if (!corridor) continue;
+    counted++;
+    if (corridor.minPer100G > floor) {
+      floor = corridor.minPer100G;
+      floorFrom = e.name;
+    }
+    if (corridor.maxPer100G < ceiling) {
+      ceiling = corridor.maxPer100G;
+      ceilingFrom = e.name;
+    }
+    if (corridor.preferredPer100G > aim) aim = corridor.preferredPer100G;
+  }
+  if (counted === 0) return null;
+  const empty = floor > ceiling;
+  return {
+    minPer100G: floor,
+    maxPer100G: ceiling,
+    // ⚠️ LA VISÉE EST LE PLUS HAUT `preferred`, RAMENÉ DANS LA BANDE — et pas
+    // la moyenne. C'est la règle que l'étape 3 de la méthode énonce en toutes
+    // lettres depuis le 2026-09-08, et la raison y est écrite: en dessous, une
+    // seule personne se retrouve avec une assiette énorme et personne d'autre
+    // ne le remarque.
+    aimPer100G: empty ? floor : Math.min(ceiling, Math.max(floor, aim)),
+    empty,
+    floorFrom,
+    ceilingFrom,
+    eatersWithCorridor: counted,
+  };
+}
+
+/**
+ * LA PHRASE D'UNE CASE — sans unité, parce que l'en-tête du calendrier la porte.
+ *
+ * ⚠️ L'UNITÉ EST DITE UNE FOIS, EN TÊTE DU CALENDRIER, ET PAS SUR CHAQUE
+ * LIGNE. C'est la propriété que `densityFragment` tient déjà sur ses moments
+ * (`one(d, i === 0)`): « at least 182 kcal per 100 g at lunch, 159 at dinner »
+ * se lit d'un trait, la répéter fait une ligne qu'on saute. Ici il peut y avoir
+ * vingt et une cases: la répétition coûterait vingt fois.
+ *
+ * ⛔ ET LE CONFLIT NOMME LES DEUX PERSONNES. Le modèle ne peut rien faire d'une
+ * bande vide s'il ignore qui la vide: dire « ça ne tient pas » sans dire pour
+ * qui, c'est lui demander d'échouer poliment.
+ */
+export function cellDensitySentence(cell: CellDensity): string {
+  if (cell.empty) {
+    return ` No single density suits them all: ${cell.floorFrom} needs at least ` +
+      `${cell.minPer100G}, ${cell.ceilingFrom} at most ${cell.maxPer100G}. ` +
+      `Aim ${cell.aimPer100G} and cook the other one apart if you can.`;
+  }
+  const band = cell.maxPer100G > cell.minPer100G
+    ? `${cell.minPer100G}-${cell.maxPer100G}`
+    : `${cell.minPer100G}`;
+  return ` Shared dish ${band}, aim ${cell.aimPer100G}.`;
+}
+
+/**
+ * LE PLANCHER DE DENSITÉ DU BLOC — la base, relevée par ce qu'on ne peut pas
+ * nommer.
+ *
+ * ⛔ IL NE LIT QUE `floorOnly`, ET C'EST LA DÉCISION DU LOT. Une bouche sous
+ * plancher TCA ne peut recevoir aucun nombre en face de son nom; son exigence
+ * doit pourtant atteindre le modèle, sans quoi le plan la sous-nourrit en
+ * silence pour la protéger d'un chiffre. Elle passe donc par le plancher
+ * COMMUN, où elle se confond avec celle de tout le monde.
+ *
+ * ⛔ ET IL NE LIT PAS `named`. Faire monter le plancher commun avec la densité
+ * NOMMÉE d'une personne imposerait au petit-déjeuner de tout le foyer la
+ * densité du déjeuner de la plus exigeante — mesuré sur le corps du 2026-09-07:
+ * 182 au lieu de 114, sur un moment qui n'en avait aucun besoin. La ligne est
+ * l'instrument précis; le plancher est l'instrument grossier, réservé à qui ne
+ * peut pas être nommé.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function densityFloorsOf(
+  members: readonly PortionMember[],
+  base: { normal: number; light: number },
+): { normal: number; light: number } {
+  let normal = base.normal;
+  let light = base.light;
+  for (const m of members) {
+    for (const d of m.requiredDensity?.floorOnly ?? []) {
+      if (d.light) light = Math.max(light, d.kcalPer100G);
+      else normal = Math.max(normal, d.kcalPer100G);
+    }
+  }
+  return { normal, light };
+}
+
+/**
+ * ⛔ EXPORTÉ LE 2026-09-08 POUR LE BRIEF DU FOYER, sans toucher un mot.
+ *
+ * Le foyer portait les CHIFFRES de densité sur les cartes et aucune de ces cinq
+ * lignes. Un nombre en kcal/100 g au bout d'une carte, sans elles, se lit comme
+ * une information sur la PERSONNE — c'est-à-dire comme le corps que v33 lui a
+ * retiré — et rien n'interdit de « l'atteindre » en imaginant une assiette plus
+ * petite, ce qui est précisément le geste que le moteur reprendra ensuite.
+ *
+ * C'est le principe que ce fichier énonce trois fois: **une contrainte qu'on
+ * énonce sans dire ce qu'elle INTERDIT est une contrainte décorative.**
+ */
+export const DENSITY_CONSEQUENCE = [
+  "A density on someone's line is a fact about the DISH served at that moment,",
+  "as served, not a fact about them: write that recipe at least that dense.",
+  "Reach it by what the dish is MADE OF — more of the starch, the protein or",
+  "the fat it already carries, less water and less watery vegetable. Do not",
+  "reach it by serving a smaller plate: the plate stays a plate.",
+] as const;
+
 const BODY_FACTS_CAVEAT = [
   "The bracketed facts are there for ONE thing: the SIZE of a portion. A palm",
   "of protein is not the same palm on a small person and a tall one. Never",
@@ -1147,6 +1627,20 @@ export function buildPortionBrief(
    * diffèrent, et c'est vérifiable à l'octet.
    */
   weightGroups: number,
+  /**
+   * ⟳ 2026-09-07 — QUEL CHEMIN DE DIMENSIONNEMENT (lot 3 du plan solo).
+   *
+   * ⛔ REQUIS, jamais optionnel, et c'est la troisième fois que ce fichier
+   * l'écrit: un `?` ici aurait laissé le brief servir des faits de corps et un
+   * ordre de mise en boîtes à un foyer dont le moteur ne veut ni l'un ni
+   * l'autre — c'est-à-dire un prompt qui promet une recette standard et un
+   * brief qui demande des portions nominatives, dans le même message.
+   *
+   * Sous `"portion_v1"`: AUCUN fait de corps, AUCUN avertissement de corps,
+   * AUCUN ordre de mise en boîtes, direction sans mot de taille, et le
+   * marqueur `(light)` sur les moments concernés.
+   */
+  sizingPath: "portion_v1" | "legacy_measure",
 ): string {
   if (members.length === 0) return "";
   let anyBodyFacts = false;
@@ -1161,10 +1655,25 @@ export function buildPortionBrief(
   // est marqué… » servie à un foyer où personne ne l'est apprend au modèle
   // qu'il existe un marquage, et l'invite à en inventer un.
   let anyRhythm = false;
+  // ⟳ 2026-09-08 — MÊME DISCIPLINE, QUATRIÈME FOIS: la phrase qui dit ce
+  // qu'une densité EST n'est servie que si au moins une ligne en porte une.
+  // Servie à un foyer sans densité, elle apprend au modèle qu'il existe une
+  // grandeur qu'on lui impose parfois, et l'invite à en inventer une.
+  let anyDensity = false;
   // Le moteur pèse-t-il les parts de ce foyer ? Une seule lecture, et c'est la
   // même que celle du bloc des boîtes: deux façons de répondre à « le moteur
   // dimensionne-t-il ? » finiraient par se contredire dans le même prompt.
-  const sizedByEngine = Number.isFinite(weightGroups) && weightGroups >= 2;
+  // ⟳ 2026-09-07 — SOUS `portion_v1` LE MOTEUR DIMENSIONNE TOUT, y compris un
+  // foyer d'une seule bouche. `weightGroups >= 2` décrivait la seule situation
+  // où le legacy pesait; ce n'est plus la seule.
+  const sizedByEngine = sizingPath === "portion_v1" ||
+    (Number.isFinite(weightGroups) && weightGroups >= 2);
+  // ⛔ SOUS `portion_v1`, LE CORPS NE PART PAS AU MODÈLE. C'est le cœur du lot
+  // 3: il écrit UNE RECETTE STANDARD, et une recette standard ne dépend
+  // d'aucun corps. Lui donner « 170 cm, 70 kg » l'invite à dimensionner
+  // lui-même — c'est-à-dire à faire le travail que l'algorithme vient de
+  // reprendre, avec un instrument qu'on ne peut ni mesurer ni corriger.
+  const bodyFactsGo = sizingPath !== "portion_v1";
   const lines = members.map((m) => {
     // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style — et il est écrit UNE
     // fois, dans `servingDirectionFor`, parce que la fusion doit lire
@@ -1199,7 +1708,7 @@ export function buildPortionBrief(
     // même fichier que `mealBodyBlocks`: une garde qu'un appelant applique est
     // une garde que le prochain appelant oublie (FF-030 R5). Les deux
     // paramètres sont requis, donc il n'y a pas d'appel « partiel » possible.
-    const facts = householdBodyFacts(m.body, m.ageState);
+    const facts = bodyFactsGo ? householdBodyFacts(m.body, m.ageState) : [];
     // ── QUAND CETTE BOUCHE MANGE, SUR SA PROPRE LIGNE ────────────────────
     // On donne le FAIT, pas la déduction: « eats at breakfast, dinner » plutôt
     // qu'une grille par personne. C'est le patron du dépôt (`country` et
@@ -1224,11 +1733,27 @@ export function buildPortionBrief(
     // Rien n'est écrit quand la taille est `null`: « il n'a pas dit » laisse le
     // moment libre, et écrire « medium » par défaut poserait une contrainte que
     // personne n'a exprimée — que le modèle respecterait.
+    // ⟳ 2026-09-07 — `(light)` SUR SA LIGNE, ET LA TAILLE N'Y VA PLUS.
+    //
+    // ⛔ LES DEUX NE COHABITENT PAS, et c'est le mode d'échec n°6 du plan:
+    // « léger » compté deux fois. Sous `portion_v1` la taille déclarée
+    // (`o.size`) ne se rend PAS — le poids du moment porte déjà l'information,
+    // et l'écrire aussi en mots ferait rétrécir le dîner une seconde fois.
+    //
+    // ⚠️ ET `(light)` EST UNE DEMANDE DE RECETTE, pas une portion. Il dit au
+    // modèle « écris une recette légère pour ce moment »; combien la personne
+    // en mange reste l'affaire de l'algorithme.
+    const lightAt = new Set(m.lightSlots ?? []);
     const when = m.eatingSlots === null || m.eatingSlots.length === 0
       ? ""
       : ` — eats at ${
         m.eatingSlots
-          .map((o) => (o.size ? `${o.slot} (${o.size} for them)` : o.slot))
+          .map((o) => {
+            if (sizingPath === "portion_v1") {
+              return lightAt.has(o.slot) ? `${o.slot} (light)` : o.slot;
+            }
+            return o.size ? `${o.slot} (${o.size} for them)` : o.slot;
+          })
           .join(", ")
       } only`;
     if (when !== "") anyRhythm = true;
@@ -1251,9 +1776,36 @@ export function buildPortionBrief(
     // conséquence pour une note ferait dire au modèle qu'une bouche est
     // dispensée du plat commun alors que personne ne l'a écrit.
     const said = habitNoteFragment(m.habitNote ?? null);
-    if (facts.length === 0) return `- ${m.displayName}: ${direction}${when}${own}${said}`;
+    // ── LA DENSITÉ REQUISE, EN DERNIER SUR LA LIGNE ─────────────────────
+    // Après le rythme et les habitudes, avant les faits corporels: elle parle
+    // du PLAT servi à ces moments-là, donc elle se lit comme une précision de
+    // « eats at lunch, dinner only ». Avant, elle se lirait comme une règle
+    // générale dont les moments seraient l'exception.
+    //
+    // ⛔ SOUS `portion_v1` SEULEMENT, et ce n'est pas une commodité: le chemin
+    // legacy ne dimensionne pas les plats — lui annoncer une densité ferait une
+    // promesse que rien n'exécute.
+    //
+    // ⚠️ ET L'EMPREINTE SHA-256 DU PROMPT LEGACY NE GARDE PAS CE GATE. Mesuré
+    // le 2026-09-08 en le retirant: elle reste verte, parce que ses trois
+    // foyers canoniques portent `requiredDensity: null`. Le gardien est le test
+    // « la densité ne traverse PAS vers legacy_measure », qui donne une densité
+    // à une bouche de la lane legacy exprès.
+    //
+    // ⛔ `named` SEULEMENT. `floorOnly` porte la densité d'une bouche sous
+    // plancher TCA: elle atteint le modèle par le plancher COMMUN du bloc, et
+    // jamais en face d'un nom. Voir `RequiredDensity`.
+    const density = sizingPath === "portion_v1"
+      ? densityFragment(m.requiredDensity?.named ?? [])
+      : "";
+    if (density !== "") anyDensity = true;
+    if (facts.length === 0) {
+      return `- ${m.displayName}: ${direction}${when}${own}${said}${density}`;
+    }
     anyBodyFacts = true;
-    return `- ${m.displayName}: ${direction}${when}${own}${said} [${facts.join("; ")}]`;
+    return `- ${m.displayName}: ${direction}${when}${own}${said}${density} [${
+      facts.join("; ")
+    }]`;
   });
   return [
     "HOUSEHOLD SERVING PLAN — one cooking session, portions that differ.",
@@ -1365,6 +1917,11 @@ export function buildPortionBrief(
     // phrase produit exactement le plan mesuré — sept petits-déjeuners servis à
     // quelqu'un qui n'en mange pas.
     ...(anyHabit ? [...HABIT_CONSEQUENCE] : []),
+    // ⟳ 2026-09-08 — CE QU'UNE DENSITÉ EST, DIT UNE FOIS. Sans elle, un nombre
+    // en kcal/100 g au bout d'une ligne se lit comme une information sur la
+    // personne — c'est-à-dire comme le corps que v33 lui a retiré. La phrase
+    // dit que la grandeur porte sur le PLAT, et ce qu'il faut en faire.
+    ...(anyDensity ? [...DENSITY_CONSEQUENCE] : []),
     "",
     ...lines,
     "",
@@ -1372,7 +1929,13 @@ export function buildPortionBrief(
     // ── LOT 4 · LA MISE EN BOÎTES, COLLÉE À LA PROMESSE ────────────────────
     // Elle est ICI, dans le même souffle que les lignes par personne, et c'est
     // la moitié qui décide du lot — voir `boxingOrderLines`.
-    ...boxingOrderLines(members, weighedPortionMembers(members)),
+    // ⛔ AUCUN ORDRE DE MISE EN BOÎTES SOUS `portion_v1`. Le modèle n'écrit plus
+    // de boîte du tout: c'est le moteur qui les autore (lot 4). Lui en demander
+    // ferait écrire des grammes par personne qu'on jetterait ensuite — et un
+    // modèle à qui on jette la moitié de sa sortie finit par mal écrire l'autre.
+    ...(sizingPath === "portion_v1"
+      ? []
+      : boxingOrderLines(members, weighedPortionMembers(members))),
     // EN DERNIER, ET ÇA RESTE LE CAS APRÈS LE LOT 3B, PUIS APRÈS LE LOT 4. Un
     // modèle lit la contrainte la plus proche de la fin comme la plus
     // contraignante, et c'est celle-ci qui doit survivre aux faits corporels
@@ -1521,7 +2084,7 @@ export function boxingOrderLines(
     "else: no weights, no gram figures, no portion counts. Those live in the",
     "boxes, where each one already carries the name of what is in it and whose",
     "it is. A weight written in the run_through names no food and matches no",
-    "lid — say \"portion it into the named boxes\" and let the boxes speak.",
+    'lid — say "portion it into the named boxes" and let the boxes speak.',
     "A line in member_portions is NOT a box. It is a sentence read aloud at the",
     "table; a box has a weight and a name on it, and it is what stops the weighing",
     "from happening again at every meal. Writing the serving instruction instead",
@@ -1781,51 +2344,30 @@ export type BoxSizingReason = (typeof BOX_SIZING_REASONS)[number];
  * servirait un déficit que personne n'a validé en ayant l'air d'avoir protégé
  * quelqu'un; rendre 1 et nommer le motif laisse l'assiette telle que le modèle
  * l'a écrite, ce qui est le produit d'hier.
+ *
+ * ── ⟳ 2026-09-09 — LE MAXIMUM SUIT LE CURSEUR: 1,25 → 1,50 ─────────────────
+ * Tant qu'`executedPaceFor` rabotait une prise à +10 % de l'entretien, 1,25
+ * laissait de la marge. Le curseur est désormais le contrat (en-tête de
+ * `weight_pace.ts`): à son plafond — 1 kg ou 1 % du poids par semaine —, le
+ * facteur MAXIMAL structurel d'une prise vaut `1 + plafond × 7700 / 7 /
+ * entretien`, et il est le plus haut sur un corps LOURD et à FAIBLE entretien.
+ * Balayé sur 2 580 corps adultes (40-250 kg × 4 tailles × 3 genres × 5 crans):
+ * **1,477**, atteint à 100 kg / 150 cm / femme / sédentaire. Laisser 1,25
+ * aurait rendu `implausible_factor` — c'est-à-dire l'assiette d'ENTRETIEN —
+ * précisément à la personne qui a poussé le curseur le plus loin, et sans un
+ * mot. `target_grams_test.ts` rejoue ce balayage contre CETTE constante.
  */
 export const BOX_FACTOR_MIN = 0.70;
-export const BOX_FACTOR_MAX = 1.25;
+export const BOX_FACTOR_MAX = 1.50;
 
-/**
- * LOT B ① — LE CRAN D'UNE DIRECTION QUE PERSONNE N'A CHIFFRÉE, en kg/semaine.
- *
- * ── L'ARBITRAGE, ET POURQUOI C'EST CELUI-LÀ ──────────────────────────────
- * Deux sorties étaient posées: soit les deux lecteurs exigent la même chose —
- * une direction sans rythme ne fait alors PAS diverger non plus, et on RETIRE
- * le plat dédié —, soit une direction sans rythme reçoit un cran par défaut.
- * La première rend le produit plus petit pour réparer une incohérence: elle
- * retire à quelqu'un un plat qu'il a aujourd'hui, au motif qu'un curseur
- * qu'on ne lui a jamais montré n'est pas réglé. La seconde tient la promesse
- * déjà faite. C'est la seconde qui est retenue.
- *
- * ── D'OÙ VIENT 0,25, ET CE QU'IL VAUT DANS LES DEUX SENS ─────────────────
- * C'est un demi-livre par semaine: le cran modéré, celui qu'on donnerait à
- * quelqu'un qui a dit « je veux perdre » sans dire à quelle vitesse.
- * 0,25 × 7 700 / 7 = **275 kcal/jour** demandés, et ce nombre traverse ensuite
- * `executedPaceFor` comme n'importe quel autre cran:
- *
- *   · PERTE d'adulte — 275 kcal est très en dessous d'A1 (500 kcal), donc
- *     c'est le CRAN qui décide, jamais le plafond. Sur 2 713 kcal d'entretien:
- *     facteur 0,899. Le plancher d'énergie de ce corps reste évalué et gagne
- *     quand il est plus proche.
- *   · PRISE d'adulte — la bande `MAX_SURPLUS_FRACTION` (+10 %) est plus basse
- *     que 275 kcal sous ~2 750 kcal d'entretien, donc le clamp `surplus_band`
- *     décide et le facteur vaut exactement ce que la composition SAIT livrer.
- *   · MINEUR — n'arrive jamais ici: la porte ② ferme avant.
- *
- * ⚠️ IL N'EST PAS LE MAXIMUM, ET C'EST DÉLIBÉRÉ. Saturer A1 (500 kcal/jour)
- * donnerait le déficit le plus creux que le produit connaisse à quelqu'un qui
- * a seulement coché une case. Un défaut se choisit conservateur; c'est le
- * curseur, quand un écran le posera, qui a le droit de monter.
- *
- * ⚠️ IL N'EST PAS ÉCRIT EN BASE, ET C'EST LA MOITIÉ DE LA DÉCISION. Poser
- * 0,25 dans `household_members.target_pace_kg_per_week` à l'ajout d'une bouche
- * rendrait un cran DÉRIVÉ indiscernable d'un cran CHOISI: l'écran l'afficherait
- * comme la réponse de la personne, `keel_household_set_member_target(null,
- * null)` l'effacerait comme si elle l'avait retiré, et plus personne ne
- * pourrait compter qui attend encore qu'on lui pose la question. La dérivation
- * vit ici, à la lecture, et elle porte son propre motif (`sized_default_pace`).
- */
-export const DEFAULT_PACE_KG_PER_WEEK = 0.25;
+// ⟳ 2026-09-09 — `DEFAULT_PACE_KG_PER_WEEK` A DÉMÉNAGÉ CHEZ `weight_pace.ts`,
+// et il est RÉEXPORTÉ ICI pour ses lecteurs. Le motif n'est pas un rangement:
+// `envelopeDirectionFor` (weight_pace) a besoin du même défaut, et
+// `weight_pace.ts` ne peut pas importer ce fichier-ci (ce fichier l'importe
+// déjà). Le laisser ici aurait obligé chaque appelant de l'enveloppe à
+// re-décider « curseur réglé, ou défaut » — c'est-à-dire deux endroits où la
+// même règle diverge.
+export { DEFAULT_PACE_KG_PER_WEEK } from "./weight_pace.ts";
 
 export interface MouthSizing {
   /** Sans unité. `1` = la boîte que le modèle a écrite, inchangée. */
@@ -1903,7 +2445,9 @@ export function mouthTargetFactor(args: {
   conditionRefs: readonly string[];
 }): MouthSizing {
   if (args === null || typeof args !== "object") {
-    throw new Error("[keel/household_portions] mouthTargetFactor requires an input object");
+    throw new Error(
+      "[keel/household_portions] mouthTargetFactor requires an input object",
+    );
   }
   for (
     const key of [
@@ -1968,21 +2512,24 @@ export function mouthTargetFactor(args: {
   // pour la mesure qui l'a ouvert. Le retour `no_pace` n'est PAS ici: il vit
   // plus bas, sur l'écart réellement exécuté, et il ne parle plus du curseur.
   const chosen = Number(args.paceKgPerWeek);
-  const paceIsSet = args.paceKgPerWeek !== null && Number.isFinite(chosen) && chosen > 0;
+  const paceIsSet = args.paceKgPerWeek !== null && Number.isFinite(chosen) &&
+    chosen > 0;
   const pace = paceIsSet ? chosen : DEFAULT_PACE_KG_PER_WEEK;
 
-  // ── LE RYTHME **EXÉCUTÉ**, JAMAIS LE CRAN CHOISI ────────────────────────
-  // Le curseur d'une PRISE monte plus haut que ce que `envelopeCore` exécute
-  // (+10 %, `MAX_SURPLUS_FRACTION`) depuis l'ouverture du §Bloc 2. Dimensionner
-  // une boîte sur le cran choisi promettrait un rythme que la casserole ne
-  // livre pas — et la date d'arrivée calculée dessus serait fausse dès le
-  // premier jour. C'est l'écart que `weight_pace.ts` annonçait à refermer.
+  // ── LE RYTHME **EXÉCUTÉ**, ET IL PASSE PAR LA MÊME PORTE QUE LE CURSEUR ──
+  // ⟳ 2026-09-09: un cran du curseur est exécuté tel quel dans les deux sens
+  // (en-tête de `weight_pace.ts`). On lit quand même `executedPaceFor` et pas
+  // le cran nu: c'est lui qui nomme la borne qui mord (A1, plancher, fraction
+  // du mineur, ou un cran de base au-dessus du curseur), et une seconde
+  // arithmétique ici serait celle qu'on oublie d'ajuster.
   const executed: ExecutedPace | null = executedPaceFor(
     args.direction,
     args.subject,
     pace,
   );
-  if (executed === null || executed.maintenanceKcal <= 0) return noSizing("no_body");
+  if (executed === null || executed.maintenanceKcal <= 0) {
+    return noSizing("no_body");
+  }
 
   const sign = args.direction === "down" ? -1 : 1;
   // ⚠️ LE DÉNOMINATEUR EST L'ENTRETIEN, PAS LA CIBLE. Le facteur dit « de
@@ -1993,7 +2540,8 @@ export function mouthTargetFactor(args: {
   const factor = (executed.maintenanceKcal + sign * executed.dailyDeltaKcal) /
     executed.maintenanceKcal;
   if (
-    !Number.isFinite(factor) || factor < BOX_FACTOR_MIN || factor > BOX_FACTOR_MAX
+    !Number.isFinite(factor) || factor < BOX_FACTOR_MIN ||
+    factor > BOX_FACTOR_MAX
   ) {
     return noSizing("implausible_factor");
   }
@@ -2126,7 +2674,9 @@ export function memberTargetFactor(
   ) {
     throw new Error(
       `[keel/household_portions] memberTargetFactor: unknown restriction ` +
-        `state ${JSON.stringify(restriction)} — an absent gate is a disarmed gate`,
+        `state ${
+          JSON.stringify(restriction)
+        } — an absent gate is a disarmed gate`,
     );
   }
   if (args.body === null) {
@@ -2142,7 +2692,9 @@ export function memberTargetFactor(
       }),
     });
     if (!gate.size) {
-      return noSizing(namedFloorReason(gate.reason as BoxSizingReason, restriction));
+      return noSizing(
+        namedFloorReason(gate.reason as BoxSizingReason, restriction),
+      );
     }
     if (member.ageState === "unknown") return noSizing("age_unknown");
     return noSizing("no_body");
@@ -2506,7 +3058,10 @@ export function bodyShareFactors(
         coachCounting,
       }),
     });
-    if (!gate.size && (gate.reason === "minor" || gate.reason === "doctrine_no_counting")) {
+    if (
+      !gate.size &&
+      (gate.reason === "minor" || gate.reason === "doctrine_no_counting")
+    ) {
       // ⛔ ON NE DÉPASSE QUE ② ET ③, ET C'EST POURQUOI LA CHAÎNE EST REJOUÉE.
       // `energySafetyGates` ne rend que la PREMIÈRE porte fermée. Rejouer la
       // MÊME chaîne — avec un verdict de majeur et sans position de coach — est
@@ -2605,7 +3160,9 @@ export function bodyShareFactors(
  *
  * PURE: no I/O, no clock, no randomness.
  */
-export function weightGroupCount(shares: ReadonlyMap<string, BodyShare>): number {
+export function weightGroupCount(
+  shares: ReadonlyMap<string, BodyShare>,
+): number {
   const groups = new Set<string>();
   // Six décimales: deux corps qui diffèrent d'un millième de facteur ne sont
   // pas deux poids de boîte, et l'égalité flottante exacte ferait deux groupes
@@ -2963,7 +3520,9 @@ export function resolveBoxFactors(args: {
     }
     const memberId = box.memberIds[0];
     const anchor = args.anchors.get(`${memberId} ${box.day ?? ""}`);
-    if (anchor && (anchor.reason === "anchored" || anchor.reason === "clamped")) {
+    if (
+      anchor && (anchor.reason === "anchored" || anchor.reason === "clamped")
+    ) {
       out.set(box.boxId, { factor: anchor.factor, source: "anchor" });
       continue;
     }
@@ -3118,7 +3677,10 @@ export function sizeBoxesFromTarget(
     for (const [index, item] of meal.items.entries()) {
       if (item.preparationId === null) continue;
       const grams = next?.get(index) ?? item.grams;
-      drawn.set(item.preparationId, (drawn.get(item.preparationId) ?? 0) + grams);
+      drawn.set(
+        item.preparationId,
+        (drawn.get(item.preparationId) ?? 0) + grams,
+      );
     }
   }
 
@@ -3136,8 +3698,12 @@ export function sizeBoxesFromTarget(
     shrink.set(prep.id, ceiling / taken);
     counts.capped_by_pot++;
     issues.push(
-      `preparations[${prep.id}]: the sized meals would take ${Math.round(taken)} g ` +
-        `but the batch makes about ${Math.round(prep.readyGrams)} g, every share ` +
+      `preparations[${prep.id}]: the sized meals would take ${
+        Math.round(taken)
+      } g ` +
+        `but the batch makes about ${
+          Math.round(prep.readyGrams)
+        } g, every share ` +
         `that draws on it scaled back to fit`,
     );
   }
@@ -3155,7 +3721,9 @@ export function sizeBoxesFromTarget(
     const out = new Map<number, number>();
     for (const [index, item] of meal.items.entries()) {
       const sized = next.get(index) ?? item.grams;
-      const ratio = item.preparationId === null ? 1 : (shrink.get(item.preparationId) ?? 1);
+      const ratio = item.preparationId === null
+        ? 1
+        : (shrink.get(item.preparationId) ?? 1);
       const final = ratio === 1
         ? sized
         : Math.max(BOX_MIN_SIZED_GRAMS, Math.round(sized * ratio));
@@ -3258,17 +3826,19 @@ export const KNOWN_PRESENCE_STATES = Object.freeze(
  * délibérément grossière — le nombre sort arrondi aux 50 kcal, exactement comme
  * `maintenanceRange`, parce qu'un « 683 » se lirait comme une mesure.
  */
-export const MEAL_SIZE_WEIGHT: Readonly<Record<"small" | "medium" | "large", number>> =
-  Object.freeze({ small: 1, medium: 2, large: 3 });
+export const MEAL_SIZE_WEIGHT: Readonly<
+  Record<"small" | "medium" | "large", number>
+> = Object.freeze({ small: 1, medium: 2, large: 3 });
 
-const DEFAULT_SLOT_WEIGHT: Readonly<Record<EatingOccasion, number>> = Object.freeze({
-  breakfast: MEAL_SIZE_WEIGHT.medium,
-  snack_am: MEAL_SIZE_WEIGHT.small,
-  lunch: MEAL_SIZE_WEIGHT.medium,
-  snack_pm: MEAL_SIZE_WEIGHT.small,
-  dinner: MEAL_SIZE_WEIGHT.medium,
-  before_bed: MEAL_SIZE_WEIGHT.small,
-});
+const DEFAULT_SLOT_WEIGHT: Readonly<Record<EatingOccasion, number>> = Object
+  .freeze({
+    breakfast: MEAL_SIZE_WEIGHT.medium,
+    snack_am: MEAL_SIZE_WEIGHT.small,
+    lunch: MEAL_SIZE_WEIGHT.medium,
+    snack_pm: MEAL_SIZE_WEIGHT.small,
+    dinner: MEAL_SIZE_WEIGHT.medium,
+    before_bed: MEAL_SIZE_WEIGHT.small,
+  });
 
 function slotWeight(occasion: EatingOccasionSlot): number {
   return occasion.size
@@ -3341,19 +3911,61 @@ export function eatingOutAdvice(args: {
   /** La case dont on parle. */
   occasion: EatingOccasionSlot;
   /**
-   * L'entretien de cette bouche, en kcal/jour, et l'écart exécuté de sa cible.
-   * `null` ⇒ pas de corps ⇒ pas de conseil.
+   * ⟳ 2026-09-09 — LA JOURNÉE DE CETTE PERSONNE, EN kcal, **TELLE QUE LE
+   * PRODUIT LA LUI DIT DÉJÀ**. `null` ⇒ pas de corps ⇒ pas de conseil.
+   *
+   * ══════════════════════════════════════════════════════════════════════
+   * ⛔ CE QUI VIVAIT ICI, ET LE DÉFAUT MESURÉ QUI L'A FAIT TOMBER
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * L'entrée était `executed: ExecutedPace` + `direction`, et la journée se
+   * calculait ici: `executed.maintenanceKcal ± dailyDeltaKcal`.
+   *
+   * ⚠️ `ExecutedPace.maintenanceKcal` PORTE SON PROPRE INTERDIT, en toutes
+   * lettres à sa déclaration (`weight_pace.ts`): « ELLE NE REND AUCUN NOMBRE
+   * DESTINÉ À ÊTRE LU. `dailyDeltaKcal` et `maintenanceKcal` sont des
+   * grandeurs de CALCUL […]. Les afficher serait la cible chiffrée que
+   * `energy_target.ts` refuse de servir. » Ce conseil, lui, se LIT.
+   *
+   * Et ce ne sont pas deux façons de dire le même nombre. MESURÉ EN RUN RÉEL
+   * LE 2026-09-09 (homme 82 kg, 180 cm, 36 ans, `trains_some`, `fat_loss`,
+   * 0,5 kg/sem — plan personnel du mercredi, `qa-midi-dehors@keeltest.dev`):
+   *
+   *     fourchette AFFICHÉE sous le plan     1 950 – 2 200 kcal/j
+   *       (`maintenanceRange` 2 450–2 700, poids × kcal/kg, moins 500)
+   *     journée du CONSEIL                   3 177 − 500 = 2 677 kcal/j
+   *       (`estimatedMaintenanceFor`, métabolisme de base × facteur d'activité)
+   *     ⇒ conseil rendu                      « au déjeuner, vise autour de 900 »
+   *
+   * 900 × 3 = 2 700, soit **500 kcal au-dessus du haut de la fourchette
+   * imprimée trois centimètres plus haut**. Les deux nombres se contredisent
+   * sur le même écran, et le second promet une journée que le premier refuse.
+   * `energy_target_test.ts` REFUSE explicitement la formule qui a produit
+   * 3 177 — « une cible fausse avec l'aplomb d'un tableau ».
+   *
+   * ══════════════════════════════════════════════════════════════════════
+   * D'OÙ VIENT CE NOMBRE MAINTENANT, ET POURQUOI L'APPELANT LE CALCULE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * De `directedRange` — c'est-à-dire de la fourchette que l'écran imprime,
+   * déficit, plancher d'énergie et annulation de condition compris. Le conseil
+   * est une PART de la journée que le produit annonce; il ne peut pas descendre
+   * d'une autre estimation que celle-là.
+   *
+   * ⛔ ET IL SE PASSE, IL NE SE RECALCULE PAS ICI. Refaire la fourchette dans ce
+   * module en ferait un second point de décision sur « quelle journée » — la
+   * forme de défaut que ce lot vient précisément de fermer.
    */
-  executed: ExecutedPace | null;
-  /** La direction de sa balance. `null` = maintenance: la cible EST l'entretien. */
-  direction: ScaleDirection | null;
+  dayKcal: number | null;
 }): EatingOutAdvice {
   const refuse = (reason: EatingOutAdviceReason): EatingOutAdvice => ({
     kcal: null,
     reason,
   });
   // ── C9.b — LE VOCABULAIRE, AVANT TOUT ───────────────────────────────────
-  if (!(KNOWN_PRESENCE_STATES as readonly string[]).includes(args.presenceState)) {
+  if (
+    !(KNOWN_PRESENCE_STATES as readonly string[]).includes(args.presenceState)
+  ) {
     return refuse("unknown_state");
   }
   if (args.presenceState !== "eating_out") return refuse("not_eating_out");
@@ -3361,7 +3973,9 @@ export function eatingOutAdvice(args: {
   // ── LA CHAÎNE DU LECTEUR, ET SON MOTIF SURVIT TEL QUEL ──────────────────
   if (!args.reader.show) {
     return refuse(
-      (EATING_OUT_ADVICE_REASONS as readonly string[]).includes(args.reader.reason)
+      (EATING_OUT_ADVICE_REASONS as readonly string[]).includes(
+          args.reader.reason,
+        )
         ? args.reader.reason as EatingOutAdviceReason
         // Un motif que ce vocabulaire ne porte pas est un refus qu'on ne sait
         // pas dire: on refuse quand même, et on le range dans le motif le plus
@@ -3375,19 +3989,14 @@ export function eatingOutAdvice(args: {
   if (args.mouthAgeState === "minor") return refuse("mouth_minor");
   if (args.mouthAgeState === "unknown") return refuse("mouth_age_unknown");
 
-  if (args.executed === null || args.executed.maintenanceKcal <= 0) {
-    return refuse("no_body");
-  }
+  if (args.dayKcal === null || !(args.dayKcal > 0)) return refuse("no_body");
   const weights = args.slots.map(slotWeight);
   const total = weights.reduce((a, b) => a + b, 0);
   if (args.slots.length === 0 || total <= 0) return refuse("no_rhythm");
   const here = args.slots.findIndex((s) => s.slot === args.occasion.slot);
   if (here < 0) return refuse("no_rhythm");
 
-  const sign = args.direction === "down" ? -1 : args.direction === "up" ? 1 : 0;
-  const dayKcal = args.executed.maintenanceKcal +
-    sign * args.executed.dailyDeltaKcal;
-  const share = (dayKcal * weights[here]) / total;
+  const share = (args.dayKcal * weights[here]) / total;
   // ARRONDI AUX 50, MÊME ARBITRAGE QUE `maintenanceRange`: « 700 » se lit comme
   // un ordre de grandeur, « 683 » comme une mesure — et une mesure invite à
   // viser le chiffre exact, ce qui est précisément le geste d'un tracker.
@@ -3478,12 +4087,24 @@ export const FORBIDDEN_PORTION_TERMS: readonly ForbiddenTerm[] = [
   {
     ruleId: "portion.body",
     token: "weight",
-    surfaceForms: ["poids", "weight loss", "weight gain", "perte de poids", "prise de poids"],
+    surfaceForms: [
+      "poids",
+      "weight loss",
+      "weight gain",
+      "perte de poids",
+      "prise de poids",
+    ],
   },
   {
     ruleId: "portion.body",
     token: "maigrir",
-    surfaceForms: ["mincir", "grossir", "slim down", "lose weight", "gain weight"],
+    surfaceForms: [
+      "mincir",
+      "grossir",
+      "slim down",
+      "lose weight",
+      "gain weight",
+    ],
   },
   {
     ruleId: "portion.body",
@@ -4164,6 +4785,20 @@ export function reconcilePortions(
     preparation_id: string;
     member_ids: readonly string[];
   }[],
+  /**
+   * ⟳ 2026-09-07 (lot 8) — LE MODÈLE A-T-IL ÉTÉ PRIÉ D'ÉCRIRE DES PORTIONS ?
+   *
+   * ⛔ REQUIS, jamais `?`. Sous `portion_v1` le prompt ne demande PLUS
+   * `member_portions` (il contredisait les boîtes calculées: 200 g de yaourt
+   * annoncés, 326 g servis — mesuré le 2026-09-07). Leur absence est alors
+   * ATTENDUE, et la signaler `portion_missing` ferait rougir un journal pour
+   * une décision qu'on vient de prendre.
+   *
+   * ⚠️ ET ON NE SE CONTENTE PAS DE TAIRE: le motif change de nom
+   * (`portion_standard_recipe`). « Le modèle a oublié » et « on ne lui a rien
+   * demandé » sont deux faits différents, et un silence les confondrait.
+   */
+  standardRecipe: boolean,
 ): ReconciledPortions {
   const issues: string[] = [];
   /** `preparation_id` → les bouches que leur ligne déclarée en tient dehors. */
@@ -4211,7 +4846,11 @@ export function reconcilePortions(
   const portions = members.map((member) => {
     const row = byMember.get(member.memberId);
     if (!row) {
-      issues.push(`portion_missing:${member.memberId}`);
+      issues.push(
+        standardRecipe
+          ? `portion_standard_recipe:${member.memberId}`
+          : `portion_missing:${member.memberId}`,
+      );
       return {
         memberId: member.memberId,
         displayName: member.displayName,
@@ -4315,7 +4954,8 @@ function parseShares(
   for (const entry of raw) {
     if (!entry || typeof entry !== "object") continue;
     const e = entry as Record<string, unknown>;
-    const preparationId = String(e.preparation_id ?? e.preparationId ?? "").trim();
+    const preparationId = String(e.preparation_id ?? e.preparationId ?? "")
+      .trim();
     if (!preparationId) continue;
     // ── LOT 4C ① · LA LISTE FERMÉE, AVANT TOUT LE RESTE ───────────────────
     //
@@ -4364,7 +5004,9 @@ function parseShares(
     const sanitized = sanitizePortionNote(e.note);
     let note = sanitized.note;
     for (const v of sanitized.violations) {
-      issues.push(`share_note_rejected:${member.memberId}:${preparationId}:${v}`);
+      issues.push(
+        `share_note_rejected:${member.memberId}:${preparationId}:${v}`,
+      );
     }
     // ── LOT E · L'ID DE BOÎTE, ICI AUSSI ──────────────────────────────────
     //
@@ -4395,7 +5037,9 @@ function parseShares(
       if (vague.length > 0) {
         vagueCounts.vague++;
         for (const v of vague) {
-          issues.push(`share_note_vague:${member.memberId}:${preparationId}:${v}`);
+          issues.push(
+            `share_note_vague:${member.memberId}:${preparationId}:${v}`,
+          );
         }
       }
       shareCounts.shares++;
@@ -4477,7 +5121,9 @@ export function memberPortionsPayload(
     // corps, et `member_portions` est lisible par TOUT le foyer (§1 de ce
     // fichier). Un `{slot, size}` recopié ici ferait passer la frontière à une
     // donnée qui n'a rien à faire devant les autres bouches.
-    eating_slots: p.eatingSlots === null ? null : p.eatingSlots.map((o) => o.slot),
+    eating_slots: p.eatingSlots === null
+      ? null
+      : p.eatingSlots.map((o) => o.slot),
     preparation_shares: p.preparationShares.map((s) => ({
       preparation_id: s.preparationId,
       note: s.note,

@@ -53,6 +53,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -234,8 +235,8 @@ Deno.test("un alias qui pointe vers un slug absent est JETÉ à la construction"
 // ---------------------------------------------------------------------------
 
 Deno.test("100 g de riz CUIT ne pèsent pas 100 g de riz CRU", () => {
-  const raw = gramsRawOf({ amount: 100, unit: "g", state: "raw", yieldClass: "grain_absorbs" });
-  const cooked = gramsRawOf({ amount: 100, unit: "g", state: "cooked", yieldClass: "grain_absorbs" });
+  const raw = gramsRawOf({ amount: 100, unit: "g", state: "raw", yieldClass: "grain_absorbs", yieldFactor: null });
+  const cooked = gramsRawOf({ amount: 100, unit: "g", state: "cooked", yieldClass: "grain_absorbs", yieldFactor: null });
   assertEquals(raw, 100);
   assert(cooked !== null);
   // Le facteur, pas une valeur en dur: muter YIELD_FACTORS doit faire bouger
@@ -245,7 +246,7 @@ Deno.test("100 g de riz CUIT ne pèsent pas 100 g de riz CRU", () => {
 });
 
 Deno.test("la viande PERD à la cuisson — la direction inverse est testée aussi", () => {
-  const cooked = gramsRawOf({ amount: 100, unit: "g", state: "cooked", yieldClass: "meat_shrinks" });
+  const cooked = gramsRawOf({ amount: 100, unit: "g", state: "cooked", yieldClass: "meat_shrinks", yieldFactor: null });
   assert(cooked !== null && cooked > 100, "100 g cuits viennent de PLUS de 100 g crus");
 });
 
@@ -253,14 +254,14 @@ Deno.test("un `state` manquant sur du riz rend null — jamais un défaut", () =
   // Deviner « raw » ferait compter 260 g de riz cru là où l'élève en mange
   // 100 g cuits: ~900 kcal d'écart, toujours dans le sens qui gonfle.
   assertEquals(
-    gramsRawOf({ amount: 100, unit: "g", state: null, yieldClass: "grain_absorbs" }),
+    gramsRawOf({ amount: 100, unit: "g", state: null, yieldClass: "grain_absorbs", yieldFactor: null }),
     null,
   );
 });
 
 Deno.test("un `state` manquant sur une huile est SANS CONSÉQUENCE, donc accepté", () => {
   assertEquals(
-    gramsRawOf({ amount: 15, unit: "ml", state: null, yieldClass: "neutral" }),
+    gramsRawOf({ amount: 15, unit: "ml", state: null, yieldClass: "neutral", yieldFactor: null }),
     15,
   );
 });
@@ -276,19 +277,19 @@ Deno.test("toutes les classes de rendement ont un facteur nommé", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("cuillères et unités se convertissent, le reste rend null", () => {
-  assertEquals(gramsRawOf({ amount: 2, unit: "tbsp", state: "raw", yieldClass: "neutral" }), 30);
-  assertEquals(gramsRawOf({ amount: 1, unit: "tsp", state: "raw", yieldClass: "neutral" }), 5);
+  assertEquals(gramsRawOf({ amount: 2, unit: "tbsp", state: "raw", yieldClass: "neutral", yieldFactor: null }), 30);
+  assertEquals(gramsRawOf({ amount: 1, unit: "tsp", state: "raw", yieldClass: "neutral", yieldFactor: null }), 5);
   assertEquals(
-    gramsRawOf({ amount: 2, unit: "unit", state: "raw", yieldClass: "neutral", unitGrams: 50 }),
+    gramsRawOf({ amount: 2, unit: "unit", state: "raw", yieldClass: "neutral", yieldFactor: null, unitGrams: 50 }),
     100,
   );
   // « 2 courgettes » sans poids d'unité n'est pas une quantité: c'est un
   // dénombrement, et un dénombrement converti à l'estime est un nombre inventé.
-  assertEquals(gramsRawOf({ amount: 2, unit: "unit", state: "raw", yieldClass: "neutral" }), null);
+  assertEquals(gramsRawOf({ amount: 2, unit: "unit", state: "raw", yieldClass: "neutral", yieldFactor: null }), null);
   // Un nombre sans unité n'est pas une quantité non plus.
-  assertEquals(gramsRawOf({ amount: 100, unit: null, state: "raw", yieldClass: "neutral" }), null);
-  assertEquals(gramsRawOf({ amount: null, unit: "g", state: "raw", yieldClass: "neutral" }), null);
-  assertEquals(gramsRawOf({ amount: -5, unit: "g", state: "raw", yieldClass: "neutral" }), null);
+  assertEquals(gramsRawOf({ amount: 100, unit: null, state: "raw", yieldClass: "neutral", yieldFactor: null }), null);
+  assertEquals(gramsRawOf({ amount: null, unit: "g", state: "raw", yieldClass: "neutral", yieldFactor: null }), null);
+  assertEquals(gramsRawOf({ amount: -5, unit: "g", state: "raw", yieldClass: "neutral", yieldFactor: null }), null);
 });
 
 // ---------------------------------------------------------------------------
@@ -505,6 +506,7 @@ function parseWith(
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     ...over,

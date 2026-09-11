@@ -273,3 +273,28 @@ export function formatPrice(
     maximumFractionDigits: whole ? 0 : 2,
   }).format(amount);
 }
+
+/**
+ * « 74,20 » · « 74.20 » — UN MONTANT SANS SA MONNAIE, et c'est délibéré.
+ *
+ * ⛔ POURQUOI PAS `formatPrice`. Ce nombre-là est dans la monnaie du PAYS de la
+ * personne, que le produit ne convertit pas et ne nomme nulle part: le champ de
+ * budget ne porte aucun symbole, exactement pour ne pas avoir à tenir une table
+ * pays → devise (`api/countries.ts` dit ce qu'elle coûterait). Un « € » collé
+ * ici s'afficherait tel quel sur un compte américain, dans la phrase même qui
+ * refuse son budget.
+ *
+ * Les centimes ne tombent que s'ils sont nuls: « 75 » et pas « 75,00 », mais
+ * « 74,20 » et jamais « 74,2 » — un montant à une décimale se lit comme une
+ * mesure, pas comme de l'argent.
+ */
+export function formatBudgetAmount(value: number, opts?: { locale?: UiLocale }): string {
+  if (!Number.isFinite(value)) return String(value);
+  return Number.isInteger(value)
+    ? formatNumber(value, { locale: opts?.locale })
+    : formatNumber(value, {
+      locale: opts?.locale,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+}

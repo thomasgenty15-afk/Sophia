@@ -1,0 +1,235 @@
+{
+ "unresolved_terms": [
+  "moutarde de dijon",
+  "jus de citron vert",
+  "curry en poudre",
+  "curry en poudre",
+  "curry en poudre"
+ ],
+ "unweighed_terms": [],
+ "case": "C01-solo",
+ "window": {
+  "starts_on": "2026-09-06",
+  "duration_days": 7
+ },
+ "suggested_window": {
+  "starts_on": "2026-09-06",
+  "shifted": null
+ },
+ "envelope": {
+  "mode": "per_kg",
+  "energy": {
+   "low": 2059,
+   "high": 2175
+  },
+  "proteinFloorG": 164,
+  "proteinPerMealG": null,
+  "densityCeiling": 1.3
+ },
+ "maintenance_range": {
+  "low": 2150,
+  "high": 2400
+ },
+ "verdict": {
+  "resolution": {
+   "resolved": 163,
+   "total": 168,
+   "unresolvedEnergyDense": false,
+   "unweighedEnergyDense": false
+  },
+  "energy": "within",
+  "protein": "under",
+  "density": "within",
+  "sentinels": {
+   "missing": [],
+   "uncoverable": []
+  }
+ },
+ "days": [
+  {
+   "day": "sun",
+   "kcal": 1873,
+   "complete": true,
+   "counted": "3/3",
+   "boundedKcal": 0,
+   "protein_g": 152,
+   "protein_complete": true
+  },
+  {
+   "day": "mon",
+   "kcal": 664,
+   "complete": false,
+   "counted": "1/2",
+   "boundedKcal": 0,
+   "protein_g": 89,
+   "protein_complete": false
+  },
+  {
+   "day": "tue",
+   "kcal": 2445,
+   "complete": true,
+   "counted": "3/3",
+   "boundedKcal": 0,
+   "protein_g": 191,
+   "protein_complete": true
+  },
+  {
+   "day": "wed",
+   "kcal": 2766,
+   "complete": true,
+   "counted": "3/3",
+   "boundedKcal": 0,
+   "protein_g": 225,
+   "protein_complete": true
+  },
+  {
+   "day": "thu",
+   "kcal": 1456,
+   "complete": false,
+   "counted": "2/3",
+   "boundedKcal": 0,
+   "protein_g": 176,
+   "protein_complete": false
+  },
+  {
+   "day": "fri",
+   "kcal": 1360,
+   "complete": false,
+   "counted": "2/3",
+   "boundedKcal": 0,
+   "protein_g": 126,
+   "protein_complete": false
+  },
+  {
+   "day": "sat",
+   "kcal": 628,
+   "complete": false,
+   "counted": "1/3",
+   "boundedKcal": 0,
+   "protein_g": 133,
+   "protein_complete": false
+  }
+ ],
+ "dish_kcal": [
+  {
+   "day": "sun",
+   "slot": "lunch",
+   "name": "Salade thon et haricots",
+   "kcal": 565
+  },
+  {
+   "day": "sun",
+   "slot": "breakfast",
+   "name": "Yaourt pêche et noix",
+   "kcal": 623
+  },
+  {
+   "day": "sun",
+   "slot": "dinner",
+   "name": "Poulet rôti citronné",
+   "kcal": 685
+  },
+  {
+   "day": "mon",
+   "slot": "lunch",
+   "name": "Bol poulet moutarde",
+   "kcal": null
+  },
+  {
+   "day": "mon",
+   "slot": "breakfast",
+   "name": "Yaourt pomme cannelle",
+   "kcal": 664
+  },
+  {
+   "day": "tue",
+   "slot": "dinner",
+   "name": "Poulet en salade tiède",
+   "kcal": 704
+  },
+  {
+   "day": "tue",
+   "slot": "breakfast",
+   "name": "Yaourt raisin noisette",
+   "kcal": 951
+  },
+  {
+   "day": "tue",
+   "slot": "lunch",
+   "name": "Chili de dinde",
+   "kcal": 790
+  },
+  {
+   "day": "wed",
+   "slot": "breakfast",
+   "name": "Yaourt poire et noix",
+   "kcal": 611
+  },
+  {
+   "day": "wed",
+   "slot": "lunch",
+   "name": "Chili façon gratiné",
+   "kcal": 1199
+  },
+  {
+   "day": "wed",
+   "slot": "dinner",
+   "name": "Chili aux herbes",
+   "kcal": 956
+  },
+  {
+   "day": "thu",
+   "slot": "breakfast",
+   "name": "Yaourt figue amande",
+   "kcal": 650
+  },
+  {
+   "day": "thu",
+   "slot": "lunch",
+   "name": "Chili final à la coriandre",
+   "kcal": null
+  },
+  {
+   "day": "thu",
+   "slot": "dinner",
+   "name": "Saumon aux légumes",
+   "kcal": 806
+  },
+  {
+   "day": "fri",
+   "slot": "breakfast",
+   "name": "Yaourt prune et noix",
+   "kcal": 599
+  },
+  {
+   "day": "fri",
+   "slot": "lunch",
+   "name": "Saumon citronné",
+   "kcal": 761
+  },
+  {
+   "day": "fri",
+   "slot": "dinner",
+   "name": "Curry de lentilles",
+   "kcal": null
+  },
+  {
+   "day": "sat",
+   "slot": "breakfast",
+   "name": "Yaourt abricot noisette",
+   "kcal": 628
+  },
+  {
+   "day": "sat",
+   "slot": "lunch",
+   "name": "Lentilles en salade",
+   "kcal": null
+  },
+  {
+   "day": "sat",
+   "slot": "dinner",
+   "name": "Lentilles aux légumes",
+   "kcal": null
+  }
+ ]
+}

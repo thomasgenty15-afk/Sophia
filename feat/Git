@@ -5,7 +5,7 @@ git push origin main
 
 
 supabase migration up --local
-supabase functions serve --env-file supabase/.env
+  supabase functions serve --env-file supabase/.env && ./scripts/local_serve_functions.sh
  npm run functions:deploy:changed
 
  

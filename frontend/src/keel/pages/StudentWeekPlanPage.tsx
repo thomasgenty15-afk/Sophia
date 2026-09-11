@@ -27,11 +27,14 @@ import {
 import { windowDates, windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
 import { useAuth } from "../../context/AuthContext";
-import { chooseGenerator } from "../api/planRouting";
+import { type ComposePlace, mayCompose } from "../api/planRouting";
 import {
+  answerNote,
   type ComposeDraftInput,
   composeDraft,
+  editCells,
   type PlanDraft,
+  readNote,
   writeFromDraft,
 } from "../api/planDraft";
 import { loadMealPlans } from "../api/mealGeneration";
@@ -189,11 +192,18 @@ import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/
 // recharge la page précisément pour ces constantes-là (`i18n-lint.mjs`, règle
 // `MODULE_SCOPE_T`).
 const pageTitle = () => t("plan.page.title");
-// « plus one or two light habits » est TOMBÉ. L'écran ne compose plus de lignes
-// de comportement — `MealBuilder` produit des plats, et rien d'autre. La
-// promesse survivait au moteur qui la tenait, ce qui est la pire forme de copie
-// morte: elle annonce une fonctionnalité qu'aucun code ne fournit.
-const pageSubtitle = () => t("plan.page.subtitle");
+// ⟳ 2026-09-09 — LE SOUS-TITRE EST RETIRÉ, sur demande, et sa clé avec lui.
+// Il disait ce que la page montre juste en dessous: des plats, un rythme, et
+// une carte « À propos de toi » qui nomme déjà l'objectif et la méthode. Une
+// phrase qui paraphrase l'écran qu'elle surplombe coûte une hauteur de lecture
+// et ne rend rien.
+//
+// ⛔ LA CLÉ EST SUPPRIMÉE DES DEUX PACKS, pas laissée en place « au cas où ».
+// Une clé traduite que rien ne rend est de la copie morte — et ce dépôt a déjà
+// payé l'inverse exact (`tracking.describe.done`, déclarée dans les deux packs,
+// jamais rendue, et qui affirmait le contraire de ce que son chemin faisait).
+// Le seul reste de la promesse qui TENAIT — « rien ici ne te note » — vit
+// toujours dans le corps de l'écran, là où le chiffre s'affiche.
 
 
 
@@ -1117,6 +1127,23 @@ export default function StudentWeekPlanPage() {
     HouseholdMealView | null
   >(null);
   const [isOwner, setIsOwner] = React.useState(false);
+  /**
+   * ⟳ 2026-09-10 · LOT 7 — MA PLACE, ENTIÈRE, ET `null` TANT QU'ELLE N'EST PAS
+   * LUE.
+   *
+   * ⛔ ELLE NE SE DÉDUIT PAS D'`isOwner`. Celui-ci démarre à `false`, et sous la
+   * règle du lot 7 un `false` VOUDRAIT DIRE « secondaire, cache le bouton » —
+   * donc l'écran d'un maître serait amputé pendant toute la durée de sa
+   * lecture, puis reviendrait. `null` dit « pas encore lu », et `composeRight`
+   * autorise sur `null`: le chemin majoritaire est le maître, et le refus, lui,
+   * existe côté serveur de toute façon.
+   *
+   * ⚠️ `loadMyHouseholdPlace` REND `{inHousehold:false, isOwner:false}` QUAND SA
+   * LECTURE ÉCHOUE. « Pas maître » n'y est donc jamais une preuve; seul
+   * `inHousehold: true` en est une. C'est pour ça que la règle porte sur la
+   * PAIRE et pas sur `isOwner` seul.
+   */
+  const [place, setPlace] = React.useState<ComposePlace | null>(null);
 
   /**
    * ══════════════════════════════════════════════════════════════════════
@@ -1142,7 +1169,9 @@ export default function StudentWeekPlanPage() {
    * C'est la DERNIÈRE phrase, pas leur concaténation: chaque reprise repart de
    * la demande d'origine plus une phrase, jamais de l'empilement des trois.
    */
-  const [draftNote, setDraftNote] = React.useState<string | null>(null);
+  // ⛔ PLUS DE `draftNote` (lot 4, 2026-09-08): lire la phrase c'est
+  // l'appliquer, et la retenir pour l'adoption la faisait relire — un cran
+  // d'appétit appliqué deux fois. Voir `composeDraft`.
   const [draftOpen, setDraftOpen] = React.useState(false);
   const [draftBusy, setDraftBusy] = React.useState(false);
   const [draftFailure, setDraftFailure] = React.useState<string | null>(null);
@@ -1188,7 +1217,13 @@ export default function StudentWeekPlanPage() {
   }>({ current: null, next: null });
   // `situation` a disparu du formulaire — voir le commentaire de `saveGoal`.
   const [goalDraft, setGoalDraft] = React.useState({
-    goal: "health",
+    // Repli du 2026-08-18: valait `"health"`, retiré du vocabulaire. Un
+    // jeton mort ici n'est pas cosmétique — `indicatorFor` est un `switch`
+    // sans `default` sur les TROIS survivants, et le `as GoalToken` des
+    // appelants désarme l'exhaustivité qui l'aurait attrapé: tant que la
+    // lecture n'a pas remplacé cet état (aucune ligne `student_goals`), le
+    // formulaire déréférençait `undefined.target`.
+    goal: "maintenance",
     aspiration: "",
     target: "",
     axis: "",
@@ -1261,6 +1296,8 @@ export default function StudentWeekPlanPage() {
    */
   const energySwitches = useMealEnergy({
     planId: livePlans.current?.mealId ?? null,
+    // Un plan ÉCRIT: pas d'aperçu à chiffrer ici (2026-09-08).
+    draftId: null,
     dishes: [],
   });
   /** L'ouverture automatique n'a lieu qu'une fois — voir `refresh`. */
@@ -1306,6 +1343,11 @@ export default function StudentWeekPlanPage() {
     try {
       const place = await loadMyHouseholdPlace(uid);
       setIsOwner(place.isOwner);
+      // LA PAIRE ENTIÈRE, pour `mayCompose`. Posée AVANT la sortie anticipée
+      // ci-dessous: un compte sans foyer est un état LU, et il doit cesser
+      // d'être « non lu » — sinon la carte d'aperçu resterait ouverte par
+      // ignorance plutôt que par droit.
+      setPlace({ inHousehold: place.inHousehold, isOwner: place.isOwner });
       if (!place.inHousehold) {
         setHousehold(null);
         setHouseholdMeal(null);
@@ -1650,6 +1692,20 @@ export default function StudentWeekPlanPage() {
   }, [savedBasics, reviews, measures, restricted]);
 
   /**
+   * ⟳ 2026-09-10 · LOT 7 — AI-JE LE DROIT DE COMPOSER, SUR CET ÉCRAN.
+   *
+   * Un seul lecteur pour la règle, et il gouverne DEUX surfaces de cette page:
+   * le formulaire de composition (`MealBuilder`) et la carte d'aperçu. Deux
+   * conditions à tenir d'accord, c'est une surface orpheline le jour où l'une
+   * bouge — et la surface orpheline serait ici un bouton qui ne peut que
+   * refuser.
+   *
+   * ⚠️ CE N'EST PAS LA GARDE. Le serveur rend 403 `not_owner` sur toutes ses
+   * entrées, et il doit continuer: une limite d'UI n'est pas une limite.
+   */
+  const canCompose = mayCompose(place);
+
+  /**
    * ══════════════════════════════════════════════════════════════════════
    * LA DEMANDE D'APERÇU — LES MÊMES ENTRÉES À CHAQUE TOUR.
    * ══════════════════════════════════════════════════════════════════════
@@ -1661,19 +1717,14 @@ export default function StudentWeekPlanPage() {
    * objectif. Cette fonction est donc la source UNIQUE des entrées: l'aperçu,
    * la reprise et l'adoption l'appellent tous les trois.
    *
-   * ⚠️ LA LANE VIENT DE `chooseGenerator`, PAS D'UN `if` RECOPIÉ ICI.
-   * `isOwner` est la moitié du routage: `generate-household-meal-v1` rend 403
-   * `not_owner` à un secondaire, et router sur le seul nombre de bouches
-   * enverrait toute personne ayant réclamé son profil dans un refus que rien ne
-   * peut fermer. Le compte de bouches inclut le maître (`members` porte sa
-   * ligne, d'où le `- 1`).
+   * ⚠️ ⟳ 2026-09-10 · LOT 7 — PLUS DE LANE. `generate-household-meal-v1` est
+   * le seul moteur; le compte de bouches ne décide plus de rien, et `isOwner`
+   * ne sert plus ici mais UN CRAN PLUS HAUT: `mayCompose` décide si la carte
+   * d'aperçu est rendue du tout. Un secondaire ne doit pas voir le bouton — le
+   * serveur lui rend 403 `not_owner`, et un geste dont la seule issue est un
+   * refus est un bouton mort.
    */
-  const draftInput = React.useCallback((note: string | null): ComposeDraftInput => {
-    const lane = chooseGenerator({
-      inHousehold: household !== null,
-      isOwner,
-      otherMouths: household ? household.members.length - 1 : 0,
-    });
+  const draftInput = React.useCallback((): ComposeDraftInput => {
     // LA PREMIÈRE FENÊTRE LIBRE. `next` d'abord: s'il existe, c'est lui qui
     // occupe le plus loin. Aucun plan vivant ⇒ aujourd'hui.
     const anchor = livePlans.next ?? livePlans.current;
@@ -1681,12 +1732,10 @@ export default function StudentWeekPlanPage() {
       ? addDays(anchor.startsOn, anchor.durationDays)
       : todayIso();
     return {
-      lane,
       // `exact` et pas `until_sunday`: la fenêtre libre commence là où le
       // dernier plan finit, ce qui n'est pas un dimanche en général. Demander
       // « jusqu'à dimanche » rendrait une fenêtre qui chevauche.
       window: { kind: "exact", startsOn, durationDays: 7 },
-      note,
       // ── LOT B · LE MODE DE CUISSON — `null` ICI, ET C'EST UNE DÉCISION ──
       // Cette carte-ci est un APERÇU SANS FORMULAIRE: un seul bouton, aucune
       // entrée. Le champ des trois modes vit sur l'écran qui COMPOSE
@@ -1710,22 +1759,17 @@ export default function StudentWeekPlanPage() {
       // byte-identique à celle d'avant ce lot. Y glisser `true` en dur
       // reproduirait le `mine={null}` qui a rendu muet un lot entier.
       oneCookingSession: false,
-      // `false` ICI AUSSI, et pour la même raison: cette carte n'a pas de
-      // formulaire. La case « je cuisine la veille » vit sur l'écran qui
-      // COMPOSE, avec les dates qu'elle recule.
-      // Les entrées de la lane individuelle. Le budget, les jours de cuisine et
-      // le temps disponible ne sont PAS ici: le générateur les relit dans
-      // `practical_constraints`, et les passer dans le corps ferait deux
-      // sources pour un seul chiffre — c'est toujours celle que l'écran ne
-      // montre pas qui gagne.
-      mode: "to_shop",
-      slot: null,
-      servings: 1,
+      // ⟳ 2026-09-10 · LOT 7 — `mode`, `slot`, `servings` et `pantry` ONT
+      // QUITTÉ `ComposeDraftInput` avec l'ancienne lane individuelle; ils
+      // étaient déjà des constantes ici. Le budget, les jours de cuisine et le
+      // temps disponible ne sont PAS ici non plus, et pour une autre raison: le
+      // générateur les relit dans `practical_constraints`, et les passer dans
+      // le corps ferait deux sources pour un seul chiffre — c'est toujours
+      // celle que l'écran ne montre pas qui gagne.
       context: null,
       preferences: null,
-      pantry: [],
     };
-  }, [household, isOwner, livePlans]);
+  }, [livePlans]);
 
   /**
    * ══════════════════════════════════════════════════════════════════════
@@ -1760,17 +1804,22 @@ export default function StudentWeekPlanPage() {
    * que `draft` est nul, et l'ouvrir d'abord ferait regarder un cadre vide
    * pendant deux minutes. Le geste dit qu'il travaille là où on a cliqué.
    */
-  const askForDraft = React.useCallback(async (note: string | null) => {
+  const askForDraft = React.useCallback(async () => {
     setDraftBusy(true);
     setDraftFailure(null);
     try {
-      const composed = await composeDraft(draftInput(note));
+      // ⟳ 2026-09-10 · LOT 7 — LE PARAMÈTRE `note` A DISPARU D'ICI. Son seul
+      // appelant avec une phrase était « Demander une modif » (la carte de part
+      // d'un membre secondaire), et ce bouton n'existe plus: un secondaire ne
+      // compose rien. Le laisser aurait gardé un `readNote` dont la question
+      // TOMBE — aucun dialogue n'est ouvert à ce moment pour la poser.
+      //
+      // ⚠️ LE CHEMIN DE LA PHRASE N'EST PAS PERDU: il vit dans le dialogue
+      // d'aperçu (`onReadNote`, plus bas), qui LUI peut afficher la question et
+      // attendre la réponse avant de recomposer.
+      const composed = await composeDraft(draftInput());
       setDraft(composed);
       // (voir `draftRefusal` pour la traduction du motif)
-      // LA PHRASE EST RETENUE APRÈS L'APPEL, jamais avant: une phrase refusée
-      // (`note_unusable`) ne doit pas rester collée à l'aperçu précédent, ni
-      // partir à l'adoption alors que le serveur l'a écartée.
-      setDraftNote(note);
       setDraftOpen(true);
     } catch (e) {
       setDraftFailure(draftRefusal(e));
@@ -2039,7 +2088,7 @@ export default function StudentWeekPlanPage() {
   // toujours par le faire écrire.
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="student" title={pageTitle()} subtitle={pageSubtitle()}>
+      <KeelAppShell variant="student" title={pageTitle()}>
         <p className="text-sm text-ink-soft">{t("meals.loading")}</p>
       </KeelAppShell>
     );
@@ -2057,7 +2106,7 @@ export default function StudentWeekPlanPage() {
   }
 
   return (
-    <KeelAppShell variant="student" title={pageTitle()} subtitle={pageSubtitle()}>
+    <KeelAppShell variant="student" title={pageTitle()}>
       <div className="space-y-6">
         {failure ? (
           <Card tone="warning">
@@ -2491,6 +2540,17 @@ export default function StudentWeekPlanPage() {
             `keel_household_set_reference_member`, ni la cascade ne sont
             touchées. */}
 
+        {/* ⟳ 2026-09-10 · LOT 7 — LE COMPOSANT RESTE MONTÉ POUR TOUT LE MONDE,
+            ET C'EST DÉLIBÉRÉ. Il ne fait pas que composer: il RELIT les plans
+            de la personne (`loadMealPlans`, filtré sur son `user_id`). Le
+            démonter pour un membre secondaire lui retirerait la lecture de ses
+            propres plans PERSONNELS d'avant le lot — et « les anciens plans
+            restent lisibles » est une exigence de ce lot, pas un effet de bord.
+
+            ⚠️ CE QUI SE FERME EST LE GESTE, PAS L'ÉCRAN. `MealBuilder` porte sa
+            propre garde (`canCompose`, la même règle, le même module): un
+            secondaire y voit ses plats et ses courses, sans formulaire ni
+            bouton de recomposition. */}
         <MealBuilder
           rhythm={parseEatingRhythm(pc.eating_rhythm)}
           awayDays={parseAwayMarks(pc.away_days)}
@@ -2551,20 +2611,11 @@ export default function StudentWeekPlanPage() {
           planStartsOn={householdMeal?.startsOn ?? null}
           busy={draftBusy}
           onApprove={async () => {}}
-          // ── LE POINT DE JONCTION N°2 DE LOT E, MAINTENANT ARMÉ ──────────
-          // « Demander une modif » n'avait AUCUNE destination, et Lot E a eu
-          // raison de ne pas rendre le bouton: il aurait affiché « C'est parti
-          // au foyer » alors que rien n'aurait quitté le navigateur.
-          //
-          // ⚠️ SA DESTINATION N'EST PAS UN CANAL VERS LE MAÎTRE, ET IL NE
-          // FAUT PAS EN FABRIQUER UN. Il n'existe aucun canal 1:1 dans ce
-          // produit. La phrase devient une NOTE DE BROUILLON: elle compose un
-          // aperçu de SA propre semaine, qu'il voit, qu'il reprend, et qu'il
-          // adopte s'il veut. C'est ce que le modèle autorise — il compose
-          // lui-même — et c'est pour ça que la copie ne dit jamais « envoyé ».
-          onRequestChange={async (text) => {
-            await askForDraft(text);
-          }}
+          // ⛔ `onRequestChange` A ÉTÉ RETIRÉ LE 2026-09-10 (lot 7). Il
+          // composait un aperçu de SA propre semaine par la lane individuelle;
+          // il n'y a plus qu'un moteur, et il refuse un secondaire par 403
+          // `not_owner` — c'est-à-dire exactement la personne à qui cette carte
+          // s'affiche. Voir le bloc qui remplace le bouton dans `MyShareCard`.
         />
 
         {/* ── 9 · « À TABLE » EST PARTI LE 2026-08-14 ─────────────────────
@@ -2645,17 +2696,30 @@ export default function StudentWeekPlanPage() {
         <Card className="mb-3">
           <SectionLabel>{t("plan.draft.title")}</SectionLabel>
           <p className="mt-1 text-sm leading-6 text-ink-soft">
-            {t("plan.draft.not_saved")}
+            {/* ⟳ 2026-09-10 · LOT 7 — LA CARTE RESTE, LE BOUTON NON. Un
+                secondaire lisait ici « rien n'est enregistré » sous un bouton
+                qui allait lui rendre 403: la carte DIT maintenant qui compose,
+                à la place exacte du geste. Retirer la carte entière aurait été
+                pire — « la section a disparu » et « le bouton a disparu » se
+                relisent pareil, et c'est la cicatrice payée sur les bulles
+                d'extras. */}
+            {canCompose
+              ? t("plan.draft.not_saved")
+              : t("plan.draft.owner_composes")}
           </p>
-          <div className="mt-3">
-            <Button
-              variant="secondary"
-              disabled={draftBusy}
-              onClick={() => void askForDraft(null)}
-            >
-              {draftBusy ? t("plan.draft.working") : t("plan.draft.cta")}
-            </Button>
-          </div>
+          {canCompose
+            ? (
+              <div className="mt-3">
+                <Button
+                  variant="secondary"
+                  disabled={draftBusy}
+                  onClick={() => void askForDraft()}
+                >
+                  {draftBusy ? t("plan.draft.working") : t("plan.draft.cta")}
+                </Button>
+              </div>
+            )
+            : null}
           {/* ⛔ LE ROUGE RESTE, ET LE MOTIF EST NOMMÉ. Un refus d'aperçu se lit
               ICI quand la fenêtre n'a pas pu s'ouvrir — elle ne s'ouvre
               qu'avec un brouillon, donc sans cette ligne le clic serait muet. */}
@@ -2683,7 +2747,6 @@ export default function StudentWeekPlanPage() {
           // LES PHRASES DU SERVEUR, TELLES QU'IL LES REND. Assemblées côté
           // serveur, dans la langue du contenu: cet écran les affiche, il ne
           // les décide pas.
-          rationale={draft?.envelope.rationale ?? []}
           // LA PROSE DU MODÈLE, à côté des phrases fixes et jamais à leur
           // place. `[]` quand il n'avait rien à arbitrer OU quand la garde a
           // refusé le bloc — l'écran rend les deux pareil, le serveur les
@@ -2693,24 +2756,53 @@ export default function StudentWeekPlanPage() {
           // ici: c'est ce que le serveur rend, parce qu'il journalise `dropped`
           // sans le publier. Voir `DraftEnvelope.droppedClauses`.
           droppedClauses={draft?.envelope.droppedClauses ?? 0}
+          // ⟳ 2026-09-08 — L'IDENTIFIANT DE L'APERÇU RANGÉ, sans lequel il n'y
+          // a aucun chiffre sur ce qu'on relit. `null` quand le serveur n'a
+          // rien rangé: l'aperçu s'affiche alors comme hier, sans ses kcal.
+          draftId={draft?.envelope.draftId ?? null}
           busy={draftBusy}
-          onRemix={async (note) => {
-            // ⚠️ LA MÊME DEMANDE, PLUS LA PHRASE. `draftInput` est la source
-            // unique des entrées: le tour N porte les mêmes blocs que le tour
-            // 1, et la note s'AJOUTE. Elle ne remplace rien.
-            // ⚠️ LE MOTIF EST TRADUIT ICI, PAS DANS LE COMPOSANT. Sans ce
-            // `catch`, `note_unusable` remontait en JETON BRUT jusqu'au rouge
-            // de la fenêtre — mesuré dans le navigateur. Le `throw` est
-            // conservé: c'est lui qui fait que la reprise ne compte PAS un
-            // tour, puisque rien n'a été composé.
+          // ⟳ 2026-09-08 (lot 4) — TROIS GESTES AU LIEU D'UN. Le dialogue lit
+          // la phrase (`readNote`), pose la question du serveur s'il y en a
+          // une, la répond (`answerNote`), PUIS compose — sans la phrase:
+          // `draftInput` est la source unique des entrées, et le magasin porte
+          // déjà l'effet de la phrase.
+          // ⚠️ LE MOTIF EST TRADUIT ICI, PAS DANS LE COMPOSANT. Sans ce
+          // `catch`, `note_unusable` remontait en JETON BRUT jusqu'au rouge
+          // de la fenêtre — mesuré dans le navigateur. Les `throw` sont
+          // conservés: c'est ce qui fait qu'un refus d'entrée ne compte PAS
+          // un tour, puisque rien n'a été composé.
+          onReadNote={async (note) => {
             try {
-              const composed = await composeDraft(draftInput(note));
-              setDraft(composed);
-              setDraftNote(note);
+              return await readNote(note, draftInput().window);
             } catch (e) {
               throw new Error(draftRefusal(e));
             }
           }}
+          onAnswerNote={async (answer) => {
+            try {
+              return await answerNote(answer);
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          onCompose={async () => {
+            try {
+              setDraft(await composeDraft(draftInput()));
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          // ⟳ 2026-09-09 — LA REPRISE LOCALE : la case seule, sur le brouillon
+          // que le dialogue nomme (son `draftId`, jamais un état de page qui
+          // pourrait être en retard d'une composition).
+          onEditCells={async (id, cells) => {
+            try {
+              setDraft(await editCells(draftInput(), id, cells));
+            } catch (e) {
+              throw new Error(draftRefusal(e));
+            }
+          }}
+          edit={draft?.envelope.edit ?? null}
           onAdopt={async () => {
             // ⚠️ CECI RECOMPOSE, ET C'EST DIT DANS LA FENÊTRE AVANT LE CLIC.
             // Aucun chemin ne permet d'écrire l'aperçu tel quel:
@@ -2721,13 +2813,12 @@ export default function StudentWeekPlanPage() {
             // `prepare_next` et `replaces: null`: la fenêtre visée est LIBRE
             // par construction, donc il n'y a rien à remplacer.
             //
-            // ⛔ `draftNote` ET PAS `null`. La phrase part AVEC l'adoption:
-            // sans elle, le plan écrit ne serait pas celui qu'on vient de
-            // montrer, et personne ne saurait pourquoi les pizzas ont disparu.
+            // ⛔ SANS PHRASE (lot 4): elle a déjà fait son effet à la reprise,
+            // et la relire ici l'appliquerait une seconde fois.
             let written: { ok: boolean; mealId: string | null };
             try {
               written = await writeFromDraft(
-                draftInput(draftNote),
+                draftInput(),
                 "prepare_next",
                 null,
               );
@@ -2741,7 +2832,6 @@ export default function StudentWeekPlanPage() {
             if (!written.ok) throw new Error(draftRefusal(new Error("plan_not_written")));
             setDraftOpen(false);
             setDraft(null);
-            setDraftNote(null);
             const uid = (await supabase.auth.getUser()).data.user?.id;
             if (uid) {
               await refreshLivePlans(uid);

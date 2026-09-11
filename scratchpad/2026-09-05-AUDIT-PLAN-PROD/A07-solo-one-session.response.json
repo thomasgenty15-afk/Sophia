@@ -1,0 +1,2097 @@
+{
+  "ok": true,
+  "draft": true,
+  "names": {
+    "dishes": 18,
+    "declared": 18,
+    "kept": 18,
+    "refused": 0
+  },
+  "food_groups": {
+    "declared": 0,
+    "valid": 0,
+    "refused": 0,
+    "persisted": 0,
+    "lines": 84
+  },
+  "boxes": {
+    "meals": 12,
+    "with_box": 12,
+    "boxes": 12,
+    "expected": 12,
+    "delivery": "served",
+    "refused": 0,
+    "names": 0,
+    "names_refused": 0,
+    "items": 18,
+    "items_refused": 0,
+    "capped": 0,
+    "legacy_folded": 0,
+    "preparations": 4,
+    "sum_checked": 0,
+    "sum_over": 0,
+    "sum_unverifiable": 4,
+    "mouth_slots": 0,
+    "mouths_unboxed": 0,
+    "mouths_double": 0,
+    "mouths_double_model": 0,
+    "cells_no_box": 6,
+    "mouths_no_box_cell": 0
+  },
+  "unquantified_dish_ingredients": {
+    "ingredients": 56,
+    "unquantified": 0
+  },
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 6
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+      "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+      "Tout est cuisiné dimanche, en une seule fois : ce qui ne tiendrait pas au frais jusqu'au repas part au congélateur.",
+      "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+      "La session de dimanche prendra plutôt 1 h 55 min que 1 h : c'est ton seul jour de cuisine, et cuisiner moins laisserait des jours vides."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "dishes": [
+    {
+      "name": "Bol yaourt, avoine et pomme",
+      "title": "Yaourt grec, avoine, pomme et noix",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt grec nature",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt et les flocons d'avoine, puis ajouter la pomme en dés et les noix.",
+      "why": "Un petit-déjeuner simple et régulier, avec une source de protéines et des aliments peu transformés.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poulet rôti réconfortant",
+      "title": "Poulet rôti, riz, courgette et tomates",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Sortir la boîte du réfrigérateur et réchauffer son contenu doucement à la poêle avec un couvercle.",
+      "why": "Ce repas utilise la première portion préparée pour installer un déjeuner régulier dès le début de la semaine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti",
+              "grams": 160
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Saumon d'été au four",
+      "title": "Saumon, pommes de terre, courgette et haricots verts",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "jus de citron",
+          "quantity": "1 cuillère à soupe",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle avec un couvercle, puis ajouter le jus de citron au moment de servir.",
+      "why": "Un dîner de poisson et de légumes de saison apporte une variation agréable après le poulet du midi.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_salmon_vegetables",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_vegetables",
+              "term": "saumon et légumes rôtis",
+              "grams": 470
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Yaourt poire et amandes",
+      "title": "Yaourt grec, poire, amandes et graines de chia",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt grec nature",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de chia",
+          "quantity": "1 cuillère à soupe",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le yaourt dans un bol et ajouter la poire en morceaux, les amandes et les graines de chia.",
+      "why": "Une option sans cuisson qui aide à garder le même horaire de petit-déjeuner.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Wrap de poulet citronné",
+      "title": "Poulet rôti, pain complet, laitue et tomate",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "laitue",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "95 g",
+          "in_pantry": false,
+          "amount": 95,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 95,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt grec nature",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 cuillère à café",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le poulet dans une poêle couverte, puis le placer dans le pain avec la laitue, la tomate, le yaourt et le citron.",
+      "why": "La même préparation devient un déjeuner portable et différent du bol de la veille.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti",
+              "grams": 160
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Chili de dinde familial",
+      "title": "Chili de dinde, riz et coriandre",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "coriandre fraîche",
+          "quantity": "8 g",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 8,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le chili et le riz dans une poêle avec un couvercle, puis parsemer de coriandre.",
+      "why": "Un dîner chaud et rassasiant facilite la régularité sans demander une nouvelle session de cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_chili",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_chili",
+              "term": "chili de dinde",
+              "grams": 500
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bol fromage blanc et raisins",
+      "title": "Fromage blanc, raisins, avoine et noisettes",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisins",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "35 g",
+          "in_pantry": false,
+          "amount": 35,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 35,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le fromage blanc et les flocons d'avoine, puis ajouter les raisins et les noisettes.",
+      "why": "Le petit-déjeuner reste rapide et protéiné tout en changeant les fruits de la semaine.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Saumon aux herbes fraîches",
+      "title": "Saumon, pommes de terre, courgette et salade",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "salade verte",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 cuillère à soupe",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil frais",
+          "quantity": "8 g",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 8,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le saumon, les pommes de terre et la courgette dans une poêle couverte, puis ajouter la salade, le citron et le persil.",
+      "why": "Le saumon revient sous une forme plus fraîche, avec des produits de saison et sans nouvelle cuisson complexe.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_salmon_vegetables",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_vegetables",
+              "term": "saumon et légumes rôtis",
+              "grams": 470
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Chili croquant de dinde",
+      "title": "Chili de dinde, poivron cru et salade",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "poivron rouge",
+          "quantity": "95 g",
+          "in_pantry": false,
+          "amount": 95,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 95,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 cuillère à café",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le chili à la poêle avec un couvercle. Servir avec le poivron émincé et la salade assaisonnée d'huile d'olive.",
+      "why": "Le chili change de texture grâce aux crudités et ne répète pas le dîner précédent à l'identique.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_chili",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_chili",
+              "term": "chili de dinde",
+              "grams": 500
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bol skyr aux prunes",
+      "title": "Skyr, prunes, muesli d'avoine et noix",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "skyr nature",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "145 g",
+          "in_pantry": false,
+          "amount": 145,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 145,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "muesli d'avoine",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Déposer le skyr dans un bol et ajouter les prunes en morceaux, le muesli et les noix.",
+      "why": "Cette formule sans cuisson protège l'habitude du matin au milieu de la semaine.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poulet rôti en salade",
+      "title": "Poulet rôti, riz, haricots verts et salade",
+      "slot": "lunch",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "haricots verts cuits",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 133.33333333333334,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 cuillère à café",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer le poulet et le riz à la poêle, puis ajouter les haricots verts et la salade avec l'huile d'olive.",
+      "why": "Une portion congelée rend possible un déjeuner varié sans cuisiner à nouveau en milieu de semaine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti",
+              "grams": 160
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Saumon citronné express",
+      "title": "Saumon, pommes de terre, courgette et tomates",
+      "slot": "dinner",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "tomates cerises",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 cuillère à soupe",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer son contenu à la poêle avec un couvercle, puis ajouter les tomates cerises et le citron.",
+      "why": "Le poisson offre une seconde présentation légère et colorée, sans abandonner le dîner régulier.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_salmon_vegetables",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_vegetables",
+              "term": "saumon et légumes rôtis",
+              "grams": 470
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Fromage blanc aux figues",
+      "title": "Fromage blanc, figues, avoine et amandes",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "figues fraîches",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le fromage blanc et les flocons d'avoine, puis ajouter les figues coupées et les amandes.",
+      "why": "Un petit-déjeuner de saison, simple à répéter dans le même créneau chaque jour.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Chili de dinde au riz",
+      "title": "Chili de dinde, riz, courgette et coriandre",
+      "slot": "lunch",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "courgette crue",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "coriandre fraîche",
+          "quantity": "8 g",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 8,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer le chili et le riz à la poêle, puis servir avec la courgette crue en rubans et la coriandre.",
+      "why": "La portion congelée permet de continuer la semaine avec un plat complet, relevé par une garniture fraîche.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_chili",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_chili",
+              "term": "chili de dinde",
+              "grams": 500
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Wrap de poulet aux crudités",
+      "title": "Poulet rôti, pain complet, concombre et carotte",
+      "slot": "dinner",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "carotte",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt grec nature",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer le poulet à la poêle, puis l'envelopper dans le pain avec le concombre, la carotte et le yaourt.",
+      "why": "Le poulet devient un dîner froid et croustillant, ce qui évite la monotonie des portions congelées.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti",
+              "grams": 160
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Skyr pêche et noisettes",
+      "title": "Skyr, pêche, avoine et noisettes",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "skyr nature",
+          "quantity": "315 g",
+          "in_pantry": false,
+          "amount": 315,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 315,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "16 g",
+          "in_pantry": false,
+          "amount": 16,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le skyr dans un bol et ajouter la pêche en morceaux, les flocons d'avoine et les noisettes.",
+      "why": "Un dernier petit-déjeuner très rapide maintient le rythme jusqu'à la fin du stretch.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Salade tiède de saumon",
+      "title": "Saumon, riz, tomates, haricots verts et œuf",
+      "slot": "lunch",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "tomates cerises",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts cuits",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 133.33333333333334,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "œuf dur",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "cooked",
+          "grams_raw": 55,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 cuillère à café",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer le saumon et le riz à la poêle, puis ajouter les tomates, les haricots verts, l'œuf et l'huile d'olive.",
+      "why": "Cette salade complète utilise la dernière portion de poisson dans une composition nettement différente.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_salmon_vegetables",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_vegetables",
+              "term": "saumon et légumes rôtis",
+              "grams": 470
+            },
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz cuit",
+              "grams": 220
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Chili final au pain complet",
+      "title": "Chili de dinde, pain complet et salade de tomates",
+      "slot": "dinner",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "145 g",
+          "in_pantry": false,
+          "amount": 145,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 145,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 cuillère à café",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte du congélateur la veille. Réchauffer le chili à la poêle, puis servir avec le pain et la salade de tomates assaisonnée d'huile d'olive.",
+      "why": "Le dernier dîner reste complet et différent grâce au pain et à la salade, sans ajouter une séance de cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey_chili",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_turkey_chili",
+              "term": "chili de dinde",
+              "grams": 500
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_chicken",
+      "title": "Poulet rôti aux légumes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "cuisses de poulet désossées",
+          "quantity": "1000 g",
+          "in_pantry": false,
+          "amount": 1000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1000,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates cerises",
+          "quantity": "320 g",
+          "in_pantry": false,
+          "amount": 320,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 320,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2 cuillères à soupe",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "ail",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Chauffer le four à 220 °C. Déposer le poulet, les courgettes et les tomates sur une plaque, ajouter l'huile, l'ail, le sel et le poivre noir, puis rôtir jusqu'à cuisson complète du poulet et des légumes. Laisser refroidir avant de répartir les portions.",
+      "active_minutes": 15,
+      "total_minutes": 45,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_turkey_chili",
+      "title": "Chili de dinde aux haricots",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "dinde hachée",
+          "quantity": "875 g",
+          "in_pantry": false,
+          "amount": 875,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 875,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots rouges cuits",
+          "quantity": "750 g",
+          "in_pantry": false,
+          "amount": 750,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 750,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "640 g",
+          "in_pantry": false,
+          "amount": 640,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 640,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignons",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 220,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons rouges",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 cuillère à soupe",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "paprika fumé",
+          "quantity": "2 cuillères à café",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "cumin moulu",
+          "quantity": "2 cuillères à café",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Faire revenir les oignons et les poivrons dans l'huile, ajouter la dinde et la faire dorer. Ajouter les tomates, les haricots, le paprika, le cumin, le sel et le poivre noir, puis mijoter jusqu'à épaississement. Refroidir avant de répartir.",
+      "active_minutes": 20,
+      "total_minutes": 50,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_salmon_vegetables",
+      "title": "Saumon et légumes rôtis",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "filets de saumon",
+          "quantity": "900 g",
+          "in_pantry": false,
+          "amount": 900,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 900,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pommes de terre",
+          "quantity": "720 g",
+          "in_pantry": false,
+          "amount": 720,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 720,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "560 g",
+          "in_pantry": false,
+          "amount": 560,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 560,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "320 g",
+          "in_pantry": false,
+          "amount": 320,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 320,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2 cuillères à soupe",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Chauffer le four à 210 °C. Rôtir les pommes de terre et les courgettes avec l'huile, puis ajouter le saumon et les haricots verts pour la fin de cuisson. Assaisonner avec le citron, laisser refroidir et répartir dans les boîtes.",
+      "active_minutes": 15,
+      "total_minutes": 45,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_rice",
+      "title": "Riz complet cuit",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "riz complet",
+          "quantity": "255 g",
+          "in_pantry": false,
+          "amount": 255,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 255,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "560 ml",
+          "in_pantry": false,
+          "amount": 560,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 560,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": null,
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Rincer le riz, le cuire dans l'eau salée jusqu'à absorption complète, puis l'étaler pour le refroidir rapidement avant de le répartir dans les boîtes.",
+      "active_minutes": 5,
+      "total_minutes": 40,
+      "cook_on": "sun"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_chicken",
+        "prep_turkey_chili",
+        "prep_salmon_vegetables",
+        "prep_rice"
+      ],
+      "run_through": "Acheter les produits frais le matin ou la veille. Préchauffer le four et lancer le riz. Enfourner le poulet et les légumes, puis préparer le chili dans une grande casserole pendant la cuisson. Ajouter le saumon et les haricots verts au four pour la fin. Refroidir rapidement, répartir les repas dans leurs boîtes, garder les premiers repas au réfrigérateur et congeler les portions prévues à partir de mardi soir.",
+      "total_minutes": 115
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "yaourt grec nature",
+      "quantity": "725 g",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fromage blanc",
+      "quantity": "625 g",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "skyr nature",
+      "quantity": "625 g",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "cuisses de poulet désossées",
+      "quantity": "1000 g",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "dinde hachée",
+      "quantity": "875 g",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "filets de saumon",
+      "quantity": "900 g",
+      "aisle": "protein",
+      "food_group": "fatty_fish",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "œufs",
+      "quantity": "1 unité",
+      "aisle": "protein",
+      "food_group": "eggs",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes de terre",
+      "quantity": "720 g",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "1 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates cerises",
+      "quantity": "440 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates",
+      "quantity": "145 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots verts",
+      "quantity": "440 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivrons rouges",
+      "quantity": "2 unités",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "oignons",
+      "quantity": "2 unités",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "ail",
+      "quantity": "2 unités",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "laitue",
+      "quantity": "185 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "salade verte",
+      "quantity": "190 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "concombre",
+      "quantity": "120 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "carottes",
+      "quantity": "80 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poires",
+      "quantity": "1 unité",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes",
+      "quantity": "1 unité",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "raisins",
+      "quantity": "120 g",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prunes",
+      "quantity": "145 g",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "figues fraîches",
+      "quantity": "2 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pêches",
+      "quantity": "1 unité",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "coriandre fraîche",
+      "quantity": "16 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "persil frais",
+      "quantity": "8 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citrons",
+      "quantity": "2 unités",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pain complet",
+      "quantity": "240 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "riz complet",
+      "quantity": "255 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "flocons d'avoine",
+      "quantity": "155 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "muesli d'avoine",
+      "quantity": "40 g",
+      "aisle": "grains",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots rouges cuits",
+      "quantity": "750 g",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates concassées",
+      "quantity": "640 g",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "30 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "30 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noisettes",
+      "quantity": "30 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de chia",
+      "quantity": "1 cuillère à soupe",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d'olive",
+      "quantity": "80 ml",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "paprika fumé",
+      "quantity": "2 cuillères à café",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "cumin moulu",
+      "quantity": "2 cuillères à café",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "sel",
+      "quantity": "1 paquet",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "black pepper",
+      "quantity": "1 paquet",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "fixed_intakes": [],
+  "day_properties": [],
+  "rejected_numeric": [],
+  "rejected_aisles": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 1 (2026-09-06)",
+    "freeze_on_purchase: 0/43",
+    "raw_keeping_needs_later_shop: 0/4 preparations",
+    "one_cooking_session: 1/1 sessions returned",
+    "dishes[0]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[3]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[6]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[9]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[12]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[15]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "shopping_list_unattributed: 6/43 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "cooking session on sun runs 115 min, but they said they have about 60",
+    "uses_kept_freezer: 12/18"
+  ],
+  "request_id": "308c02a2-e138-45a1-939f-918575ff218a"
+}

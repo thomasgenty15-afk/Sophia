@@ -442,7 +442,9 @@ niveau d'activité (`energy_target.ts`), jamais un point, sans reste et sans ver
 **Ce que la vitrine a le droit de faire, depuis cette date :** `/meal-prep` affiche une fourchette
 calculée, **sans condition d'accès**, qui **suit l'objectif choisi** — plus basse sur une perte, plus
 haute sur une prise — et qui nomme son hypothèse de rythme (l'écart le plus rapide que la
-composition accepte d'exécuter : 500 kcal/jour sur une perte, +10 % sur une prise).
+composition accepte d'exécuter : 500 kcal/jour sur une perte ; sur une prise, depuis le
+2026-09-09, le plafond du curseur lui-même — 1 kg ou 1 % du poids par semaine —, la bande de
++10 % ne bornant plus que l'enveloppe sur laquelle le modèle compose).
 
 ⚠️ **Un geste « j'ai 18 ans ou plus » a existé sur cette page pendant quelques heures le
 2026-09-01, puis a été retiré sur décision du propriétaire.** Ce paragraphe garde la trace des deux

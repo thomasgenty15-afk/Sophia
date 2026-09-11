@@ -58,6 +58,12 @@ const refs: CompositionRef[] = refRows.map((r) => ({
   b12Source: r.b12_source === true,
   folateSource: r.folate_source === true,
   yieldClass: String(r.yield_class) as YieldClass,
+  // ⟳ 2026-09-07 — le rendement par aliment. Un rejeu hors ligne relit la
+  // colonne comme le loader: la poser à `null` en dur ferait rejouer un plan
+  // avec le facteur de CLASSE pendant que la production utilise le sien.
+  yieldFactor: r.yield_factor === null || r.yield_factor === undefined
+    ? null
+    : Number(r.yield_factor),
   atwaterDiscount: Number(r.atwater_discount),
   energyDense: r.energy_dense === true,
 }));

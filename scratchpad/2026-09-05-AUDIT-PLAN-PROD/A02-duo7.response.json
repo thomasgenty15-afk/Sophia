@@ -1,0 +1,5 @@
+{
+  "error": "plan_overlaps_existing",
+  "detail": "This household already has a plan that starts on that day or later. Replace it, or start your window before it.",
+  "request_id": "258710ec-7f5e-48e3-a6af-7ca3feacd2d7"
+}

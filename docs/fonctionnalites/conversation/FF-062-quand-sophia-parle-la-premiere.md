@@ -162,6 +162,7 @@ déjà.
 | **C4** | **Le point de la semaine** | dimanche 18h-21h | hebdomadaire |
 | **C5** | **La relance après silence** | 72h sans un mot | **une seule par épisode** |
 | **C6** | **La divergence de poids constatée** | quand elle est constatée | **un cycle de plan ET 42 jours au minimum** — doublé à 84 après un refus |
+| **C7** | **Le rappel de la veille** — « ce soir, sors la dinde du congélateur » (ajouté le 2026-09-09) | 18h-20h locales, la veille d'une session de cuisine qui puise dans un article **congelé à l'achat** (`freeze_on_purchase`) | **une fois par (plan, jour de cuisine)** ; sans question ; non sollicité, donc plafonné et cède aux bilans garantis |
 
 Plus deux canaux **transactionnels**, qui ne sont pas de la relation : fin
 d'accès et facturation (`account_lifecycle`, `stripe-webhook`). Ils répondent à

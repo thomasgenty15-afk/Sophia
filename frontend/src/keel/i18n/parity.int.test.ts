@@ -64,6 +64,16 @@ describe("pack français de la vitrine", () => {
       "public.language.fr",
       "public.locale.switch_to_en",
       "public.locale.switch_to_fr",
+      // ── /legal — DEUX MOTS QUE LE FRANÇAIS ÉCRIT PAREIL ──────────────────
+      // « Contact » est le mot français aussi: il est déjà ici pour le pied de
+      // page (`public.footer.contact`), et le libellé de la ligne « Contact »
+      // du tableau d'identité tombe sur le même mur.
+      "legal.mentions.row_contact",
+      // La FORME SOCIALE est un objet du droit français, gardé en français
+      // dans les deux packs — `lib/legalEntity.ts` le dit déjà de `legalForm`:
+      // « Kept in French: it is a form in French law ». La « traduire »
+      // demanderait d'inventer une société qui n'existe pas.
+      "legal.mentions.form_value",
       // ── LES CITATIONS D'ÉCRAN PRODUIT ────────────────────────────────────
       // ⚠️ CETTE RUBRIQUE A CHANGÉ DE SENS LE 2026-08-13, ET IL FAUT LIRE
       // POURQUOI AVANT D'Y AJOUTER QUOI QUE CE SOIT.
@@ -133,7 +143,6 @@ describe("pack français de la vitrine", () => {
       "gyms.fig.money_out_value",
       "gyms.fig.money_keep_value",
       "gyms.fig.money_uptake_value", // « 37 clients » — le mot est le même
-      "mealprep.start.ask_allergies", // « Allergies » s'écrit pareil
       // « Air fryer » est le nom que l'appareil porte en français aussi — sur
       // la boîte, dans les rayons, dans la bouche des gens. Les six autres
       // outils de la cuisine sont traduits (Four, Plaques, Micro-ondes,
@@ -147,7 +156,6 @@ describe("pack français de la vitrine", () => {
       // est le nom que le coach a écrit; « — Sophia » est la marque, et c'est
       // précisément le fait que `/gyms` vend (la salle délègue, l'agent signe
       // du nom de la maison et jamais du sien).
-      "families.fig_table.m4", // « Jo » — la 4e part de la figure du héros
       // ⚠️ `coaches.lock.demo.sign` A QUITTÉ CETTE LISTE le 2026-08-13. La
       // signature de la démonstration était « — Marc » des deux côtés; elle est
       // devenue « — your name » / « — ton nom », parce que la fiche est celle du
@@ -158,8 +166,6 @@ describe("pack français de la vitrine", () => {
       // Ce sont les libellés produit des six objectifs. Les quatre autres sont
       // bien traduits (« Perte de gras », « Prise de muscle », « Santé »,
       // « Maintien »), ce qui montre que la table n'est pas recopiée.
-      "couples.goal.recomposition",
-      "couples.goal.performance",
       // ── LOT 2 · LE COULOIR D'ENTRÉE ──────────────────────────────────────
       // `Nutella` est une marque, et c'est l'exemple du champ « ce que cette
       // maison ne sert pas ».
@@ -418,14 +424,12 @@ describe("pack français de la vitrine", () => {
       // l'interpolation, pas dans la chaîne.
       // ⚠️ Si l'un des deux gagne un MOT un jour (« par jour », « a day »), il
       // sort de cette liste le même jour.
-      "mealprep.demo.weight_value",
       // ⚠️ LES DEUX GABARITS ONT ÉTÉ SCINDÉS PAR BASE le 2026-09-01
       // (`energyBasis.int.test.ts`: « la base est DANS la clé »). Ils portent
       // maintenant des MOTS, donc ils ne sont plus identiques d'une langue à
       // l'autre — et ils sortent de cette liste, comme la note l'annonçait.
       // Un tiret cadratin. Il n'y a rien à traduire dans un tiret, et le rendre
       // différent d'une langue à l'autre serait le bug.
-      "mealprep.energy.no_range",
       // FF-062 R11 — le libellé du champ de correction du chiffre d'énergie.
       // « kcal » est un SYMBOLE D'UNITÉ, pas un mot: il s'écrit pareil dans les
       // deux langues, et le traduire serait le bug. (Le sous-titre et les trois

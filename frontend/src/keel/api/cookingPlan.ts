@@ -8,14 +8,20 @@
 // définitions d'une même règle sont une divergence en attente, et c'est l'écran
 // — jamais relu — qui garde l'ancienne. Ce module-ci naît du bon côté.
 //
-// L'écran a besoin d'UNE chose de ce module: les VOCABULAIRES (les trois
-// styles, les trois cadences) pour poser ses boutons, et le rang d'un style
-// pour les ordonner. Il n'a besoin d'AUCUNE dérivation: `deriveCookingPlan`
-// tourne côté serveur, à la composition, et son résultat revient dans la
-// rationale. Un aperçu de sessions calculé au navigateur serait une seconde
-// autorité sur le nombre de vagues de courses.
+// L'écran a besoin des VOCABULAIRES (les trois styles, les trois cadences)
+// pour poser ses boutons, du rang d'un style pour les ordonner — et depuis le
+// 2026-09-04 de `offerableGroceryRuns`, qui dit CE QU'ON A LE DROIT DE
+// PROPOSER.
 //
-// ⛔ SI TU AJOUTES UNE RÈGLE ICI, TU AS RECRÉÉ LE JUMEAU.
+// ⛔ ET « CE QU'ON PROPOSE » N'EST PAS « CE QUE LE PLAN FERA ». `deriveCooking-
+// Plan` tourne côté serveur, à la composition, et son résultat revient dans la
+// rationale: un aperçu de sessions calculé au navigateur serait une seconde
+// autorité sur le nombre de vagues de courses, et celle-là reste interdite.
+// L'offre, elle, ne calcule aucun plan — elle raccourcit une liste d'options,
+// et elle le fait DEPUIS LE MODULE SERVEUR pour que les plafonds qu'elle
+// reflète soient littéralement les mêmes objets.
+//
+// ⛔ SI TU ÉCRIS UNE RÈGLE ICI PLUTÔT QUE LÀ-BAS, TU AS RECRÉÉ LE JUMEAU.
 //
 // ⚠️ LES JETONS SONT ICI, LES MOTS SONT DANS LE COMPOSANT. `pageSeams` rougit
 // si une chaîne visible traverse `api/` — les libellés des trois styles vivent
@@ -30,10 +36,17 @@ export {
   cookingStyleRank,
   deriveCookingPlan,
   GROCERY_RUNS,
+  GROCERY_RUNS_ANY,
   type GroceryRuns,
+  type GroceryRunsAnswer,
+  type GroceryRunsLimit,
+  type GroceryRunsOffer,
   MAX_COOKING_SESSIONS,
+  offerableGroceryRuns,
   oneStyleLower,
   readCookingStyle,
   readGroceryRuns,
+  readGroceryRunsAnswer,
+  resolveGroceryRunsAnswer,
   unusedGroceryRuns,
 } from "../../../../supabase/functions/_shared/keel/cooking_plan.ts";

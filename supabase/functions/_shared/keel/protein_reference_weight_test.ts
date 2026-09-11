@@ -32,6 +32,7 @@ import {
   type ActivityAxes,
   childEnvelopeFromBody,
   envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 
@@ -65,7 +66,8 @@ function planchier(
     NO_AXES,
     null,
     null,
-  );
+  MAINTENANCE_ENVELOPE_DIRECTION
+);
   assert(env.mode === "per_kg");
   return env.proteinFloorG;
 }

@@ -50,7 +50,6 @@ import {
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { loadRecentChatHistory } from "../_shared/chat/recent_history.ts";
 import { closeKeelReengagementEpisodeOnInbound } from "../_shared/keel/reengagement_io.ts";
-import { ACTIVE_FLOW_STATE_TABLE } from "../sophia-brain/router/active_flow_state.ts";
 import {
   handleDeterministicButton,
 } from "../_shared/chat/deterministic_buttons.ts";
@@ -267,86 +266,41 @@ Deno.serve(async (req) => {
     //
     // Best-effort assumé: un échec de fermeture ne doit jamais faire échouer
     // la réception d'un message (la fonction avale déjà ses erreurs).
-    const reengagementClose = await closeKeelReengagementEpisodeOnInbound(
+    // ⚠️ APPELÉE POUR SON EFFET, ET SON RÉSULTAT N'EST PLUS LU. Il ne servait
+    // qu'à armer le cadre de reprise, retiré juste en dessous. La fermeture,
+    // elle, reste indispensable: sans elle, `nudgedThisEpisode` verrouille
+    // définitivement chaque élève passé une fois par la boucle.
+    await closeKeelReengagementEpisodeOnInbound(
       admin,
       { userId: user.id, atIso: message.received_at },
     );
 
-    // ── PHASE B : ARMER LE CADRE DE REPRISE, ICI ET NULLE PART AILLEURS ─────
+    // ── PHASE B RETIRÉE LE 2026-09-09 : LE CADRE DE REPRISE NE POSSÈDE PLUS
+    //    AUCUN TOUR ──────────────────────────────────────────────────────────
     //
-    // `closed === true` signifie exactement une chose: ce message entrant est
-    // une réponse à une relance KEEL. C'est le SEUL instant où le runtime le
-    // sait — l'épisode vient d'être clos par la ligne au-dessus, et
-    // `processMessage` (plus bas) ne pourra plus le lire.
+    // Ici s'armait `keel_reengagement_resume_v1`: la fermeture de l'épisode
+    // écrivait un état actif, et le PROCHAIN message de l'élève — n'importe
+    // lequel, à n'importe quelle distance — recevait une phrase fixe au lieu
+    // d'une réponse.
     //
-    // Scope `"app"`, comme tout le reste de ce fichier. Le winback armait sur
-    // `"whatsapp"` et c'est précisément ce qui rendrait le flow invisible.
+    // ⛔ LE CAS QUI L'A TUÉ, mesuré sur poul le 2026-09-09. La relance du matin
+    // POSE une question (« quel repas te paraît le plus facile à préparer
+    // aujourd'hui ? »). Onze heures plus tard, l'élève demande « je peux manger
+    // une barre Mars ? » et lit « Content de te lire. On reprend où tu veux :
+    // qu'est-ce qui serait utile maintenant ? ». La question est perdue, et
+    // l'écran vient de redemander ce qu'on venait de lui dire.
     //
-    // `awaiting_first_reply: true` n'est pas décoratif: c'est lui que lit le
-    // carve-out de fraîcheur d'`active_flow_state.ts`. Sans lui, l'état
-    // expirerait à 4 h alors que l'élève répond des jours après.
+    // ⚠️ CE N'EST PAS UN DÉFAUT NEUF, C'EST LE MÊME PARI, UN TOUR PLUS TÔT.
+    // `skills/keel_reengagement_resume/contract.ts` documente déjà ce pari
+    // perdu au 2ᵉ tour, en run réel le 2026-08-06 — le flow avait été coupé de
+    // deux tours à un pour cette raison exacte. Le reducer est pur: il n'a par
+    // construction AUCUN moyen de distinguer « ok je reprends » d'une demande.
+    // Tout tour possédé est donc un pari sur le fait que l'élève n'a rien
+    // demandé, et ce pari a maintenant perdu aux deux tours où il a été tenu.
     //
-    // Best-effort assumé, comme la fermeture juste au-dessus: rater le cadre
-    // dégrade le tour en réponse normale, ce qui est le comportement d'avant
-    // ce chantier. Faire échouer la réception d'un message serait pire.
-    if (reengagementClose.closed) {
-      try {
-        const nowIso = message.received_at;
-        const { data: stateRow } = await admin
-          .from(ACTIVE_FLOW_STATE_TABLE)
-          .select("temp_memory")
-          .eq("user_id", user.id)
-          .eq("scope", CHAT_SCOPE)
-          .maybeSingle();
-        const tempMemory =
-          (stateRow?.temp_memory ?? {}) as Record<string, unknown>;
-        const { error: armError } = await admin
-          .from(ACTIVE_FLOW_STATE_TABLE)
-          .upsert({
-            user_id: user.id,
-            scope: CHAT_SCOPE,
-            temp_memory: {
-              ...tempMemory,
-              __active_conversation_skill_v1: {
-                version: 1,
-                skill_id: "keel_reengagement_resume_v1",
-                status: "active",
-                turn_count: 0,
-                started_at: nowIso,
-                updated_at: nowIso,
-                working_state: {
-                  keel_reengagement_resume_local_state: {
-                    version: 1,
-                    stage: "welcome_back",
-                    turns_in_flow: 0,
-                    awaiting_first_reply: true,
-                    episode_id: reengagementClose.episodeId,
-                    days_inactive_at_open: reengagementClose.daysInactiveAtOpen,
-                    armed_at: nowIso,
-                  },
-                },
-              },
-            },
-          }, { onConflict: "user_id,scope" });
-        // LIRE `error`, PAS SEULEMENT ATTRAPER. Le client PostgREST ne throw
-        // PAS sur une écriture refusée: il rend `{ error }`. Ce bloc a donc
-        // journalisé `keel_reengagement_resume_armed` à chaque réponse alors
-        // qu'il écrivait dans une table INEXISTANTE (`user_states`), et le
-        // `catch` ci-dessous n'a jamais rien vu. Le seul symptôme observable
-        // était l'absence du cadre — c'est-à-dire rien.
-        console.log(JSON.stringify({
-          tag: armError
-            ? "keel_reengagement_resume_arm_failed"
-            : "keel_reengagement_resume_armed",
-          request_id: requestId,
-          user_id: user.id,
-          episode_id: reengagementClose.episodeId,
-          error: armError ? String(armError.message ?? armError) : undefined,
-        }));
-      } catch (error) {
-        console.warn("[keel/reengagement] resume arming failed", error);
-      }
-    }
+    // La fermeture de l'épisode, elle, RESTE (la ligne juste au-dessus): c'est
+    // elle qui empêche le verrou permanent par élève. Seule l'appropriation du
+    // tour est partie. Le message file au dispatcher normal.
 
     // ── GARDE 5 : LES BOUTONS DÉTERMINISTES, AVANT LE DISPATCHER ─────────────
     // Un `button_payload` est une valeur que NOUS avons émise et qui n'a qu'un

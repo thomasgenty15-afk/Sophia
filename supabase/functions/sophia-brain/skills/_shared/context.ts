@@ -12,9 +12,8 @@ export type SkillId =
   // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle
   // sur le chemin de la permission).
   | "plan_question"
-  // Phase B — reprise apres une relance KEEL. Arme HORS conversation, a la
-  // fermeture de l'episode de decrochage; aucun signal dispatcher ne l'ouvre.
-  | "keel_reengagement_resume_v1"
+  // ⟳ 2026-09-09 — la reprise après relance KEEL est retirée: son flow ne
+  // possède plus aucun tour (voir `chat-inbound-v1`).
   // FF-056 — la divergence constatée. Son entrée ne vient d'AUCUN signal du
   // dispatcher: elle vient d'un ÉPISODE ouvert hors conversation par le batch
   // du soir, relu en base à chaque tour. Même doctrine que le plancher TCA —

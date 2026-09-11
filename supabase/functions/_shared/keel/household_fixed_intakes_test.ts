@@ -62,11 +62,14 @@ const PROMPT_ARGS = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   dietBlock: "",
   doctrineBlock: "",
@@ -392,7 +395,7 @@ Deno.test("le prompt PORTE l'apport — la chaîne va jusqu'au générateur", as
   const got = await loadHouseholdFixedIntakes(stubDb(goals()), {
     mouths: MOUTHS,
   });
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_ARGS,
     fixedIntakes: got.intakes,
   });
@@ -417,10 +420,10 @@ Deno.test("un foyer où PERSONNE n'a déclaré rend le prompt de v16, au caract�
   );
   assertEquals(got.intakes, []);
   assertEquals(
-    buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: got.intakes }).userMessage,
+    buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, fixedIntakes: got.intakes }).userMessage,
     // `[]` EN DUR: la valeur exacte que les trois sites de la fonction edge
     // portaient avant ce lot.
-    buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: [] }).userMessage,
+    buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, fixedIntakes: [] }).userMessage,
   );
 });
 

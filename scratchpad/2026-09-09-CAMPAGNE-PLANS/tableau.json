@@ -1,0 +1,195 @@
+[
+ {
+  "cas": "S1",
+  "titre": "socle — homme sedentaire, entretien, zero contrainte",
+  "lane": "solo",
+  "fenetre": "2026-09-10×3j",
+  "bande": "2150–2400",
+  "jours_complets": "3/3",
+  "servi": "2244·2353·2350",
+  "dans_bande": 3,
+  "rattrapage": "False p×None a×None",
+  "verdict": "within/met",
+  "inconnus": 0,
+  "sessions": 1,
+  "preparations": 2,
+  "courses": 39,
+  "issues": 7
+ },
+ {
+  "cas": "S2",
+  "titre": "deficit contraint — perte 0,5 kg/sem, 30 min, budget 60, sans four",
+  "lane": "solo",
+  "fenetre": "2026-09-10×4j",
+  "bande": "1700–1900",
+  "jours_complets": "4/4",
+  "servi": "2071·2213·2595·2557",
+  "dans_bande": 0,
+  "rattrapage": "True p×1.598 a×0.75",
+  "verdict": "above/under",
+  "inconnus": 0,
+  "sessions": 2,
+  "preparations": 3,
+  "courses": 33,
+  "issues": 7
+ },
+ {
+  "cas": "S3",
+  "titre": "surplus extreme — 72 kg, trains_hard + metier physique, prise de muscle",
+  "lane": "solo",
+  "fenetre": "2026-09-10×3j",
+  "bande": "2600–2900",
+  "jours_complets": "2/3",
+  "servi": "2754·2637",
+  "dans_bande": 2,
+  "rattrapage": "False p×None a×None",
+  "verdict": "within/met",
+  "inconnus": 1,
+  "sessions": 2,
+  "preparations": 4,
+  "courses": 46,
+  "issues": 11
+ },
+ {
+  "cas": "S4",
+  "titre": "vegane + allergie fruits a coque + arachide, sans four, perte",
+  "lane": "solo",
+  "fenetre": "2026-09-10×4j",
+  "bande": "1550–1750",
+  "jours_complets": "2/4",
+  "servi": "2222·2280",
+  "dans_bande": 0,
+  "rattrapage": "True p×1.47 a×0.75",
+  "verdict": "above/under",
+  "inconnus": 1,
+  "sessions": 1,
+  "preparations": 4,
+  "courses": 38,
+  "issues": 7
+ },
+ {
+  "cas": "S5",
+  "titre": "une seule session, six jours, sans gluten, perte 0,75 kg/sem",
+  "lane": "solo",
+  "fenetre": "2026-09-12×7j",
+  "bande": "1950–2250",
+  "jours_complets": "3/6",
+  "servi": "2085·2085·3355",
+  "dans_bande": 2,
+  "rattrapage": "True p×1.324 a×0.75",
+  "verdict": "within/under",
+  "inconnus": 1,
+  "sessions": 1,
+  "preparations": 8,
+  "courses": 37,
+  "issues": 10
+ },
+ {
+  "cas": "F1",
+  "titre": "foyer socle — quatre adultes proches, tous en entretien",
+  "lane": "household",
+  "fenetre": "2026-09-10×2j",
+  "cibles": {
+   "Paul": 2300,
+   "Claire": 1850,
+   "Hugo": 2075,
+   "Nina": 1925
+  },
+  "mesurables": {},
+  "achete_kcal_bouche_jour": 1757,
+  "cible_moyenne": 2038,
+  "sessions": 1,
+  "preparations": 2,
+  "courses": 32,
+  "issues": 11
+ },
+ {
+  "cas": "F2",
+  "titre": "foyer avec deux mineurs — 7 ans et 14 ans",
+  "lane": "household",
+  "fenetre": "2026-09-10×2j",
+  "cibles": {
+   "Yann": 2050,
+   "Sarah": 1700,
+   "Lise": 1770,
+   "Tom": 3506
+  },
+  "mesurables": {
+   "Yann": 1827
+  },
+  "achete_kcal_bouche_jour": 1763,
+  "cible_moyenne": 2257,
+  "sessions": 2,
+  "preparations": 3,
+  "courses": 29,
+  "issues": 15
+ },
+ {
+  "cas": "F3",
+  "titre": "foyer des extremes — prise de muscle, perte, entretien, un ado",
+  "lane": "household",
+  "fenetre": "2026-09-10×2j",
+  "cibles": {
+   "Theo": 3250,
+   "Maya": 1750,
+   "Georges": 2050,
+   "Jules": 2965
+  },
+  "mesurables": {
+   "Maya": 1749,
+   "Theo": 3248
+  },
+  "achete_kcal_bouche_jour": 4797,
+  "cible_moyenne": 2504,
+  "sessions": 2,
+  "preparations": 3,
+  "courses": 30,
+  "issues": 12
+ },
+ {
+  "cas": "F4",
+  "titre": "extremes + une bouche vegetarienne + une allergie fruits a coque",
+  "lane": "household",
+  "fenetre": "2026-09-10×2j",
+  "cibles": {
+   "Theo": 3250,
+   "Maya": 1750,
+   "Georges": 2050,
+   "Jules": 2965
+  },
+  "mesurables": {
+   "Theo": 3007,
+   "Maya": 1957,
+   "Jules": 159
+  },
+  "achete_kcal_bouche_jour": 1866,
+  "cible_moyenne": 2504,
+  "sessions": 2,
+  "preparations": 6,
+  "courses": 31,
+  "issues": 24
+ },
+ {
+  "cas": "F5",
+  "titre": "le cas maximal — extremes + vegetarienne + allergie + UNE seule session sur cinq jours",
+  "lane": "household",
+  "fenetre": "2026-09-12×3j",
+  "cibles": {
+   "Theo": 3250,
+   "Maya": 1750,
+   "Georges": 2050,
+   "Jules": 2965
+  },
+  "mesurables": {
+   "Theo": 1144,
+   "Jules": 188,
+   "Maya": 1557
+  },
+  "achete_kcal_bouche_jour": 1598,
+  "cible_moyenne": 2504,
+  "sessions": 1,
+  "preparations": 12,
+  "courses": 50,
+  "issues": 38
+ }
+]

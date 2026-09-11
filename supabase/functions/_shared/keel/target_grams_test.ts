@@ -57,11 +57,11 @@ import { PRESENCE_STATES } from "./household_presence.ts";
 import {
   executedPaceFor,
   KCAL_PER_KG_BODY_MASS,
+  paceCeilingFor,
   MINOR_MAX_DAILY_DELTA_FRACTION,
 } from "./weight_pace.ts";
 import {
   MAX_DAILY_DEFICIT_KCAL,
-  MAX_SURPLUS_FRACTION,
   type MouthBody,
 } from "./meal_envelope.ts";
 import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
@@ -105,6 +105,7 @@ const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
   displayName: "Zoé",
   goal: "fat_loss",
   ageState: "adult",
+  lightSlots: [],
   body: {
     heightCm: 180,
     ageBand: "30_44",
@@ -117,6 +118,7 @@ const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
   ...over,
 });
 
@@ -182,11 +184,19 @@ Deno.test("L8 ① — LE CAS QUI PASSE: une perte RÉTRÉCIT la boîte, une pris
   assert(up.factor > 1, `prise: facteur ${up.factor}`);
 
   // ⚠️ ET LES DEUX SONT SYMÉTRIQUES AUTOUR DE 1 SEULEMENT SI LES BORNES LE
-  // PERMETTENT: sur ce corps, A1 (500 kcal/j) creuse plus que la bande de prise
-  // (+10 %). Le test l'AFFIRME plutôt que de supposer une symétrie qui n'existe
-  // pas — c'est le fait, et c'est le fait qu'on veut voir bouger si les bandes
-  // bougent.
-  assert(1 - down.factor > up.factor - 1, "la perte doit creuser plus que la prise");
+  // PERMETTENT. Jusqu'au 2026-09-09 ce test affirmait « la perte creuse plus
+  // que la prise », parce que la bande +10 % rabotait la prise sous A1. Le
+  // curseur est désormais le contrat: la prise exécute le CRAN (aucune borne
+  // ne mord sous le plafond du curseur), pendant que la perte reste sous A1
+  // (500 kcal/j). Sur ce corps, c'est donc la prise qui bouge au moins autant
+  // — et le test l'AFFIRME, comme avant, plutôt que de supposer une symétrie.
+  const executedUp = executedPaceFor("up", SIZING_ARGS.subject, Number(SIZING_ARGS.paceKgPerWeek))!;
+  assertEquals(executedUp.clampedBy, "chosen");
+  assert(up.factor - 1 >= 1 - down.factor, "la prise n'est plus rabotée sous la perte");
+  assert(
+    Math.abs((up.factor - 1) * executedUp.maintenanceKcal - executedUp.dailyDeltaKcal) < 1,
+    `la prise doit valoir exactement l'écart du cran: ${up.factor}`,
+  );
 });
 
 Deno.test("L8 ① — chaque porte de sécurité ferme le DIMENSIONNEMENT, avec son motif", () => {
@@ -317,6 +327,7 @@ Deno.test("⛔ L8 C8 — L'ENFANT DE DOUZE ANS N'EST PAS DIMENSIONNÉ PARCE QUE 
       // ⚠️ LE CORPS PORTE LE PLANCHER DU PARENT — c'est très exactement le
       // chemin par lequel la ceinture du maître se substituait à la sienne.
       body: { ...MOUTH().body!, restrictionFlag: false },
+      lightSlots: [],
     }),
     {
       coachCounting: "no_position",
@@ -434,7 +445,48 @@ Deno.test("⛔ L8 ① — LES BORNES DE PLAUSIBILITÉ NE MORDENT SUR AUCUN CORPS
     BOX_FACTOR_MIN < worst,
     `BOX_FACTOR_MIN=${BOX_FACTOR_MIN} mord sur le minimum structurel ${worst}`,
   );
-  assert(BOX_FACTOR_MAX > 1 + MAX_SURPLUS_FRACTION, `${BOX_FACTOR_MAX}`);
+  // ⟳ 2026-09-09 — LE MAXIMUM SE MESURE AU PLAFOND DU CURSEUR, PAS À LA
+  // BANDE. Le curseur est le contrat: à son plafond (1 kg ou 1 % du poids), le
+  // facteur d'une prise vaut `1 + plafond × 7700/7 / entretien`, et c'est un
+  // corps LOURD à FAIBLE entretien qui le pousse le plus haut. Balayage du
+  // même gabarit que le sweep de conception (2 580 corps): 1,477 à
+  // 100 kg / 150 cm / femme / sédentaire. Une ceinture sous ce nombre rendrait
+  // `implausible_factor` — l'assiette d'ENTRETIEN — à qui demande le plus.
+  let worstUp = 0;
+  let worstAt = "";
+  for (let w = 40; w <= 250; w += 5) {
+    for (const heightCm of [150, 165, 180, 195]) {
+      for (const gender of ["male", "female", "other"] as const) {
+        for (
+          const activityLevel of [null, "sedentary", "on_feet", "trains_some", "trains_hard"] as const
+        ) {
+          const body: MouthBody = {
+            ...ADULT_BODY,
+            weightKg: w,
+            heightCm,
+            gender,
+            activityLevel,
+          };
+          const subject = { body, isMinor: false };
+          const ceiling = paceCeilingFor("up", subject);
+          if (ceiling === null) continue;
+          const executed = executedPaceFor("up", subject, ceiling.maxKgPerWeek);
+          if (executed === null) continue;
+          assertEquals(executed.clampedBy, "chosen", `${w} kg/${heightCm}/${gender}/${activityLevel}`);
+          const f = (executed.maintenanceKcal + executed.dailyDeltaKcal) / executed.maintenanceKcal;
+          if (f > worstUp) {
+            worstUp = f;
+            worstAt = `${w} kg / ${heightCm} cm / ${gender} / ${activityLevel}`;
+          }
+        }
+      }
+    }
+  }
+  assert(worstUp > 1.4, `le balayage ne pousse plus le facteur: ${worstUp}`);
+  assert(
+    worstUp <= BOX_FACTOR_MAX,
+    `BOX_FACTOR_MAX=${BOX_FACTOR_MAX} refuserait le plafond du curseur (${worstUp} à ${worstAt})`,
+  );
 });
 
 Deno.test("L8 ① — le vocabulaire des motifs est FERMÉ et chaque valeur est atteignable", () => {
@@ -1033,7 +1085,16 @@ const DAY: EatingOccasion[] = ["breakfast", "lunch", "dinner"];
 const SLOTS = DAY.map((slot) => ({ slot, size: null }));
 const LUNCH = { slot: "lunch" as EatingOccasion, size: null };
 const OPEN_READER = { show: true, reason: "open" };
-const EXECUTED = executedPaceFor("down", { body: ADULT_BODY, isMinor: false }, 0.5);
+/**
+ * ⟳ 2026-09-09 — LA JOURNÉE **AFFICHÉE**, ÉCRITE À LA MAIN, ET C'EST LE POINT.
+ *
+ * Elle valait `executedPaceFor(...).maintenanceKcal − dailyDeltaKcal`, c'est-à-
+ * dire la grandeur que `weight_pace.ts` interdit d'afficher — et un test qui
+ * relit la formule qu'il vérifie reste vert quand la formule change de base.
+ * Ici le nombre est LE nombre que l'écran imprime (milieu de `directedRange`),
+ * et il est écrit en clair pour qu'une somme de parts puisse s'y comparer.
+ */
+const DAY_KCAL = 2075;
 
 const ADVICE = {
   presenceState: "eating_out",
@@ -1042,8 +1103,7 @@ const ADVICE = {
   mouthAgeState: "adult" as MemberAgeState,
   slots: SLOTS,
   occasion: LUNCH,
-  executed: EXECUTED,
-  direction: "down" as const,
+  dayKcal: DAY_KCAL,
 };
 
 Deno.test("L8 ② — LE CAS QUI PASSE: un midi dehors reçoit un nombre, arrondi aux 50", () => {
@@ -1140,7 +1200,13 @@ Deno.test("L8 ② — le motif du LECTEUR survit tel quel, interrupteurs compris
 
 Deno.test("L8 ② — sans corps ni journée déclarée, aucun chiffre", () => {
   assertEquals(
-    eatingOutAdvice({ ...ADVICE, executed: null }),
+    eatingOutAdvice({ ...ADVICE, dayKcal: null }),
+    { kcal: null, reason: "no_body" },
+  );
+  // ⛔ ZÉRO ET NÉGATIF SONT DES `no_body`, PAS DES CONSEILS À ZÉRO. « Vise
+  // autour de 0 » se lirait « ne mange rien », le sens exactement inverse.
+  assertEquals(
+    eatingOutAdvice({ ...ADVICE, dayKcal: 0 }),
     { kcal: null, reason: "no_body" },
   );
   assertEquals(
@@ -1176,8 +1242,7 @@ Deno.test("L8 ② — le conseil suit la TAILLE déclarée du repas, pas une tab
   const total = DAY.map((slot) =>
     eatingOutAdvice({ ...ADVICE, occasion: { slot, size: null } }).kcal ?? 0
   ).reduce((a, b) => a + b, 0);
-  const day = EXECUTED!.maintenanceKcal - EXECUTED!.dailyDeltaKcal;
-  assert(Math.abs(total - day) <= 75, `${total} vs ${day}`);
+  assert(Math.abs(total - DAY_KCAL) <= 75, `${total} vs ${DAY_KCAL}`);
 });
 
 Deno.test("⛔ L8 ② — UNE CONSIGNE, JAMAIS UN SOLDE — et les deux langues le disent", () => {
@@ -1229,14 +1294,15 @@ Deno.test("L8 ② — le vocabulaire des motifs est FERMÉ, et `advised` en fait
 });
 
 // ---------------------------------------------------------------------------
-// LE RYTHME EXÉCUTÉ — l'écart de +10 % que L1-B a signalé, refermé
+// LE RYTHME EXÉCUTÉ — ≤ le cran choisi, et == sur un cran du curseur
 // ---------------------------------------------------------------------------
 
 Deno.test("⛔ L8 — LE RYTHME EXÉCUTÉ NE DÉPASSE JAMAIS LE CRAN CHOISI", () => {
-  // L'invariant qui referme l'écart: le slider de PRISE monte jusqu'à la borne
-  // dure pendant que `envelopeCore` plafonne à +10 %. Une date d'arrivée
-  // calculée sur le cran choisi est donc OPTIMISTE; les grammages, eux, sont
-  // désormais calculés sur ce que la casserole livre.
+  // L'invariant: le moteur n'exécute jamais PLUS que ce qui a été réglé. Ce
+  // balayage pousse exprès des crans AU-DESSUS du curseur (0,8 et 1 sur des
+  // corps qui plafonnent plus bas) pour que chaque borne ait un cas qui mord.
+  // ⟳ 2026-09-09: sur un cran DU CURSEUR, exécuté == choisi dans les deux sens
+  // — c'est le test suivant qui le tient.
   let clamped = 0;
   for (const body of [ADULT_BODY, SMALL_ADULT_BODY, CHILD_BODY]) {
     for (const isMinor of [false, true]) {
@@ -1258,13 +1324,18 @@ Deno.test("⛔ L8 — LE RYTHME EXÉCUTÉ NE DÉPASSE JAMAIS LE CRAN CHOISI", ()
 });
 
 Deno.test("L8 — chaque borne du rythme exécuté a son cas qui gagne, et il est nommé", () => {
-  // Une PRISE d'adulte: la bande `muscle_gain` (+10 %) mord bien avant le kilo.
+  // Une PRISE d'adulte de 80 kg: le curseur plafonne à 0,8 kg/sem (1 % du
+  // poids). Un cran de 1 kg venu de la base est raboté SUR CE PLAFOND — pas
+  // sur une bande d'enveloppe (⟳ 2026-09-09, `slider_ceiling`).
   const gain = executedPaceFor("up", { body: ADULT_BODY, isMinor: false }, 1)!;
-  assertEquals(gain.clampedBy, "surplus_band");
-  assertEquals(
-    gain.dailyDeltaKcal,
-    Math.round(gain.maintenanceKcal * MAX_SURPLUS_FRACTION),
-  );
+  assertEquals(gain.clampedBy, "slider_ceiling");
+  const gainCeiling = paceCeilingFor("up", { body: ADULT_BODY, isMinor: false })!;
+  assertEquals(gainCeiling.maxKgPerWeek, 0.8);
+  assertEquals(gain.dailyDeltaKcal, Math.round((0.8 * KCAL_PER_KG_BODY_MASS) / 7));
+  // Et le cran du curseur lui-même passe TEL QUEL: c'est le contrat.
+  const atCeiling = executedPaceFor("up", { body: ADULT_BODY, isMinor: false }, 0.8)!;
+  assertEquals(atCeiling.clampedBy, "chosen");
+  assertEquals(atCeiling.dailyDeltaKcal, gain.dailyDeltaKcal);
 
   // Une PERTE d'adulte de bon gabarit: A1, non débrayable.
   const loss = executedPaceFor("down", { body: ADULT_BODY, isMinor: false }, 1)!;
@@ -1367,6 +1438,37 @@ Deno.test("⛔ L8 — LE MODULE NE SOUSTRAIT AUCUN CONSOMMÉ: il n'y a pas de so
     const banned of ["consumed", "eaten", "alreadyAte", "remaining", "left", "balance"]
   ) {
     assert(!body.includes(banned), `${banned} dans le conseil du midi`);
+  }
+});
+
+Deno.test("⛔ 2026-09-09 — LE CONSEIL NE FABRIQUE PAS SA PROPRE JOURNÉE", () => {
+  // La journée du conseil doit être CELLE QUE L'ÉCRAN IMPRIME. Quand ce module
+  // la recalculait — `ExecutedPace.maintenanceKcal ± dailyDeltaKcal`, une
+  // grandeur que `weight_pace.ts` interdit d'afficher —, un run réel a rendu
+  // « au déjeuner, vise autour de 900 » sous une fourchette 1 950–2 200: 900 × 3
+  // dépassait de 500 kcal la borne haute imprimée trois centimètres plus haut.
+  //
+  // ⚠️ LE TEST LIT LA SOURCE, PAS UN NOMBRE. Une assertion sur une valeur
+  // resterait verte le jour où quelqu'un rebranche une seconde estimation en
+  // dessous; ce qu'on interdit, c'est d'AVOIR une seconde estimation ici.
+  const start = CODE.indexOf("export function eatingOutAdvice(");
+  const end = CODE.indexOf("\n}\n", start);
+  assert(start > 0 && end > start);
+  const body = CODE.slice(start, end);
+  assert(body.includes("args.dayKcal"), "la journée n'est plus une entrée");
+  for (
+    const banned of [
+      "maintenanceKcal",
+      "estimatedMaintenance",
+      "dailyDeltaKcal",
+      "args.executed",
+      "args.direction",
+    ]
+  ) {
+    assert(
+      !body.includes(banned),
+      `${banned}: le conseil s'est refait une seconde journée`,
+    );
   }
 });
 

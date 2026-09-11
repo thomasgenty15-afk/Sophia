@@ -54,7 +54,7 @@ import {
 } from "./composition_fill.ts";
 import {
   loadPendingGroups,
-  PENDING_TABLE,
+  PENDING_BY_FORM_VIEW,
   type PendingDbClient,
   repairPlanComposition,
   requestsWithPendingGroups,
@@ -83,6 +83,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -160,8 +161,19 @@ function fakeDb(opts: {
         in: (column: string, values: readonly string[]) => {
           calls.push({ table, columns, column, values: [...values] });
           if (opts.readThrows) throw new Error("boom");
+          // ⟳ 2026-09-10 — LA LECTURE PASSE PAR
+          // `food_composition_pending_by_form`, qui rend la ligne SOUS LE NOM
+          // par lequel on l'a trouvée. Une ligne sans forme de surface est son
+          // propre nom, et c'est ce que ce faux client rejoue.
+          const rows = Array.isArray(opts.rows)
+            ? opts.rows.map((r) =>
+              r && typeof r === "object"
+                ? { form: (r as Record<string, unknown>).term, ...r }
+                : r
+            )
+            : opts.rows;
           return Promise.resolve({
-            data: opts.rows ?? [],
+            data: rows ?? [],
             error: opts.readError ?? null,
           });
         },
@@ -454,16 +466,23 @@ Deno.test("L18b ⑩ deux colonnes, la table du sas, et les termes de la worklist
     meta: MODEL_SILENT_META,
     ask: MUET,
   });
-  assertEquals(db.calls.length, 1, "⛔ UNE requête par plan, jamais une par terme");
-  assertEquals(db.calls[0].table, PENDING_TABLE);
-  assertEquals(db.calls[0].table, "food_composition_pending");
-  assertEquals(
-    db.calls[0].columns,
-    "term,food_group_ref",
-    "⛔ jamais `*`: l'énergie du sas ne doit pas être à portée du chemin chaud",
-  );
-  assertEquals(db.calls[0].column, "term");
-  assertEquals([...db.calls[0].values].sort(), ["sudachi", "yuzu"], "dédoublonnés");
+  // ⟳ 2026-09-10 — DEUX REQUÊTES PAR PLAN, ET PAS UNE DE PLUS: la VALEUR
+  // (le cache du lot 2) et le GROUPE (l'armement du repli). Elles partent
+  // ENSEMBLE, sur la même worklist dédoublonnée; ce qui reste interdit, c'est
+  // une requête par TERME.
+  assertEquals(db.calls.length, 2, "⛔ deux requêtes par plan, jamais une par terme");
+  const groupCall = db.calls.find((c) => c.columns === "form,food_group_ref");
+  assert(groupCall !== undefined, "la lecture de groupe a disparu");
+  for (const call of db.calls) {
+    assertEquals(call.table, PENDING_BY_FORM_VIEW);
+    assertEquals(call.table, "food_composition_pending_by_form");
+    assertEquals(call.column, "form");
+    // ⛔ JAMAIS `*`. Ce qui n'est pas nommé ici ne peut pas être lu par
+    // mégarde ailleurs — `sightings` et `review_reason` notamment.
+    assert(!call.columns.includes("*"));
+    assert(!call.columns.includes("sightings"));
+    assertEquals([...call.values].sort(), ["sudachi", "yuzu"], "dédoublonnés");
+  }
 });
 
 Deno.test("L18b ⑩bis un plan dont tout résout ne lit ni ne paie rien", async () => {
@@ -506,7 +525,7 @@ Deno.test("L18b ⑪ le défaut de `ask` est `askCompositionFill`, le vrai appel"
 Deno.test("L18b ⑪bis aucune lane de génération ne passe de couture", () => {
   for (
     const lane of [
-      "../../generate-meal-v1/index.ts",
+      "../../generate-household-meal-v1/index.ts",
       "../../generate-household-meal-v1/index.ts",
     ]
   ) {

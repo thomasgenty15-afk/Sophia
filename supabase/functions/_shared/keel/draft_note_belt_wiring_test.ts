@@ -19,6 +19,9 @@
  * Et chaque moitié retirée fait ROUGIR — sinon ces épingles seraient un
  * `indexOf` sur une chaîne disparue.
  */
+// ⟳ 2026-09-11 · LOT 7 — L'ENTRÉE DE LA LANE INDIVIDUELLE A ÉTÉ RETIRÉE
+// AVEC LA LANE. La propriété est CONSERVÉE, sur la lane qui reste: c'est un
+// second exemplaire du contrôle qui disparaît, pas le contrôle.
 import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
@@ -47,7 +50,6 @@ const LANES: readonly Lane[] = [
   { lane: "household", rel: "generate-household-meal-v1/index.ts", beltSites: 2, classifiedSites: 1 },
   // Le solo : un seul jeu de termes ; la persistance garde son appel (c'est LA
   // lane où « laquelle ? » compte).
-  { lane: "meal", rel: "generate-meal-v1/index.ts", beltSites: 1, classifiedSites: 0 },
 ];
 
 const LAUNCH = ": classifyDraftNoteEarly({";

@@ -53,7 +53,24 @@ import {
   type CountingStance,
   energySafetyGates,
 } from "./energy_gate.ts";
-import type { MouthBody } from "./meal_envelope.ts";
+import {
+  adultMaintenanceKcal,
+  type MouthBody,
+  PORTION_ADJUST_STEP,
+} from "./meal_envelope.ts";
+// ⛔ LA MÊME PROJECTION D'ÂGE QUE PARTOUT. `estimatedMaintenanceKcal` indexe une
+// BANDE, jamais un nombre d'années; la recalculer ici ferait la seconde
+// arithmétique d'âge du dépôt, et elle divergerait au premier fuseau horaire.
+import { ageBandOf } from "./student_age.ts";
+// ⛔ L'ARBITRE ET LE PAS VIENNENT DE LEURS MODULES, jamais recopiés ici: une
+// seconde définition de « l'enveloppe bouge-t-elle ? » a déjà menti dans ce
+// dépôt, et personne ne l'a vu parce que les deux commentaires disaient la
+// même chose.
+import {
+  type PortionIndex,
+  portionFactorFor,
+  portionIndexMoves,
+} from "./feedback_index.ts";
 import type { MemberAgeState } from "./household.ts";
 // ⛔ LA RÈGLE DE CLASSEMENT EST IMPORTÉE, JAMAIS RECOPIÉE. Le compteur du
 // chantier (`scripts/keel_anchor_nodelivery_20260822.ts`) lit la MÊME
@@ -67,6 +84,7 @@ import {
   restrictionFlagOf,
 } from "./household_portions.ts";
 import {
+  energyFloorFor,
   estimatedMaintenanceFor,
   executedPaceFor,
   type ScaleDirection,
@@ -76,11 +94,6 @@ import {
   conditionGateReason,
 } from "./condition_energy_gate.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
-import {
-  EXTRA_BEARING_SLOTS,
-  slotBearsExtras,
-  UNANSWERED_EXTRAS_KCAL,
-} from "./meal_extras.ts";
 
 /**
  * POURQUOI UNE BOUCHE N'EST PAS ANCRÉE. Nommé, jamais un facteur `1` muet.
@@ -335,6 +348,22 @@ export function mealMassCapGrams(mealTargetKcal: number): number | null {
  */
 export const MEAL_KCAL_PER_G_FLOOR = 1.0;
 
+/**
+ * ⟳ 2026-09-10 — LA MÊME BORNE, POUR UN MOMENT MARQUÉ « LÉGER ».
+ *
+ * ⛔ POURQUOI UNE SECONDE CONSTANTE ET PAS UN FACTEUR. Un créneau léger n'est
+ * pas un créneau ordinaire réduit: sa part kcal a DÉJÀ baissé
+ * (`LIGHT_SLOT_WEIGHT`), et lui appliquer en plus le plancher du plat ordinaire
+ * reviendrait à exiger une soupe aussi dense qu'un gratin. La dérivation est
+ * celle de `METHODE-GENERATION-DE-PLAN-SOLO.md` § 6: un dîner léger vaut ~0,20
+ * de la journée, soit 400 kcal pour une cible de 2 000 ; le plus gros repas
+ * qu'un adulte mange pèse 600 à 700 g ; 400 ÷ 650 ≈ 0,6 kcal/g.
+ *
+ * ⚠️ IL BORNE LE VOLUME, PAS LA QUALITÉ. En dessous, la quantité à manger
+ * devient énorme — c'est la seule chose que ce nombre dit.
+ */
+export const LIGHT_MEAL_KCAL_PER_G_FLOOR = 0.6;
+
 export const MEAL_CAP_BITS = Object.freeze(
   ["none", "density", "density_floor", "assumed_density", "factor_bound"] as const,
 );
@@ -369,105 +398,77 @@ export function mealMassCapFor(args: {
   return { grams: args.mealKcal / Math.min(measured, MEAL_KCAL_PER_G_COMPOSED), source: "density" };
 }
 
-/**
- * CE QUE CHAQUE MOMENT PORTE À CÔTÉ DU PLAT, EN KCAL — ou `null`.
- *
- * ⛔ TROIS ÉTATS, ET LA DIFFÉRENCE EST LE LOT ENTIER. `null` = jamais demandé.
- * Clé absente = ce moment-là n'a pas été renseigné. Clé à `0` = renseigné, rien
- * à côté du plat. Les deux premiers retombent sur `UNANSWERED_EXTRAS_KCAL`;
- * le troisième laisse le plat porter tout son repas.
- *
- * ⚠️ `Record<string, number>` ET PAS `Record<ExtraBearingSlot, number>`: la clé
- * vient d'une saisie d'écran et d'un jsonb, pas d'un type. Un moment qui ne
- * porte pas d'extras y serait simplement ignoré (`slotBearsExtras`).
- */
-export type SlotExtraKcal = Readonly<Record<string, number>> | null;
-
-/**
- * LES QUATRE ÉTATS DE LA QUESTION, POUR LE COMPTEUR.
- *
- * ⟳ 2026-09-01 — LE VOCABULAIRE SURVIT, SON SUJET CHANGE. Ces états comptaient
- * trois CASES (dessert/fromage/pain) posées une fois pour la personne; ils
- * comptent désormais les deux MOMENTS qui portent des extras. Les garder
- * identiques est ce qui rend la colonne d'avant et celle d'après comparables.
- *
- * ⛔ ET `partial` NE COMPLÈTE RIEN. Traiter un moment non renseigné comme un
- * « rien à côté » ferait monter la part du plat sur une réponse que personne
- * n'a donnée, dans la direction qui nourrit trop.
- */
-export const MEAL_STRUCTURE_STATES = [
-  "answered",
-  "partial",
-  "not_answered",
-  "not_asked",
-] as const;
-export type MealStructureState = (typeof MEAL_STRUCTURE_STATES)[number];
-
-/** `null` = la fiche n'a jamais vu la question. PURE. */
-export function mealStructureState(
-  extras: SlotExtraKcal,
-): MealStructureState {
-  if (extras === null) return "not_asked";
-  const known = EXTRA_BEARING_SLOTS.filter((slot) =>
-    Object.prototype.hasOwnProperty.call(extras, slot)
-  ).length;
-  if (known === EXTRA_BEARING_SLOTS.length) return "answered";
-  if (known === 0) return "not_answered";
-  return "partial";
-}
-
 /** Le poids d'un moment, ou `0` pour un jeton hors de la liste fermée. */
-function slotWeight(slot: string): number {
+/**
+ * CE QUE PÈSE UN MOMENT QUE LA PERSONNE A MARQUÉ « LÉGER » — 2026-09-07.
+ *
+ * ⛔ UNE SECONDE TABLE, PAS UNE MODIFICATION DE LA PREMIÈRE. `SLOT_DAY_WEIGHT`
+ * décrit ce que pèse un moment ORDINAIRE et sert quatre autres lecteurs
+ * (`dayCoverageOf`, le plafond de vraisemblance, `pot_demand`, le bac). La
+ * plier pour un cas particulier ferait bouger tout le monde pour la déclaration
+ * d'une seule personne. La table de base n'est pas touchée, et un test épingle
+ * qu'elle somme encore 1,30.
+ *
+ * ⚠️ TROIS MOMENTS SEULEMENT, ET C'EST LA MÊME LISTE QUE `LIGHT_BEARING_SLOTS`.
+ * « Une collation légère » ne veut rien dire: une collation est déjà la petite
+ * part de la journée (0,10), et la marquer légère demanderait au plan de
+ * composer 40 kcal. Les trois repas sont les seuls où « moins que d'habitude »
+ * a un sens et de la place.
+ *
+ * ⚠️ CE SONT DES CONVENTIONS, PAS DES MESURES — comme `SLOT_DAY_WEIGHT`. Le
+ * dîner passe de 0,35 à 0,20, le déjeuner de 0,40 à 0,25, le petit-déjeuner de
+ * 0,25 à 0,15: à peu près −40 % dans les trois cas. ⛔ Ce qui compte n'est PAS
+ * la valeur absolue: les parts sont RENORMALISÉES sur la somme des moments
+ * déclarés, donc ce que la personne retire du soir, les autres moments le
+ * reprennent. Un dîner léger ne fait pas maigrir la journée, il la déplace.
+ */
+export const LIGHT_SLOT_WEIGHT = Object.freeze({
+  breakfast: 0.15,
+  lunch: 0.25,
+  dinner: 0.20,
+});
+
+/**
+ * ⛔ `lightSlots` EST REQUIS, jamais facultatif. Un appelant qui l'oublierait
+ * pèserait un dîner léger comme un dîner ordinaire — c'est-à-dire annulerait la
+ * déclaration en silence, ce qui est exactement le mode d'échec n°1 du dépôt
+ * (`optional-gate-params-are-disarmed-gates`). Le compilateur est le seul
+ * recenseur d'appelants qui ne mente pas.
+ */
+function slotWeight(slot: string, lightSlots: readonly string[]): number {
+  if (
+    lightSlots.includes(slot) &&
+    Object.prototype.hasOwnProperty.call(LIGHT_SLOT_WEIGHT, slot)
+  ) {
+    return LIGHT_SLOT_WEIGHT[slot as keyof typeof LIGHT_SLOT_WEIGHT];
+  }
   return Object.prototype.hasOwnProperty.call(SLOT_DAY_WEIGHT, slot)
     ? SLOT_DAY_WEIGHT[slot as keyof typeof SLOT_DAY_WEIGHT]
     : 0;
 }
 
 /**
- * CE QU'ON RETRANCHE À UN MOMENT — et pourquoi ce n'est presque jamais zéro.
- *
- * ⛔ TROIS CHEMINS, ET LE PREMIER EST LE PLUS DANGEREUX:
- *   · le moment ne porte pas d'extras (petit-déjeuner, collations) ⇒ `0`. Le
- *     plan y compose TOUT, il n'y a rien à côté.
- *   · le moment n'a pas été renseigné ⇒ `UNANSWERED_EXTRAS_SHARE` du repas.
- *     Retrancher zéro affirmerait « cette personne ne prend rien à côté »,
- *     c'est-à-dire ×2,4 sur la cible de toute la population muette.
- *   · le moment a été renseigné ⇒ la somme lue, telle quelle.
- *
- * ⚠️ ET UN PLANCHER, NOMMÉ. Cinq extras sur une petite cible rendraient la part
- * du plat négative — une assiette vide servie comme une décision. Le plancher
- * est un RATIO parce que la cible varie d'un facteur trois entre un enfant et
- * un adulte sportif: un plancher en kcal mordrait sur l'un et jamais sur
- * l'autre.
- */
-function extrasKcalFor(
-  slot: string,
-  extras: SlotExtraKcal,
-  mealKcal: number,
-): { kcal: number; floored: boolean } {
-  if (!slotBearsExtras(slot)) return { kcal: 0, floored: false };
-  const answered = extras !== null &&
-    Object.prototype.hasOwnProperty.call(extras, slot);
-  // ⟳ 2026-09-04 — LES DEUX BRANCHES ONT ENFIN LA MÊME UNITÉ. La branche
-  // supposée valait `mealKcal * 0,58`, une FRACTION du besoin, quand la branche
-  // déclarée vaut des kcal. Du pain reste du pain: en pourcentage, plus
-  // quelqu'un avait besoin de manger, plus on supposait qu'il mangeait ailleurs.
-  const raw = answered
-    ? Math.max(0, Number(extras[slot]) || 0)
-    : UNANSWERED_EXTRAS_KCAL;
-  const ceiling = mealKcal * (1 - COMPOSED_DISH_MIN_MEAL_SHARE);
-  // ⛔ LE RABOTAGE SE DIT, IL NE SE DEVINE PAS. Une borne qui mord en silence
-  // est indistinguable d'une borne qui ne mord jamais — et la seule chose
-  // qu'on veut savoir d'elle est LAQUELLE des deux elle est. Ce dépôt a déjà
-  // payé `ANCHOR_FACTOR_MAX` et `BOX_FACTOR_MIN` sur ce point exact.
-  return { kcal: Math.min(raw, ceiling), floored: raw > ceiling };
-}
-
-/**
  * CE QUE LE PLAN DOIT FOURNIR À UNE BOUCHE, MOMENT PAR MOMENT.
  *
  *     part(moment)  = poids[moment] / Σ poids[TOUS ses moments]
- *     cible(moment) = cible_jour × part(moment) − extras(moment)
+ *     à composer    = cible_jour × part(moment) − apports fixes prévus
+ *
+ * ── ⟳ 2026-09-10 — UN SEUL RETRAIT, ET PLUS AUCUN PLANCHER ───────────────
+ * Il y en avait deux. Les EXTRAS (pain / fromage / dessert pris hors plan) ont
+ * été supprimés: le plan dimensionne les aliments qu'il prévoit, il ne réserve
+ * plus d'énergie pour des accompagnements personnels. Reste le seul retrait qui
+ * décrit un FAIT écrit par quelqu'un — l'apport fixe (`slot_fixed_kcal.ts`).
+ *
+ * ⛔ ET `COMPOSED_DISH_MIN_MEAL_SHARE = 0,30` MEURT AVEC EUX, exprès. Il
+ * n'existait que pour empêcher deux retraits cumulés de vider un repas. Sur un
+ * retrait unique et DÉCLARÉ, il ferait l'inverse de ce qu'on veut: composer un
+ * repas par-dessus une boisson qu'on sait avalée. L'apport fixe est donc
+ * retranché **une fois, en entier**, sans rabotage.
+ *
+ * ⛔ ET QUAND IL NE RESTE RIEN, ON NE FABRIQUE PAS UNE PORTION MINIMALE. La
+ * part rendue est `0`, et le moment est NOMMÉ dans `fixedCovered` — voir son
+ * champ. Un plancher inventé ici servirait un plat en plus du shaker; un zéro
+ * muet se lirait comme « on n'a pas su calculer ».
  *
  * ── ⛔ POURQUOI ELLE EST EXPORTÉE (2026-09-04) ────────────────────────────
  * Elle vivait inline dans `anchorFactorFor`. Le dimensionnement d'un BAC a
@@ -491,39 +492,63 @@ export function slotPlanTargets(args: {
   targetKcal: number;
   coveredSlots: readonly string[];
   wholeSlots: readonly string[];
-  slotExtraKcal: SlotExtraKcal;
-}): { bySlot: Map<string, number>; total: number; floored: boolean } {
+  /**
+   * ⟳ 2026-09-07 — LES MOMENTS QUE LA PERSONNE A MARQUÉS « LÉGER ».
+   *
+   * ⛔ REQUIS. Un `?` ici ferait peser un dîner léger comme un dîner ordinaire
+   * chez tout appelant qui l'oublie — la déclaration annulée en silence.
+   * `[]` est la valeur des appelants LEGACY, et elle rend le calcul
+   * octet-identique à celui d'avant ce lot.
+   */
+  lightSlots: readonly string[];
+  /**
+   * ⟳ 2026-09-07 — CE QUE LA PERSONNE AVALE DÉJÀ À CE MOMENT-LÀ (le shaker).
+   *
+   * `null` ou moment absent ⇒ rien à retrancher. ⛔ REQUIS pour la même raison:
+   * l'oublier laisserait la cible du goûter entière et ferait manger le plat
+   * composé EN PLUS du shaker. Vient de `slot_fixed_kcal.ts`.
+   */
+  slotFixedKcal: ReadonlyMap<string, number> | null;
+}): {
+  /** L'énergie À COMPOSER par moment. Jamais négative: `0` = déjà couvert. */
+  bySlot: Map<string, number>;
+  total: number;
+  /**
+   * ⟳ 2026-09-10 — LES MOMENTS QUE LES APPORTS FIXES COUVRENT DÉJÀ.
+   *
+   * Moment → kcal **en trop**. `0` = pile couvert; `> 0` = CONFLIT, la personne
+   * avale déjà plus que la part de sa journée qui tombe sur ce moment.
+   *
+   * ⛔ C'EST L'ÉTAT EXPLICITE QUI REMPLACE LE PLANCHER, et il doit se lire. Sans
+   * lui, une part à `0` et une part qu'on n'a pas su calculer rendraient le même
+   * objet, et « le shaker couvre le goûter » se lirait « aucune cible ». Les
+   * appelants le COMPTENT — c'est la seule chose qui distingue « ce cas
+   * n'arrive jamais » de « ce cas arrive partout ».
+   */
+  fixedCovered: Map<string, number>;
+} {
   const whole = [...new Set(args.wholeSlots)]
-    .reduce((n, slot) => n + slotWeight(slot), 0);
+    .reduce((n, slot) => n + slotWeight(slot, args.lightSlots), 0);
   const bySlot = new Map<string, number>();
+  const fixedCovered = new Map<string, number>();
   let total = 0;
-  let floored = false;
-  if (whole <= 0) return { bySlot, total, floored };
+  if (whole <= 0) return { bySlot, total, fixedCovered };
   for (const slot of new Set(args.coveredSlots)) {
-    const meal = args.targetKcal * (slotWeight(slot) / whole);
-    const cut = extrasKcalFor(slot, args.slotExtraKcal, meal);
-    if (cut.floored) floored = true;
-    const kcal = meal - cut.kcal;
+    const meal = args.targetKcal * (slotWeight(slot, args.lightSlots) / whole);
+    // ⛔ UNE SEULE FOIS, EN ENTIER. L'apport fixe est un FAIT que quelqu'un a
+    // écrit — 120 kcal qu'il boira. Le raboter ferait composer un repas
+    // par-dessus une boisson qu'on sait avalée.
+    const fixed = Math.max(0, args.slotFixedKcal?.get(slot) ?? 0);
+    const composable = meal - fixed;
+    // ⛔ PAS DE PLANCHER, ET PAS DE NÉGATIF NON PLUS. `0` dit « il n'y a rien à
+    // composer ici »; c'est `fixedCovered` qui dit POURQUOI.
+    const kcal = composable > 0 ? composable : 0;
+    if (composable <= 0) fixedCovered.set(slot, -composable);
     bySlot.set(slot, kcal);
     total += kcal;
   }
-  return { bySlot, total, floored };
+  return { bySlot, total, fixedCovered };
 }
-
-/**
- * LA PART MINIMALE QU'UN PLAT COMPOSÉ GARDE DE SON REPAS.
- *
- * ⚠️ CONVENTION, ET ELLE EST LÀ POUR UN CAS RÉEL: cinq extras déclarés sur un
- * déjeuner de 560 kcal laisseraient 49 kcal au plat — une cuillère servie comme
- * un repas. L'ancien système ne pouvait pas descendre sous `300/620 = 0,48`
- * par construction; celui-ci le peut, donc il lui faut une borne écrite.
- *
- * ⛔ ELLE DOIT MORDRE RAREMENT. Une borne qui mord sur la population entière
- * n'est plus une borne, c'est le calcul — ce dépôt l'a déjà mesuré deux fois
- * (`ANCHOR_FACTOR_MAX`, `BOX_FACTOR_MIN`). `0,30` laisse passer les cinq extras
- * sur une cible ordinaire et ne retient que l'absurde.
- */
-export const COMPOSED_DISH_MIN_MEAL_SHARE = 0.30;
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -556,10 +581,11 @@ export const COMPOSED_DISH_MIN_MEAL_SHARE = 0.30;
  * fiche midi+soir garde sa cible au bit près. Tout l'écart vient des moments
  * que le plan compose entièrement et qui cessent d'être amputés.
  *
- * ⛔ LA CONVENTION `0,42` N'A PAS DISPARU POUR AUTANT — elle a changé de rôle
- * et d'adresse: `UNANSWERED_EXTRAS_SHARE = 0,58` (`meal_extras.ts`) est son
- * complément, et il ne s'applique plus qu'à UN MOMENT NON RENSEIGNÉ. La
- * supprimer aurait multiplié par 2,4 la cible de toute la population muette.
+ * ⟳ 2026-09-10 — ET LE DERNIER MORCEAU EST TOMBÉ. Son complément
+ * (`UNANSWERED_EXTRAS_SHARE`, puis `UNANSWERED_EXTRAS_KCAL = 0`) a suivi les
+ * extras eux-mêmes: **plus aucun retrait n'est fait au nom d'un aliment que le
+ * plan ne compose pas**. Ce qui reste dans `slotPlanTargets` est le seul
+ * retrait décrivant un fait écrit — l'apport fixe.
  */
 
 /**
@@ -717,11 +743,43 @@ export const WEIGHTED_SLOT_TOKENS: readonly string[] = WEIGHTED_SLOTS;
  * Une constante nommée ne peut pas se faire élargir par un lot qui parle d'autre
  * chose.
  */
-const HOUSE_DEFAULT_SLOTS: readonly string[] = Object.freeze([
+export const HOUSE_DEFAULT_SLOTS: readonly string[] = Object.freeze([
   "breakfast",
   "lunch",
   "dinner",
 ]);
+
+/**
+ * LE RYTHME COMPLET D'UNE JOURNÉE — le DÉNOMINATEUR de `slotPlanTargets`.
+ *
+ * ⟳ 2026-09-11 · LOT B — UNE SEULE ÉCRITURE DE CETTE RÈGLE, ET LA VOICI.
+ *
+ * ⛔ ELLE ÉTAIT RECOPIÉE À LA MAIN À CINQ ENDROITS, et deux d'entre eux
+ * OUBLIAIENT le repli des trois repas — donc donnaient la journée entière au
+ * dernier repas restant. Mesuré le 2026-09-11: la case
+ * `PERTE / 2026-09-11 / dinner` a reçu **2 454 kcal** au lieu de **858,90**,
+ * un facteur **2,86**, parce que son vendredi ne portait que son dîner.
+ *
+ *   `declared` ce que la personne a déclaré manger. Vide ⇒ les trois repas de
+ *              la maison (`HOUSE_DEFAULT_SLOTS`) — jamais la grille, jamais
+ *              la table entière des sept jetons.
+ *   `also`     les moments que le plan lui sert EN PLUS. Ils comptent: le plan
+ *              les lui sert, donc ils la nourrissent, et les ignorer gonflerait
+ *              la part de tous les autres.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function wholeDaySlots(
+  declared: readonly string[],
+  also: readonly string[],
+): readonly string[] {
+  return [
+    ...new Set([
+      ...(declared.length > 0 ? declared : HOUSE_DEFAULT_SLOTS),
+      ...also,
+    ]),
+  ];
+}
 
 /**
  * LA PART DE LA JOURNÉE D'UNE BOUCHE QUE LE PLAN PORTE.
@@ -798,31 +856,6 @@ export interface AnchorMouth {
    */
   declaredSlots: readonly string[];
   /**
-   * CE QU'ELLE PREND À CÔTÉ DU PLAT, MOMENT PAR MOMENT — en kcal (2026-09-01).
-   *
-   * ⛔ TROIS ÉTATS, ET ILS NE SE CONFONDENT PAS:
-   *   · `null` .............. la fiche n'a jamais vu la question;
-   *   · clé ABSENTE ......... ce moment-là n'a pas été renseigné;
-   *   · clé à `0` ........... renseigné, et il n'y a rien à côté du plat.
-   *
-   * Les deux premiers retombent sur `UNANSWERED_EXTRAS_SHARE`; le troisième
-   * laisse le plat porter tout son repas. Les confondre ferait écrire « cette
-   * personne ne prend rien » sur une fiche muette — la cicatrice « coche auto =
-   * faits faux indémentables », dans le sens qui nourrit trop.
-   *
-   * ⛔ DES KCAL, PAS UNE LISTE D'ALIMENTS, ET C'EST DÉLIBÉRÉ. Résoudre un extra
-   * demande le référentiel de composition; le faire ICI tirerait tout
-   * `food_composition.ts` dans un module qui n'a besoin que d'un nombre.
-   * L'appelant résout (`meal_extras.ts::extrasOf`) et passe la somme — ce
-   * module reste pur et arithmétique.
-   *
-   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un champ facultatif aurait fait du repli
-   * la réponse SILENCIEUSE de tous les appelants: le lot serait construit,
-   * branché, désarmé, et le compteur ne pourrait plus distinguer « pas posé »
-   * de « pas câblé ».
-   */
-  slotExtraKcal: SlotExtraKcal;
-  /**
    * L0bis — LES `condition_ref` QUE CETTE BOUCHE A DÉCLARÉS.
    *
    * ⛔ REQUIS ET NON OPTIONNEL, jamais `?`. « Paramètre de garde optionnel =
@@ -839,6 +872,29 @@ export interface AnchorMouth {
    * oubli. Voir la fiche `L0bis-a` du plan.
    */
   conditionRefs: readonly string[];
+  /**
+   * ⟳ 2026-09-08 — LA POSITION DE SES RÉPONSES SUR LA PART (`portion.adjust`).
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`, et le motif est mesuré dans ce fichier
+   * même (`conditionRefs`): un champ facultatif aurait fait du
+   * « pas de cran » la réponse SILENCIEUSE de tous les appelants — le lot
+   * construit, branché, désarmé, et un lot désarmé ressemble trait pour trait
+   * à un lot qui marche.
+   *
+   * ⛔ UNE POSITION, PAS UN FACTEUR ET PAS « LE DERNIER GAGNE ». C'est un
+   * ENTIER borné (`portionIndexFor`): deux réponses opposées se neutralisent
+   * (`position: 0`), deux réponses de même sens font le pas franc. Passer un
+   * facteur ici ferait de ce module le second endroit qui sait le traduire, et
+   * les deux divergeraient.
+   *
+   * ⚠️ L'AUDIENCE EST DÉJÀ DÉCIDÉE QUAND ON ARRIVE ICI. `portionIndexFor`
+   * appelle `subjectsForPortionAdjust`, qui porte la règle du mineur (aucun
+   * `down` sans sujet explicite). Ce module ne la rejoue pas — il n'aurait pas
+   * le rôle pour le faire.
+   *
+   * `null` = aucune réponse: la cible est EXACTEMENT celle d'avant ce lot.
+   */
+  portionIndex: PortionIndex | null;
 }
 
 /**
@@ -878,31 +934,6 @@ export interface AnchorFactor {
   /** ⟳ ARBITRAGE 1 (2026-09-06) — la borne qui a décidé du facteur (voir `MEAL_CAP_BITS`). */
   capBit: MealCapBit;
   /**
-   * D'OÙ VIENT LA PART DU PLAT — le compteur du LOT ①, rendu par bouche-jour.
-   *
-   * ⚠️ RENDU MÊME QUAND LE FACTEUR N'EST PAS CALCULÉ. Un compteur qui ne
-   * parlerait que sur les journées ancrées ferait lire « personne n'a répondu »
-   * sur un foyer où tout le monde a répondu et où toutes les journées sont
-   * incomplètes.
-   */
-  structureState: MealStructureState;
-  /**
-   * LE PLANCHER DU PLAT A-T-IL MORDU SUR CETTE BOUCHE-JOUR ?
-   *
-   * ⛔ IL EXISTE POUR ÊTRE RARE, DONC IL DOIT SE COMPTER. `0,30` est une
-   * convention: cinq extras sur une petite cible laisseraient au plat une
-   * cuillère servie comme un repas, et la borne l'empêche. Mais une borne qui
-   * mordrait sur la population entière ne serait plus une borne, ce serait LE
-   * calcul — et rien ne le dirait. Le compteur est la seule différence entre
-   * « elle protège d'un cas absurde » et « elle a remplacé la formule ».
-   *
-   * ⚠️ `false` SUR TOUTES LES SORTIES NON ANCRÉES, et c'est exact: sans cible
-   * ou sans journée, aucun repas n'a été dimensionné, donc rien n'a été raboté.
-   * Ce n'est pas la même chose que `structureState`, qui dit ce que la FICHE
-   * porte et se rend partout.
-   */
-  extrasFloored: boolean;
-  /**
    * ⟳ 2026-09-06 — LES KCAL D'UN MOMENT PERDU PAR LA LIGNE, remis dans la cible.
    *
    * Mesuré (banc « un retour et les calories », FB3) : Nora, végane, qui
@@ -934,11 +965,110 @@ export interface AnchorFactor {
  *
  * PURE: no I/O, no clock, no randomness.
  */
-export function mouthTargetKcal(
+/**
+ * L'ENTRETIEN D'UNE BOUCHE — le corps, et rien d'autre.
+ *
+ * ⟳ 2026-09-07 — EXTRAIT DE `mouthTargetKcal` PAR LE LOT 6, sans changer un
+ * octet de son comportement (56 cas de test le tiennent).
+ *
+ * ⛔ LA PORTE ① (LE PLANCHER TCA) N'EST **PAS** APPLIQUÉE ICI, et c'est tout
+ * l'objet de l'extraction. Dimensionner une assiette n'est pas conseiller une
+ * perte de poids: refuser de dimensionner ne protège personne, ça sert une
+ * assiette au hasard. `portion_sizing.ts` a donc besoin de l'entretien SEUL,
+ * là où `mouthTargetKcal` doit continuer à fermer.
+ *
+ * ⚠️ `restriction: "unreadable"` FERME QUAND MÊME. « Plancher levé » et « on
+ * n'a pas su lire » ne sont pas le même état: le premier est une décision
+ * connue, le second est une ignorance — et sur une ignorance, on s'abstient.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function maintenanceKcalOf(
+  mouth: AnchorMouth,
+): { kcal: number | null; reason: AnchorReason } {
+  if (mouth.restriction === "unreadable") {
+    return { kcal: null, reason: "restriction_unknown" };
+  }
+  if (mouth.ageState === "unknown") return { kcal: null, reason: "age_unknown" };
+  if (mouth.body === null) return { kcal: null, reason: "no_body" };
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 — UNE SEULE ÉQUATION, POUR L'ENFANT COMME POUR L'ADULTE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ── CE QUI VIVAIT ICI PENDANT VINGT-QUATRE HEURES, ET POURQUOI ÇA TOMBE ──
+  // Le matin du 2026-09-09, cette ligne est passée à `maintenanceMidKcal`
+  // (`poids × kcal/kg`, le milieu de la fourchette affichée) au nom d'une
+  // décision juste: « le moteur doit suivre l'écran ». L'APRÈS-MIDI DU MÊME
+  // JOUR, l'écran a bougé. `meal_energy_shared.ts` affiche désormais
+  // `goalEnergyBandOf(estimatedMaintenanceKcal(...))` — l'équation du corps,
+  // taille et axes lus — dès qu'une fiche le permet, sous le jeton
+  // `ENERGY_TARGET_BASIS_BODY`. Le motif est écrit dans `energy_target.ts`:
+  // sur un corps grand et mince (187 cm, 72 kg), le raccourci `28-33 kcal/kg`
+  // rendait 2 400-2 800 là où l'équation rend 3 036-3 180, c'est-à-dire un PAL
+  // implicite de 1,13-1,35 — sous le plancher de 1,40 que le rapport
+  // FAO/WHO/UNU 2004 déclare non soutenable.
+  //
+  // Le moteur, lui, est resté sur le raccourci. **L'écart que le lot du matin
+  // fermait s'est donc rouvert le même jour, dans l'autre sens**, et personne
+  // ne pouvait le voir: les deux nombres portent le même nom.
+  //
+  // ⛔ CE QUI SUIT L'ÉCRAN, C'EST L'ÉQUATION — pas la fonction qui la servait
+  // hier. `estimatedMaintenanceFor` est la MÊME que celle de l'écran et la même
+  // que celle d'`executedPaceFor`: le dénominateur de tout l'ancrage. Un
+  // troisième chemin ici ferait la troisième copie, et c'est celle qu'on
+  // regarde le moins qui garde l'ancienne.
+  //
+  // ⚠️ ET CE QUE ÇA REBRANCHE, ÉCRIT PARCE QUE C'EST L'OBJET DU LOT: **la
+  // taille, la bande d'âge, le sexe, les deux axes d'activité et l'appétit
+  // pèsent de nouveau sur la journée d'un adulte.** Ils étaient collectés,
+  // stockés, et lus par personne (« moitié débranchée, NOMMÉE » —
+  // `energy_target.ts`). Un cran d'appétit coché à l'écran et jeté avant le
+  // calcul est le mode d'échec n°1 de ce dépôt.
+  //
+  // ⚠️ LE MINEUR GARDE SON ÉQUATION PÉDIATRIQUE, ET IL LA GARDE PAR LA MÊME
+  // PORTE. `estimatedMaintenanceFor` choisit sur `isMinor`, jamais sur l'âge —
+  // un corps de douze ans sans date est `unknown`, et `unknown` est déjà refusé
+  // deux lignes plus haut.
+  //
+  // ⚠️ ET LE REPLI EST LE MÊME QUE CELUI DE L'ÉCRAN. `adultMaintenanceKcal`
+  // retombe sur le raccourci au poids quand la taille ou la bande d'âge
+  // manquent — sans quoi toute une population perdrait sa cible d'un coup, et
+  // « pas de cible » fait servir la recette du modèle telle quelle, c'est-à-dire
+  // au hasard. Le mineur, lui, n'a pas ce repli: `ACTIVITY_KCAL_PER_KG` est une
+  // échelle d'ADULTE, et un enfant de 25 kg y lirait ~800 kcal/jour.
+  const maintenance = mouth.ageState === "minor"
+    ? estimatedMaintenanceFor({ body: mouth.body, isMinor: true })
+    : adultMaintenanceKcal({
+      weightKg: mouth.body.weightKg,
+      heightCm: mouth.body.heightCm,
+      ageBand: ageBandOf(mouth.body.ageYears),
+      gender: mouth.body.gender,
+      activityLevel: mouth.body.activityLevel,
+      activityAxes: mouth.body.activityAxes,
+      appetite: mouth.body.appetite,
+    }).kcal;
+  if (maintenance === null || !Number.isFinite(maintenance) || maintenance <= 0) {
+    return { kcal: null, reason: "no_body" };
+  }
+  return { kcal: maintenance, reason: "anchored" };
+}
+
+/**
+ * L'ÉCART QUE L'OBJECTIF OUVRE AUTOUR DE L'ENTRETIEN — signé, ou zéro.
+ *
+ * ⟳ 2026-09-07 — L'AUTRE MOITIÉ DE `mouthTargetKcal`. Elle porte la chaîne
+ * ①②③ complète et la garde de grossesse; l'entretien, lui, n'en dépend pas.
+ *
+ * `reason !== null` ⇒ l'écart ne se calcule PAS et la cible entière se ferme
+ * (grossesse, allaitement). `gap: 0` ⇒ aucun écart: la cible EST l'entretien,
+ * ce qui est exactement ce qu'un coach qui ne compte pas demande.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function goalGapKcalOf(
   mouth: AnchorMouth,
   coachCounting: CountingStance,
-): { kcal: number | null; reason: AnchorReason } {
-  // ── ①②③, LA CHAÎNE ENTIÈRE, APPELÉE ET PAS RECOPIÉE ────────────────────
+): { gap: number; reason: AnchorReason | null } {
   const full = canSizeFromTarget({
     safety: energySafetyGates({
       restrictionFlag: restrictionFlagOf(mouth.restriction),
@@ -946,10 +1076,51 @@ export function mouthTargetKcal(
       coachCounting,
     }),
   });
+  if (mouth.direction === null || !full.size) return { gap: 0, reason: null };
+  // ── L0bis — LE GARDE DE GROSSESSE, POSÉ SUR LE DÉFICIT ET PAS SUR LA PERSONNE ──
+  //
+  // ⚠️ IL EST ICI ET PAS PLUS HAUT, ET LA POSITION EST L'ARBITRAGE. Placé en
+  // tête, il aurait effacé du journal `restriction_floor`, `age_unknown` et
+  // `no_body` de toute bouche enceinte — trois motifs qui disent chacun une
+  // chose vraie et différente. Placé ICI, à l'endroit exact où l'écart va se
+  // calculer, il ne change le verdict que des bouches qui allaient RECEVOIR un
+  // déficit.
+  //
+  // ⛔ `direction === "down"` ET RIEN D'AUTRE. Sur une PRISE, ce garde ne mord
+  // pas: rabattre un surplus retirerait de l'énergie à une femme enceinte qui
+  // en demande, sous le nom d'une protection. Ce module retire des déficits.
+  if (mouth.direction === "down") {
+    const reason = conditionGateReason(conditionGatePopulationOf(mouth.conditionRefs));
+    if (reason !== null) return { gap: 0, reason };
+  }
+  const pace = mouth.paceKgPerWeek !== null && Number.isFinite(mouth.paceKgPerWeek) &&
+      mouth.paceKgPerWeek > 0
+    ? mouth.paceKgPerWeek
+    : DEFAULT_PACE_KG_PER_WEEK;
+  const executed = executedPaceFor(
+    mouth.direction,
+    { body: mouth.body!, isMinor: mouth.ageState === "minor" },
+    pace,
+  );
+  if (executed === null) return { gap: 0, reason: null };
+  return {
+    gap: mouth.direction === "up" ? executed.dailyDeltaKcal : -executed.dailyDeltaKcal,
+    reason: null,
+  };
+}
+
+export function mouthTargetKcal(
+  mouth: AnchorMouth,
+  coachCounting: CountingStance,
+): { kcal: number | null; reason: AnchorReason } {
   // ① seul, pour l'ENTRETIEN: on rejoue la MÊME chaîne avec un verdict de
   // majeur et sans position de coach, ce qui est la seule façon de dépasser ②
   // et ③ sans recopier leurs `if`. Un plancher levé sort `restriction_floor` à
   // la PREMIÈRE passe, donc la seconde ne le desserre jamais.
+  //
+  // ⟳ 2026-09-07 — LE RESTE EST COMPOSÉ, PLUS RECOPIÉ. `maintenanceKcalOf` et
+  // `goalGapKcalOf` portent les deux moitiés; cette fonction les assemble dans
+  // le MÊME ordre qu'avant, et ses 56 cas de test n'ont pas bougé d'un octet.
   const floorOnly = canSizeFromTarget({
     safety: energySafetyGates({
       restrictionFlag: restrictionFlagOf(mouth.restriction),
@@ -965,47 +1136,104 @@ export function mouthTargetKcal(
         : "restriction_floor",
     };
   }
-  if (mouth.ageState === "unknown") return { kcal: null, reason: "age_unknown" };
+  const base = maintenanceKcalOf(mouth);
+  if (base.kcal === null) return base;
+  const goal = goalGapKcalOf(mouth, coachCounting);
+  if (goal.reason !== null) return { kcal: null, reason: goal.reason };
+  const target = base.kcal + goal.gap;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-08 — LE CRAN DE PART, SUR LA CIBLE DU JOUR
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ POURQUOI ICI ET NULLE PART AILLEURS. Le document des retours le dit en
+  // une phrase: « l'appétit fait varier le TOTAL DE LA JOURNÉE ». Cette
+  // fonction EST le total de la journée: `slotPlanTargets` en dérive les
+  // moments, et `portion_sizing` en dérive le facteur de chaque plat
+  // (`factor = targetKcal / standard.kcal`). Un cran posé plus bas — sur un
+  // moment, sur un plat — ferait varier la RÉPARTITION, qui est le travail du
+  // drapeau « repas léger », pas celui de l'amplitude.
+  //
+  // ⚠️ ET IL N'ÉTAIT BRANCHÉ NULLE PART. `portion.adjust` n'atteignait que
+  // `envelopeFor` (`meal_envelope.ts`), qui MESURE depuis le 2026-09-06 et ne
+  // redimensionne plus rien. Sous `portion_v1` l'assiette vient d'ici: le cran
+  // était donc une troisième entrée morte de l'axe « combien ».
+  //
+  // ⟳ 2026-09-10 — LA TRADUCTION EST SORTIE D'ICI, ET ELLE A GAGNÉ UN SECOND
+  // APPELANT. Voir `withPortionCran` juste en dessous: `dayTargetFor`
+  // recevait `portionIndex` et ne le lisait pas.
+  //
+  // ⚠️ INATTEIGNABLE, ET ÉCRIT QUAND MÊME: `base.kcal !== null` IMPLIQUE un
+  // corps (`maintenanceKcalOf` rend `no_body` sinon). Un `!` ici aurait rendu
+  // le plancher muet le jour où cette implication cesse d'être vraie — et un
+  // plancher muet est exactement ce qu'on ne peut pas se permettre sur une
+  // baisse. On redit le motif plutôt que d'affirmer au compilateur.
   if (mouth.body === null) return { kcal: null, reason: "no_body" };
+  return {
+    kcal: withPortionCran({
+      kcal: target,
+      portionIndex: mouth.portionIndex,
+      floorKcal: energyFloorFor(mouth.body.gender),
+    }),
+    reason: "anchored",
+  };
+}
 
-  const isMinor = mouth.ageState === "minor";
-  const subject = { body: mouth.body, isMinor };
-  const maintenance = estimatedMaintenanceFor(subject);
-  if (maintenance === null || !Number.isFinite(maintenance) || maintenance <= 0) {
-    return { kcal: null, reason: "no_body" };
-  }
-  // Pas de direction, ou porte ②③ fermée: la cible EST l'entretien. Aucun écart
-  // n'est ouvert, et c'est exactement ce qu'un coach qui ne compte pas demande.
-  if (mouth.direction === null || !full.size) {
-    return { kcal: maintenance, reason: "anchored" };
-  }
-  // ── L0bis — LE GARDE DE GROSSESSE, POSÉ SUR LE DÉFICIT ET PAS SUR LA PERSONNE ──
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 — LE CRAN DE PART, APPLIQUÉ ICI ET NULLE PART AILLEURS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QUE L'EXTRACTION FERME, ET IL ÉTAIT MUET ────────────────────
+ * Ce calcul vivait INLINE dans `mouthTargetKcal`. `dayTargetFor`
+ * (`portion_sizing.ts`) — la fonction qui dimensionne RÉELLEMENT l'assiette
+ * sous `portion_v1` — compose pourtant la même cible à partir des deux mêmes
+ * moitiés (`maintenanceKcalOf` + `goalGapKcalOf`) et **ne l'appliquait pas**.
+ * Ses deux appelants lui passaient `portionIndex` avec, au-dessus, un
+ * commentaire affirmant que « sans lui, un "ma mère ne mange pas autant"
+ * s'écrit en mémoire et ne déplace aucune assiette ». Le champ était passé, le
+ * commentaire était écrit, et la valeur n'était lue par personne: un lot
+ * désarmé ressemble trait pour trait à un lot qui marche.
+ *
+ * ⛔ UNE SEULE ÉCRITURE, DONC UN SEUL FACTEUR. C'est la garde du contrat: « un
+ * cran = un facteur unique appliqué à la cible; la part et la bande de grammes
+ * en découlent mécaniquement ». Deux traductions du même adverbe divergent, et
+ * ce fichier en porte déjà la cicatrice (`portionIndexMoves`: deux compteurs
+ * qui avaient recopié sa condition et étaient restés sur l'arbitre d'avant M3).
+ *
+ * ⛔ `PORTION_ADJUST_STEP.slight` APPARTIENT À `meal_envelope.ts`, et il est
+ * importé, jamais recopié.
+ *
+ * @param floorKcal `energyFloorFor(gender)`. `null` ⇒ aucun plancher connu:
+ * **on ne rabat pas**. Inventer une borne ici en ferait le second plancher du
+ * produit.
+ *
+ * ⚠️ À LA HAUSSE, AUCUN PLAFOND N'EST AJOUTÉ, et c'est la même décision que
+ * `meal_envelope`: « surestimer un besoin ferait servir plus que nécessaire,
+ * direction d'erreur bien moins grave que l'inverse ».
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function withPortionCran(args: {
+  kcal: number;
+  portionIndex: PortionIndex | null;
+  floorKcal: number | null;
+}): number {
+  // ⛔ PAR LE PRÉDICAT, PAS EN CLAIR — voir le bloc de `portionIndexMoves`.
   //
-  // ⚠️ IL EST ICI ET PAS PLUS HAUT, ET LA POSITION EST L'ARBITRAGE. Placé en
-  // tête, il aurait effacé du journal `restriction_floor`, `age_unknown` et
-  // `no_body` de toute bouche enceinte — trois motifs qui disent chacun une
-  // chose vraie et différente. Placé ICI, à l'endroit exact où l'écart va se
-  // calculer, il ne change le verdict que des bouches qui allaient RECEVOIR un
-  // déficit. Toutes les autres restent octet pour octet celles d'hier.
-  //
-  // ⛔ `direction === "down"` ET RIEN D'AUTRE. Sur une PRISE, ce garde ne mord
-  // pas: rabattre un surplus retirerait de l'énergie à une femme enceinte qui
-  // en demande, sous le nom d'une protection. Ce module retire des déficits.
-  if (mouth.direction === "down") {
-    const population = conditionGatePopulationOf(mouth.conditionRefs);
-    const reason = conditionGateReason(population);
-    if (reason !== null) return { kcal: null, reason };
-  }
-  const pace = mouth.paceKgPerWeek !== null && Number.isFinite(mouth.paceKgPerWeek) &&
-      mouth.paceKgPerWeek > 0
-    ? mouth.paceKgPerWeek
-    : DEFAULT_PACE_KG_PER_WEEK;
-  const executed = executedPaceFor(mouth.direction, subject, pace);
-  if (executed === null) return { kcal: maintenance, reason: "anchored" };
-  const signed = mouth.direction === "up"
-    ? executed.dailyDeltaKcal
-    : -executed.dailyDeltaKcal;
-  return { kcal: executed.maintenanceKcal + signed, reason: "anchored" };
+  // ⚠️ ET LE NOMBRE RESSORT **INTACT**, PAS ARRONDI. C'est la propriété qui
+  // rend l'extraction sûre: sans cran, cette fonction est l'identité, donc
+  // aucune cible de la base ne bouge d'un kcal en passant par ici. Un
+  // `Math.round` de confort aurait déplacé les 56 cas de `mouthTargetKcal`
+  // sans qu'aucune décision ne le demande.
+  if (!portionIndexMoves(args.portionIndex)) return args.kcal;
+  const factor = portionFactorFor(args.portionIndex, PORTION_ADJUST_STEP.slight);
+  const moved = args.kcal * factor;
+  if (factor >= 1) return Math.round(moved);
+  // ⛔ LE PLANCHER, SUR LA BAISSE, ET C'EST LE MÊME QUE PARTOUT AILLEURS.
+  // `executedPaceFor` borne déjà le DÉFICIT à `maintenance - energyFloorFor`;
+  // un cran appliqué APRÈS pourrait passer dessous.
+  if (args.floorKcal === null) return Math.round(moved);
+  return Math.round(Math.max(moved, args.floorKcal));
 }
 
 function clampAnchor(factor: number): { factor: number; clamped: boolean } {
@@ -1039,11 +1267,6 @@ export function anchorFactorFor(
   noteBoost = 0,
 ): AnchorFactor {
   const target = mouthTargetKcal(mouth, coachCounting);
-  // ⚠️ LU AVANT TOUTE SORTIE, ET RENDU SUR TOUTES. Le compteur du LOT ① dit ce
-  // que la FICHE porte, pas ce que la journée a permis: le calculer seulement
-  // sur le chemin ancré ferait lire « personne n'a répondu » sur un foyer où
-  // tout le monde a répondu et où chaque journée est incomplète.
-  const structureState = mealStructureState(mouth.slotExtraKcal);
   if (target.kcal === null) {
     return {
       factor: 1,
@@ -1053,8 +1276,6 @@ export function anchorFactorFor(
       deliveredKcal: day?.kcal ?? null,
       capGrams: null,
       capBit: "none",
-      structureState,
-      extrasFloored: false,
       lostLineKcal: 0,
       noteBoost: 0,
     };
@@ -1078,8 +1299,6 @@ export function anchorFactorFor(
       deliveredKcal: null,
       capGrams: null,
       capBit: "none",
-      structureState,
-      extrasFloored: false,
       lostLineKcal: 0,
       noteBoost: 0,
     };
@@ -1131,9 +1350,6 @@ export function anchorFactorFor(
       deliveredKcal: day.kcal,
       capGrams: null,
       capBit: "none",
-      structureState,
-      // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
-      extrasFloored: false,
       lostLineKcal: 0,
       noteBoost: 0,
     };
@@ -1150,18 +1366,14 @@ export function anchorFactorFor(
   // `composedDishShare` plus haut pour ce que ça déplaçait, chiffré.
   //
   //     part(moment)  = poids[moment] / Σ poids[déclarés ∪ composés]
-  //     cible(moment) = cible_jour × part(moment) − extras(moment)
+  //     cible(moment) = cible_jour × part(moment)
   //     à fournir     = Σ cible(moment) sur les moments COMPOSÉS
   //
-  // ⛔ ET LE PLAT NE PORTE PAS LE REPAS ENTIER — SUR LE MIDI ET LE SOIR. Le
-  // plan ne compose que le plat principal (mesuré: 9 plats sur 9); le pain, le
-  // fromage et le dessert existent quand même dans l'assiette. Faire porter au
-  // plat l'énergie du repas entier, c'est servir 1,2 kg de poulet à quelqu'un
-  // qui prend aussi un yaourt.
-  //
-  // ⛔ MAIS SUR LES AUTRES MOMENTS, IL LE PORTE. Le plan compose ce que la
-  // personne a déclaré y prendre; en retrancher quoi que ce soit compterait
-  // deux fois. C'est le défaut ② de l'épitaphe.
+  // ⟳ 2026-09-10 — LE PLAT PORTE LE REPAS ENTIER, PARTOUT. Le retrait des
+  // extras (pain / fromage / dessert pris hors plan) a été supprimé: le plan
+  // dimensionne les aliments qu'il prévoit, et ne réserve plus d'énergie pour
+  // des accompagnements personnels. Ce qui borne l'assiette est le plafond de
+  // masse (`mealMassCapFor`), pas une réservation supposée.
   // ⛔ `ownSlots` AU NUMÉRATEUR, `slots` AU DÉNOMINATEUR, ET LES DEUX SONT
   // JUSTES (2026-09-04). Ce qu'on demande au plan de fournir est la part de sa
   // journée qui tombe sur les moments dont on sait LIRE le livré — ceux où elle
@@ -1185,13 +1397,20 @@ export function anchorFactorFor(
   const shared = slotPlanTargets({
     targetKcal: target.kcal,
     coveredSlots: day.ownSlots,
-    wholeSlots: [
-      ...(mouth.declaredSlots.length > 0 ? mouth.declaredSlots : HOUSE_DEFAULT_SLOTS),
-      ...day.slots,
-    ],
-    slotExtraKcal: mouth.slotExtraKcal,
+    // ⟳ 2026-09-11 · LOT B — LA RÈGLE S'ÉCRIT UNE FOIS (`wholeDaySlots`). Elle
+    // était recopiée ici, et ailleurs SANS son repli.
+    wholeSlots: wholeDaySlots(mouth.declaredSlots, day.slots),
+    // ⛔ LE CHEMIN LEGACY NE VOIT PAS LE LÉGER, ET C'EST UNE DÉCISION DATÉE
+    // (2026-09-07), pas un oubli. `anchorFactorFor` sert les foyers à PLUSIEURS
+    // bouches, où « + repas léger » n'est pas encore collecté ni câblé — la
+    // généralisation est un chantier à part. Passer `[]` rend ce calcul
+    // octet-identique à celui d'avant le lot, ce qui est exactement la
+    // propriété que la lane multi-bouches doit conserver.
+    lightSlots: [],
+    // Idem: le retrait du shaker par créneau appartient au chemin
+    // `portion_v1`. Ici il vaut `null`, donc rien n'est retranché — comme avant.
+    slotFixedKcal: null,
   });
-  const extrasFloored = shared.floored;
   // ⚠️ LE REPLI `whole <= 0` EST CELUI DE `dayCoverageOf`, ET IL SIGNIFIE LA
   // MÊME CHOSE: aucun moment reconnu de part et d'autre ⇒ on ne réduit rien,
   // plutôt que de rendre zéro et de faire diviser par zéro l'appelant.
@@ -1216,14 +1435,13 @@ export function anchorFactorFor(
   // le plafond est alors le plus gros moment plausible de ce jour, jamais le
   // jour entier — c'est très exactement le 1,2 kg d'un dîner qui portait la
   // journée, et il reste mort.
-  const wholeSlots = [
-    ...new Set([
-      ...(mouth.declaredSlots.length > 0 ? mouth.declaredSlots : HOUSE_DEFAULT_SLOTS),
-      ...day.slots,
-    ]),
-  ];
-  const wholeWeight = wholeSlots.reduce((n, slot) => n + slotWeight(slot), 0);
-  const biggestWeight = Math.max(0, ...wholeSlots.map(slotWeight));
+  const wholeSlots = wholeDaySlots(mouth.declaredSlots, day.slots);
+  // ⛔ `[]` ICI AUSSI, ET IL FAUT LE DIRE: c'est le plafond de VRAISEMBLANCE du
+  // chemin legacy. Lui donner les moments légers le ferait diverger de la
+  // cible calculée six lignes plus haut, qui n'en a pas — deux poids pour un
+  // seul repas, et c'est le plus petit qui gagnerait en silence.
+  const wholeWeight = wholeSlots.reduce((n, slot) => n + slotWeight(slot, []), 0);
+  const biggestWeight = Math.max(0, ...wholeSlots.map((slot) => slotWeight(slot, [])));
   // ⟳ 2026-09-06 (N3c) — LE PLAFOND VOIT LE CRAN AUSSI. `shared.bySlot` est la
   // répartition de la cible SANS la note ; borner le plus gros repas sur elle
   // reprenait d'une main ce que la note donnait de l'autre (Claire, mardi :
@@ -1244,7 +1462,13 @@ export function anchorFactorFor(
   const physicalMax = capGrams !== null && day.maxMealGrams > 0
     ? capGrams / day.maxMealGrams
     : Infinity;
-  const bounded = Math.min(raw, physicalMax);
+  // ⟳ 2026-09-09 — UN PLAFOND QUI « MORD » D'UN ULP NE MORD PAS. Sur une
+  // journée à un seul repas, `physicalMax` et `raw` sont la MÊME grandeur
+  // calculée par deux chemins (`cible / 1,1 / grammes` contre
+  // `cible / kcal`), et le flottant les sépare parfois d'un 1e-16. Compter
+  // `density` là-dessus a fait rougir un test le jour où la cible d'une prise a
+  // bougé (le curseur est devenu le contrat) — sans qu'un seul gramme change.
+  const bounded = physicalMax < raw - 1e-9 ? physicalMax : raw;
   const { factor, clamped } = clampAnchor(bounded);
   const capBit: MealCapBit = bounded !== raw ? cap.source : clamped ? "factor_bound" : "none";
   return {
@@ -1258,8 +1482,6 @@ export function anchorFactorFor(
     deliveredKcal: day.kcal,
     capGrams: capGrams === null ? null : Math.round(capGrams),
     capBit,
-    structureState,
-    extrasFloored,
     lostLineKcal: lostLine,
     noteBoost: boost,
   };

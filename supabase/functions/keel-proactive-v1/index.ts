@@ -9,6 +9,8 @@ import { runSlotMealStep } from "../_shared/keel/slot_meal_io.ts";
 import { runWeighInStep } from "../_shared/keel/weigh_in_io.ts";
 // FF-054 §3.2 / FF-062 — le retour de fin de plan, sorti du message du soir.
 import { runPlanFeedbackStep } from "../_shared/keel/plan_feedback_chat_io.ts";
+// ⟳ 2026-09-09 — le rappel de la veille: « ce soir, sors la dinde du congélateur ».
+import { runThawReminderStep } from "../_shared/keel/thaw_reminder_io.ts";
 import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_io.ts";
 
 /**
@@ -124,6 +126,78 @@ function flattenError(error: unknown): string {
     String(error);
 }
 
+/**
+ * LES ENTRÉES D'UN PAS, POUR UNE PERSONNE. Les deux audiences les remplissent.
+ */
+interface AskCommon {
+  userId: string;
+  timezone: string | null;
+  locale: string | null;
+  muted: boolean;
+  askEnabled: boolean | null;
+  now: Date;
+  dryRun: boolean;
+  requestId: string;
+}
+
+/**
+ * C1 ET C2, POUR UNE PERSONNE — extraits parce qu'ils ont DEUX audiences.
+ *
+ * ⛔ UN `try` PAR CANAL, ET AUCUN `continue`. C'est la cicatrice de FF-056: le
+ * pas de la divergence était placé APRÈS le `try/catch` d'un autre canal dont
+ * les sorties non-nominales faisaient `continue`. Il était sauté pour le cas
+ * NOMINAL, et invisible parce que son seul compteur valait zéro en régime
+ * normal. Extraire les deux ici garde cette forme à un seul endroit — deux
+ * copies auraient divergé au premier correctif, et la copie qui perd son `try`
+ * est celle qu'on regarde le moins.
+ *
+ * ⚠️ `examined` MONTE POUR TOUTE ISSUE SAUF LA FENÊTRE, et c'est le précédent
+ * du dépôt (`weight_divergence_tally.ts`, même règle mot pour mot). Le compter
+ * aussi hors fenêtre ferait dire à ce champ « le job a tourné » alors qu'il
+ * doit dire « le détecteur a regardé ».
+ */
+async function runAskChannels(
+  admin: SupabaseClient,
+  common: AskCommon,
+  ctx: {
+    doSlotMeal: boolean;
+    doWeighIn: boolean;
+    slotMeal: ChannelTally;
+    weighIn: ChannelTally;
+    failures: string[];
+  },
+): Promise<void> {
+  if (ctx.doSlotMeal) {
+    try {
+      const out = await runSlotMealStep(admin, common);
+      if (!isWindowSkip(out.verdict)) ctx.slotMeal.examined++;
+      if (out.verdict.ask) {
+        if (out.delivered) ctx.slotMeal.sent++;
+        else bump(ctx.slotMeal.blocked, out.deliveryReason ?? "unknown");
+      } else {
+        bump(ctx.slotMeal.skipped, out.verdict.reason);
+      }
+    } catch (error) {
+      ctx.failures.push(`slot_meal ${common.userId}: ${flattenError(error)}`);
+    }
+  }
+
+  if (ctx.doWeighIn) {
+    try {
+      const out = await runWeighInStep(admin, common);
+      if (!isWindowSkip(out.verdict)) ctx.weighIn.examined++;
+      if (out.verdict.ask) {
+        if (out.delivered) ctx.weighIn.sent++;
+        else bump(ctx.weighIn.blocked, out.deliveryReason ?? "unknown");
+      } else {
+        bump(ctx.weighIn.skipped, out.verdict.reason);
+      }
+    } catch (error) {
+      ctx.failures.push(`weigh_in ${common.userId}: ${flattenError(error)}`);
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
@@ -140,6 +214,28 @@ Deno.serve(async (req) => {
       ? Math.min(budgetRaw, 120_000)
       : DEFAULT_BUDGET_MS;
     /**
+     * ⚠️ 🔴 LA PART RÉSERVÉE AUX MEMBRES — MESURÉE LE 2026-09-09.
+     *
+     * La passe des profils réclamés tourne APRÈS les élèves. Sans réserve, elle
+     * ne tourne que si les élèves n'ont pas épuisé le budget — et sur la base
+     * locale, 683 profils suffisent déjà à ne jamais l'atteindre. Le banc de
+     * bout en bout l'a montré au premier tir: `members.reached` était faux, et
+     * un membre n'aurait reçu AUCUNE question, chaque heure, en silence.
+     *
+     * Le premier réflexe — « ils passeront au tick suivant » — est faux: le
+     * curseur des élèves repart de zéro à chaque tick, donc la même page
+     * consomme le même budget et la passe des membres est affamée POUR
+     * TOUJOURS, pas retardée.
+     *
+     * ⛔ ET PAS L'INVERSE (les membres d'abord): ce serait affamer les élèves,
+     * qui sont la population la plus nombreuse. Un quart suffit largement — les
+     * profils réclamés se comptent par foyer, les élèves par flotte — et la
+     * réserve n'est PAS un délai: si les élèves finissent tôt, la passe des
+     * membres dispose de tout ce qui reste.
+     */
+    const MEMBER_BUDGET_SHARE = 0.25;
+    const studentBudgetMs = Math.floor(budgetMs * (1 - MEMBER_BUDGET_SHARE));
+    /**
      * Restreindre le balayage à UN canal. Sert les runs réels: éprouver C1 sans
      * risquer d'envoyer une pesée à la moitié de la base.
      *
@@ -150,7 +246,7 @@ Deno.serve(async (req) => {
     const only = cleanText(body.only);
     if (
       only && only !== "slot_meal" && only !== "weigh_in" &&
-      only !== "plan_feedback"
+      only !== "plan_feedback" && only !== "thaw_reminder"
     ) {
       return jsonResponse(req, {
         ok: false,
@@ -161,6 +257,7 @@ Deno.serve(async (req) => {
     const doSlotMeal = !only || only === "slot_meal";
     const doWeighIn = !only || only === "weigh_in";
     const doPlanFeedback = !only || only === "plan_feedback";
+    const doThawReminder = !only || only === "thaw_reminder";
 
     const admin = adminClient();
     const startedAt = Date.now();
@@ -191,6 +288,7 @@ Deno.serve(async (req) => {
     const slotMeal = emptyTally();
     const weighIn = emptyTally();
     const planFeedback = emptyTally();
+    const thawReminder = emptyTally();
     const failures: string[] = [];
     let exhausted = false;
 
@@ -241,50 +339,14 @@ Deno.serve(async (req) => {
           requestId,
         };
 
-        // ── C1 — UN `try` À LUI, SANS SORTIE ──────────────────────────────
-        if (doSlotMeal) {
-          try {
-            const out = await runSlotMealStep(admin, common);
-            // ⚠️ `examined` MONTE POUR TOUTE ISSUE SAUF LA FENÊTRE, et c'est le
-            // précédent du dépôt (`weight_divergence_tally.ts`, même règle mot
-            // pour mot). Le compter aussi hors fenêtre ferait dire à ce champ
-            // « le job a tourné » alors qu'il doit dire « le détecteur a
-            // regardé » — et les trois canaux de ce compte-rendu portaient
-            // DEUX sens différents du même nom, ce qui rend leurs chiffres
-            // incomparables sur la même ligne.
-            if (!isWindowSkip(out.verdict)) slotMeal.examined++;
-            if (out.verdict.ask) {
-              if (out.delivered) slotMeal.sent++;
-              else bump(slotMeal.blocked, out.deliveryReason ?? "unknown");
-            } else {
-              bump(slotMeal.skipped, out.verdict.reason);
-            }
-          } catch (error) {
-            failures.push(`slot_meal ${cursor}: ${flattenError(error)}`);
-          }
-        }
-
-        // ── C2 — LE SIEN, ET C'EST LA CICATRICE DE FF-056 ────────────────
-        // Le pas de la divergence était placé APRÈS le `try/catch` d'un autre
-        // canal, dont les sorties non-nominales faisaient `continue`: il était
-        // sauté pour le cas nominal, et invisible parce que son seul compteur
-        // valait zéro en régime normal. Aucun `continue` n'existe dans cette
-        // boucle, et chaque canal a son `try`.
-        if (doWeighIn) {
-          try {
-            const out = await runWeighInStep(admin, common);
-            // Même règle que le canal du dessus, et que la divergence.
-            if (!isWindowSkip(out.verdict)) weighIn.examined++;
-            if (out.verdict.ask) {
-              if (out.delivered) weighIn.sent++;
-              else bump(weighIn.blocked, out.deliveryReason ?? "unknown");
-            } else {
-              bump(weighIn.skipped, out.verdict.reason);
-            }
-          } catch (error) {
-            failures.push(`weigh_in ${cursor}: ${flattenError(error)}`);
-          }
-        }
+        // ── C1 ET C2 — LES DEUX CANAUX QUE LES DEUX AUDIENCES PARTAGENT ──
+        await runAskChannels(admin, common, {
+          doSlotMeal,
+          doWeighIn,
+          slotMeal,
+          weighIn,
+          failures,
+        });
 
         // ── LE RETOUR DE FIN DE PLAN — 22h, LE DERNIER JOUR ─────────────
         //
@@ -313,9 +375,156 @@ Deno.serve(async (req) => {
           }
         }
 
+        // ── LE RAPPEL DE LA VEILLE — 18h-20h, LA VEILLE D'UNE SESSION ────
+        //
+        // ⟳ 2026-09-09. Un message sans question: ce que la session de demain
+        // sort du congélateur ce soir. Non sollicité, donc plafonné; un soir où
+        // les bilans prennent les créneaux, il ne part pas et se compte en
+        // `blocked`. Son `try` à lui, comme les trois autres.
+        if (doThawReminder) {
+          try {
+            const out = await runThawReminderStep(admin, common);
+            if (!isWindowSkip(out.verdict)) thawReminder.examined++;
+            if (out.verdict.ask) {
+              if (out.delivered) thawReminder.sent++;
+              else bump(thawReminder.blocked, out.deliveryReason ?? "unknown");
+            } else {
+              bump(thawReminder.skipped, out.verdict.reason);
+            }
+          } catch (error) {
+            failures.push(`thaw_reminder ${cursor}: ${flattenError(error)}`);
+          }
+        }
+
+        // ⚠️ `studentBudgetMs`, PAS `budgetMs`: la part réservée aux membres.
+        if (Date.now() - startedAt > studentBudgetMs) break;
+      }
+      if (Date.now() - startedAt > studentBudgetMs) break;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // LA SECONDE AUDIENCE — LES PROFILS RÉCLAMÉS D'UN FOYER (2026-09-09)
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // ── LE TROU QU'ELLE FERME, ET IL ÉTAIT TOTAL ──────────────────────────
+    // La boucle du dessus filtre `keel_role = 'student'`. La réclamation d'un
+    // profil de foyer n'écrit JAMAIS ce rôle — c'est délibéré, et une garde QA
+    // le vérifie (`20260811060000`, « LE RÔLE N'EST PAS ÉCRIT »). Un compte
+    // supplémentaire ne recevait donc AUCUNE question: ni sa pesée, ni son
+    // repas. Il servait ce que `keel-daily-pulse-v1` lui adressait par sa
+    // propre seconde requête d'audience — et cette fonction a été SUPPRIMÉE le
+    // 2026-09-08. Depuis, le canal est muet, et le compte-rendu ne pouvait pas
+    // le dire: un membre jamais regardé ne produit aucun motif de refus.
+    //
+    // ── DEUX CANAUX, ET DEUX SEULEMENT (décision humaine du 2026-09-09) ────
+    //   ✓ la pesée   — c'est le suivi individuel qu'un second compte achète
+    //   ✓ le repas   — sa coche est un fait de PERSONNE (FF-058 R10)
+    //   ✗ le point de la semaine — réservé au maître
+    //   ✗ le retour de fin de plan — fermé au membre par une PROPRIÉTÉ:
+    //     `meal_plan_feedback` est `unique(meal_id)`, et ce retour gouverne la
+    //     composition suivante (FF-054 §11). C'est un geste de qui compose.
+    //   ✗ le rappel du congélateur — un fait du FOYER, comme la cuisson et les
+    //     courses (FF-058 R10 et R14): la ligne ne part qu'au maître.
+    //
+    // ── LE RÔLE N'EST TOUJOURS PAS ÉCRIT ──────────────────────────────────
+    // Ce bloc ÉLARGIT L'AUDIENCE, il ne promeut personne. Écrire
+    // `keel_role = 'student'` à la réclamation ouvrirait `/app/today` — le mode
+    // 1:1, les repas composés PAR la personne — c'est-à-dire un écran vide pour
+    // qui ne compose pas. C'est la même distinction que `KeelHouseholdRoute`
+    // côté écran: la porte s'élargit, le rôle ne ment pas.
+    //
+    // ── APRÈS LES ÉLÈVES, MAIS SUR UN BUDGET RÉSERVÉ ──────────────────────
+    // Voir `MEMBER_BUDGET_SHARE`: la boucle du dessus s'arrête à 75 % du
+    // budget, quoi qu'il arrive. `members.reached` reste rendu — c'est lui qui
+    // distingue « aucun membre servi » de « aucun membre à servir », qui
+    // rendraient sinon le même zéro.
+    const memberSlotMeal = emptyTally();
+    const memberWeighIn = emptyTally();
+    let memberCursor = cleanText(body.after_member_user_id);
+    let membersScanned = 0;
+    let membersExhausted = false;
+    let membersReached = false;
+
+    while (Date.now() - startedAt <= budgetMs) {
+      membersReached = true;
+      // ⚠️ `role = 'member'` ET `user_id is not null`: la bouche RÉCLAMÉE. Une
+      // bouche sans compte n'a personne à qui écrire, et le maître est servi
+      // par la boucle du dessus s'il est élève.
+      let mq = admin
+        .from("household_members")
+        // ⚠️ NE NOMMER QUE DES COLONNES QUI EXISTENT — et la cicatrice vient
+        // d'être repayée sur CETTE table le 2026-09-09: `memberIdOf` demandait
+        // `household_members.id`, qui n'existe pas. La clé est
+        // `(household_id, user_id)`; l'identité d'une bouche est `member_id`.
+        .select("user_id")
+        .eq("role", "member")
+        .not("user_id", "is", null)
+        .order("user_id", { ascending: true })
+        .limit(PAGE);
+      if (memberCursor) mq = mq.gt("user_id", memberCursor);
+      const { data: mRows, error: mErr } = await mq;
+      if (mErr) throw mErr;
+      const ids: string[] = [];
+      for (const r of (mRows ?? []) as Array<Record<string, unknown>>) {
+        const id = String(r.user_id ?? "").trim();
+        // Dédoublonnage sur la page: la clé primaire autorise deux lignes pour
+        // un même compte dans deux foyers. La réclamation le refuse
+        // (`already_in_household`), mais s'appuyer sur ce refus ici ferait
+        // partir DEUX pesées le jour où il bouge.
+        if (id && !ids.includes(id)) ids.push(id);
+      }
+      if ((mRows ?? []).length === 0) {
+        membersExhausted = true;
+        break;
+      }
+      memberCursor = String(
+        ((mRows ?? [])[(mRows ?? []).length - 1] as Record<string, unknown>)
+          ?.user_id ?? "",
+      );
+
+      // Les mêmes colonnes que la boucle du dessus, plus `keel_role`.
+      const { data: pRows, error: pErr } = await admin
+        .from("profiles")
+        .select(
+          "id, timezone, locale, proactive_muted_at, slot_meal_ask_enabled, keel_role",
+        )
+        .in("id", ids);
+      if (pErr) throw pErr;
+
+      for (const row of (pRows ?? []) as Array<Record<string, unknown>>) {
+        // ⛔ UN ÉLÈVE QUI EST AUSSI MEMBRE A DÉJÀ ÉTÉ SERVI. Sans ce saut, il
+        // recevrait DEUX pesées le même soir — et le plafond de livraison ne
+        // les arbitrerait pas: les deux purposes sont GARANTIS.
+        if (String(row.keel_role ?? "") === "student") continue;
+        const userId = String(row.id ?? "");
+        if (!userId) continue;
+        membersScanned++;
+        await runAskChannels(admin, {
+          userId,
+          timezone: row.timezone ? String(row.timezone) : null,
+          locale: row.locale ? String(row.locale) : null,
+          muted: Boolean(row.proactive_muted_at),
+          // Le tri-état passe BRUT, exactement comme au-dessus.
+          askEnabled: row.slot_meal_ask_enabled === null ||
+              row.slot_meal_ask_enabled === undefined
+            ? null
+            : Boolean(row.slot_meal_ask_enabled),
+          now,
+          dryRun,
+          requestId,
+        }, {
+          doSlotMeal,
+          doWeighIn,
+          slotMeal: memberSlotMeal,
+          weighIn: memberWeighIn,
+          failures,
+        });
         if (Date.now() - startedAt > budgetMs) break;
       }
-      if (Date.now() - startedAt > budgetMs) break;
+      if ((mRows ?? []).length < PAGE) {
+        membersExhausted = true;
+        break;
+      }
     }
 
     return jsonResponse(req, {
@@ -329,6 +538,7 @@ Deno.serve(async (req) => {
       slot_meal: slotMeal,
       weigh_in: weighIn,
       plan_feedback: planFeedback,
+      thaw_reminder: thawReminder,
       // Le compteur du silence, hérité du message du soir. Il DÉCROÎT vers zéro
       // maintenant que plus aucune clarification n'est créée: c'est la forme
       // attendue, et c'est aussi ce qui dira quand ce balayage n'aura plus
@@ -336,6 +546,26 @@ Deno.serve(async (req) => {
       clarifications_expired: clarificationsExpired,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,
+      // ── LA SECONDE AUDIENCE, COMPTÉE À PART ─────────────────────────────
+      //
+      // ⛔ PAS FONDUE DANS LES QUATRE CANAUX DU DESSUS, et c'est le sujet. Un
+      // membre n'a que DEUX canaux; additionner ses chiffres à ceux des élèves
+      // rendrait « examinés » et « envoyés » incomparables d'une ligne à
+      // l'autre — la faute exacte que le pavé d'`examined` décrit un cran plus
+      // haut.
+      //
+      // ⚠️ `reached` DISTINGUE LES DEUX ZÉROS. La passe tourne APRÈS les
+      // élèves, sur le budget qui reste: « aucun membre servi » (budget épuisé)
+      // et « aucun membre à servir » (personne n'a réclamé) rendraient sinon le
+      // même `scanned: 0`, et la panne serait indiscernable du cas nominal.
+      members: {
+        reached: membersReached,
+        scanned: membersScanned,
+        exhausted: membersExhausted,
+        next_after_user_id: membersExhausted ? null : memberCursor || null,
+        slot_meal: memberSlotMeal,
+        weigh_in: memberWeighIn,
+      },
       // ⚠️ 🔴 LE COMPTE AVANT L'ÉCHANTILLON — MESURÉ LE 2026-09-02. Ce
       // compte-rendu ne portait que `failures.slice(0, 50)`, et un run où 629
       // élèves sur 669 échouaient en rendait exactement 50: la liste tronquée

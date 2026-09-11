@@ -495,6 +495,36 @@
       "cwd": "frontend",
       "port": 5230,
       "autoPort": false
+    },
+    {
+      "name": "frontend-ff064",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5240",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5240,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-ff065",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5245",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5245,
+      "autoPort": false
     }
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "operation": "compose",
+  "window": {
+    "kind": "days",
+    "count": 7
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": "Une vraie pizza vendredi soir et des cannellonis avec jambon pour les omnivores et ricotta-épinards pour Lea.",
+  "one_cooking_session": false
+}

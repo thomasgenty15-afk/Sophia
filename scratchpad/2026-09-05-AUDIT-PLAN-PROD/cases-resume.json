@@ -1,0 +1,78 @@
+[
+  {
+    "id": "A03-vegan4-7-r1",
+    "fixture": "quatre",
+    "days": 7
+  },
+  {
+    "id": "A04-allergy5-7-r1",
+    "fixture": "cinq",
+    "days": 7
+  },
+  {
+    "id": "A05-vegan-one-session",
+    "fixture": "quatre",
+    "days": 7,
+    "body": {
+      "one_cooking_session": true
+    }
+  },
+  {
+    "id": "A06-allergy-pizza",
+    "fixture": "cinq",
+    "days": 3,
+    "body": {
+      "preferences": "Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea."
+    }
+  },
+  {
+    "id": "A07-solo-one-session",
+    "fixture": "solo",
+    "days": 7,
+    "body": {
+      "one_cooking_session": true
+    }
+  },
+  {
+    "id": "B01-budget-no-oven",
+    "email": "qa-audit-plan-mtopn6pa-budget@keeltest.dev",
+    "solo": true,
+    "days": 7,
+    "body": {
+      "preferences": "Une pizza cuite à la poêle, budget de 25 euros pour ces 7 jours. Je ne possède pas de four."
+    }
+  },
+  {
+    "id": "B02-opposed-multiword",
+    "email": "qa-audit-plan-mtopn6pa-opposed@keeltest.dev",
+    "solo": false,
+    "days": 7,
+    "body": {
+      "preferences": "Des lasagnes et des lentilles pour Alice, avec une boîte adaptée pour Marc."
+    }
+  },
+  {
+    "id": "B03-minimal-five-allergy",
+    "email": "qa-audit-plan-mtopn6pa-minimal-five@keeltest.dev",
+    "solo": false,
+    "days": 7,
+    "body": {
+      "preferences": "Une vraie pizza vendredi soir et des cannellonis avec jambon pour les omnivores et ricotta-épinards pour Lea."
+    }
+  },
+  {
+    "id": "B04-memory-owner",
+    "email": "qa-audit-plan-mtopn6pa-memory-owner@keeltest.dev",
+    "solo": false,
+    "days": 3
+  },
+  {
+    "id": "B05-note-allergy-child",
+    "email": "qa-audit-plan-mtopn6pa-memory-owner@keeltest.dev",
+    "solo": false,
+    "days": 3,
+    "body": {
+      "draft_note": "Tom est allergique aux noix de cajou. Pour le prochain plan, je voudrais des fajitas."
+    }
+  }
+]

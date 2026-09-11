@@ -95,6 +95,7 @@ const PARSE_BASE = {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: MIXED_TABLE,
   // ⛔ La ceinture des EXCLUSIONS partage la boucle des boîtes depuis le
   // 2026-09-01. `[]` dit « personne n'a rien exclu » — ces cas-ci mesurent les
@@ -598,6 +599,7 @@ Deno.test("CEINTURE — un régime nommé pour une bouche hors roster se COMPTE"
     kitchenEquipment: null,
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [{ memberId: "someone-else", regime: "vegan" }],
   });
   assertEquals(meal.regime_belt.unknown_mouth, 1);
@@ -616,9 +618,11 @@ function member(memberId: string, displayName: string): PortionMember {
     ageState: "adult",
     goal: null,
     body: null,
+    lightSlots: [],
     eatingSlots: [],
     habits: [],
     habitNote: null,
+    requiredDensity: null,
   };
 }
 
@@ -651,6 +655,7 @@ Deno.test("CEINTURE — la part qui cite une casserole refusée tombe, et se com
     ["prep_beef_stew", "prep_bean_stew"],
     [],
     [{ preparation_id: "prep_beef_stew", member_ids: [THEODULE] }],
+    false,
   );
 
   const kid = portions.find((p) => p.memberId === THEODULE)!;
@@ -685,6 +690,7 @@ Deno.test("CEINTURE — sans refus, la seconde surface est byte-identique", () =
     ["prep_bean_stew"],
     [],
     [],
+    false,
   );
   assertEquals(portions[0].preparationShares.length, 1);
   assertEquals(shareCounts, { shares: 1, unknown: 0, regime_refused: 0 });

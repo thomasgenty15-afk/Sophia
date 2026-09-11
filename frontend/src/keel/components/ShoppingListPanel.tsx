@@ -269,6 +269,41 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
     );
   }
 
+  /**
+   * ⟳ 2026-09-09 — CE QUI PART AU CONGÉLATEUR, EN TÊTE DE LA COURSE.
+   *
+   * ⛔ AVANT LES RAYONS, ET PAS SEULEMENT UN BADGE PAR LIGNE. Mesuré sur un plan
+   * réel: le badge existait, au fond d'une liste de 46 lignes, et la personne a
+   * lu « dinde achetée mercredi, cuisinée dimanche » et conclu que la garde
+   * avait lâché. Le geste du jour des courses se lit en premier, ou il n'est
+   * pas fait. Le badge par ligne reste: c'est lui qu'on voit devant le rayon.
+   */
+  function renderFreezeBlock(indices: readonly number[]) {
+    const frozen = indices.filter((i) => freezeAtPurchase.has(i));
+    if (frozen.length === 0) return null;
+    return (
+      <Card>
+        <p className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
+          <Badge tone="caution">{t("meals.shopping.freeze")}</Badge>
+          {frozen.length === 1
+            ? t("meals.shopping.freeze_block_one")
+            : t("meals.shopping.freeze_block_many", { n: frozen.length })}
+        </p>
+        <ul className="mt-1 flex flex-col gap-0.5">
+          {frozen.map((index) => {
+            const item = props.items[index];
+            return (
+              <li key={`freeze-${index}`} className="flex flex-wrap items-baseline gap-2 text-sm text-ink">
+                <span className="break-words">{item.term}</span>
+                {item.quantity && <span className="tabular-nums text-ink-soft">{item.quantity}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+    );
+  }
+
   if (props.items.length === 0) return null;
 
   return (
@@ -319,6 +354,7 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                       </p>
                     )}
                   </div>
+                  {renderFreezeBlock(wave.indices)}
                   {waveGroups.map((group) => renderGroup(group))}
                 </section>
               );
@@ -348,6 +384,9 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                     })}
                   </p>
                 )}
+                {/* ⚠️ MÊME À UNE SEULE COURSE — c'est le cas où il y a le plus
+                    à congeler. */}
+                {renderFreezeBlock(props.items.map((_, i) => i))}
                 {groups.map((group) => renderGroup(group))}
               </>
             )}

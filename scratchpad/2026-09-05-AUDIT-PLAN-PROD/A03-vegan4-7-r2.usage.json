@@ -1,0 +1,78 @@
+[
+  {
+    "request_id": "52945b90-6fbd-4aff-87ae-d71f07c127a6",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 137527,
+    "prompt_tokens": 10896,
+    "output_tokens": 17433,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0f6683a1be74d695006a9c67839b6087d2b255c0377aeaf14f",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "52945b90-6fbd-4aff-87ae-d71f07c127a6",
+    "source": "generate-household-meal-v1.unfed_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 55071,
+    "prompt_tokens": 11947,
+    "output_tokens": 8599,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_099da41476649335006a9c680d7e0887d2bbf15dbc28f4f49d",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "52945b90-6fbd-4aff-87ae-d71f07c127a6",
+    "source": "generate-household-meal-v1.unfed_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 32670,
+    "prompt_tokens": 11701,
+    "output_tokens": 4100,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0cb5af48821bac2b006a9c68447cb087d2b6a1bfb1d2738cd6",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "52945b90-6fbd-4aff-87ae-d71f07c127a6",
+    "source": "generate-household-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 2494,
+    "prompt_tokens": 453,
+    "output_tokens": 198,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0806f6e27aecd434006a9c686539a487d28f7501107676cbad",
+      "user_id_resolution": "provided"
+    }
+  }
+]

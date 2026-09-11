@@ -1,0 +1,135 @@
+[
+  {
+    "request_id": "2574cdec-99ab-4ecb-b450-d05b2c1c8be4",
+    "source": "generate-household-meal-v1.exclusion_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 71825,
+    "prompt_tokens": 13432,
+    "output_tokens": 9494,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_07f927e1529c8531006a9ddb573db487d2bdf947c633734707",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "7fcd3fef-f5e8-41fa-a1b4-ac009d9aa618",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 82677,
+    "prompt_tokens": 13289,
+    "output_tokens": 10426,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_05d83aa2022db2b3006a9ddb8a765887d2be893b2d2f7b1d51",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "2574cdec-99ab-4ecb-b450-d05b2c1c8be4",
+    "source": "generate-household-meal-v1.swap_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 115106,
+    "prompt_tokens": 13523,
+    "output_tokens": 16907,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0feac0c7ea4eb445006a9ddb9efad887d280eebd7d31709124",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "2574cdec-99ab-4ecb-b450-d05b2c1c8be4",
+    "source": "generate-household-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 2469,
+    "prompt_tokens": 480,
+    "output_tokens": 345,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_01781ff073aafc90006a9ddc12441087d2951e12148d032653",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "7fcd3fef-f5e8-41fa-a1b4-ac009d9aa618",
+    "source": "generate-household-meal-v1.protein_anchor_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 91522,
+    "prompt_tokens": 13383,
+    "output_tokens": 11714,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_037ee7d8391b2eb6006a9ddbdd177c87d2b953256cfe487dfc",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "7fcd3fef-f5e8-41fa-a1b4-ac009d9aa618",
+    "source": "generate-household-meal-v1.swap_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 66702,
+    "prompt_tokens": 13523,
+    "output_tokens": 8650,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_04e5e94c6f5a9ac1006a9ddc38ca0c87d29e8e15687414b6a4",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "7fcd3fef-f5e8-41fa-a1b4-ac009d9aa618",
+    "source": "generate-household-meal-v1.unfed_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 47769,
+    "prompt_tokens": 13831,
+    "output_tokens": 5418,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0e56a159cc0dc112006a9ddc7b9e7087d2bd0808937a655cb6",
+      "user_id_resolution": "provided"
+    }
+  }
+]

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Sophia — L’assiette composée" style="color:#632C4C">
+  <title>Sophia — L’assiette composée</title>
+  <desc>Symbole dessiné en SVG natif. Une assiette et une fourchette droite. Trois formes souples évoquent les aliments réunis dans un même repas. Fond transparent.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 13v8a4 4 0 0 0 8 0v-8M9 13v38"/>
+    <circle cx="39" cy="32" r="21"/>
+  </g>
+  <g fill="currentColor">
+    <path d="M35 18c-7 2-11 7-11 14s4 12 11 14V18Z"/>
+    <path d="M40 18v11h13c-1-6-6-10-13-11Z"/>
+    <path d="M40 34v12c7-1 12-6 13-12H40Z"/>
+  </g>
+</svg>

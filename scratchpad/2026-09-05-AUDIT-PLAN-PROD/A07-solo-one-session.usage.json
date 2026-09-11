@@ -1,0 +1,40 @@
+[
+  {
+    "request_id": "308c02a2-e138-45a1-939f-918575ff218a",
+    "source": "generate-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 70791,
+    "prompt_tokens": 7487,
+    "output_tokens": 7996,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_07abf7ed4e1d42fb006a9c63df0b5087d292a232094e081f35",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "308c02a2-e138-45a1-939f-918575ff218a",
+    "source": "generate-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 1303,
+    "prompt_tokens": 413,
+    "output_tokens": 75,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0f4ec052054d9c4e006a9c6425afd087d2b68c44631737bde4",
+      "user_id_resolution": "provided"
+    }
+  }
+]

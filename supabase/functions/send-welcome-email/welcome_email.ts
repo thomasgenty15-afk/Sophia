@@ -1,27 +1,42 @@
 // KEEL — LE PREMIER MOT QU'ON ADRESSE À QUELQU'UN, DANS SA LANGUE.
 //
-// ── LE DÉFAUT QUE CE MODULE FERME ──────────────────────────────────────────
-// Cet e-mail était en FRANÇAIS CODÉ EN DUR — sujet compris — alors que le
-// produit s'est vendu en anglais pendant tout le pilote. Un coach anglophone
-// recevait donc « Bienvenue Sarah ! (Ta conversation est ouverte 👀) » comme
-// tout premier contact. Ce n'était pas une dette théorique en attente de la
-// version française: c'était un bug vivant, dans l'autre sens.
+// ── LE DÉFAUT QUE CE MODULE FERME (2026-09-09, FF-063 lot 3) ──────────────
+// Ce mail vendait le produit PRÉCÉDENT. Il disait « Ta conversation est
+// ouverte », promettait « nos échanges au quotidien, tes photos de repas, tes
+// bilans », et son bouton pointait sur `/app/chat`. C'était la promesse du
+// coach de vie, pas celle de Sophia — et depuis FF-060 l'entrée du produit est
+// `/app/setup`, qui se termine PAR UNE GÉNÉRATION de plan. Le seul e-mail qui
+// partait envoyait donc au mauvais écran, au nom d'un produit abandonné.
 //
-// ── POURQUOI UN MODULE À PART, ET PAS DEUX BRANCHES DANS LE HANDLER ────────
-// `sendResendEmail({to, subject, html})` ne change pas: un transport qui
-// connaîtrait la langue serait un transport qui DÉCIDE, et il faudrait alors
-// lui apprendre chaque nouvelle langue. Ici, la décision est rendue par une
-// fonction pure et testable; le handler se contente de lire une locale et de
-// poster ce qu'on lui rend.
+// ── LE LIEN VA SUR `/app/plan`, ET C'EST UN CHOIX MÉCANIQUE ──────────────
+// L'appelant construit `planUrl` sur `/app/plan` plutôt que `/app/setup`,
+// parce que cette route EMPILE LES DEUX GARDES QUI DÉCIDENT À NOTRE PLACE:
+//   · `KeelHouseholdRoute` est l'union (foyer ⇒ passe; sinon il délègue à
+//     `KeelStudentRoute`, qui renvoie sur `/auth?redirect=…` sans session);
+//   · `KeelOnboardingGate` renvoie sur `/app/setup` tant que `student_goals`
+//     est vide, et laisse passer sinon.
+// UNE seule adresse, correcte dans les trois cas. Sans ça il aurait fallu
+// retarder l'envoi — ou brancher le texte sur un état qui, au moment du
+// trigger, est TOUJOURS vide, puisque le compte vient d'être confirmé.
 //
-// ── POURQUOI DEUX PACKS ENTIERS, ET PAS DES FRAGMENTS INTERPOLÉS ───────────
+// ── POURQUOI DEUX PACKS ENTIERS, ET PAS DES FRAGMENTS INTERPOLÉS ─────────
 // « Bienvenue {prenom} ! » et « Welcome {name}! » diffèrent par l'espace
 // insécable avant le point d'exclamation, par la place de la virgule, et par
 // le fait qu'en français on tutoie. Composer une phrase par concaténation de
 // fragments produit du texte qui se lit comme une machine dans au moins une
 // des deux langues.
+//
+// ── CE MAIL EST TRANSACTIONNEL, ET IL PORTE QUAND MÊME LA SORTIE ─────────
+// Il ignore le plafond et l'interrupteur de `_shared/keel/lifecycle_email.ts`:
+// quelqu'un qui vient de créer un compte a demandé ce message. Mais il porte le
+// lien de désinscription comme les autres — refuser la sortie sur le PREMIER
+// contact serait le pire endroit du parcours pour la refuser.
 
 import { isFrenchLocale } from "../_shared/keel/locale.ts";
+import {
+  lifecycleEmailCta,
+  lifecycleEmailShell,
+} from "../_shared/keel/lifecycle_email.ts";
 
 export interface WelcomeEmailArgs {
   /**
@@ -33,8 +48,10 @@ export interface WelcomeEmailArgs {
    * l'absence, elle, se rend dans chacun.
    */
   firstName: string | null;
-  /** L'URL absolue de la conversation. */
-  chatUrl: string;
+  /** L'URL absolue du plan (voir l'en-tête: `/app/plan`, jamais `/app/setup`). */
+  planUrl: string;
+  /** L'URL absolue de désinscription, jeton et `?lang=` compris. */
+  unsubscribeUrl: string;
   /**
    * La langue du COMPTE (`profiles.locale`). REQUISE.
    *
@@ -49,80 +66,76 @@ export interface RenderedEmail {
   html: string;
 }
 
-function shell(body: string): string {
-  return `
-      <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
-${body}
-      </div>
-    `;
-}
-
-function cta(url: string, label: string): string {
-  return `        <p style="margin: 20px 0;">
-          <a href="${url}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            ${label}
-          </a>
-        </p>`;
-}
-
 /**
- * Le pack FRANÇAIS — GELÉ, mot pour mot, tel qu'il était en dur dans le
- * handler. Il a été écrit par un humain pour être lu par un humain; le
- * réécrire « au passage » remplacerait une voix éprouvée par une paraphrase.
+ * Le pack FRANÇAIS.
+ *
+ * ⚠️ CE QU'IL NE DIT PAS, ET POURQUOI (docs/keel/LEGAL.md §6.1 et §6.2):
+ * aucun chiffre de perte de poids, aucune durée associée à un poids, aucune
+ * garantie, aucune comparaison à un diététicien. La copie décrit le MÉCANISME
+ * — ce que le produit compose — jamais le RÉSULTAT. C'est aussi ce qui la rend
+ * vraie: Sophia organise des repas, elle ne produit pas un corps.
+ * `_shared/keel/lifecycle_copy_guard.ts` le vérifie à chaque run de test.
  */
 function french(args: WelcomeEmailArgs): RenderedEmail {
   const name = args.firstName?.trim() || null;
   return {
     subject: name
-      ? `Bienvenue ${name} ! (Ta conversation est ouverte 👀)`
-      : "Bienvenue ! (Ta conversation est ouverte 👀)",
-    html: shell(
+      ? `Bienvenue ${name} — ton premier plan t'attend`
+      : "Bienvenue — ton premier plan t'attend",
+    html: lifecycleEmailShell(
       [
         `        <p>${name ? `Hello ${name},` : "Hello,"}</p>`,
         "",
-        "        <p>Bienvenue ! Je suis super contente que tu sois là.</p>",
+        "        <p>Sophia compose tes repas autour de ton objectif, avec les",
+        "        quantités déjà calculées. Tu dis pour combien de jours et pour",
+        "        combien de personnes ; elle organise les menus, les courses et",
+        "        les sessions de cuisine.</p>",
         "",
-        "        <p>Tout se passe dans ton espace : nos échanges au quotidien, tes photos",
-        "        de repas, tes bilans. Il n'y a rien à installer.</p>",
+        "        <p>Il reste quelques questions — ta date de naissance, ta taille,",
+        "        ta direction — et tu as ton premier plan.</p>",
         "",
-        cta(args.chatUrl, "👉 Ouvrir ma conversation"),
+        lifecycleEmailCta(args.planUrl, "Voir mon plan"),
         "",
         "        <p>À tout de suite,</p>",
         "",
         "        <p><strong>Sophia</strong></p>",
       ].join("\n"),
+      { unsubscribeHref: args.unsubscribeUrl, locale: args.locale },
     ),
   };
 }
 
 /**
- * Le pack ANGLAIS — celui qui MANQUAIT, et que tout le pilote aurait dû avoir.
- *
- * Redérivé du français plutôt que traduit littéralement: l'anglais du produit
- * vouvoie moins mais promet autant, et « Je suis super contente que tu sois
- * là » rendu mot à mot donnerait une phrase que personne n'écrit.
+ * Le pack ANGLAIS — redérivé du français plutôt que traduit littéralement:
+ * l'anglais du produit vouvoie moins mais promet autant, et « Je suis super
+ * contente que tu sois là » rendu mot à mot donnerait une phrase que personne
+ * n'écrit.
  */
 function english(args: WelcomeEmailArgs): RenderedEmail {
   const name = args.firstName?.trim() || null;
   return {
     subject: name
-      ? `Welcome ${name} — your conversation is open`
-      : "Welcome — your conversation is open",
-    html: shell(
+      ? `Welcome ${name} — your first plan is waiting`
+      : "Welcome — your first plan is waiting",
+    html: lifecycleEmailShell(
       [
         `        <p>${name ? `Hello ${name},` : "Hello,"}</p>`,
         "",
-        "        <p>Welcome. I'm really glad you're here.</p>",
+        "        <p>Sophia builds your meals around your goal, with the amounts",
+        "        already worked out. You say how many days and how many people;",
+        "        she organises the menus, the shopping and the cooking",
+        "        sessions.</p>",
         "",
-        "        <p>Everything happens in your space: our day-to-day exchanges, your meal",
-        "        photos, your reviews. There is nothing to install.</p>",
+        "        <p>A few questions left — your date of birth, your height, your",
+        "        direction — and your first plan is there.</p>",
         "",
-        cta(args.chatUrl, "👉 Open my conversation"),
+        lifecycleEmailCta(args.planUrl, "See my plan"),
         "",
         "        <p>Talk soon,</p>",
         "",
         "        <p><strong>Sophia</strong></p>",
       ].join("\n"),
+      { unsubscribeHref: args.unsubscribeUrl, locale: args.locale },
     ),
   };
 }

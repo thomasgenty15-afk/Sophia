@@ -286,7 +286,6 @@ Deno.test("LE CÂBLAGE — les DEUX lanes lisent le mémo AVEC UN SUJET, et le c
   // sans sujet, qui servirait la danse de Léa à toute la table.
   for (
     const [rel, tag] of [
-      ["../../generate-meal-v1/index.ts", "keel.meal.notes"],
       ["../../generate-household-meal-v1/index.ts", "keel.household_meal.notes"],
     ] as const
   ) {

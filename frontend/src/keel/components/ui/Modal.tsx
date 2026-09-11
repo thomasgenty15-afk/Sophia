@@ -97,36 +97,99 @@ export interface ModalProps {
    * toutes.
    */
   headerAction?: React.ReactNode;
+  /**
+   * ⛔ LA FENÊTRE NE SE FERME QUE PAR SON BOUTON — ni le voile, ni Échap.
+   *
+   * ── LE DÉFAUT MESURÉ, ET IL EST DESTRUCTEUR (2026-09-07) ───────────────
+   * Signalé sur l'aperçu de brouillon de l'entonnoir: « quand tu cliques ou
+   * que tu fais un mouvement d'écran, ça supprime l'aperçu ». C'est exact, et
+   * ce n'est pas une fermeture ordinaire. Refermer cet aperçu-là ne le range
+   * pas: aucun écran ne le rouvre (`setDraftOpen(true)` n'a qu'un appelant, le
+   * chemin de composition), donc y revenir COÛTE UN TOUR DE MODÈLE et remet le
+   * compteur de reprises à zéro. Un geste involontaire détruit une minute de
+   * génération.
+   *
+   * ⚠️ OPT-IN, ET JAMAIS LE DÉFAUT. Presque toutes les fenêtres d'ici se
+   * referment sans conséquence — une liste de courses rouverte est la même
+   * liste —, et pour celles-là le voile et Échap sont exactement ce qu'il
+   * faut. Cette porte est pour les fenêtres dont la SORTIE EST UNE DÉCISION.
+   *
+   * ⚠️ CE QUE ÇA COÛTE, DIT PLUTÔT QUE SOUS-ENTENDU: Échap est l'attente d'un
+   * dialogue modal, et on la retire ici. Ce qui le rend tenable est que la
+   * sortie reste un bouton NOMMÉ (« Laisser tomber »), placé dans le fronton
+   * qui ne défile pas, et premier dans l'ordre de tabulation du dialogue — pas
+   * une croix qu'il faut viser. Le retour arrière tient en un mot: retirer la
+   * prop au site de montage.
+   *
+   * ⛔ LE VERROU DE DÉFILEMENT, LUI, RESTE POSÉ. Il était dans le même effet
+   * qu'Échap (« les deux moitiés du même contrat »); ils sont séparés
+   * maintenant, parce qu'une fenêtre qui ne se ferme pas par Échap doit
+   * d'autant plus empêcher la page de bouger derrière elle.
+   */
+  closeOnlyByButton?: boolean;
   size?: ModalSize;
   children: React.ReactNode;
 }
 
 export default function Modal(
-  { open, onClose, title, closeLabel, closeAsIcon, headerAction, size = "md", children }:
-    ModalProps,
+  {
+    open,
+    onClose,
+    title,
+    closeLabel,
+    closeAsIcon,
+    headerAction,
+    closeOnlyByButton = false,
+    size = "md",
+    children,
+  }: ModalProps,
 ) {
   // Résolu au RENDU et pas dans la signature: `t()` lit la locale courante à
   // l'appel, et une valeur par défaut de paramètre l'évaluerait aussi à chaque
   // rendu — mais l'écrire ici la met sous les yeux de qui lit le composant.
   const closeText = closeLabel ?? t("common.close");
-  // ── ÉCHAP FERME, ET LA PAGE DERRIÈRE NE DÉFILE PLUS ─────────────────────
-  // Les deux moitiés du même contrat, posées et retirées ensemble.
+  // ── LA PAGE DERRIÈRE NE DÉFILE PLUS ─────────────────────────────────────
+  // ⛔ SÉPARÉ D'ÉCHAP LE 2026-09-07, et l'ordre des mots compte: ce verrou-ci
+  // est INCONDITIONNEL. Il l'était déjà, mais il partageait un effet avec la
+  // touche; une fenêtre qui refuse Échap (`closeOnlyByButton`) l'aurait perdu
+  // avec elle, et c'est précisément celle qui en a le plus besoin.
   React.useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
     // La valeur PRÉCÉDENTE est restaurée, pas `""`: un autre composant peut
     // avoir posé le verrou avant nous, et écrire une chaîne vide le lèverait
     // pour lui aussi.
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
     };
-  }, [open, onClose]);
+  }, [open]);
+
+  // ── ÉCHAP FERME — SAUF QUAND LA SORTIE EST UNE DÉCISION ─────────────────
+  React.useEffect(() => {
+    if (!open || closeOnlyByButton) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose, closeOnlyByButton]);
+
+  /**
+   * LE GESTE A-T-IL COMMENCÉ SUR LE VOILE ? — et pas seulement fini dessus.
+   *
+   * ⛔ LE TEST DE CIBLE SEUL NE SUFFISAIT PAS, ET LE COMMENTAIRE D'À CÔTÉ
+   * PROMETTAIT LE CONTRAIRE. Un navigateur émet `click` sur le PLUS PROCHE
+   * ANCÊTRE COMMUN du `mousedown` et du `mouseup`: presser dans le dialogue
+   * puis relâcher sur le voile — sélectionner du texte qui déborde, faire
+   * défiler à la souris, tirer l'écran au doigt — rend `e.target` égal au
+   * voile. La fenêtre se fermait donc sur un geste qui avait commencé DEDANS,
+   * ce que le test de cible était censé empêcher.
+   *
+   * ⚠️ Une `ref` et pas un `useState`: cette valeur ne doit rien redessiner,
+   * et un rendu entre le `pointerdown` et le `click` la perdrait.
+   */
+  const pressStartedOnVeil = React.useRef(false);
 
   const dialogRef = React.useRef<HTMLDivElement | null>(null);
   React.useEffect(() => {
@@ -144,11 +207,30 @@ export default function Modal(
       // la même valeur d'opacité qu'avant. Il n'a pas à être plus dense — ce qui
       // sépare la fenêtre de la page, c'est le trait de la fenêtre.
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-0 sm:items-center sm:p-6"
-      // LE FOND FERME, mais uniquement quand c'est LUI qu'on vise: sans le test
-      // de cible, un clic relâché sur le fond après avoir coché un article
-      // fermerait la fenêtre en pleine course.
+      // ⛔ LE GESTE DOIT COMMENCER ET FINIR SUR LE VOILE. Le test de cible seul
+      // laissait passer tout geste RELÂCHÉ sur le fond après avoir commencé
+      // dans la fenêtre (voir `pressStartedOnVeil`), et c'est le défaut
+      // signalé: « un mouvement d'écran supprime l'aperçu ».
+      onPointerDown={(e) => {
+        pressStartedOnVeil.current = e.target === e.currentTarget;
+      }}
+      // ⚠️ ET IL DOIT AUSSI SE RELÂCHER SUR LE VOILE. Le cas miroir est réel
+      // sur téléphone: la fenêtre est collée en bas (`items-end`), donc il y a
+      // du voile AU-DESSUS d'elle, et un doigt qui part de là pour faire
+      // défiler la feuille finit dans le dialogue. Sans ceci, ce geste-là
+      // fermerait — c'est l'autre moitié du « mouvement d'écran » signalé.
+      onPointerUp={(e) => {
+        if (e.target !== e.currentTarget) pressStartedOnVeil.current = false;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        const started = pressStartedOnVeil.current;
+        pressStartedOnVeil.current = false;
+        // ⚠️ LA FENÊTRE QUI PORTE UNE DÉCISION NE SE FERME PAS PAR LE VOILE.
+        // Le drapeau est quand même remis à zéro juste au-dessus: sortir plus
+        // tôt le laisserait armé pour le geste suivant.
+        if (closeOnlyByButton) return;
+        if (!started || e.target !== e.currentTarget) return;
+        onClose();
       }}
     >
       <div

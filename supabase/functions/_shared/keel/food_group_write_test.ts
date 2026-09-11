@@ -71,6 +71,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     kitchenEquipment: null,
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [],
     boxMemberExclusions: [],
     ...over,

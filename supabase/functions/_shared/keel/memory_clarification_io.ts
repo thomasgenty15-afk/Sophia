@@ -39,7 +39,6 @@ import {
   type ClarificationAbout,
   type ClarificationLanguage,
   clarificationEscapeLabel,
-  clarificationOptionLabel,
   clarificationViewLabel,
   MEMORY_CLARIFICATION_ABOUTS,
   memoryClarificationNoneId,
@@ -50,9 +49,7 @@ import {
 } from "./memory_clarification.ts";
 import {
   buildMemoryRecap,
-  buildSafetyNotWrittenNotice,
   type RecapKept,
-  type RecapSafety,
 } from "./memory_recap.ts";
 import type { DraftNoteClarifyEntry, DraftNoteMember } from "./draft_note_classify.ts";
 
@@ -64,8 +61,6 @@ export const MEMORY_CLARIFICATION_OPEN_FOR_HOURS = 48;
 
 export const MEMORY_CLARIFICATION_PURPOSE = "keel_memory_clarification";
 export const MEMORY_WRITTEN_PURPOSE = "keel_memory_written";
-/** ⟳ 2026-09-05 — la bulle qui dit qu'une ligne de SÉCURITÉ n'a PAS été écrite. */
-export const MEMORY_SAFETY_NOT_WRITTEN_PURPOSE = "keel_memory_safety_not_written";
 
 /** Le bloc de la carte que « Voir » ouvre, selon ce qui vient d'être écrit. */
 const BLOCK_OF: Record<RecapKept["kind"], string> = {
@@ -73,10 +68,6 @@ const BLOCK_OF: Record<RecapKept["kind"], string> = {
   note: "notes",
   next_plan: "next_plan",
   setting: "settings",
-  // ⟳ 2026-09-08 — une déclaration de sécurité n'a pas de bloc sur la carte
-  // mémoire: elle se défait dans la fiche santé, et le récap le dit en toutes
-  // lettres (`undo`). Le bouton « Voir » ouvre la carte, comme pour le reste.
-  safety: "preferences",
 };
 
 /**
@@ -144,12 +135,6 @@ export async function notifyMemoryWrite(
   args: {
     userId: string;
     kept: readonly RecapKept[];
-    /**
-     * ⟳ 2026-09-08 — CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ, pour que la bulle le dise
-     * avec la phrase « si je me suis trompée… ». REQUIS, jamais `?`: c'était
-     * `safety: []` en dur, et une allergie écrite ne se disait nulle part.
-     */
-    safety: readonly RecapSafety[];
     language: ClarificationLanguage;
     requestId?: string;
     now?: Date;
@@ -158,15 +143,14 @@ export async function notifyMemoryWrite(
   const kept = (args.kept ?? []).filter((k) =>
     String(k?.text ?? "").trim() !== ""
   );
-  const safety = (args.safety ?? []).filter((s) => String(s?.ref ?? "").trim() !== "");
-  if (kept.length === 0 && safety.length === 0) {
+  if (kept.length === 0) {
     return { delivered: false, reason: "nothing_written" };
   }
 
   // ⚠️ LE MÊME RENDU QUE LE RÉCAP DU SOIR. Il sait déjà nommer la destination
   // et la bouche, dans les deux langues. Un second rendu dirait la même chose
   // avec d'autres mots, et les deux divergeraient au premier ajout.
-  const body = buildMemoryRecap({ safety, kept, language: args.language });
+  const body = buildMemoryRecap({ safety: [], kept, language: args.language });
   if (!body) return { delivered: false, reason: "nothing_to_say" };
 
   const block = kept.length > 0 ? BLOCK_OF[kept[0].kind] ?? "preferences" : "preferences";
@@ -208,56 +192,6 @@ export async function notifyMemoryWrite(
     log("notice_failed", {
       user_id: args.userId,
       lines: kept.length,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return { delivered: false, reason: "notice_failed" };
-  }
-}
-
-/**
- * ⟳ 2026-09-05 — « JE N'AI PAS PU ENREGISTRER … » — l'échec se dit.
- *
- * Même doctrine que `notifyMemoryWrite` (une réponse au geste, `isReply`,
- * jamais une exception), avec l'inverse pour contenu: ce qui n'a PAS été
- * écrit. Sans bouton: la réparation se fait depuis la page du foyer, que la
- * phrase nomme.
- */
-export async function notifySafetyNotWritten(
-  admin: MinimalClient,
-  args: {
-    userId: string;
-    failed: readonly RecapSafety[];
-    language: ClarificationLanguage;
-    requestId?: string;
-    now?: Date;
-  },
-): Promise<NotifyMemoryWriteResult> {
-  const body = buildSafetyNotWrittenNotice({
-    failed: args.failed,
-    language: args.language,
-  });
-  if (!body) return { delivered: false, reason: "nothing_to_say" };
-  try {
-    const delivered = await deliverChatMessage(admin, {
-      userId: args.userId,
-      content: body,
-      purpose: MEMORY_SAFETY_NOT_WRITTEN_PURPOSE,
-      isReply: true,
-      buttons: [],
-      metadata: { keel_memory_safety_not_written: args.failed.length },
-      requestId: args.requestId,
-      now: args.now,
-    });
-    log(delivered.delivered ? "not_written_notice_sent" : "not_written_notice_not_delivered", {
-      user_id: args.userId,
-      lines: args.failed.length,
-      reason: delivered.reason,
-    });
-    return { delivered: delivered.delivered, reason: delivered.reason };
-  } catch (error) {
-    log("not_written_notice_failed", {
-      user_id: args.userId,
-      lines: args.failed.length,
       error: error instanceof Error ? error.message : String(error),
     });
     return { delivered: false, reason: "notice_failed" };
@@ -346,18 +280,6 @@ export async function askClarification(
     // un bouton muet que la personne taperait au hasard.
     const labels: string[] = [];
     for (const option of entry.options) {
-      if (entry.about === "scope") {
-        // ⟳ 2026-09-05 — les deux jetons de portée ont leur mot dans la
-        // langue de la personne; un jeton inconnu fait renoncer, comme un
-        // prénom absent.
-        const label = clarificationOptionLabel("scope", option, args.language);
-        if (!label) {
-          log("not_asked", { user_id: userId, reason: "no_labels", option });
-          return { asked: false, reason: "no_labels", id: null };
-        }
-        labels.push(label);
-        continue;
-      }
       if (entry.about === "who") {
         const found = (args.members ?? []).find((m) =>
           String(m?.memberId ?? "").trim().toLowerCase() === option
@@ -384,10 +306,6 @@ export async function askClarification(
       note: String(args.note ?? "").trim(),
       at: args.today,
       anchor: args.anchor,
-      // ⟳ 2026-09-05 — la déclaration EN ATTENTE d'une question de portée.
-      // Elle n'est écrite nulle part ailleurs tant que la personne n'a pas
-      // répondu « toujours »; c'est cette ligne qui la porte jusque-là.
-      safety: entry.about === "scope" ? entry.safety ?? null : null,
     };
     const expiresAt = new Date(
       now.getTime() + MEMORY_CLARIFICATION_OPEN_FOR_HOURS * 3600_000,

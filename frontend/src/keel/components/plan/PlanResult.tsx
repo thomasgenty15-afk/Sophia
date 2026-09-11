@@ -28,7 +28,6 @@ import { dishDate } from "../../api/mealStretch";
 import { dayTokenOf } from "../../api/dates";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import PlanDayBlock from "./PlanDayBlock";
-import PlanGrid from "./PlanGrid";
 import { buildPlanGrid } from "../../lib/planGridModel";
 import { type DishTick } from "../../lib/useMealTicks";
 import { Card } from "../ui/Card";
@@ -111,6 +110,22 @@ export interface PlanResultProps {
    */
   timing?: PlanTimingView | null;
   /** Le premier jour de la fenêtre, en date locale. */
+  /**
+   * ── LES OUTILS DU PLAN AFFICHÉ, RENDUS SOUS LE RAIL DES JOURS ────────────
+   *
+   * « Tes sessions de cuisine » et « Liste de courses ». Ils sont FABRIQUÉS par
+   * `MealBuilder` — c'est lui qui tient l'ouverture des deux fenêtres — et
+   * rendus ici, parce que c'est ici qu'est le rail: ils portent sur le plan
+   * qu'on vient de choisir avec le sélecteur, et sur les jours qu'on vient de
+   * filtrer avec le rail.
+   *
+   * ⛔ UNE FENTE, PAS UN DEUXIÈME SÉLECTEUR. `PlanResult` ne sait pas s'il y a
+   * des sessions à ouvrir, ni si le plan est en cours de génération; monter la
+   * décision ici ferait une seconde règle de visibilité à côté de celle de
+   * l'appelant, et c'est celle qu'on relit le moins qui garderait l'ancienne.
+   * `undefined` est le cas normal: le brouillon et les tests n'en passent pas.
+   */
+  tools?: React.ReactNode;
   startsOn: string;
   durationDays: number;
   /** Aujourd'hui, dans l'horloge du navigateur. */
@@ -281,7 +296,7 @@ export default function PlanResult(props: PlanResultProps) {
     { day: shown, dishes: groups.find((g) => g.day === shown)?.dishes ?? [] },
   ];
 
-  // ── A1 · LA PHRASE DU TIMING, EN TÊTE ────────────────────────────────────
+  // ── A1 · LA PHRASE DU TIMING ─────────────────────────────────────────────
   // `dishDayLabel(dayTokenOf(leadDay))` et pas une date formatée: tout le reste
   // de ce rendu parle en jours de la semaine, et `toLocaleDateString` n'est pas
   // utilisé ici (voir `HouseholdMergeCard`, laissé exprès). Un jour de veille
@@ -309,23 +324,40 @@ export default function PlanResult(props: PlanResultProps) {
     ? mealCopy("meals.timing.same_morning")
     : null;
 
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-09 — DEUX DES TROIS PHRASES PARLENT D'UN JOUR. ELLES Y VONT.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Les trois vivaient dans une carte en tête, au-dessus du rail des jours.
+   * « Courses et cuisson dès le matin » se lisait donc sans savoir de quelle
+   * matinée on parlait. Signalé tel quel: *« si ça concerne le mercredi, ça
+   * devrait être sur le mercredi »*.
+   *
+   *   · `day_before` et `same_morning` décrivent un GESTE — acheter, cuisiner —
+   *     et il tombe sur le PREMIER jour de la fenêtre. `lead_day` vaut le
+   *     `starts_on` du plan (`planTimingOf`), donc les deux désignent le même
+   *     jour et on n'a pas à choisir entre eux.
+   *   · `starts_tomorrow` ne décrit aucun geste: il dit que la FENÊTRE est plus
+   *     courte d'un jour que ce qui a été demandé. Ce fait n'appartient à aucun
+   *     jour — il reste en tête, et c'est le seul qui y reste.
+   *
+   * ⚠️ SUR LE JETON, PAS SUR LA DATE. Le bloc jour est rendu par jeton
+   * (`group.day`), et c'est la clé qui doit se comparer — une date formatée
+   * introduirait une seconde jointure à côté de `windowDates`.
+   */
+  const timingDay = timing === null || timing.kind === "starts_tomorrow"
+    ? null
+    : dayTokenOf(props.startsOn);
+  const planTimingLine = timingDay === null ? timingLine : null;
+
   return (
     <div className="space-y-6">
-      {timingLine === null ? null : (
+      {planTimingLine === null ? null : (
         <Card>
-          <p className="break-words text-sm text-ink">{timingLine}</p>
+          <p className="break-words text-sm text-ink">{planTimingLine}</p>
         </Card>
       )}
-      {/* NIVEAU 1 — la semaine d'un coup d'œil, et le SÉLECTEUR naturel de la
-          vue jour: cliquer une colonne filtre le détail dessous. */}
-      <PlanGrid
-        grid={grid}
-        // `windowDates` est une TABLE jeton→date, pas une liste: on la lit dans
-        // l'ordre des colonnes pour que les deux ne puissent pas se décaler.
-        dates={grid.days.map((d) => dayDates[d] ?? "")}
-        today={props.today}
-        onSelectDay={(day) => setSelectedDay(day)}
-      />
       {/* ── LOT 1 · LE RAIL DES JOURS ──────────────────────────────────────
           Un bouton par jour de la fenêtre + « toute la semaine ». Le patron
           est le contrôle segmenté de `PlanByPerson` (deux `Button`
@@ -334,6 +366,11 @@ export default function PlanResult(props: PlanResultProps) {
           déborde emporterait la page entière.
           ⛔ « AUJOURD'HUI » SE DIT PAR LA FORME (encre pleine + graisse),
           jamais par une couleur — même arbitrage que `PlanGrid`. */}
+      {/* LE RAIL ET LES OUTILS FORMENT UN BLOC: `space-y-3` entre eux, et les
+          24 px de `space-y-6` du parent les séparent du premier jour. Ce sont
+          les commandes du plan qu'on regarde — quels jours, et ses deux
+          fenêtres —, pas trois blocs indépendants. */}
+      <div className="space-y-3">
       <div className="overflow-x-auto">
         <div
           className="flex w-max gap-2"
@@ -383,6 +420,15 @@ export default function PlanResult(props: PlanResultProps) {
           })}
         </div>
       </div>
+      {/* ⟳ 2026-09-09 — LES DEUX OUTILS PASSENT SOUS LE RAIL. Ils étaient
+          au-dessus, entre le sélecteur de plan et les jours: on lisait donc
+          « liste de courses » avant de savoir de quels jours on parlait, et le
+          rail — le contrôle qu'on utilise le plus sur cet écran — était poussé
+          d'une rangée vers le bas. Demandé en ces termes: *« il faut que tes
+          sessions de cuisine et liste de courses ce soit en dessous des jours
+          qu'on peut sélectionner et toute la semaine »*. */}
+      {props.tools ?? null}
+      </div>
       {/* ── LE NIVEAU 2 EST PARTI LE 2026-08-14 ─────────────────────────────
           `KitchenBlock` (« ce que tu cuisines ») listait les préparations et
           les jours qu'elles nourrissent. « Tes sessions de cuisine » porte la
@@ -425,6 +471,14 @@ export default function PlanResult(props: PlanResultProps) {
           // la grille au-dessus porte déjà ces silences case par case, et les
           // répéter sous chaque jour ferait vingt lignes de bruit.
           moments={shown === "all" ? [] : dayMoments(grid, group.day)}
+          // ⟳ 2026-09-09 — LA PHRASE DE TIMING VA SUR SON JOUR, et sur lui
+          // seul. En vue semaine elle apparaît sous ce jour-là; en vue jour,
+          // seulement quand c'est ce jour qu'on regarde. Un groupe sans jour
+          // (`group.day === null`) n'en reçoit jamais: il vaut pour la fenêtre
+          // entière, et une consigne de matinée n'est pas de la fenêtre.
+          timingLine={group.day !== null && group.day === timingDay
+            ? timingLine
+            : null}
           // LOT 3 — LES PARTS DU PLAN RENDU, telles quelles. Le bloc jour ne
           // va PAS les chercher: elles arrivent avec le plan, sur la même
           // ligne que ses plats, donc elles ne peuvent pas être celles d'un

@@ -1,0 +1,329 @@
+{
+  "tag": "keel.household_meal.portion_sizing",
+  "user_id": "f6d6feac-34cb-4f3a-b621-00318930e386",
+  "household_id": "f9c7d6e7-fd9f-452a-854c-f0d6d480785b",
+  "intent": "prepare_next",
+  "density": {
+    "mouths": 1,
+    "named": 1,
+    "folded": 0,
+    "slots_above_floor": 2,
+    "no_target": 0,
+    "no_composition": 0,
+    "days_varied": 0,
+    "capped": 0,
+    "fixed_covered": 0,
+    "floor_min_kept": 1,
+    "empty_intersection": 0,
+    "by_slot": {
+      "breakfast": 100,
+      "lunch": 141,
+      "dinner": 123
+    }
+  },
+  "sizing_path": "portion_v1",
+  "reason": "one_mouth",
+  "applied": true,
+  "mouths": 1,
+  "dishes": 9,
+  "measured": 9,
+  "unmeasurable_by": {},
+  "verdicts": {
+    "in_bounds": 9,
+    "over_max": 0,
+    "under_min": 0,
+    "unmeasurable": 0
+  },
+  "bounds_source": {
+    "age_known": 9,
+    "age_unknown": 0
+  },
+  "clamped": {
+    "max": 0,
+    "min": 0
+  },
+  "unmet_band": {
+    "lt_200": 0,
+    "gte_200": 0
+  },
+  "pot_ingredients_without_amount": 0,
+  "slots": {
+    "declared": 0,
+    "light": 0,
+    "composed": 3,
+    "without_target": 0
+  },
+  "target": {
+    "anchored": 1,
+    "no_target": 0
+  },
+  "gap_closed": 0,
+  "fixed_covered": 0,
+  "fixed_conflict": 0,
+  "fixed_slot_kcal": {
+    "declared": 0,
+    "referential": 0,
+    "unresolved": 0,
+    "loose": 0,
+    "off_day": 0,
+    "loose_ignored_kcal": 0
+  },
+  "apply": {
+    "boxes_authored": 9,
+    "dishes_unsized": 0,
+    "fresh_scaled": 32,
+    "fresh_unweighed": 0,
+    "pots_scaled": 2,
+    "pots_unreadable": 0,
+    "servings_rewritten": 0,
+    "items_unresolved": 0,
+    "own_authored": 0,
+    "tubs_authored": 0,
+    "eaters_unsized": 0,
+    "regrammed": 44
+  },
+  "repairs": {
+    "asked": 3,
+    "accepted": 2,
+    "rejected": {
+      "belt": 0,
+      "unparseable": 0,
+      "no_cell": 0,
+      "title_changed": 1,
+      "unmeasurable": 0,
+      "missing_pot": 0,
+      "dedicated_lost": 0,
+      "degraded": 0,
+      "frozen_rewritten": 0
+    },
+    "splice": {
+      "fresh_spliced": 2,
+      "pots_spliced": 1,
+      "dish_missing": 0,
+      "pot_missing": 0,
+      "shopping_added": 0,
+      "shopping_pruned": 2
+    },
+    "skipped_stuck": 0,
+    "still_out": 0,
+    "skipped_budget": 0,
+    "pots_frozen": 0,
+    "pot_unforked": 0,
+    "pot_forked": 0,
+    "fresh_frozen": 0,
+    "stuck_dishes": 0,
+    "stuck_eaters": 0,
+    "residual_eaters": 0,
+    "residual_stuck": 0,
+    "recipe_terms": 72,
+    "recipe_quantified": 72,
+    "attempts": 2,
+    "retry_skipped_small": 0,
+    "retried_after": {
+      "belt": 0,
+      "unparseable": 0,
+      "no_cell": 0,
+      "title_changed": 0,
+      "unmeasurable": 0,
+      "missing_pot": 0,
+      "dedicated_lost": 0,
+      "degraded": 0,
+      "frozen_rewritten": 0
+    },
+    "fill_absorbed": {
+      "slugs_added": 0,
+      "aliases_added": 0
+    }
+  },
+  "rows": [
+    {
+      "dish_id": "Skyr, flocons d'avoine, pêche et noix",
+      "day": "fri",
+      "slot": "breakfast",
+      "standard_kcal": 418,
+      "density": 100.7,
+      "density_check": 112,
+      "density_check_gap": 11.2,
+      "target_kcal": 614,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 415,
+      "factor": 1.468,
+      "person_cooked_g": 609,
+      "bounds": {
+        "min": 250,
+        "max": 614,
+        "verdict": "in_bounds"
+      },
+      "pots": 0,
+      "floored": false
+    },
+    {
+      "dish_id": "Thon, pain complet, tomate, concombre et olives",
+      "day": "fri",
+      "slot": "lunch",
+      "standard_kcal": 803,
+      "density": 147.3,
+      "density_check": 142,
+      "density_check_gap": -3.6,
+      "target_kcal": 982,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 545,
+      "factor": 1.222,
+      "person_cooked_g": 666,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 0,
+      "floored": false
+    },
+    {
+      "dish_id": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+      "day": "fri",
+      "slot": "dinner",
+      "standard_kcal": 971,
+      "density": 130.1,
+      "density_check": 141,
+      "density_check_gap": 8.4,
+      "target_kcal": 859,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 746,
+      "factor": 0.885,
+      "person_cooked_g": 660,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 1,
+      "floored": false
+    },
+    {
+      "dish_id": "Fromage blanc, pain complet, prune et graines de courge",
+      "day": "sat",
+      "slot": "breakfast",
+      "standard_kcal": 747,
+      "density": 177.9,
+      "density_check": 116,
+      "density_check_gap": -34.8,
+      "target_kcal": 614,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 420,
+      "factor": 0.821,
+      "person_cooked_g": 345,
+      "bounds": {
+        "min": 250,
+        "max": 614,
+        "verdict": "in_bounds"
+      },
+      "pots": 0,
+      "floored": false
+    },
+    {
+      "dish_id": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+      "day": "sat",
+      "slot": "lunch",
+      "standard_kcal": 1409,
+      "density": 157.2,
+      "density_check": 149,
+      "density_check_gap": -5.2,
+      "target_kcal": 982,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 896,
+      "factor": 0.697,
+      "person_cooked_g": 624,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 1,
+      "floored": false
+    },
+    {
+      "dish_id": "Saumon, pommes de terre, haricots verts et yaourt",
+      "day": "sat",
+      "slot": "dinner",
+      "standard_kcal": 796,
+      "density": 124.4,
+      "density_check": 131,
+      "density_check_gap": 5.3,
+      "target_kcal": 859,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 640,
+      "factor": 1.079,
+      "person_cooked_g": 691,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 1,
+      "floored": false
+    },
+    {
+      "dish_id": "Yaourt grec, flocons d'avoine, raisin et amandes",
+      "day": "sun",
+      "slot": "breakfast",
+      "standard_kcal": 901,
+      "density": 225.3,
+      "density_check": 121,
+      "density_check_gap": -46.3,
+      "target_kcal": 614,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 400,
+      "factor": 0.681,
+      "person_cooked_g": 272,
+      "bounds": {
+        "min": 250,
+        "max": 614,
+        "verdict": "in_bounds"
+      },
+      "pots": 0,
+      "floored": false
+    },
+    {
+      "dish_id": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+      "day": "sun",
+      "slot": "lunch",
+      "standard_kcal": 1317,
+      "density": 146.1,
+      "density_check": 147,
+      "density_check_gap": 0.6,
+      "target_kcal": 982,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 901,
+      "factor": 0.745,
+      "person_cooked_g": 672,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 1,
+      "floored": false
+    },
+    {
+      "dish_id": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+      "day": "sun",
+      "slot": "dinner",
+      "standard_kcal": 964,
+      "density": 129.4,
+      "density_check": 131,
+      "density_check_gap": 1.2,
+      "target_kcal": 859,
+      "unmet_kcal": 0,
+      "standard_cooked_g": 745,
+      "factor": 0.891,
+      "person_cooked_g": 664,
+      "bounds": {
+        "min": 250,
+        "max": 700,
+        "verdict": "in_bounds"
+      },
+      "pots": 1,
+      "floored": false
+    }
+  ]
+}

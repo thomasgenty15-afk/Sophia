@@ -180,6 +180,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
   shopping_list: [
     {
       term: "flocons d'avoine",
+      quantity: "600 g",
       aisle: "grains",
       food_group: "whole_grain",
       buy_on: "2026-09-06",
@@ -187,6 +188,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "boisson de soja",
+      quantity: "1 l",
       aisle: "dairy",
       food_group: "legumes",
       buy_on: "2026-09-06",
@@ -194,6 +196,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "prunes",
+      quantity: "800 g",
       aisle: "produce",
       food_group: "other_fruit",
       buy_on: "2026-09-06",
@@ -201,6 +204,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "quinoa",
+      quantity: "500 g",
       aisle: "grains",
       food_group: "whole_grain",
       buy_on: "2026-09-06",
@@ -208,6 +212,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "tofu ferme",
+      quantity: "400 g",
       aisle: "protein",
       food_group: "tofu_tempeh",
       buy_on: "2026-09-06",
@@ -215,6 +220,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "courgettes",
+      quantity: "600 g",
       aisle: "produce",
       food_group: "non_starchy_veg",
       buy_on: "2026-09-06",
@@ -222,6 +228,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "lentilles corail",
+      quantity: "400 g",
       aisle: "grains",
       food_group: "legumes",
       buy_on: "2026-09-06",
@@ -229,6 +236,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "tomates concassées",
+      quantity: "800 g",
       aisle: "grocery",
       food_group: "non_starchy_veg",
       buy_on: "2026-09-06",
@@ -236,6 +244,7 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
     {
       term: "oignons",
+      quantity: "300 g",
       aisle: "produce",
       food_group: "non_starchy_veg",
       buy_on: "2026-09-06",
@@ -243,6 +252,46 @@ export const CLEAN_HOUSEHOLD_PLAN: GatePlan = {
     },
   ],
 };
+
+/**
+ * ⟳ 2026-09-11 · LOT E — LES QUATRE BOUCHES, CASE PAR CASE.
+ *
+ * ⛔ CHAQUE CASE EST DANS ±10 % DE SA CIBLE ET CHAQUE LUNDI DANS ±5 %, avec un
+ * plancher protéique ATTEINT: c'est un cas qui PASSE, pas un cas vide. Une
+ * garde qu'on ne fait tourner que sur des tableaux vides rend le même zéro
+ * qu'une garde débranchée.
+ */
+const HOUSEHOLD_ENERGY_ROWS = [
+  {
+    memberId: PAUL,
+    breakfast: { target: 620, served: 615 },
+    dinner: { target: 900, served: 890 },
+    protein: { breakfast: 22, dinner: 46, floorMon: 44 },
+  },
+  {
+    memberId: CLAIRE,
+    breakfast: { target: 520, served: 512 },
+    dinner: { target: 760, served: 748 },
+    protein: { breakfast: 19, dinner: 39, floorMon: 37 },
+  },
+  {
+    memberId: LEO,
+    breakfast: { target: 470, served: 466 },
+    dinner: { target: 690, served: 684 },
+    protein: { breakfast: 17, dinner: 35, floorMon: 33 },
+  },
+  {
+    memberId: NORA,
+    breakfast: { target: 410, served: 404 },
+    dinner: { target: 600, served: 594 },
+    protein: { breakfast: 15, dinner: 31, floorMon: 29 },
+  },
+] as const;
+
+/** L'écart en POURCENTS, arrondi nulle part: le test lit un nombre, pas un texte. */
+function pct(served: number, target: number): number {
+  return ((served - target) / target) * 100;
+}
 
 const HOUSEHOLD_CELLS = [
   { day: "sun", slot: "breakfast" },
@@ -292,6 +341,124 @@ export const CLEAN_HOUSEHOLD_CONTEXT: GateContext = {
   strictestRegime: "vegetarian",
   houseRuleLabels: ["nutella"],
   pantryTerms: ["huile d'olive"],
+  // ⟳ 2026-09-11 · LOT E — LES COURSES, PAR IDENTITÉ, ET ELLES NE MORDENT PAS.
+  //
+  // ⛔ NEUF IDENTITÉS CHIFFRÉES DES DEUX CÔTÉS, plus « huile d'olive » qui est
+  // au garde-manger et dont la quantité est donc INCONNUE. La dixième prouve la
+  // moitié qu'on oublie: le garde-manger déclare une PRÉSENCE, jamais un stock,
+  // et cet état-là n'est pas un manque — il ne produit AUCUN refus, seulement
+  // `checked.shopping_unverified: 1`.
+  shopping: [
+    ...([
+      ["oats_rolled", "flocons d'avoine"],
+      ["soy_drink", "boisson de soja"],
+      ["plum", "prunes"],
+      ["quinoa", "quinoa"],
+      ["tofu_firm", "tofu ferme"],
+      ["zucchini", "courgettes"],
+      ["lentils_red", "lentilles corail"],
+      ["tomato_canned", "tomates concassées"],
+      ["onion", "oignons"],
+    ] as const).map(([identity, displayTerm]) => ({
+      identity,
+      displayTerm,
+      state: "covered_measured" as const,
+      reason: "acheté ≥ requis",
+    })),
+    {
+      identity: "olive_oil",
+      displayTerm: "huile d'olive",
+      state: "present_unquantified" as const,
+      reason: "déclaré au garde-manger — présence seule, quantité inconnue",
+    },
+  ],
+  // ⟳ 2026-09-11 · LOT E — LA NUTRITION PAR PERSONNE / DATE / CRÉNEAU.
+  //
+  // ⛔ TROIS CASES × QUATRE BOUCHES. Les deux cases EN BOÎTES portent une
+  // portion pour chacun; la case de TABLE (`sun/dinner`, le dahl) n'en porte
+  // pour personne — et c'est normal: `portionExpected: false`, état
+  // `not_personal`. Sans cette distinction, la garde refuserait tous les repas
+  // partagés d'un foyer, c'est-à-dire le produit lui-même.
+  nutrition: {
+    cells: HOUSEHOLD_ENERGY_ROWS.flatMap(({ memberId, breakfast, dinner, protein }) => [
+      {
+        memberId,
+        day: "sun",
+        date: "2026-09-06",
+        slot: "breakfast",
+        hasDish: true,
+        hasPortion: true,
+        targetKcal: breakfast.target,
+        servedKcal: breakfast.served,
+        proteinG: protein.breakfast,
+        deltaPct: pct(breakfast.served, breakfast.target),
+        gap: null,
+        portionExpected: true,
+        state: "conforme" as const,
+      },
+      {
+        memberId,
+        day: "sun",
+        date: "2026-09-06",
+        slot: "dinner",
+        hasDish: true,
+        hasPortion: false,
+        targetKcal: null,
+        servedKcal: null,
+        proteinG: null,
+        deltaPct: null,
+        gap: null,
+        portionExpected: false,
+        state: "not_personal" as const,
+      },
+      {
+        memberId,
+        day: "mon",
+        date: "2026-09-07",
+        slot: "dinner",
+        hasDish: true,
+        hasPortion: true,
+        targetKcal: dinner.target,
+        servedKcal: dinner.served,
+        proteinG: protein.dinner,
+        deltaPct: pct(dinner.served, dinner.target),
+        gap: null,
+        portionExpected: true,
+        state: "conforme" as const,
+      },
+    ]),
+    // ⚠️ LE DIMANCHE EST `unmeasurable`, ET C'EST HONNÊTE: sa somme manque la
+    // part du dahl, qu'aucun contenant ne porte. Publier un écart sur une
+    // journée à trou ferait passer une MESURE absente pour de la NOURRITURE
+    // absente. Le lundi, lui, est complet — c'est lui qui fait tourner
+    // `measured_days` et `protein_days`.
+    days: HOUSEHOLD_ENERGY_ROWS.flatMap(({ memberId, breakfast, dinner, protein }) => [
+      {
+        memberId,
+        date: "2026-09-06",
+        cellsExpected: 2,
+        cellsMeasured: 1,
+        coveredBudgetKcal: null,
+        servedKcal: breakfast.served,
+        deltaPct: null,
+        proteinG: null,
+        protein: { coveredFloorG: null, reason: "coverage_unknown" },
+        state: "unmeasurable" as const,
+      },
+      {
+        memberId,
+        date: "2026-09-07",
+        cellsExpected: 1,
+        cellsMeasured: 1,
+        coveredBudgetKcal: dinner.target,
+        servedKcal: dinner.served,
+        deltaPct: pct(dinner.served, dinner.target),
+        proteinG: protein.dinner,
+        protein: { coveredFloorG: protein.floorMon, reason: "applied_covered_window" },
+        state: "conforme" as const,
+      },
+    ]),
+  },
   policy: FINAL_GATE_POLICY_LOT_1,
 };
 
@@ -332,6 +499,7 @@ export const SOLO_PLAN: GatePlan = {
   shopping_list: [
     {
       term: "flocons d'avoine",
+      quantity: "600 g",
       aisle: "grains",
       food_group: "whole_grain",
       buy_on: "2026-09-06",
@@ -339,6 +507,7 @@ export const SOLO_PLAN: GatePlan = {
     },
     {
       term: "boisson de soja",
+      quantity: "1 l",
       aisle: "dairy",
       food_group: "legumes",
       buy_on: "2026-09-06",
@@ -346,6 +515,7 @@ export const SOLO_PLAN: GatePlan = {
     },
     {
       term: "prunes",
+      quantity: "800 g",
       aisle: "produce",
       food_group: "other_fruit",
       buy_on: "2026-09-06",
@@ -371,5 +541,50 @@ export const SOLO_CONTEXT: GateContext = {
   strictestRegime: null,
   houseRuleLabels: [],
   pantryTerms: [],
+  // ⟳ 2026-09-11 · LOT E — LE SOLO AUSSI FAIT TOURNER LES COURSES. Sinon son
+  // cas propre serait propre PAR VACUITÉ.
+  shopping: [
+    { identity: "oats_rolled", displayTerm: "flocons d'avoine", state: "covered_measured", reason: "acheté ≥ requis" },
+    { identity: "soy_drink", displayTerm: "boisson de soja", state: "covered_measured", reason: "acheté ≥ requis" },
+    { identity: "plum", displayTerm: "prunes", state: "covered_measured", reason: "acheté ≥ requis" },
+  ],
+  // ⛔ UNE SEULE CASE, SANS AUCUNE BOÎTE, ET ELLE NE DOIT PAS MORDRE. Le solo
+  // de cette fixture mange à table; `portionExpected: false` dit qu'aucune
+  // portion individuelle n'est attendue. Le cas SYMÉTRIQUE — une lane qui
+  // dimensionne des portions personnelles et livre une case à zéro contenant —
+  // est le défaut ① du 2026-09-11, et il a son propre test.
+  nutrition: {
+    cells: [
+      {
+        memberId: SOLO,
+        day: "sun",
+        date: "2026-09-06",
+        slot: "breakfast",
+        hasDish: true,
+        hasPortion: true,
+        targetKcal: 560,
+        servedKcal: 553,
+        proteinG: 21,
+        deltaPct: pct(553, 560),
+        gap: null,
+        portionExpected: true,
+        state: "conforme",
+      },
+    ],
+    days: [
+      {
+        memberId: SOLO,
+        date: "2026-09-06",
+        cellsExpected: 1,
+        cellsMeasured: 1,
+        coveredBudgetKcal: 560,
+        servedKcal: 553,
+        deltaPct: pct(553, 560),
+        proteinG: 21,
+        protein: { coveredFloorG: 20, reason: "applied_covered_window" },
+        state: "conforme",
+      },
+    ],
+  },
   policy: FINAL_GATE_POLICY_LOT_1,
 };

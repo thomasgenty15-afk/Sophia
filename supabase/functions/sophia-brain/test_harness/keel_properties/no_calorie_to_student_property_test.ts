@@ -817,7 +817,6 @@ Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and o
   // Cherché sur les TROIS générateurs, parce qu'un seul oublié suffit.
   for (
     const fn of [
-      "generate-meal-v1",
       "generate-household-meal-v1",
     ]
   ) {

@@ -10,12 +10,23 @@ import {
   longestFridgeStretch,
   MAX_COOKING_SESSIONS,
   oneStyleLower,
+  offerableGroceryRuns,
   readCookingStyle,
   readGroceryRuns,
   resolveCookingCapacity,
   unusedGroceryRuns,
 } from "./cooking_plan.ts";
 import { type DayToken } from "./tokens.ts";
+// ⛔ IMPORTÉES POUR ÊTRE ÉPROUVÉES, PAS POUR ÊTRE UTILISÉES. Voir le dernier
+// bloc: l'offre de cadence repose sur une propriété de CE module-là, et une
+// dépendance qu'on affirme sans la mesurer est une contrainte documentée qui
+// survivra à sa cause.
+import {
+  addDays,
+  MAX_WINDOW_DAYS,
+  withCookDayBefore,
+  withoutSpentFirstDay,
+} from "./meal_plan_window.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -170,6 +181,10 @@ Deno.test("A2 — les TROIS leviers du style atteignent la capacité SERVIE", ()
       windowDays: WITH_LEAD,
       leadDay: true,
       daysToEat: 7,
+      // ⟳ 2026-09-09 — les deux entrées de l'offre, requises depuis que
+      // « peu importe » se résout contre elle.
+      oneCookingSession: false,
+      maxFridgeDays: 3,
     });
     assertEquals(served.recipeDifficulty, profile.difficulty, style);
     assertEquals(served.variety, profile.variety, style);
@@ -196,6 +211,11 @@ Deno.test("A2 — sans style, les trois leviers déclarés ressortent INTACTS", 
     windowDays: WITH_LEAD,
     leadDay: true,
     daysToEat: 7,
+    // ⟳ 2026-09-09 — les deux entrées de l'offre, requises depuis que
+    // « peu importe » se résout contre elle. `false` / `3` = le cas
+    // nominal: aucune session unique demandée, conservation standard.
+    oneCookingSession: false,
+    maxFridgeDays: 3,
   });
   assertEquals(served.recipeDifficulty, "normal");
   assertEquals(served.variety, "some");
@@ -445,6 +465,384 @@ Deno.test("A2 — MUTATION: on ne SORT jamais du plafond dur, quoi qu'on demande
   }
 });
 
+// ===========================================================================
+// L'OFFRE — CE QU'ON A LE DROIT DE PROPOSER (2026-09-04)
+// ===========================================================================
+//
+// ── CE QUE CES TESTS DOIVENT EMPÊCHER ─────────────────────────────────────
+//   ① qu'on propose une cadence que le plan ne suivra pas — le défaut mesuré:
+//      « trois courses ? » sur un plan de deux jours, « trois courses ? » sous
+//      une case « je cuisine tout en une seule fois »;
+//   ② qu'une option disparaisse SANS MOTIF: `limit` est la moitié qui se lit à
+//      l'écran, et un `null` de trop ferait une liste courte sans phrase;
+//   ③ que l'offre se mette à recopier les plafonds au lieu de les LIRE. Les
+//      deux derniers tests mutent `COOKING_STYLE_PROFILE` par la lecture, pas
+//      par une constante recopiée: ils comparent l'offre au plafond réel.
+
+/**
+ * ⛔ `maxFridgeDays: 3` EST UN LITTÉRAL, PAS `MAX_FRIDGE_DAYS`. Paramétrer le
+ * banc par sa propre constante le laisserait VERT le jour où elle change —
+ * cicatrice mesurée de ce dépôt. La valeur elle-même est épinglée ailleurs
+ * (`week_bounds_test.ts:392`), et c'est ce test-là qui doit tomber si elle
+ * bouge, pas celui-ci qui doit s'y adapter en silence.
+ */
+const offer = (over: Partial<Parameters<typeof offerableGroceryRuns>[0]> = {}) =>
+  offerableGroceryRuns({
+    style: null,
+    oneCookingSession: false,
+    daysToEat: 7,
+    maxFridgeDays: 3,
+    ...over,
+  });
+
+Deno.test("l'offre — sans contrainte, LES TROIS, et aucun motif", () => {
+  const out = offer();
+  assertEquals(out.values, [1, 2, 3]);
+  assertEquals(out.forced, null);
+  // ⛔ `null` EST LA DONNÉE: un motif non nul ferait afficher une phrase qui
+  // explique un resserrement qui n'a pas eu lieu.
+  assertEquals(out.limit, null);
+});
+
+Deno.test("l'offre — un style JAMAIS DEMANDÉ ne plafonne pas", () => {
+  // La cicatrice `20260818110000:48-51`, appliquée à l'offre: une clé absente
+  // n'est pas « le moins possible ». La traiter comme telle retirerait la
+  // troisième cadence à tout compte qui n'a pas encore répondu.
+  assertEquals(offer({ style: null }).values, [1, 2, 3]);
+  assertEquals(offer({ style: null }).limit, null);
+});
+
+Deno.test("l'offre — « le moins possible » retire la troisième course", () => {
+  const out = offer({ style: "minimal" });
+  assertEquals(out.values, [1, 2]);
+  assertEquals(out.forced, null);
+  assertEquals(out.limit, "style");
+  // ⛔ ET LE PLAFOND EST LU, PAS RECOPIÉ. Si quelqu'un change `sessionCap`
+  // là-haut, c'est cette ligne qui dit que l'offre a suivi.
+  assertEquals(out.values.length, COOKING_STYLE_PROFILE.minimal.sessionCap);
+  for (const style of ["balanced", "keen"] as const) {
+    assertEquals(offer({ style }).values, [1, 2, 3]);
+  }
+});
+
+Deno.test("l'offre — le plafond de fenêtre est la CONSERVATION, pas le compte de jours", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT MESURÉ À L'ÉCRAN LE 2026-09-04, ET IL A ÉTÉ LIVRÉ UNE DEMI-
+  // JOURNÉE: un plan du 4 au 5 septembre proposait DEUX courses pour DEUX
+  // jours. La première version comptait les JOURS — « combien de courses
+  // tiennent dans la fenêtre » —, alors que la question est « combien il en
+  // FAUT »: un lot cuisiné couvre `maxFridgeDays` jours.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⌈jours ÷ 3⌉, avec le plafond dur à 3:
+  //   1, 2, 3 jours ⇒ 1 course     4, 5, 6 jours ⇒ 2      7 jours ⇒ 3
+  for (const daysToEat of [1, 2, 3]) {
+    const out = offer({ daysToEat });
+    assertEquals(out.values, [1], `${daysToEat} jours`);
+    assertEquals(out.forced, 1, `${daysToEat} jours`);
+    assertEquals(out.limit, "days", `${daysToEat} jours`);
+  }
+  for (const daysToEat of [4, 5, 6]) {
+    const out = offer({ daysToEat });
+    assertEquals(out.values, [1, 2], `${daysToEat} jours`);
+    assertEquals(out.forced, null, `${daysToEat} jours`);
+    assertEquals(out.limit, "days", `${daysToEat} jours`);
+  }
+  assertEquals(offer({ daysToEat: 7 }).values, [1, 2, 3]);
+  assertEquals(offer({ daysToEat: 7 }).limit, null);
+});
+
+Deno.test("l'offre — MUTATION: la conservation est LUE, jamais recopiée", () => {
+  // Le test qui tombe si quelqu'un réécrit `⌈jours ÷ 3⌉` avec un `3` en dur.
+  // Avec une conservation d'un seul jour, chaque jour demande sa session.
+  assertEquals(offer({ daysToEat: 2, maxFridgeDays: 1 }).values, [1, 2]);
+  assertEquals(offer({ daysToEat: 3, maxFridgeDays: 1 }).values, [1, 2, 3]);
+  // Et avec une conservation d'une semaine, une seule suffit partout.
+  for (const daysToEat of [1, 4, 7]) {
+    assertEquals(offer({ daysToEat, maxFridgeDays: 7 }).values, [1], `${daysToEat}j`);
+  }
+});
+
+Deno.test("l'offre — « tout en une seule fois » tranche, et il NOMME la case", () => {
+  // ⛔ IL PASSE DERNIER, ET C'EST LE MOTIF QUI COMPTE. Nommer la fenêtre ou le
+  // style devant une case qu'on vient de cocher enverrait corriger la mauvaise
+  // réponse.
+  for (const style of [null, "minimal", "keen"] as const) {
+    for (const daysToEat of [1, 2, 7]) {
+      const out = offer({ oneCookingSession: true, style, daysToEat });
+      assertEquals(out.values, [1]);
+      assertEquals(out.forced, 1);
+      assertEquals(out.limit, "one_session");
+    }
+  }
+});
+
+Deno.test("l'offre — à égalité de plafond, c'est la FENÊTRE qu'on nomme", () => {
+  // « le moins possible » et cinq jours plafonnent tous les deux à 2. On nomme
+  // la fenêtre: elle est concrète, datée, et la personne vient de la régler
+  // trois champs plus haut. « Ton style ne permet pas trois courses » devant un
+  // plan trop court envoie corriger la mauvaise réponse.
+  const out = offer({ style: "minimal", daysToEat: 5 });
+  assertEquals(out.values, [1, 2]);
+  assertEquals(out.limit, "days");
+  // ⚠️ ET L'INVERSE TIENT AUSSI: sur sept jours, la conservation ne plafonne
+  // plus (elle en autorise trois) et c'est le STYLE qui est nommé.
+  assertEquals(offer({ style: "minimal", daysToEat: 7 }).limit, "style");
+});
+
+Deno.test("l'offre — elle n'est JAMAIS vide, et jamais au-dessus du plafond dur", () => {
+  for (const style of [null, ...COOKING_STYLES] as const) {
+    for (const oneCookingSession of [true, false]) {
+      for (const daysToEat of [-3, 0, 1, 2, 5, 40]) {
+        const out = offer({ style, oneCookingSession, daysToEat });
+        assert(out.values.length >= 1, `offre vide: ${style}/${daysToEat}`);
+        assert(out.values.length <= MAX_COOKING_SESSIONS);
+        assertEquals(out.values[0], 1, "« une course » sort toujours de l'offre");
+        // ⛔ UN MOTIF DÈS QUE LA LISTE EST COURTE — la moitié qui se lit à
+        // l'écran. Une option qui s'évapore sans phrase se lit comme une panne.
+        assertEquals(
+          out.limit === null,
+          out.values.length === MAX_COOKING_SESSIONS,
+          `motif et longueur désaccordés: ${JSON.stringify(out)}`,
+        );
+        assertEquals(out.forced, out.values.length === 1 ? 1 : null);
+      }
+    }
+  }
+});
+
+Deno.test("l'offre — MUTATION: elle est le MIROIR de la dérivation, pas une seconde règle", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE TEST QUI DIT POURQUOI LA FONCTION VIT DANS CE FICHIER.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Toute cadence PROPOSÉE doit être une cadence que le plan ORGANISE — sinon
+  // on propose un geste que le plan ne fera pas, ce qui est exactement le
+  // défaut du 2026-09-04. Écrite dans le composant avec `2` et `3` en dur,
+  // l'offre aurait passé ce test le premier jour et menti le lendemain.
+  //
+  // ⟳ LOT C — LE MIROIR EST `derived.runs`, PLUS `derived.sessions`. Les deux
+  // étaient le même nombre tant que les courses semaient les sessions. Depuis
+  // le renversement, ce que l'offre promet est un nombre de VAGUES DE COURSES,
+  // et c'est ce nombre-là qui doit se retrouver dans le plan.
+  const windowDays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as DayToken[];
+  for (const style of COOKING_STYLES) {
+    for (const daysToEat of [1, 2, 3, 5, 7]) {
+      const out = offerableGroceryRuns({
+        style,
+        oneCookingSession: false,
+        daysToEat,
+        maxFridgeDays: 3,
+      });
+      for (const runs of out.values) {
+        const derived = deriveCookingPlan({
+          style,
+          runs,
+          freezer: true,
+          windowDays: windowDays.slice(0, daysToEat),
+          leadDay: false,
+          daysToEat,
+        });
+        assertEquals(
+          derived.runs,
+          runs,
+          `proposé ${runs} course(s) en ${style}/${daysToEat}j, le plan en organise ${derived.runs}`,
+        );
+        // ⛔ ET L'INVARIANT DU LOT TIENT SUR TOUTE L'OFFRE: jamais plus de
+        // courses que de sessions, sur aucune cadence proposable.
+        assert(derived.runs <= derived.sessions, `${style}/${daysToEat}j/${runs}c`);
+        assertEquals(unusedGroceryRuns(runs, derived), 0);
+      }
+    }
+  }
+});
+
+Deno.test("l'offre — REFUSE une entrée qui désarmerait la garde", () => {
+  assertThrows(
+    () => offer({ daysToEat: Number.NaN }),
+    Error,
+    "daysToEat non fini",
+  );
+  // ⛔ UNE CONSERVATION À ZÉRO DIVISERAIT PAR ZÉRO et rendrait `Infinity`
+  // sessions — c'est-à-dire, après le plafond dur, une offre pleine sur un
+  // plan où rien ne se conserve. Le refus est nommé plutôt que rattrapé.
+  for (const maxFridgeDays of [0, -1, Number.NaN]) {
+    assertThrows(
+      () => offer({ maxFridgeDays }),
+      Error,
+      "`maxFridgeDays` est REQUIS",
+    );
+  }
+  assertThrows(
+    () =>
+      offerableGroceryRuns({
+        style: null,
+        oneCookingSession: undefined as unknown as boolean,
+        daysToEat: 7,
+        maxFridgeDays: 3,
+      }),
+    Error,
+    "`oneCookingSession` est REQUIS",
+  );
+});
+
+// ===========================================================================
+// L'INVARIANT DONT L'OFFRE DÉPEND — et il vit dans un AUTRE module
+// ===========================================================================
+//
+// ── CE QUE `offerableGroceryRuns` AFFIRME SANS POUVOIR LE VOIR ────────────
+// Elle reçoit `daysToEat` = LA FENÊTRE DEMANDÉE (ce que l'écran a saisi), pas
+// les jours réellement mangés. La prop de `GroceryRunsField` justifie ce choix
+// ainsi: « on ne retire jamais une option que le moteur aurait honorée ».
+//
+// Cette phrase n'est vraie que si le serveur ne peut que RÉDUIRE les jours
+// mangés. Deux gestes touchent la fenêtre servie, et ils vivent dans
+// `meal_plan_window.ts` — un module que ce lot ne possède pas:
+//
+//   `withCookDayBefore`     durationDays +1  ET  cookOnlyDay = ce jour-là
+//   `withoutSpentFirstDay`  durationDays −1
+//   daysToEat = durationDays − (cookOnlyDay === null ? 0 : 1)
+//
+// La veille ajoute un jour à la fenêtre ET le retire des jours mangés: elle
+// laisse `daysToEat` INCHANGÉ. Le retrait, lui, ne peut que soustraire.
+//
+// ⛔ POURQUOI CE TEST EXISTE ICI PLUTÔT QUE NULLE PART. Une hypothèse sur le
+// module d'un voisin, écrite dans un commentaire, est exactement la forme que
+// ce dépôt paie en boucle: elle reste vraie le jour où on l'écrit, et personne
+// n'est prévenu le jour où elle cesse de l'être. Le geste qui la casserait est
+// CONNU — un lot qui ALLONGERAIT la fenêtre mangée (« trois jours demandés =
+// trois jours nourris », écartée le 2026-09-04) — et il ne toucherait aucun
+// fichier de ce lot. Ce test-ci rougirait.
+
+Deno.test("l'offre — INVARIANT VOISIN: les jours MANGÉS ne dépassent jamais les jours DEMANDÉS", () => {
+  const today = "2026-09-04";
+  const slots = ["breakfast", "lunch", "dinner"];
+
+  for (let requested = 1; requested <= MAX_WINDOW_DAYS; requested++) {
+    // ── ① LA FENÊTRE COMMENCE DEMAIN: la veille peut être accordée ────────
+    // (`withoutSpentFirstDay` se refuse alors sur `not_today`.)
+    const tomorrow = addDays(today, 1);
+    const ahead = withCookDayBefore(
+      { startsOn: tomorrow, durationDays: requested },
+      { asked: true, today },
+    );
+    const eatenAhead = ahead.durationDays - (ahead.cookOnlyDay === null ? 0 : 1);
+    assertEquals(
+      eatenAhead,
+      requested,
+      `veille accordée sur ${requested}j: les jours mangés ont bougé`,
+    );
+
+    // ── ② LA FENÊTRE COMMENCE AUJOURD'HUI, JOURNÉE ENTIÈREMENT DÉPENSÉE ───
+    // (`withCookDayBefore` s'y refuse sur `in_the_past`: la veille serait hier.)
+    const spent = withoutSpentFirstDay(
+      { startsOn: today, durationDays: requested },
+      {
+        today,
+        cookOnlyDay: null,
+        declaredSlots: slots,
+        passedSlots: slots,
+        // ⟳ 2026-09-04 · les deux entrées du délai de courses. Ce cas éprouve la
+        // règle des moments PASSÉS: rien n'est retenu, la coupure n'est pas
+        // atteinte, et son assertion reste celle d'avant le lot.
+        heldSlots: [],
+        shoppingCutoffReached: false,
+      },
+    );
+    assert(
+      spent.durationDays <= requested,
+      `journée dépensée sur ${requested}j: la fenêtre a GRANDI (${spent.durationDays})`,
+    );
+
+    // ── ③ LES DEUX SE RENCONTRENT — l'état que j'avais cru IMPOSSIBLE ────
+    // ══════════════════════════════════════════════════════════════════════
+    // LA CORRECTION QUI A FAILLI COÛTER UNE GARDE, 2026-09-04.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // J'avais écrit que les deux gestes étaient « mutuellement exclusifs par
+    // construction »: `withoutSpentFirstDay` exige `startsOn === today`, et
+    // `withCookDayBefore` refuse `in_the_past` dès que la fenêtre part
+    // d'aujourd'hui. C'est FAUX, et dangereusement — quelqu'un qui le lit en
+    // conclut que la garde `cook_day` est redondante, et la retire.
+    //
+    // ⛔ LE RAISONNEMENT PORTAIT SUR L'ÉTAT **AVANT** LA VEILLE. L'appelant
+    // RÉASSIGNE (`generate-meal-v1:1359-1360`): quand la veille est accordée,
+    // `startsOn` DEVIENT aujourd'hui. `withoutSpentFirstDay` reçoit donc
+    // `startsOn === today` ET `cookOnlyDay !== null` — l'état que je croyais
+    // impossible est précisément celui que la veille CRÉE.
+    //
+    // Sans la garde `cook_day`, le contrôle passerait aux moments (tous passés
+    // en soirée), et la fenêtre perdrait LE JOUR DE CUISINE que la personne
+    // vient de demander. Mesuré en run réel par la lane fenêtre, deux fois:
+    // `issues=[spent_first_day_kept: cook_day]`, un jeton qu'AUCUN autre chemin
+    // n'émet.
+    //
+    // ⚠️ CE TEST TIENT DONC LA GARDE D'UN AUTRE LOT, depuis celui-ci: mon
+    // invariant EN DÉPEND, et une dépendance qu'on n'éprouve pas est une
+    // dépendance qu'on retire par mégarde.
+    if (requested + 1 <= MAX_WINDOW_DAYS) {
+      const ahead2 = withCookDayBefore(
+        { startsOn: tomorrow, durationDays: requested },
+        { asked: true, today },
+      );
+      assertEquals(ahead2.refused, null, `veille refusée sur ${requested}j`);
+      assertEquals(ahead2.startsOn, today, "la veille n'a pas reculé la fenêtre");
+      const met = withoutSpentFirstDay(
+        { startsOn: ahead2.startsOn, durationDays: ahead2.durationDays },
+        {
+          today,
+          cookOnlyDay: ahead2.cookOnlyDay,
+          declaredSlots: slots,
+          // TOUS les moments passés: sans la garde, la journée serait « finie ».
+          passedSlots: slots,
+          // ⟳ 2026-09-04 · rien n'est retenu par les courses ici: c'est la
+          // garde `cook_day` qu'on éprouve, et elle passe AVANT les moments.
+          heldSlots: [],
+          shoppingCutoffReached: false,
+        },
+      );
+      assertEquals(
+        met.refused,
+        "cook_day",
+        `la garde du piège n'a pas tiré sur ${requested}j — le jour de cuisine est mangé`,
+      );
+      assertEquals(met.durationDays, ahead2.durationDays, "la fenêtre a rétréci quand même");
+      const eatenMet = met.durationDays - (ahead2.cookOnlyDay === null ? 0 : 1);
+      assertEquals(
+        eatenMet,
+        requested,
+        `veille + journée dépensée sur ${requested}j: les jours mangés ont bougé`,
+      );
+    }
+
+    // ── ④ CE QUE L'OFFRE EN TIRE ─────────────────────────────────────────
+    // ⛔ L'ASSERTION QUI COMPTE: l'offre calculée sur la DEMANDE ne peut être
+    // que la même, ou plus large, que celle calculée sur les jours servis.
+    // Plus large = on propose une cadence que le plan n'utilisera pas, et la
+    // rationale le dit. Plus ÉTROITE serait le défaut: on retirerait une
+    // option que le moteur aurait honorée, sans que rien ne le dise.
+    for (const served of [eatenAhead, spent.durationDays]) {
+      const asked = offerableGroceryRuns({
+        style: null,
+        oneCookingSession: false,
+        daysToEat: requested,
+        maxFridgeDays: 3,
+      });
+      const real = offerableGroceryRuns({
+        style: null,
+        oneCookingSession: false,
+        daysToEat: served,
+        maxFridgeDays: 3,
+      });
+      assert(
+        asked.values.length >= real.values.length,
+        `${requested}j demandés / ${served}j servis: l'offre saisie est plus ÉTROITE ` +
+          `que la servie (${asked.values.length} < ${real.values.length})`,
+      );
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // ⟳ LOT 3 (2026-09-06) — LES JOURS DE CUISINE DÉCLARÉS PLACENT LES SESSIONS
 // ---------------------------------------------------------------------------
@@ -504,6 +902,11 @@ Deno.test("LOT 3 — `resolveCookingCapacity` fait ENTRER les jours déclarés d
     windowDays: WITH_LEAD,
     leadDay: true,
     daysToEat: 7,
+    // ⟳ 2026-09-09 — les deux entrées de l'offre, requises depuis que
+    // « peu importe » se résout contre elle. `false` / `3` = le cas
+    // nominal: aucune session unique demandée, conservation standard.
+    oneCookingSession: false,
+    maxFridgeDays: 3,
   });
   assertEquals(out.cookDays, ["sun"]);
   assertEquals(out.plan?.sessions, 1);

@@ -137,7 +137,23 @@ export async function stripeRequest<T = any>(
         return { id: "subsch_MEGA_TEST", status: "active" } as T;
       }
       if (opts.method === "POST" && opts.path === "/v1/checkout/sessions") {
-        return { id: "cs_MEGA_TEST", url: "https://checkout.stripe.test/session/cs_MEGA_TEST" } as T;
+        // ── FF-064 · LE STUB REND LE CORPS QU'ON LUI A DONNÉ ────────────────
+        // Il ne le regardait PAS, et c'est ce qui rendait `trial_end`
+        // invérifiable hors production: on pouvait poser la clé, la voir
+        // partir dans le vide et lire un `cs_MEGA_TEST` triomphal. Un champ
+        // déclaré sans compteur ressemble à un champ qui marche.
+        //
+        // ⚠️ `__mega_` EST UN PRÉFIXE DE TEST, PAS UN CHAMP STRIPE. Il n'existe
+        // que sous `MEGA_TEST_MODE` — lui-même gardé par `isLocalSupabaseEnv()`
+        // (SEC-08) —, aucun appelant de production ne le lit, et le rendre ne
+        // change rien à ce qui part sur le fil quand le stub est éteint.
+        return {
+          id: "cs_MEGA_TEST",
+          url: "https://checkout.stripe.test/session/cs_MEGA_TEST",
+          __mega_body: Object.fromEntries(
+            toStripeFormBody(opts.body ?? {}).entries(),
+          ),
+        } as T;
       }
       if (opts.method === "POST" && opts.path === "/v1/billing_portal/sessions") {
         return { url: "https://billing.stripe.test/portal/session/bps_MEGA_TEST" } as T;

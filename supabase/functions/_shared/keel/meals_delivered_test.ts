@@ -208,7 +208,7 @@ Deno.test("PROPRIÉTÉ — attendu = nourri + manquant, sur chaque bouche et sur
 Deno.test("LA RELANCE nomme la bouche, la case, le plat, la cause ET le remède", () => {
   const text = unfedRetryInstruction([
     { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime", dish: "Rice bowl" },
-  ]);
+  ], { wording: "boxes" });
   assert(text !== null);
   assert(text.includes("Léa"), text);
   assert(text.includes(LEA), "l'id exact manque: le modèle ne peut pas écrire le couvercle");
@@ -231,7 +231,7 @@ Deno.test("⟳ LA RELANCE NOMME LE LIEN FAUTIF quand la boîte existe déjà", (
       name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime",
       dish: "Rice bowl", via: "preparation", preparationId: "prep_chicken", matched: "chicken",
     },
-  ]);
+  ], { wording: "boxes" });
   assert(text !== null);
   assert(text.includes('"prep_chicken"'), "la préparation fautive n'est pas nommée:\n" + text);
   assert(text.includes("preparation of its OWN"), text);
@@ -241,7 +241,7 @@ Deno.test("⟳ LA RELANCE NOMME LE LIEN FAUTIF quand la boîte existe déjà", (
   // Et le remède générique reste celui des items qui mordent EUX-MÊMES.
   const items = unfedRetryInstruction([
     { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime", dish: "Rice bowl", via: "items", preparationId: null, matched: "chicken" },
-  ]);
+  ], { wording: "boxes" });
   assert(items !== null && items.includes("box of their OWN"), items ?? "null");
 });
 
@@ -250,8 +250,8 @@ Deno.test("⟳ LA RELANCE PARTIELLE ne demande QUE les cellules nommées, et seu
   // une ou deux cases. La fusion par parties sait prendre les seules cellules
   // réparées; la relance n'a plus à rendre le reste.
   const row = { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime" as const, dish: "Rice bowl" };
-  const whole = unfedRetryInstruction([row]);
-  const partial = unfedRetryInstruction([row], { partial: true });
+  const whole = unfedRetryInstruction([row], { wording: "boxes" });
+  const partial = unfedRetryInstruction([row], { partial: true, wording: "boxes" });
   assert(whole !== null && partial !== null);
   assert(!whole.includes("RETURN ONLY"), "sans option, la relance demande déjà un plan partiel");
   assert(partial.includes("RETURN ONLY THE MEALS NAMED ABOVE"), partial);
@@ -266,17 +266,32 @@ Deno.test("⟳ LA RELANCE PARTIELLE ne demande QUE les cellules nommées, et seu
 Deno.test("CÂBLAGE — la relance est PARTIELLE dans le générateur", async () => {
   const src = await generatorSource();
   const at = src.indexOf("const instruction = unfedRetryInstruction(");
-  const call = src.slice(at, src.indexOf(");", at) + 2);
-  assert(/\{ partial: true, tableTerms: householdExclusionTerms/.test(call), "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call);
+  assert(at > 0, "la relance n'est plus appelée");
+  const call = src.slice(at, src.indexOf("      );", at) + 8);
+  assert(
+    /partial: true/.test(call),
+    "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call,
+  );
+  assert(
+    /tableTerms: householdExclusionTerms/.test(call),
+    "les mots que la table entière évite ne sont plus passés\n" + call,
+  );
+  // ⟳ LOT 14 (2026-09-08) — LA LANGUE SUIT LE CHEMIN, elle n'est pas figée.
+  // Sur `portion_v1` le moteur autore les couvercles: demander « nomme-la sur
+  // une boîte » ferait écrire une sortie qu'on jette.
+  assert(
+    /wording: sizing\.path === "portion_v1"/.test(call),
+    "la relance demande la même chose aux deux chemins\n" + call,
+  );
 });
 
 Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {
   const named = unfedRetryInstruction([
     { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "not_named", dish: "Rice bowl" },
-  ]);
+  ], { wording: "boxes" });
   const twice = unfedRetryInstruction([
     { name: "Marc", memberId: MARC, day: "wed", slot: "dinner", cause: "double", dish: "Rice bowl" },
-  ]);
+  ], { wording: "boxes" });
   assert(named !== null && twice !== null);
   assert(named.includes("exactly one box"), named);
   assert(twice.includes("ONE box only"), twice);
@@ -284,7 +299,7 @@ Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {
 });
 
 Deno.test("LA RELANCE ne dit rien quand il n'y a rien à dire", () => {
-  assertEquals(unfedRetryInstruction([]), null);
+  assertEquals(unfedRetryInstruction([], { wording: "boxes" }), null);
 });
 
 Deno.test("LE DERNIER RECOURS remet la bouche sur SA boîte, et sur elle seule", () => {
@@ -396,11 +411,19 @@ Deno.test("CÂBLAGE — la lane foyer APPELLE l'invariant, et avant d'écrire", 
   assert(trace > call, "l'invariant passe APRÈS l'archive");
 });
 
+// ⟳ LOT 9 (2026-09-07) — CETTE ÉPREUVE S'EST RETOURNÉE, ELLE N'A PAS ÉTÉ
+// SUPPRIMÉE. Son sujet a déménagé: la boucle `platedMembers.map(...)` qui
+// construisait les cases vit maintenant dans `household_cells.ts`, appelée
+// AVANT le prompt, et `mouthCells` en est la projection. La PROPRIÉTÉ qu'elle
+// garde n'a pas bougé d'un mot — « le dénominateur de l'invariant est celui de
+// la composition, pas un second » —, et c'est même ce que le lot renforce:
+// avant, deux constructions pouvaient diverger; maintenant il n'y en a qu'une.
+// On garde donc les mêmes assertions, sur le bloc qui les porte désormais.
 Deno.test("CÂBLAGE — le dénominateur est celui de la composition, pas un second", async () => {
   const src = await generatorSource();
   const block = src.slice(
-    src.indexOf("const mouthCells = platedMembers.map"),
-    src.indexOf("const deliveredViewOf"),
+    src.indexOf("const householdGrid = householdCells({"),
+    src.indexOf('tag: "keel.household_meal.cells"'),
   );
   assert(block.length > 0, "le bloc des cases a disparu");
   assert(
@@ -412,19 +435,48 @@ Deno.test("CÂBLAGE — le dénominateur est celui de la composition, pas un sec
     block.includes("windowDays: daysToFill"),
     "les cases ne suivent plus la fenêtre du plan",
   );
+  // ⛔ ET L'INVARIANT LIT BIEN CETTE GRILLE-LÀ. Sans cette ligne, le module
+  // pourrait être appelé, compté, journalisé — et `mealsDelivered` continuer
+  // sur une seconde construction. C'est la moitié que le déménagement ajoute.
+  // ⟳ 2026-09-08 — LA SOURCE, PAS LE LITTÉRAL. `mouthCells` est devenu
+  // conditionnel (le jour de cuisine n'attend aucun repas, décision du
+  // propriétaire): l'égalité de chaîne rougissait sur un code juste.
+  const projAt = src.indexOf("const mouthCells = ");
+  assert(projAt > 0, "`mouthCells` a disparu");
+  assert(
+    src.slice(projAt, projAt + 400).includes("householdGrid.byMouth"),
+    "`mouthCells` n'est plus la projection de la grille: deux dénominateurs",
+  );
+  assert(
+    !/const mouthCells = platedMembers\.map/.test(src),
+    "la boucle d'avant est revenue: deux dénominateurs",
+  );
   // ── ⛔ LE RYTHME EST CELUI DE LA BOUCHE (2026-09-04) ────────────────────
   // Cette garde nommait DEUX de ses trois entrées, donc elle n'en gardait que
   // deux: le rythme pouvait redevenir l'union sans qu'une ligne bouge. C'est
   // exactement ce qui était arrivé — « une liste-garde nommée ne garde que ce
   // qu'elle nomme ».
+  //
+  // ⟳ LOT 9 — LA LANE PASSE LES MOMENTS DE LA BOUCHE; le repli sur la maison
+  // (`?? input.houseRhythm`) vit dans `household_cells.ts` et son épreuve de
+  // projection le tient. Ce qui se garde ICI est que la lane ne passe pas
+  // l'UNION à la place de la ligne de chacun.
   assert(
-    block.includes("rhythm: m.eatingSlots ??"),
+    block.includes("eatingSlots: m.eatingSlots"),
     "les cases reprennent le rythme de la MAISON: l'union attend chaque bouche " +
       "aux moments de toutes, donc un goûter déclaré par une seule rend la " +
       "table entière `not_named` — puis 422 `mouth_unfed`",
   );
   assert(
-    !block.includes("ownMealSlots"),
+    !/rhythm:\s*(eatingRhythm|houseRhythmForCells)/.test(block),
+    "la lane passe l'UNION comme rythme par bouche",
+  );
+  // ⟳ LOT 9 — `ownMealSlots` ENTRE MAINTENANT DANS LA GRILLE, mais pour dire
+  // à qui la case doit un plat À ELLE, jamais à quelles cases elle mange. La
+  // garde d'origine interdisait le symbole; elle interdit désormais son
+  // MAUVAIS USAGE, ce qui est la chose qu'elle voulait dire.
+  assert(
+    !/(rhythm|eatingSlots):\s*ownMealSlots/.test(block),
     "les cases filtrent sur les HABITUDES: `ownMealSlots` dit à quelles cases " +
       "il faut cuisiner un plat à elle, jamais à quelles cases elle mange — la " +
       "garde s'éteindrait au lieu de se corriger, et resterait verte",
@@ -683,7 +735,7 @@ Deno.test("⛔ UN PLAT SANS BOÎTE NE NOURRIT PAS LA BOUCHE DONT LA LIGNE LE MOR
 Deno.test("⟳ LA RELANCE nomme la case sans plat comme un repas à ÉCRIRE, boîtes comprises", () => {
   const text = unfedRetryInstruction([
     { name: "Claire", memberId: CLAIRE, day: "thu", slot: "dinner", cause: "no_dish", dish: null },
-  ]);
+  ], { wording: "boxes" });
   assert(text !== null);
   assert(text.includes("NO dish at all was planned for that meal"), text);
   assert(text.includes("with boxes naming everyone who eats then"), text);
@@ -692,14 +744,29 @@ Deno.test("⟳ LA RELANCE nomme la case sans plat comme un repas à ÉCRIRE, bo�
 Deno.test("CÂBLAGE — les moments passés du jour entamé ne sont pas des cases attendues, et le plafond par ingrédient lit les tirages", async () => {
   const src = await generatorSource();
   assert(/const spentSlotsToday = new Set<string>\(/.test(src), "les moments passés ne sont plus retirés des cellules");
-  assert(/spentSlotsToday\.has\(String\(c\.slot\)\)/.test(src), "le filtre des cellules a disparu");
-  assert(/MAX_SINGLE_INGREDIENT_G \* Math\.max\(1, prep\.servingsMade, drawsByPot\.get\(prep\.id\) \?\? 0\)/.test(src), "le plafond par ingrédient relit servingsMade seul");
+  // ⟳ LOT 9 — LE FILTRE A DÉMÉNAGÉ, LA PROPRIÉTÉ EST LA MÊME. Il vit dans
+  // `householdCells` (`spentSlots`), et `household_cells_test.ts` mord dessus
+  // (« les moments passés du PREMIER JOUR sont retirés, et comptés »). Ce qui
+  // se garde ici est que la lane les LUI PASSE: un `spentSlotsToday` calculé
+  // puis jamais transmis serait le même défaut, en silence.
+  assert(
+    /spentSlots:\s*\{\s*day:\s*firstDayToken,\s*slots:\s*\[\.\.\.spentSlotsToday\]\s*\}/.test(src),
+    "le filtre des cellules a disparu",
+  );
+  // ⟳ 2026-09-07 — LE PLAFOND PAR INGRÉDIENT A DISPARU AVEC LA CROISSANCE
+  // QU'IL BORNAIT. La casserole est l'identité Σ(tirages des boîtes du modèle):
+  // elle ne peut pas être absurde sans que les assiettes le soient, et
+  // celles-là ne sont plus touchées. Un plafond qui reviendrait ici raboterait
+  // la casserole SOUS ce que les boîtes en tirent — le « ça dépasse de très
+  // loin » mesuré le 2026-09-07, par l'autre bout.
+  assert(!/MAX_SINGLE_INGREDIENT_G \* Math\.max\(1, prep\.servingsMade/.test(src), "un plafond de casserole borne de nouveau la croissance");
+  assert(!/const drawsByPot = new Map<string, number>\(\);/.test(src), "`drawsByPot` est revenu: il n'alimentait que le plafond retiré");
 });
 
 Deno.test("⟳ LA RELANCE d'une case SANS boîte demande un plat à elle ou des boîtes, pas « une boîte sur ce plat »", () => {
   const text = unfedRetryInstruction([
     { name: "Nora", memberId: LEA, day: "sun", slot: "breakfast", cause: "held_off_regime", dish: "Œufs, pain complet et tomates", via: null, preparationId: null, matched: "œufs" },
-  ]);
+  ], { wording: "boxes" });
   assert(text !== null);
   assert(text.includes("that meal has NO boxes"), text);
   assert(text.includes("a dish of their OWN at that day and slot"), text);
@@ -861,17 +928,17 @@ Deno.test("RELOGEMENT — une bouche déjà nommée sur la case, une double et u
 Deno.test("RELANCE — un mot que la TABLE évite change le plat pour tous, jamais une boîte à soi", () => {
   const base = { name: "Paul", memberId: "m-paul", day: "wed", slot: "dinner", dish: "Poulet rôti",
     cause: "held_off_exclusion" as const, via: "items" as const, preparationId: null, matched: "Poulet" };
-  const table = unfedRetryInstruction([base], { tableTerms: ["poulet"] }) ?? "";
+  const table = unfedRetryInstruction([base], { wording: "boxes", tableTerms: ["poulet"] }) ?? "";
   assert(table.includes("this TABLE asked to avoid"), table);
   assert(table.includes("for EVERY box of that meal"), table);
   assert(table.includes("Do NOT write anyone a box of their own"), table);
   assert(!table.includes("write them a box of their OWN"), "le remède de table redemande une boîte à soi:\n" + table);
   // Le même mot évité par UNE bouche seulement garde la boîte d'échange.
-  const own = unfedRetryInstruction([base], { tableTerms: ["saumon"] }) ?? "";
+  const own = unfedRetryInstruction([base], { wording: "boxes", tableTerms: ["saumon"] }) ?? "";
   assert(own.includes("write them a box of their OWN"), own);
   assert(!own.includes("this TABLE asked"), own);
   // Accent et casse : « Pâtes » ≠ « pates » pour la table ? Non — la comparaison plie les deux.
-  const folded = unfedRetryInstruction([{ ...base, matched: "Épinards" }], { tableTerms: ["epinards"] }) ?? "";
+  const folded = unfedRetryInstruction([{ ...base, matched: "Épinards" }], { wording: "boxes", tableTerms: ["epinards"] }) ?? "";
   assert(folded.includes("this TABLE asked"), folded);
 });
 
@@ -906,12 +973,59 @@ Deno.test("CÂBLAGE — la relance d'exclusion prend ses cellules réparées qua
 Deno.test("RELANCE — la boîte existe et porte l'item évité : on remplace l'item, on ne réécrit pas la boîte", () => {
   const row = { name: "Nora", memberId: "m-nora", day: "wed", slot: "dinner", dish: "Dinde, riz",
     cause: "held_off_exclusion" as const, via: "items" as const, boxId: "box_wed_dinner_nora", preparationId: null, matched: "tofu" };
-  const text = unfedRetryInstruction([row]) ?? "";
+  const text = unfedRetryInstruction([row], { wording: "boxes" }) ?? "";
   assert(text.includes('"box_wed_dinner_nora" is already there'), text);
   assert(text.includes('carries "tofu"'), text);
   assert(text.includes("follows their declared line"), "le remplaçant doit passer aussi son régime:\n" + text);
   assert(!text.includes("write them a box of their OWN"), "on redemande une boîte qui existe:\n" + text);
   // Sans boîte enregistrée, le remède générique reste.
-  const generic = unfedRetryInstruction([{ ...row, boxId: null }]) ?? "";
+  const generic = unfedRetryInstruction([{ ...row, boxId: null }], { wording: "boxes" }) ?? "";
   assert(generic.includes("write them a box of their OWN"), generic);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LOT 14 (2026-09-08) — DEUX LANGUES POUR LA MÊME RELANCE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ROW_NO_DISH = {
+  name: "Claire",
+  memberId: CLAIRE,
+  day: "thu",
+  slot: "dinner",
+  cause: "no_dish" as const,
+  dish: null,
+};
+
+Deno.test("LOT 14 — la variante `boxes` est BYTE-IDENTIQUE au texte d'origine", () => {
+  // ⛔ C'EST LA MOITIÉ QUI PROTÈGE. Toute la population passe encore par elle;
+  // un mot qui bougerait ici serait un changement de prompt non mesuré.
+  const t = unfedRetryInstruction([ROW_NO_DISH], { wording: "boxes" }) ?? "";
+  assert(t.includes("with boxes naming everyone who eats then (them included)"), t);
+  assert(t.includes("SOME PEOPLE HAVE NO BOX AT A MEAL THEY EAT HERE"), t);
+});
+
+Deno.test("LOT 14 — la variante `standard_recipe` ne demande AUCUNE boîte", () => {
+  const t = unfedRetryInstruction([ROW_NO_DISH], { wording: "standard_recipe" }) ?? "";
+  assert(t.includes("write ONE standard recipe"), t);
+  assert(t.includes("the app works those out"), t);
+  assert(!t.includes("with boxes naming"), "elle réclame encore des couvercles");
+});
+
+Deno.test("LOT 14 — sans couvercle du modèle, « oubliée » demande un plat, pas un nom", () => {
+  const t = unfedRetryInstruction([
+    { ...ROW_NO_DISH, cause: "not_named" as const, dish: "Riz sauté" },
+  ], { wording: "standard_recipe" }) ?? "";
+  assert(t.includes("a dish of their OWN there (for_member_id)"), t);
+  assert(!t.includes("name them on exactly one box"), t);
+});
+
+Deno.test("LOT 14 — le bloc PARTIEL a lui aussi ses deux langues", () => {
+  const boxes = unfedRetryInstruction([ROW_NO_DISH], { wording: "boxes", partial: true }) ?? "";
+  const std = unfedRetryInstruction([ROW_NO_DISH], {
+    wording: "standard_recipe",
+    partial: true,
+  }) ?? "";
+  assert(boxes.includes("the table's dish with all its boxes"), boxes);
+  assert(std.includes("write NO box and NO per-person figure"), std);
+  assert(!std.includes("with all its boxes"), "le bloc partiel réclame encore des couvercles");
 });

@@ -46,10 +46,16 @@ import {
   canRemix,
   DRAFT_NOTE_MAX_CHARS,
   draftTurnsLeft,
+  type DraftEdit,
   hasNote,
+  type NoteAnswer,
+  type NoteCell,
+  type NoteQuestion,
   noteLength,
   noteOverflows,
+  type NoteOutcome,
 } from "../../api/planDraft";
+import { useMealEnergy } from "../../lib/useMealEnergy";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
@@ -62,8 +68,10 @@ export interface PlanDraftDialogProps {
   onClose: () => void;
   /** Le brouillon rendu par le serveur. `null` = rien à montrer. */
   draft: GeneratedMealResult | null;
-  /** Les phrases de Lot A. `[]` = rien à expliquer, et ce n'est pas un manque. */
-  rationale: readonly string[];
+  /* ⛔ `rationale` A ÉTÉ RETIRÉE DE CETTE INTERFACE — 2026-09-09, avec la
+     carte qu'elle nourrissait (voir la pierre tombale dans le corps). Elle vit
+     toujours sur `DraftEnvelope`: c'est la SURFACE qui est partie, pas le
+     champ que le serveur rend. */
   /**
    * CE QUE LE PLAN A DÛ PESER — écrit par le MODÈLE, gardé côté serveur.
    *
@@ -95,12 +103,63 @@ export interface PlanDraftDialogProps {
    * que le site de montage doit faire exprès.
    */
   droppedClauses: number;
-  /** Refait un brouillon avec la phrase. REQUIS, jamais optionnel. */
-  onRemix: (note: string) => Promise<void>;
+  /**
+   * ⟳ 2026-09-08 (lot 4) — LA REPRISE EN TROIS GESTES, ET C'EST LE DIALOGUE
+   * QUI LES ENCHAÎNE. Lire la phrase (`onReadNote`: elle est APPLIQUÉE —
+   * goût, appétit, réglage — et dite); si le serveur ne sait pas la bouche
+   * d'une part, il rend une QUESTION, posée ici avec un bouton par bouche
+   * (`onAnswerNote`); puis composer SANS la phrase (`onCompose`), le magasin
+   * portant déjà son effet.
+   *
+   * ⛔ LES TROIS SONT REQUIS, jamais `?`. Un site de montage qui en oublierait
+   * un aurait un bouton mort sans un mot du compilateur.
+   *
+   * ⚠️ POURQUOI PAS DANS LA PAGE: c'est ce champ-ci qui porte la phrase et
+   * qui compte les tours; une question posée entre deux gestes appartient à
+   * l'écran qui les fait, pas à celui qui les monte. Une page qui composerait
+   * d'elle-même après la lecture composerait avant la réponse — pour la
+   * mauvaise assiette.
+   */
+  onReadNote: (note: string) => Promise<NoteOutcome>;
+  onAnswerNote: (answer: NoteAnswer) => Promise<NoteOutcome>;
+  onCompose: () => Promise<void>;
+  /**
+   * ⟳ 2026-09-09 (chirurgie locale, pièce 4) — LE QUATRIÈME GESTE. Quand la
+   * phrase désigne une case et qu'un brouillon est rangé (`draftId`), on ne
+   * recompose pas : on refait cette case seulement. REQUIS, jamais `?`.
+   */
+  onEditCells: (draftId: string, cells: ReadonlyArray<NoteCell>) => Promise<void>;
+  /** Ce que la dernière reprise locale a pris et laissé (`envelope.edit`). REQUIS. */
+  edit: DraftEdit | null;
   /** Écrit le plan pour de bon. */
   onAdopt: () => Promise<void>;
   /** Une composition est en cours. */
   busy: boolean;
+  /**
+   * ⟳ 2026-09-08 — L'IDENTIFIANT DE L'APERÇU RANGÉ (`DraftEnvelope.draftId`).
+   *
+   * ⛔ REQUIS, jamais `?`. Les deux sites de montage doivent le passer
+   * explicitement — un champ facultatif aurait laissé l'un des deux sans
+   * chiffres pendant que l'autre en a, et personne ne l'aurait vu.
+   *
+   * `null` = le serveur n'a rien rangé (panne de magasin, réponse d'avant ce
+   * lot). L'aperçu s'affiche alors sans ses chiffres.
+   */
+  draftId: string | null;
+}
+
+/**
+ * « fri/dinner » → « vendredi soir ». Les libellés viennent du catalogue
+ * (`day.long.*`, `slot.*`), jamais d'une table écrite ici ; un jeton inconnu
+ * se rend tel quel plutôt qu'en mot inventé.
+ */
+function cellLabel(key: string, t: (k: string) => string): string {
+  const [day, slot] = key.split("/");
+  const dayLabel = day ? t(`day.long.${day}`) : "";
+  const slotLabel = slot ? t(`slot.${slot}`).toLowerCase() : "";
+  // Une clé absente du catalogue ressort telle quelle (« day.long.xyz ») : on
+  // la jette et on rend le jeton brut plutôt qu'un chemin de catalogue.
+  return [dayLabel, slotLabel].filter((x) => x && !x.startsWith("day.") && !x.startsWith("slot.")).join(" ") || key;
 }
 
 export default function PlanDraftDialog(props: PlanDraftDialogProps) {
@@ -108,14 +167,36 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     open,
     onClose,
     draft,
-    rationale,
     explanation,
     droppedClauses,
-    onRemix,
+    onReadNote,
+    onAnswerNote,
+    onCompose,
+    onEditCells,
+    edit,
     onAdopt,
     busy,
-  } =
-    props;
+    draftId,
+  } = props;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-08 — LE CHIFFRE SUR L'APERÇU
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CE COMPOSANT NE DÉCIDE PAS DU DROIT DE VOIR, et il ne l'a jamais fait.
+  // `useMealEnergy` appelle `meal-energy-v1`, qui traverse les quatre portes
+  // (plancher TCA, âge, doctrine du coach, interrupteur) AVANT de lire un seul
+  // plat. Quand une porte est fermée, il n'y a rien à cacher ici: l'appelant
+  // n'a aucune donnée à passer.
+  //
+  // ⚠️ `planId: null` PARCE QU'UN APERÇU N'EN A PAS. Le brouillon est rangé
+  // sous son propre identifiant (`student_meal_drafts`), et c'est LUI qu'on
+  // demande.
+  const energy = useMealEnergy({
+    planId: null,
+    draftId,
+    dishes: draft?.dishes ?? [],
+  });
 
   const [note, setNote] = React.useState("");
   /**
@@ -132,6 +213,15 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    */
   const [turnsUsed, setTurnsUsed] = React.useState(1);
   const [working, setWorking] = React.useState(false);
+  /**
+   * ⟳ 2026-09-08 (lot 4) — CE QUE LA PHRASE A FAIT, ET CE QU'ELLE DEMANDE.
+   * Vit ICI, avec le champ: c'est l'issue de la DERNIÈRE phrase, et elle
+   * s'efface avec la fenêtre. `questions` non vide = on attend un tap avant
+   * de composer. `declined` compte les questions passées sans réponse, pour
+   * le dire (« je n'ai rien changé pour cette phrase-là ») plutôt que se taire.
+   */
+  const [noteOutcome, setNoteOutcome] = React.useState<NoteOutcome | null>(null);
+  const [declined, setDeclined] = React.useState(0);
   /**
    * LE REFUS, ET L'ENDROIT OÙ IL DOIT SE LIRE.
    *
@@ -164,7 +254,72 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     setNote("");
     setTurnsUsed(1);
     setFailure(null);
+    setNoteOutcome(null);
+    setDeclined(0);
   }, [open]);
+
+  /**
+   * COMPOSER, ET COMPTER LE TOUR APRÈS. Un tour est une COMPOSITION, pas une
+   * lecture: lire la phrase (4 s, sans plan) ou répondre à une question ne
+   * coûte rien de ce que le plafond protège. Le tour se compte après l'appel,
+   * jamais avant: un refus n'a rien composé, donc rien consommé.
+   */
+  const composeNow = async () => {
+    await onCompose();
+    setTurnsUsed((n) => n + 1);
+  };
+
+  /**
+   * ⟳ 2026-09-09 — REFAIRE SEULEMENT LA CASE, OU TOUT. Une case désignée ET un
+   * brouillon rangé ⇒ reprise locale (un tour, comme une composition). Sinon
+   * ⇒ composition. Mesuré : recomposer ne garde RIEN ; c'est pour ça que la
+   * case passe par un autre chemin.
+   */
+  const renderNow = async (outcome: NoteOutcome) => {
+    if (outcome.cells.length > 0 && draftId !== null) {
+      await onEditCells(draftId, outcome.cells);
+      setTurnsUsed((n) => n + 1);
+      return;
+    }
+    await composeNow();
+  };
+
+  /**
+   * LA RÉPONSE À UNE QUESTION — ou son refus (`memberId: null`).
+   *
+   * ⚠️ ON NE COMPOSE QU'UNE FOIS LA DERNIÈRE QUESTION FERMÉE, et seulement si
+   * quelque chose a bougé: une phrase dont l'unique demande a été passée n'a
+   * rien changé, et recomposer un plan identique coûterait un tour pour rien.
+   * On le dit à la place.
+   */
+  const answerQuestion = async (question: NoteQuestion, memberId: string | null) => {
+    if (noteOutcome === null) return;
+    setWorking(true);
+    setFailure(null);
+    try {
+      let merged: NoteOutcome = noteOutcome;
+      if (memberId !== null) {
+        const res = await onAnswerNote({
+          kind: "portion",
+          memberId,
+          direction: question.direction,
+        });
+        merged = { ...merged, announced: [...merged.announced, ...res.announced] };
+      } else {
+        setDeclined((n) => n + 1);
+      }
+      const rest = merged.questions.filter((q) => q !== question);
+      merged = { ...merged, questions: rest };
+      setNoteOutcome(merged);
+      if (rest.length > 0) return;
+      if (merged.announced.length === 0 && merged.cells.length === 0) return;
+      await renderNow(merged);
+    } catch (e) {
+      setFailure({ at: "body", message: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setWorking(false);
+    }
+  };
 
   /**
    * ADOPTER — LE MÊME CHEMIN, D'OÙ QU'ON CLIQUE.
@@ -187,6 +342,9 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
   };
 
   const busyNow = busy || working;
+  const pendingQuestion = noteOutcome !== null && noteOutcome.questions.length > 0
+    ? noteOutcome.questions[0]
+    : null;
   const left = draftTurnsLeft(turnsUsed);
   const canAskAgain = canRemix(turnsUsed);
   const charsLeft = DRAFT_NOTE_MAX_CHARS - noteLength(note);
@@ -197,6 +355,26 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
       onClose={onClose}
       title={t("plan.draft.title")}
       closeLabel={t("plan.draft.discard")}
+      /* ══════════════════════════════════════════════════════════════════
+         ⛔ ON NE SORT D'ICI QUE PAR « LAISSER TOMBER » — 2026-09-07.
+         ══════════════════════════════════════════════════════════════════
+
+         Ni le voile, ni Échap. Signalé à l'écran sur l'entonnoir: « quand tu
+         cliques ou que tu fais un mouvement d'écran, ça supprime l'aperçu ».
+
+         ⚠️ CE QUI REND CE DÉFAUT CHER, ET C'EST PROPRE À CETTE FENÊTRE-CI.
+         Refermer ne range rien: aucun écran ne rouvre un brouillon
+         (`setDraftOpen(true)` n'a qu'un appelant, le chemin de composition).
+         Y revenir COÛTE UN TOUR DE MODÈLE, et l'effet d'ouverture juste
+         au-dessus remet `turnsUsed` à 1 — donc le geste involontaire ne perd
+         pas un affichage, il perd la génération ET les reprises qui restaient.
+
+         ⛔ C'EST BIEN UN RENONCEMENT, ET LE MOT LE DIT DÉJÀ. `closeLabel` est
+         « Laisser tomber », pas « Fermer »: la sortie de cette fenêtre est une
+         décision, et une décision ne se prend pas en relâchant la souris à
+         côté. Le motif complet, avec ce que ça coûte côté clavier, est sur
+         `closeOnlyByButton` dans `ui/Modal.tsx`. */
+      closeOnlyByButton
       /* ── ADOPTER SANS AVOIR À DESCENDRE ───────────────────────────────
          Demandé le 2026-09-01, et c'est un défaut mesurable: cette fenêtre
          monte une SEMAINE — grille, préparations, courses. La décision
@@ -291,30 +469,24 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
         )
         : null}
 
-      {/* ── POURQUOI CES JOURS-LÀ ──────────────────────────────────────────
-          ⛔ LES PHRASES SONT ASSEMBLÉES CÔTÉ SERVEUR et arrivent FINIES, dans
-          la langue du contenu. Cet écran les affiche telles quelles: il ne
-          décide ni de leur nombre, ni de leur ordre, ni de leur existence. Un
-          miroir de leurs gabarits ici serait une garde en double.
+      {/* ══════════════════════════════════════════════════════════════════
+          ⛔ « POURQUOI CES JOURS-LÀ » A ÉTÉ RETIRÉ — 2026-09-09
+          ══════════════════════════════════════════════════════════════════
 
-          Vide = il n'y avait rien à expliquer, et ce n'est pas un manque: on
-          n'affiche alors AUCUN titre, plutôt qu'une section vide qui ferait
-          chercher ce qui manque. */}
-      {rationale.length > 0
-        ? (
-          <Card className="mt-3">
-            <SectionLabel>{t("plan.rationale.title")}</SectionLabel>
-            <ul className="mt-1 flex flex-col gap-1 pl-4 text-sm leading-6 text-ink-soft">
-              {rationale.map((line, i) => (
-                // La clé porte l'INDEX: deux phrases peuvent être identiques
-                // (deux jours de cuisine nommés pareil), et deux `<li>` de même
-                // clé perdent l'un des deux au rendu.
-                <li key={`${i}:${line}`} className="break-words">{line}</li>
-              ))}
-            </ul>
-          </Card>
-        )
-        : null}
+          Décision produit. C'était la carte des phrases DÉTERMINISTES de
+          l'app (`plan_rationale`, assemblées côté serveur): pourquoi tel jour
+          de cuisine, pourquoi deux courses, pourquoi tel moment ouvert.
+
+          ⚠️ CE QUI RESTE, ET QUI N'EST PAS LA MÊME CHOSE: le bloc
+          `plan.explanation.*` juste au-dessus — la prose du MODÈLE, ce qu'il a
+          dû arbitrer. Les deux cartes se ressemblaient à l'écran et ne
+          disaient pas du tout la même chose; c'est celle de l'app qui part.
+
+          ⛔ LE SERVEUR CONTINUE DE LES PRODUIRE. `DraftEnvelope.rationale` est
+          toujours lu par `readDraftEnvelope` — l'enveloppe reste le miroir
+          fidèle de ce que la fonction rend, et lui retirer un champ qu'elle
+          envoie ferait mentir le contrat. Ce qui a disparu est la SURFACE.
+          Rebrancher une carte revient à relire cette prop. */}
 
       {/* ── LE PLAN, PAR LE RENDU UNIQUE ───────────────────────────────────
           `PlanResult` et pas un rendu d'ici. `today` vient de `startsOn`: un
@@ -322,9 +494,16 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           date du navigateur ferait marquer « aujourd'hui » sur une colonne qui
           n'est pas dans le plan — ou sur aucune.
 
-          `tick` et `energy` restent absents: on ne coche pas un plat qui
-          n'existe pas, et on ne compte pas l'énergie d'un plan qu'on n'a pas
-          adopté. */}
+          `tick` reste absent: on ne coche pas un plat qui n'existe pas.
+
+          ⟳ 2026-09-08 — `energy`, LUI, EST LÀ. Ce commentaire disait « on ne
+          compte pas l'énergie d'un plan qu'on n'a pas adopté », et c'était une
+          contrainte TECHNIQUE déguisée en règle: le chiffre se calcule à la
+          lecture, depuis une ligne en base, et un aperçu n'en avait aucune. Le
+          brouillon est désormais RANGÉ (`student_meal_drafts`) et porte un
+          identifiant — il se chiffre comme un plan, sous exactement les mêmes
+          quatre portes. C'est même le moment où le chiffre sert le plus:
+          l'aperçu est ce qu'on relit AVANT d'adopter. */}
       <div className="mt-4">
         {draft
           ? (
@@ -346,11 +525,13 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // doit montrer ce qu'adopter donnerait, séparation par personne
               // comprise.
               //
-              // ⛔ AUCUNE GARDE À RECOPIER ICI, ET ELLE N'EST PAS OUBLIÉE: la
-              // lane individuelle ne rend AUCUNE part, et un secondaire est
-              // toujours routé sur elle (`chooseGenerator` rend `personal` dès
-              // `!isOwner`). Un non-maître n'a donc structurellement rien à
-              // voir dans ce tableau — il est vide pour lui.
+              // ⛔ AUCUNE GARDE À RECOPIER ICI, ET LA RAISON A CHANGÉ LE
+              // 2026-09-10. Elle disait: « la lane individuelle ne rend aucune
+              // part, et un secondaire y est toujours routé ». Il n'y a plus
+              // de lane individuelle — ce qui tient maintenant, et qui est plus
+              // simple, c'est qu'un secondaire N'OUVRE JAMAIS cette fenêtre:
+              // son bouton d'aperçu n'est pas rendu (lot 7), et le serveur lui
+              // rendrait 403 `not_owner` de toute façon.
               portions={draft.memberPortions}
               startsOn={draft.startsOn}
               durationDays={draft.durationDays}
@@ -366,6 +547,16 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
               // par où commencer ci-dessus » n'a pas de sens ici: il n'y a pas
               // de formulaire au-dessus. On dit ce qui s'est passé.
               emptyLabel={t("plan.refusal.draft_not_composed")}
+              // ⛔ LES TROIS MÊMES EXPRESSIONS QUE `MealBuilder`, ET PAS DES
+              // VOISINES. `boxEnergy` n'est PAS gardé par `showing`: le chiffre
+              // d'une boîte à un nom sort aussi quand le LECTEUR est fermé par
+              // défaut (maintenance, rien choisi) — le serveur a déjà tranché
+              // qui y a droit, et `forBox` ne fait que lire ce qui a voyagé.
+              // Recopier ce raisonnement de travers ici rendrait un chiffre à
+              // quelqu'un sur l'aperçu et pas sur le plan, ou l'inverse.
+              energy={energy.showing ? ((dish) => energy.forDish(dish)) : undefined}
+              boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
+              dayEnergy={energy.showing ? ((day) => energy.forDay(day)) : undefined}
             />
           )
           // `draft === null` = rien à montrer. Pas de squelette, pas de
@@ -407,7 +598,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           // ⛔ PAS DE `maxLength`. Le navigateur couperait la phrase EN SILENCE
           // au 280e signe, et la personne enverrait une demande tronquée sans
           // jamais savoir laquelle. On compte, on prévient, le serveur tranche.
-          disabled={busyNow || !canAskAgain}
+          disabled={busyNow || !canAskAgain || pendingQuestion !== null}
           onChange={(e) => setNote(e.target.value)}
         />
 
@@ -445,6 +636,123 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           )
           : null}
 
+        {/* ── CE QUE LA PHRASE A FAIT (2026-09-08) ─────────────────────────
+            ⛔ LA RÈGLE DU DOCUMENT DES RETOURS: on ne se tait jamais. Trois
+            issues, trois phrases. Les lignes annoncées sont CELLES du chat —
+            pas une seconde rédaction. « Rien à changer » se dit; « je n'ai
+            pas compris de qui » se dit, et rien n'a été deviné. */}
+        {noteOutcome !== null && noteOutcome.announced.length > 0
+          ? (
+            <div className="mt-2 text-sm leading-6 text-ink">
+              <p>{t("plan.draft.note_applied")}</p>
+              <ul className="list-disc pl-5">
+                {noteOutcome.announced.map((a, i) => (
+                  <li key={i}>{a.who ? `${a.who} : ${a.text}` : a.text}</li>
+                ))}
+              </ul>
+            </div>
+          )
+          : null}
+
+        {/* ── CE QU'UNE REPRISE LOCALE A FAIT (2026-09-09) ─────────────────
+            « J'ai refait le vendredi soir ; le reste est identique. » — depuis
+            `envelope.edit`, jamais depuis ce qu'on a demandé : ce sont les
+            cases PRISES qui se disent. Une case demandée et non prise a levé
+            un refus, rendu en rouge sous le champ. */}
+        {edit !== null && edit.taken.length > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.cells_applied", {
+                // ⚠️ `t` est typé sur les clés CONNUES du catalogue ; ici la clé
+                // est composée d'un jeton serveur (`fri`, `dinner`). Le cast dit
+                // exactement ça, et `cellLabel` jette ce que le catalogue ne
+                // connaît pas.
+                cells: edit.taken.map((k) => cellLabel(k, t as unknown as (k: string) => string)).join(", "),
+                count: edit.untouched,
+              })}
+            </p>
+          )
+          : null}
+
+        {/* ── LA QUESTION DU SERVEUR (lot 4) ───────────────────────────────
+            « Tu as écrit « … » — c'est pour qui ? », un bouton par bouche,
+            et une échappatoire qui n'écrit rien. On cite le MORCEAU sur
+            lequel le serveur a buté, jamais la note entière. Tant qu'elle est
+            ouverte, ni le champ ni la reprise: composer maintenant ferait un
+            plan pour la mauvaise assiette. */}
+        {pendingQuestion !== null
+          ? (
+            <div className="mt-3 rounded-md border border-line bg-paper-2 p-3 text-sm leading-6 text-ink">
+              <p>{t("plan.draft.question_who", { text: pendingQuestion.text })}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {pendingQuestion.options.map((o) => (
+                  <Button
+                    key={o.memberId}
+                    variant="secondary"
+                    disabled={busyNow}
+                    onClick={() => void answerQuestion(pendingQuestion, o.memberId)}
+                  >
+                    {o.label}
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  disabled={busyNow}
+                  onClick={() => void answerQuestion(pendingQuestion, null)}
+                >
+                  {t("plan.draft.question_none")}
+                </Button>
+              </div>
+            </div>
+          )
+          : null}
+        {pendingQuestion === null && declined > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.question_skipped")}
+            </p>
+          )
+          : null}
+        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+            noteOutcome.announced.length === 0 && noteOutcome.whoUnknown > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.note_who_unknown")}
+            </p>
+          )
+          : null}
+        {/* ⟳ 2026-09-08 — COMPRIS, MAIS AU BOUT DE L'ÉCHELLE. Mesuré: « trop
+            compliqué » sur un style déjà minimal rendait « rien trouvé à
+            changer » — faux, et décourageant. Se dit même quand autre chose
+            a été noté à côté. */}
+        {pendingQuestion === null && noteOutcome !== null && noteOutcome.atEdge > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.note_at_edge")}
+            </p>
+          )
+          : null}
+        {/* LU, ET PAS RANGÉ EXPRÈS (les jours de cuisine, un objectif, un
+            merci): « rien à changer » laisserait croire qu'on n'a pas lu. */}
+        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+            noteOutcome.announced.length === 0 && noteOutcome.whoUnknown === 0 &&
+            noteOutcome.atEdge === 0 && noteOutcome.skipped > 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.note_skipped")}
+            </p>
+          )
+          : null}
+        {pendingQuestion === null && declined === 0 && noteOutcome !== null &&
+            noteOutcome.announced.length === 0 && noteOutcome.whoUnknown === 0 &&
+            noteOutcome.atEdge === 0 && noteOutcome.skipped === 0
+          ? (
+            <p className="mt-2 text-sm leading-6 text-ink">
+              {t("plan.draft.note_nothing")}
+            </p>
+          )
+          : null}
+
         {/* ⛔ LE ROUGE RESTE: famille « échec » du produit, et un motif nommé
             est un FAIT. `note_unusable` est le seul refus que la personne peut
             réparer elle-même — en reformulant — donc il se lit ici, sous le
@@ -463,21 +771,26 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button
             variant="secondary"
-            disabled={busyNow || !canAskAgain || !hasNote(note)}
+            disabled={busyNow || !canAskAgain || !hasNote(note) || pendingQuestion !== null}
             onClick={async () => {
               setWorking(true);
               setFailure(null);
               try {
-                await onRemix(note);
-                // LE TOUR SE COMPTE APRÈS L'APPEL, jamais avant: un refus
-                // d'entrée (`note_unusable`, rendu en moins d'un dixième de
-                // seconde et sans appel modèle) ne doit pas coûter une reprise.
-                // Rien n'a été composé, donc rien n'a été consommé.
-                setTurnsUsed((n) => n + 1);
+                // ① LIRE — la phrase est appliquée et dite. Un refus d'entrée
+                // (`note_unusable`, sans appel modèle) lève ici, avant tout.
+                const outcome = await onReadNote(note);
+                setNoteOutcome(outcome);
+                setDeclined(0);
                 // La phrase a servi: le champ se vide pour la suivante. La
                 // garder ferait repartir la reprise d'après avec deux demandes
                 // collées, dont une que la personne croyait derrière elle.
                 setNote("");
+                // ② UNE QUESTION ? On s'arrête là: le tap composera. Aucun
+                // tour consommé — rien n'a été composé.
+                if (outcome.questions.length > 0) return;
+                // ③ REFAIRE — la case seule si la phrase en désigne une et
+                // qu'un brouillon est rangé, sinon tout. Le tour se compte après.
+                await renderNow(outcome);
               } catch (e) {
                 // `at: "body"` — la phrase refusée est DANS ce champ-ci, et le
                 // motif se lit sous lui. Jamais au fronton, qui ne porte pas

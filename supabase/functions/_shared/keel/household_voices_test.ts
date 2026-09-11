@@ -1,3 +1,7 @@
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -688,47 +692,6 @@ Deno.test("SUR LA LANE FOYER, LES PRÉFÉRENCES N'ONT QU'UN CHEMIN — ET IL GAR
   );
 });
 
-Deno.test("LA LANE INDIVIDUELLE N'A PAS BOUGÉ — le cas qui passe", async () => {
-  // ⚠️ SANS CETTE MOITIÉ, LE TEST DU DESSUS SERAIT VERT SUR UN PRODUIT OÙ PLUS
-  // AUCUN GÉNÉRATEUR NE LIT LES PRÉFÉRENCES. La lane individuelle n'a qu'un
-  // titulaire et son plan n'est lu par personne d'autre: ni le plafond par
-  // membre ni la garde de table n'y ont d'objet, et elle continue donc de
-  // passer ses préférences au tronc, exactement comme avant L6.
-  const individual = await source("generate-meal-v1/index.ts");
-  // ⚠️ PAS `includes("readFoodPreferences")`, ET C'EST UNE MUTATION QUI L'A
-  // MONTRÉ. Vider le corps (`return { written: [], remembered: [] };`) laisse
-  // les APPELS intacts: le test restait vert sur une lane débranchée. On tient
-  // donc les deux bouts — la lecture réelle du magasin, et le passage au tronc.
-  //
-  // ⟳ LOT C: la lecture pinnée était `foodPreferencesByOrigin(`, le magasin
-  // PLAT. Elle est maintenant celle du magasin STRUCTURÉ, seul survivant.
-  assert(
-    /written: \[\.\.\.retained\.written\]/.test(individual),
-    "la lane individuelle ne lit plus les items retenus de son titulaire.",
-  );
-  assert(
-    /foodPreferences: readFoodPreferences\(/.test(individual),
-    "la lane individuelle ne passe plus ses préférences au tronc: le test du " +
-      "dessus garderait alors un chemin sans destination.",
-  );
-  // ⚠️ LES DEUX SEAUX, ET PAS SEULEMENT LE PREMIER. La lecture est séparée par
-  // provenance; ne pinner que `foodPreferences` laisserait passer une lane qui
-  // lit ce que les producteurs ont retenu et JETTE ce que la personne a tapé —
-  // c'est-à-dire précisément la moitié qui compte le plus, débranchée sans
-  // qu'un seul test rougisse.
-  assert(
-    /writtenInstructions: readFoodPreferences\(/.test(individual),
-    "la lane individuelle ne passe plus les consignes ÉCRITES de son " +
-      "titulaire: elles seraient collectées et jamais servies.",
-  );
-  assert(
-    !individual.includes("household_voices"),
-    "la lane individuelle a été branchée sur le bloc des voix: elle n'a qu'un " +
-      "convive, et le bloc y ajouterait une consigne de non-divulgation qui " +
-      "ne s'adresse à personne.",
-  );
-});
-
 Deno.test("LES VOIX PARTENT DU COMPOSEUR, ET LE DÉNOMINATEUR DE `platedMembers`", async () => {
   // ⟳ CE TEST A CHANGÉ DE CIBLE AU LOT C, ET LA PROPRIÉTÉ N'A PAS CHANGÉ: une
   // bouche qui a pris la main (L3) ou qui est absente toute la fenêtre (L2)
@@ -823,7 +786,7 @@ Deno.test("AUCUN SECOND PONT VERS LA MÉMOIRE", async () => {
   for (
     const rel of [
       "_shared/keel/household_voices.ts",
-      "generate-meal-v1/index.ts",
+      "generate-household-meal-v1/index.ts",
       "generate-household-meal-v1/index.ts",
     ]
   ) {
@@ -840,7 +803,7 @@ Deno.test("AUCUN SECOND PONT VERS LA MÉMOIRE", async () => {
   // quoi la garde ci-dessus serait verte sur des générateurs qui n'entendent
   // plus personne du tout.
   for (
-    const rel of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+    const rel of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = await source(rel);
     assert(
@@ -865,7 +828,7 @@ Deno.test("LOT C — AUCUN GÉNÉRATEUR N'ÉCRIT PLUS DANS LE MAGASIN PLAT", asy
   // devient une archive GELÉE: personne n'y écrit, personne ne l'élague, et la
   // carte la rend en lecture seule. C'est le sens de « fermer un magasin ».
   for (
-    const rel of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+    const rel of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = await source(rel);
     for (

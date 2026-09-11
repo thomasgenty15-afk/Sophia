@@ -16,29 +16,38 @@
 // contournement pour qu'il ne se lise pas comme un oubli.
 //
 // ══════════════════════════════════════════════════════════════════════════
-// CE QUE CE LOT ÉCRIT, ET CE QU'IL N'ÉCRIT PAS
+// ⟳ 2026-09-09 — CE MODULE VALIDE, IL N'ÉCRIT PLUS. UN SEUL ÉCRIVAIN.
 // ══════════════════════════════════════════════════════════════════════════
 //
-// ÉCRIT: un fait `slot_meal:<date>:<slot>` avec les MOTS de la personne
-// (`student_note`) et le groupe alimentaire que le plancher déterministe a
-// reconnu. Le créneau cesse d'être « loupé »: la page ne le lui redemande plus.
+// Ce qu'il écrivait: un fait `slot_meal:<date>:<slot>` sans `meal_context` et
+// sans chiffre — `energy` était câblé à `null`, avec ce commentaire: « le
+// produire demanderait le chemin modèle […] tant que ce chemin n'existe pas ».
 //
-// N'ÉCRIT PAS: un chiffre d'énergie. Le produire demanderait le chemin modèle
-// de `analyze-meal-photo-v1`, et **un chiffre d'énergie ne se stocke jamais**
-// (FF-059 R5) — il se recalcule. Tant que ce chemin n'existe pas, le repère de
-// répartition (`slot_estimate`) tient sa place, et il DIT que c'en est un.
+// CE CHEMIN EXISTE. `analyzeJournalText` (`tracking_mutations_io.ts`) lit une
+// description écrite et en tire un `energy_estimate` de base `text_estimate`,
+// et c'est ce que fait déjà « Décrire » sur `/app/progress`. Deux écrans
+// posaient donc la même question à la même personne, et un seul comptait la
+// réponse — celui qu'elle n'avait pas ouvert.
 //
-// ⚠️ ET C'EST POUR ÇA QUE LE REPÈRE SURVIT À LA DÉCLARATION. Si décrire son
-// repas faisait disparaître le repère, le total du jour BAISSERAIT quand on
-// déclare — le produit apprendrait à ses utilisateurs à se taire. Voir
-// `TrackingMissedSlot.declared` dans `tracking_window.ts`.
+// Ce module garde ce que lui seul portait: ses huit refus NOMMÉS, le plancher
+// déterministe (`detectDeclaredMeal`) et la garde de fuseau. Il résout ensuite
+// le repas du journal que ce créneau désigne et délègue l'écriture à
+// `mutateJournal`. Deux écrivains sur la même table divergent au premier
+// correctif; celui qu'on relit le moins écrit le fait faux.
+//
+// ⛔ CE QUE LE CLIENT NE PASSE TOUJOURS PAS: un identifiant de repas. La
+// conversation connaît une date et un créneau. Savoir QUEL repas du journal
+// porte ce créneau — le plat prévu qu'on remplace, ou rien du tout — est une
+// question de base.
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { loadEnergyGate } from "./energy_gate_io.ts";
 import { detectDeclaredMeal } from "./meal_declaration_floor.ts";
 import { slotMealFactKey } from "./slot_meal_io.ts";
-import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
+import { EATING_OCCASIONS } from "./meal_generation.ts";
+import { loadJournal } from "./tracking_v2_io.ts";
+import { mutateJournal } from "./tracking_mutations_io.ts";
 
 type Db = SupabaseClient;
 
@@ -69,10 +78,17 @@ export interface DescribeOutcome {
   ok: boolean;
   reason: DescribeRefusal | null;
   /**
-   * ⛔ TOUJOURS `null` DANS CE LOT, et le champ existe quand même: le contrat
-   * avec l'écran est qu'un chiffre, s'il arrive un jour, arrivera AVEC sa base.
-   * Un champ ajouté plus tard aurait laissé le premier appelant écrire un
-   * nombre nu.
+   * LE CHIFFRE ET SA BASE, ENSEMBLE — jamais l'un sans l'autre.
+   *
+   * ⟳ IL N'EST PLUS TOUJOURS `null` (2026-09-09). `null` reste la réponse
+   * NORMALE dans trois cas: la porte d'énergie était fermée à l'écriture
+   * (plancher TCA, mineur, affichage éteint), la description n'était pas assez
+   * précise pour que le modèle en tire un chiffre, ou la lecture a échoué. Les
+   * trois sont indiscernables ici, et c'est voulu: l'écran n'a pas à savoir
+   * pourquoi il n'y a pas de chiffre — il n'en montre pas, point.
+   *
+   * `basis` vaut `text_estimate` quand il y en a un. Ce n'est PAS
+   * `declared_quantities`: personne n'a pesé quoi que ce soit.
    */
   energy: { kcal: number; basis: string } | null;
 }
@@ -96,7 +112,13 @@ function daysBetween(from: string, to: string): number {
  */
 export async function describeMissedSlot(
   admin: Db,
-  args: { userId: string; localDate: string; slot: string; text: string },
+  args: {
+    userId: string;
+    localDate: string;
+    slot: string;
+    text: string;
+    requestId: string;
+  },
 ): Promise<DescribeOutcome> {
   const userId = String(args.userId ?? "").trim();
   if (!userId) return refuse("bad_date");
@@ -114,10 +136,13 @@ export async function describeMissedSlot(
   if (text.length > DESCRIBE_MAX_CHARS) return refuse("text_too_long");
 
   // ══ LA PORTE, AVANT L'ÉCRITURE ══════════════════════════════════════════
-  // ⚠️ ELLE N'EST PAS LÀ POUR GARDER UN CHIFFRE — ce chemin n'en écrit aucun.
-  // Elle est là pour le FUSEAU: `loadEnergyGate` résout « aujourd'hui » chez la
-  // personne, et sans lui les deux bornes ci-dessous seraient celles du
-  // serveur. Un élève à Auckland pourrait décrire son dîner « dans le futur ».
+  // ⚠️ ELLE SERT DEUX CHOSES, ET LA SECONDE EST NEUVE (2026-09-09).
+  // ① LE FUSEAU: `loadEnergyGate` résout « aujourd'hui » chez la personne, et
+  //    sans lui les deux bornes ci-dessous seraient celles du serveur. Un élève
+  //    à Auckland pourrait décrire son dîner « dans le futur ».
+  // ② LE CHIFFRE: ce chemin en écrit un maintenant, par l'écrivain du journal.
+  //    La porte n'est pas rejouée ici — `analyzeJournalText` lit la MÊME
+  //    (`loadEnergyGate`) et n'écrit aucune énergie quand elle est fermée.
   // Et elle jette quand elle est illisible, ce qui est le bon comportement:
   // écrire un fait daté d'un jour qu'on n'a pas su résoudre est pire que
   // refuser.
@@ -142,52 +167,103 @@ export async function describeMissedSlot(
   const hit = detectDeclaredMeal(text, slot);
   if (!hit) return refuse("not_a_meal");
 
-  // ══ L'ÉCRITURE ══════════════════════════════════════════════════════════
-  // ⚠️ LA MÊME CLÉ QUE LE CANAL C1 (`slotMealFactKey`), et une seule définition.
-  // L'index unique partiel `(user_id, source_message_id)` fait le reste: si la
-  // conversation a déjà posé ce créneau ce jour-là, l'insertion rend 23505 et
-  // on répond `already_declared` — on n'écrase pas ce que la personne a dit
-  // ailleurs.
-  const key = slotMealFactKey(localDate, slot);
-  const inserted = await admin
+  // ══ L'IDEMPOTENCE, AVANT TOUT LE RESTE ═════════════════════════════════
+  // ⚠️ DEUX CLÉS, ET LES DEUX COMPTENT. `slot_meal:<date>:<slot>` est celle
+  // qu'écrivaient ce module et le canal C1 jusqu'au 2026-09-09; `journal:…`
+  // est celle du journal. Ne relire que la neuve ferait redemander un créneau
+  // qu'une ligne d'avant ce lot couvre déjà — et écraserait ce que la personne
+  // a dit ailleurs.
+  const mutationId = `slotmeal-${localDate}-${slot}`;
+  const already = await admin
     .from("protocol_events")
-    .insert({
-      user_id: userId,
-      occurred_at: new Date().toISOString(),
-      local_date: localDate,
-      // ⛔ FORCÉ, comme le canal C1: la page sait de quel créneau elle parle, et
-      // le laisser NULL rendrait ce fait invisible au lecteur qui compte les
-      // créneaux couverts — c'est-à-dire à la page qui vient de l'écrire.
-      slot_key: slot as EatingOccasion,
-      // Le geste est une saisie de TEXTE, pas une tape ni une photo.
-      source: "text",
-      // SCHEMA.md: une tape vaut 0,4. Une déclaration écrite ne vaut pas plus —
-      // elle dit qu'un repas a eu lieu, jamais combien.
-      evidence_weight: 0.4,
-      // ⛔ JAMAIS `as_planned`. Le plancher ne produit que `off_plan` ou `null`,
-      // et déduire « prévu » d'un silence fabriquerait de l'adhérence
-      // (FF-009 R5). On transmet ce que le plancher a lu, sans le compléter.
-      plan_relation: hit.planRelation,
-      // Les mots de la personne, tels quels. C'est ce qu'elle a écrit, et le
-      // coach doit pouvoir le lire sans passer par une interprétation.
-      student_note: hit.studentNote,
-      food_group_ref: hit.components[0]?.food_group_ref ?? null,
-      content_locale: String(loaded.goalsRow?.content_locale ?? "") ||
-        // Le repli n'invente pas une langue: `profiles.locale` est la source, et
-        // `loadEnergyGate` ne la rend pas. `en-US` serait un choix; `und` dit
-        // qu'on ne sait pas, ce qui est vrai.
-        "und",
-      source_message_id: key,
-    } as never)
     .select("id")
+    .eq("user_id", userId)
+    .in("source_message_id", [
+      slotMealFactKey(localDate, slot),
+      `journal:${mutationId}`,
+    ])
+    .limit(1)
     .maybeSingle();
+  if (already.error) throw already.error;
+  if (already.data) return refuse("already_declared");
 
-  if (inserted.error) {
-    if ((inserted.error as { code?: string }).code === "23505") {
-      return refuse("already_declared");
-    }
-    throw inserted.error;
+  // ══ LE REPAS QUE CE CRÉNEAU DÉSIGNE ═════════════════════════════════════
+  // ⛔ ON NE PREND PAS UN `extra`: ce sont les repas AJOUTÉS à la main sur la
+  // journée, et en attraper un ferait écrire la description d'un déjeuner sur
+  // le carré de chocolat de 16 h.
+  //
+  // ⚠️ AUCUN REPAS TROUVÉ N'EST LE CAS NORMAL, pas une panne: une journée sans
+  // plan et sans rythme déclaré n'a rien à ce créneau-là. On fabrique alors un
+  // `outside:` — la même forme que le bouton « + » de `/app/progress`.
+  const day = await loadJournal(admin, {
+    userId,
+    from: localDate,
+    to: localDate,
+    requestId: args.requestId,
+  });
+  const sameSlot = (day.days[0]?.meals ?? []).filter((m) =>
+    m.slot === slot && m.origin !== "extra"
+  );
+  if (sameSlot.some((m) => m.state === "reported" || m.state === "skipped")) {
+    return refuse("already_declared");
   }
+  const mealId = sameSlot[0]?.id ?? `outside:${localDate}:${slot}:${mutationId}`;
 
-  return { ok: true, reason: null, energy: null };
+  // ══ L'ÉCRITURE, PAR L'ÉCRIVAIN DU JOURNAL ═══════════════════════════════
+  // ⛔ `relation: "outside"` N'EST PAS LE DERNIER MOT. `resolveJournalContext`
+  // le RECALCULE: si le repas trouvé porte des `planRefs`, la relation devient
+  // `replacement` — « le plan composait quelque chose, j'ai mangé autre
+  // chose ». Passer `planned` d'ici serait affirmer que la personne a mangé ce
+  // qui était prévu, ce que ce chemin ne sait pas.
+  const written = await mutateJournal(admin, userId, {
+    action: "journal_describe",
+    local_date: localDate,
+    slot,
+    meal_id: mealId,
+    text: hit.studentNote,
+    relation: "outside",
+    mutation_id: mutationId,
+  }, args.requestId) as { ok?: boolean; eventId?: string };
+
+  const eventId = String(written?.eventId ?? "");
+  if (!eventId) return { ok: true, reason: null, energy: null };
+
+  // ══ CE QUE LE JOURNAL N'ÉCRIT PAS, ET QUE LE PLANCHER SAIT ══════════════
+  // `plan_relation` (FF-009 R5: `off_plan` ou rien, JAMAIS `as_planned`) et le
+  // groupe alimentaire reconnu. Ce sont les deux colonnes que la couverture du
+  // coach lit, et les perdre rendrait ce chemin muet pour lui — un défaut
+  // invisible depuis l'écran qui vient d'écrire.
+  const patch = await admin
+    .from("protocol_events")
+    .update({
+      plan_relation: hit.planRelation,
+      food_group_ref: hit.components[0]?.food_group_ref ?? null,
+    })
+    .eq("user_id", userId)
+    .eq("id", eventId);
+  if (patch.error) throw patch.error;
+
+  // ══ LE CHIFFRE, RELU SUR LA LIGNE ═══════════════════════════════════════
+  // ⚠️ ON RELIT PLUTÔT QUE DE FAIRE CONFIANCE AU RETOUR: `analyzeJournalText`
+  // rend `{ok, eventId}` que le modèle ait répondu ou non. Ce qui est en base
+  // est ce que l'écran doit annoncer.
+  const read = await admin
+    .from("protocol_events")
+    .select("recognized")
+    .eq("user_id", userId)
+    .eq("id", eventId)
+    .maybeSingle();
+  if (read.error) throw read.error;
+  const recognized = (read.data?.recognized ?? {}) as Record<string, unknown>;
+  const journalText = (recognized.journal_text ?? null) as
+    | { status?: unknown; energy?: { kcal?: unknown; basis?: unknown } | null }
+    | null;
+  const kcal = Number(journalText?.energy?.kcal);
+  const basis = String(journalText?.energy?.basis ?? "").trim();
+  const energy = journalText?.status === "ready" && Number.isFinite(kcal) &&
+      basis
+    ? { kcal: Math.round(kcal), basis }
+    : null;
+
+  return { ok: true, reason: null, energy };
 }

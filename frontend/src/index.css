@@ -148,6 +148,33 @@
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
+/* ── LE TIROIR DU « + » DE LA BARRE DU BAS ──────────────────────────────────
+   Il se déplie DEPUIS la barre, donc l'origine est en bas: un panneau qui
+   apparaît en glissant vers le haut dit d'où il sort, et c'est la seule chose
+   que cette animation a à dire.
+
+   ⚠️ 140 ms, ET PAS LES 0,8 s DES ANIMATIONS DE LA VITRINE. Celles-ci
+   accompagnent une lecture; celle-là suit un doigt. Au-delà de ~200 ms, le
+   panneau se lit comme un retard de l'appareil.
+
+   ⛔ ET ELLE S'EFFACE SOUS `prefers-reduced-motion`. Le panneau reste, entier,
+   immédiatement: l'animation n'est pas l'information. */
+@keyframes unfold-up {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-unfold-up {
+  animation: unfold-up 140ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-unfold-up {
+    animation: none;
+  }
+}
+
 /* ALERT PULSE (SOFT LOCK) */
 @keyframes alert-pulse-amber {
   0% {

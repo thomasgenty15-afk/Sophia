@@ -1,0 +1,2141 @@
+{
+  "ok": true,
+  "draft": true,
+  "names": {
+    "dishes": 19,
+    "declared": 19,
+    "kept": 19,
+    "refused": 0
+  },
+  "food_groups": {
+    "declared": 0,
+    "valid": 0,
+    "refused": 0,
+    "persisted": 0,
+    "lines": 100
+  },
+  "boxes": {
+    "meals": 11,
+    "with_box": 11,
+    "boxes": 11,
+    "expected": 11,
+    "delivery": "served",
+    "refused": 0,
+    "names": 0,
+    "names_refused": 0,
+    "items": 22,
+    "items_refused": 0,
+    "capped": 0,
+    "legacy_folded": 0,
+    "preparations": 4,
+    "sum_checked": 0,
+    "sum_over": 0,
+    "sum_unverifiable": 4,
+    "mouth_slots": 0,
+    "mouths_unboxed": 0,
+    "mouths_double": 0,
+    "mouths_double_model": 0,
+    "cells_no_box": 8,
+    "mouths_no_box_cell": 0
+  },
+  "unquantified_dish_ingredients": {
+    "ingredients": 81,
+    "unquantified": 1
+  },
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-05",
+    "duration_days": 7
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-05",
+    "shifted": null
+  },
+  "timing": {
+    "kind": "same_morning",
+    "reason": "starts_today",
+    "lead_day": null
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 7 jours, à partir d'aujourd'hui.",
+      "Le plan pose 2 sessions de cuisine : samedi et mardi.",
+      "Courses et cuisson dès le matin, pour être prêt à midi.",
+      "Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.",
+      "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+      "Ce qui se cuisine mardi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+      "Le budget des courses est 25.",
+      "Pour y tenir, ce sont d'abord les protéines chères, puis les produits hors saison, puis la variété qui cèdent — jamais les portions."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "dishes": [
+    {
+      "name": "Pizza sardines et mozzarella",
+      "title": "Pizza à la poêle, sardines, tomate et mozzarella",
+      "slot": "dinner",
+      "day": "sat",
+      "ingredients": [
+        {
+          "term": "farine de blé",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "60 ml",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sardines en boîte",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "mozzarella",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Mélanger la farine, l'eau et le sel, puis étaler la pâte. La cuire dans une poêle huilée et couverte, ajouter la tomate, les sardines et la mozzarella, puis couvrir jusqu'à ce que le fromage fonde.",
+      "why": "La pizza à la poêle répond à votre envie sans four; les sardines apportent aussi le poisson gras de la semaine et une protéine entière.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 20
+      }
+    },
+    {
+      "name": "Bol œuf et avoine",
+      "title": "Œufs durs, flocons d'avoine, yaourt et poire",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "œufs durs",
+          "quantity": "2 œufs durs",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "cooked",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "210 g",
+          "in_pantry": false,
+          "amount": 210,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 210,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "13 g",
+          "in_pantry": false,
+          "amount": 13,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 13,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte d'œufs, puis mélanger les flocons d'avoine, le yaourt et les noix. Manger avec la poire.",
+      "why": "Ce petit-déjeuner garde un apport protéiné et une portion généreuse de céréales sans demander de cuisson le matin.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_eggs",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_breakfast",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_eggs",
+              "term": "œufs durs",
+              "grams": 100
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poulet couscous citronné",
+      "title": "Poulet, couscous, courgette et tomate",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de couscous. Ajouter la courgette et la tomate coupées, puis le jus de citron et l'huile d'olive.",
+      "why": "Ce déjeuner utilise une préparation du samedi pour un repas complet et généreux, avec des légumes de saison ajoutés au moment de manger.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 150
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous cuit",
+              "grams": 230
+            },
+            {
+              "preparation_id": null,
+              "term": "courgette et tomate",
+              "grams": 270
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Poulet salade complète",
+      "title": "Poulet, pommes de terre, tomates et salade verte",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "pommes de terre cuites",
+          "quantity": "220 g",
+          "in_pantry": false,
+          "amount": 220,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 244.44444444444443,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet. Ajouter les pommes de terre, la salade et les tomates, puis assaisonner avec l'huile d'olive.",
+      "why": "Le même poulet devient une assiette différente le soir, avec davantage de féculent et de matière grasse pour éviter un dîner trop léger.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "a_missed_day_is_data"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 150
+            },
+            {
+              "preparation_id": null,
+              "term": "pommes de terre, salade et tomate",
+              "grams": 480
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Œufs, avoine et pomme",
+      "title": "Œufs durs, flocons d'avoine, yaourt et pomme",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "œufs durs",
+          "quantity": "2 œufs durs",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "cooked",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "210 g",
+          "in_pantry": false,
+          "amount": 210,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 210,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "13 g",
+          "in_pantry": false,
+          "amount": 13,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 13,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte d'œufs, mélanger les flocons d'avoine, le yaourt et les noix, puis ajouter la pomme coupée.",
+      "why": "C'est une répétition volontaire et rapide du petit-déjeuner de dimanche, pour soutenir des horaires réguliers.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_eggs",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_breakfast",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_eggs",
+              "term": "œufs durs",
+              "grams": 100
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Couscous de poulet",
+      "title": "Poulet, couscous, courgette et tomate",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de couscous, puis ajouter la courgette, la tomate, le citron et l'huile d'olive.",
+      "why": "Cette répétition utilise les préparations encore dans leur délai sûr et garde une assiette consistante sans nouvelle cuisson.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 150
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous cuit",
+              "grams": 230
+            },
+            {
+              "preparation_id": null,
+              "term": "courgette et tomate",
+              "grams": 270
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Poulet pommes de terre",
+      "title": "Poulet, pommes de terre, salade et tomate",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pommes de terre cuites",
+          "quantity": "220 g",
+          "in_pantry": false,
+          "amount": 220,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 244.44444444444443,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet, puis ajouter les pommes de terre, la salade, la tomate et l'huile d'olive.",
+      "why": "Cette assiette termine la préparation du samedi avec une forme différente et un apport suffisant de féculent.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 150
+            },
+            {
+              "preparation_id": null,
+              "term": "pommes de terre, salade et tomate",
+              "grams": 480
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Yaourt avoine et banane",
+      "title": "Yaourt nature, flocons d'avoine, banane et noix",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "yaourt nature",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "17 g",
+          "in_pantry": false,
+          "amount": 17,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 17,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt, les flocons d'avoine et les noix, puis ajouter la banane en rondelles.",
+      "why": "Ce repas sans cuisson fournit une protéine laitière et une base céréalière généreuse avant la session de cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Tartines sardines tomate",
+      "title": "Sardines, pain complet, tomate et salade",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "sardines en boîte",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "155 g",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à café d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Disposer les sardines sur le pain et servir avec la tomate et la salade assaisonnées d'huile d'olive.",
+      "why": "Ce déjeuner sans cuisson respecte le temps disponible et remet un poisson gras au centre d'un repas complet.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Poulet lentilles tomate",
+      "title": "Poulet, lentilles, tomates et courgette",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil",
+          "quantity": "9 g",
+          "in_pantry": false,
+          "amount": 9,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 9,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de lentilles. Ajouter la courgette crue en dés, le persil et l'huile d'olive.",
+      "why": "La nouvelle préparation du mardi couvre plusieurs repas avec une protéine entière et des lentilles, en restant dans la courte session disponible.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_lentils",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_lentils",
+              "term": "poulet et lentilles cuits",
+              "grams": 430
+            },
+            {
+              "preparation_id": null,
+              "term": "courgette et persil",
+              "grams": 160
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Yaourt avoine et pomme",
+      "title": "Yaourt nature, flocons d'avoine, pomme et noix",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "yaourt nature",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "17 g",
+          "in_pantry": false,
+          "amount": 17,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 17,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt, les flocons d'avoine et les noix, puis ajouter la pomme coupée.",
+      "why": "Ce petit-déjeuner répétable maintient la régularité sans ajouter une tâche de cuisine.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Bol poulet lentilles",
+      "title": "Poulet, lentilles, riz et tomate",
+      "slot": "lunch",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "riz cuit",
+          "quantity": "190 g",
+          "in_pantry": false,
+          "amount": 190,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 190,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "155 g",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de lentilles, ajouter le riz cuit et la tomate, puis assaisonner avec l'huile d'olive.",
+      "why": "Le riz et l'huile rendent la préparation plus généreuse au déjeuner sans multiplier les cuissons.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_lentils",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_lentils",
+              "term": "poulet et lentilles cuits",
+              "grams": 430
+            },
+            {
+              "preparation_id": null,
+              "term": "riz cuit et tomate",
+              "grams": 400
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Tartines fromage blanc",
+      "title": "Fromage blanc, pain complet, tomate et noix",
+      "slot": "dinner",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "175 g",
+          "in_pantry": false,
+          "amount": 175,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 175,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "17 g",
+          "in_pantry": false,
+          "amount": 17,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 17,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le pain de fromage blanc et servir avec la tomate et les noix assaisonnées d'huile d'olive.",
+      "why": "Ce dîner sans cuisson offre une protéine laitière entière et une alternative au plat de batch du midi.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt avoine et poire",
+      "title": "Yaourt nature, flocons d'avoine, poire et noix",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "yaourt nature",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "17 g",
+          "in_pantry": false,
+          "amount": 17,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 17,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt, les flocons d'avoine et les noix, puis ajouter la poire coupée.",
+      "why": "La répétition permet de garder des horaires simples tout en conservant une protéine au petit-déjeuner.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poulet lentilles citron",
+      "title": "Poulet, lentilles, couscous et courgette",
+      "slot": "lunch",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "couscous cuit",
+          "quantity": "190 g",
+          "in_pantry": false,
+          "amount": 190,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 73.07692307692308,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgette",
+          "quantity": "155 g",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de lentilles, ajouter le couscous, la courgette, le citron et l'huile d'olive.",
+      "why": "Cette variation garde la préparation du mardi appétissante et ajoute un féculent consistant au repas de midi.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_lentils",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_lentils",
+              "term": "poulet et lentilles cuits",
+              "grams": 430
+            },
+            {
+              "preparation_id": null,
+              "term": "couscous et courgette",
+              "grams": 400
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Salade de sardines",
+      "title": "Sardines, pommes de terre, haricots verts et tomate",
+      "slot": "dinner",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "sardines en boîte",
+          "quantity": "105 g",
+          "in_pantry": false,
+          "amount": 105,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 105,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pommes de terre cuites",
+          "quantity": "245 g",
+          "in_pantry": false,
+          "amount": 245,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 272.22222222222223,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts en boîte",
+          "quantity": "155 g",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger les pommes de terre, les haricots verts et la tomate avec l'huile d'olive, puis ajouter les sardines.",
+      "why": "Ce dîner sans cuisson varie le batch et fournit une protéine complète avec un féculent généreux.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt avoine et banane",
+      "title": "Yaourt nature, flocons d'avoine, banane et noix",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "yaourt nature",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "17 g",
+          "in_pantry": false,
+          "amount": 17,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 17,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt, les flocons d'avoine et les noix, puis ajouter la banane en rondelles.",
+      "why": "Ce petit-déjeuner simple utilise des aliments déjà prévus et évite de cuisiner avant une journée ordinaire.",
+      "honours_belief_keys": [
+        "regular_meals_beat_perfect_meals",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Bol poulet lentilles",
+      "title": "Poulet, lentilles, riz et tomate",
+      "slot": "lunch",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "riz cuit",
+          "quantity": "190 g",
+          "in_pantry": false,
+          "amount": 190,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 190,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "155 g",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte de poulet et de lentilles, ajouter le riz et la tomate, puis assaisonner avec l'huile d'olive.",
+      "why": "Le même batch est réutilisé avec du riz pour garder un déjeuner consistant et limiter les sessions de cuisine.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_lentils",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_lunch",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_lentils",
+              "term": "poulet et lentilles cuits",
+              "grams": 430
+            },
+            {
+              "preparation_id": null,
+              "term": "riz cuit et tomate",
+              "grams": 400
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Poulet lentilles pommes de terre",
+      "title": "Poulet, lentilles, pommes de terre et salade",
+      "slot": "dinner",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "pommes de terre cuites",
+          "quantity": "245 g",
+          "in_pantry": false,
+          "amount": 245,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 272.22222222222223,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "130 g",
+          "in_pantry": false,
+          "amount": 130,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir la boîte congelée la veille et la laisser décongeler au réfrigérateur. Réchauffer à la poêle, puis ajouter les pommes de terre, la salade, la tomate et l'huile d'olive.",
+      "why": "Le dernier repas utilise une portion congelée le jour du batch, plutôt que de conserver la préparation trop longtemps au réfrigérateur.",
+      "honours_belief_keys": [
+        "protein_at_every_meal",
+        "whole_foods_first"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken_lentils",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_dinner",
+          "member_ids": [],
+          "items": [
+            {
+              "preparation_id": "prep_chicken_lentils",
+              "term": "poulet et lentilles cuits",
+              "grams": 430
+            },
+            {
+              "preparation_id": null,
+              "term": "pommes de terre, salade et tomate",
+              "grams": 510
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_eggs",
+      "title": "Œufs durs",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "œufs",
+          "quantity": "4 œufs",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 220,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "1 l d'eau",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Faire cuire les œufs dans l'eau bouillante pendant 9 minutes, les refroidir sous l'eau froide et les ranger en deux portions.",
+      "active_minutes": 5,
+      "total_minutes": 15,
+      "cook_on": "sat"
+    },
+    {
+      "id": "prep_chicken",
+      "title": "Poulet à la poêle",
+      "servings_made": 3,
+      "ingredients": [
+        {
+          "term": "blancs de poulet",
+          "quantity": "470 g",
+          "in_pantry": false,
+          "amount": 470,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 470,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "260 g",
+          "in_pantry": false,
+          "amount": 260,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 260,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "1 pincée de poivre noir",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Émincer l'oignon, le faire revenir dans l'huile, ajouter le poulet en morceaux puis les tomates concassées. Couvrir et laisser mijoter jusqu'à ce que le poulet soit cuit, puis répartir en trois boîtes.",
+      "active_minutes": 12,
+      "total_minutes": 25,
+      "cook_on": "sat"
+    },
+    {
+      "id": "prep_couscous",
+      "title": "Couscous cuit",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "couscous sec",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "155 ml",
+          "in_pantry": false,
+          "amount": 155,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 155,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à café d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Verser l'eau bouillante salée sur le couscous, couvrir 5 minutes, égrener avec l'huile d'olive et répartir en deux boîtes.",
+      "active_minutes": 5,
+      "total_minutes": 10,
+      "cook_on": "sat"
+    },
+    {
+      "id": "prep_chicken_lentils",
+      "title": "Poulet aux lentilles et tomate",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "blancs de poulet",
+          "quantity": "630 g",
+          "in_pantry": false,
+          "amount": 630,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 630,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "lentilles en boîte égouttées",
+          "quantity": "840 g",
+          "in_pantry": false,
+          "amount": 840,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 350,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "435 g",
+          "in_pantry": false,
+          "amount": 435,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 435,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pincée de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "1 pincée de poivre noir",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Acheter le poulet frais le mardi ou la veille. Faire revenir l'oignon et le poulet dans l'huile, ajouter les tomates et les lentilles, puis laisser mijoter jusqu'à cuisson complète. Répartir en quatre boîtes et congeler immédiatement la portion du vendredi.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "tue"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sat",
+      "preparation_ids": [
+        "prep_eggs",
+        "prep_chicken",
+        "prep_couscous"
+      ],
+      "run_through": "Acheter le poulet frais le samedi. Mettre les œufs à cuire, puis émincer l'oignon et lancer le poulet à la poêle. Pendant qu'il mijote, hydrater le couscous. Refroidir les préparations et répartir les œufs, le poulet et le couscous dans leurs boîtes.",
+      "total_minutes": 30
+    },
+    {
+      "day": "tue",
+      "preparation_ids": [
+        "prep_chicken_lentils"
+      ],
+      "run_through": "Acheter le poulet frais le mardi ou la veille. Émincer l'oignon, saisir le poulet, puis ajouter les tomates et les lentilles. Laisser mijoter, répartir dans quatre boîtes et mettre immédiatement la boîte du vendredi au congélateur.",
+      "total_minutes": 30
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "œufs",
+      "quantity": "4 œufs",
+      "aisle": "protein",
+      "food_group": "eggs",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "blancs de poulet",
+      "quantity": "1 kg de blancs de poulet",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "sardines en boîte",
+      "quantity": "3 boîtes de sardines",
+      "aisle": "protein",
+      "food_group": "fatty_fish",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt nature",
+      "quantity": "1 kg de yaourt nature",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fromage blanc",
+      "quantity": "260 g de fromage blanc",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "mozzarella",
+      "quantity": "70 g de mozzarella",
+      "aisle": "dairy",
+      "food_group": "dairy_cheese",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "lentilles en boîte",
+      "quantity": "4 boîtes de lentilles",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates concassées",
+      "quantity": "695 g de tomates concassées",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots verts en boîte",
+      "quantity": "1 boîte de haricots verts",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "farine de blé",
+      "quantity": "105 g de farine de blé",
+      "aisle": "grains",
+      "food_group": null,
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "couscous",
+      "quantity": "120 g de couscous",
+      "aisle": "grains",
+      "food_group": "refined_grain",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pain complet",
+      "quantity": "225 g de pain complet",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "flocons d'avoine",
+      "quantity": "400 g de flocons d'avoine",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes de terre",
+      "quantity": "1 kg de pommes de terre",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "550 g de courgettes",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates",
+      "quantity": "1 kg de tomates",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "salade verte",
+      "quantity": "280 g de salade verte",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes",
+      "quantity": "2 pommes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poires",
+      "quantity": "2 poires",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "bananes",
+      "quantity": "2 bananes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citrons",
+      "quantity": "2 citrons",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "oignons",
+      "quantity": "2 oignons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "persil",
+      "quantity": "1 petit bouquet de persil",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "130 g de noix",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d'olive",
+      "quantity": "220 ml d'huile d'olive",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "riz",
+      "quantity": "130 g de riz",
+      "aisle": "grains",
+      "food_group": "refined_grain",
+      "buy_on": "2026-09-05",
+      "freeze_on_purchase": false
+    }
+  ],
+  "fixed_intakes": [],
+  "day_properties": [],
+  "rejected_numeric": [],
+  "rejected_aisles": [],
+  "issues": [
+    "shopping_waves: 1 (2026-09-05)",
+    "freeze_on_purchase: 0/26",
+    "raw_keeping_needs_later_shop: 1/4 preparations",
+    "shopping_list_unattributed: 11/26 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "structured_quantity_missing: 1/81 ingredients",
+    "unquantified_terms: sel",
+    "uses_kept_freezer: 2/13"
+  ],
+  "request_id": "5447469f-bf09-474d-b96a-0dfcfef4d15a"
+}

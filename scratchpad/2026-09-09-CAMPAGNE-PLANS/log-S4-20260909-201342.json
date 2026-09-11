@@ -1,0 +1,106 @@
+[
+ {
+  "tag": "keel.draft_store",
+  "event": "reused",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "b58ee9e9-6aed-4eb2-af76-232a65fa5657"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "draftId": "4b7bbe54-2d7b-4ddd-a1fe-1aa5752c1125",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "draftId": "50020196-4953-4428-82a3-fdcbc83595cc",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.retained_items",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.age_gate",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "age_population": "adult",
+  "age_reason": "adult",
+  "number_allowed": true,
+  "age": 29
+ },
+ {
+  "tag": "keel.meal.notes",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "subject": "household",
+  "lines": 0,
+  "served": 0
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "draftId": "fd254862-96e8-46e4-ba16-d5c9ca276c5b",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.condition_gate",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "population": "none",
+  "goal": "fat_loss",
+  "served_goal": "fat_loss",
+  "cancelled": false
+ },
+ {
+  "tag": "keel.meal.portion_adjust",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "age_state": "adult",
+  "retained": 0,
+  "answers": 0,
+  "position": 0,
+  "raw": 0,
+  "factor": 1,
+  "applied": 0,
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": []
+ },
+ {
+  "tag": "keel.meal.envelope_direction",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "goal": "fat_loss",
+  "direction": "down",
+  "daily_delta_kcal": 275,
+  "energy_floor_kcal": 1200,
+  "pace_set": 1
+ },
+ {
+  "tag": "keel.meal.envelope",
+  "user_id": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "intent": "draft",
+  "mode": "per_kg",
+  "energy_low": 1550,
+  "energy_high": 1750,
+  "unadjusted_low": 1550,
+  "unadjusted_high": 1750
+ }
+]

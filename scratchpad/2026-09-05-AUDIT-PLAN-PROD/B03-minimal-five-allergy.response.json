@@ -1,0 +1,9 @@
+{
+  "error": "draft_not_composed",
+  "lock": "disarmed_empty_text",
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "empty_slots: sun/breakfast, sun/snack_am, sun/lunch, sun/snack_pm, sun/dinner, sun/before_bed, mon/breakfast, mon/snack_am, mon/lunch, mon/snack_pm, mon/dinner, mon/before_bed, tue/breakfast, tue/snack_am, tue/lunch, tue/snack_pm, tue/dinner, tue/before_bed, wed/breakfast, wed/snack_am, wed/lunch, wed/snack_pm, wed/dinner, wed/before_bed, thu/breakfast, thu/snack_am, thu/lunch, thu/snack_pm, thu/dinner, thu/before_bed, fri/breakfast, fri/snack_am, fri/lunch, fri/snack_pm, fri/dinner, fri/before_bed"
+  ],
+  "request_id": "4d6d3846-f56f-4704-8682-a694d0c66653"
+}

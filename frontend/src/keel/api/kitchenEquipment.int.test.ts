@@ -368,7 +368,7 @@ describe("④ la donnée vit dans la colonne, et nulle part ailleurs", () => {
     }
     // La lane foyer garde SON bloc (`kitchenBlock`, enveloppe v16): elle ne
     // passe pas l'équipement au tronc, sinon la consigne partirait deux fois.
-    expect(code("supabase/functions/generate-meal-v1/index.ts"))
+    expect(code("supabase/functions/generate-household-meal-v1/index.ts"))
       .toContain("readKitchenEquipment");
   });
 });

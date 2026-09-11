@@ -400,9 +400,41 @@ export const UNFED_RETRY_PARTIAL_BLOCK = [
   "Rewriting the rest of the plan is a mistake: it will be discarded.",
 ].join("\n");
 
+/**
+ * ⟳ LOT 14 — LE MÊME BLOC, SANS LES COUVERCLES. Le moteur les autore; les
+ * demander ferait écrire une sortie qu'on jette.
+ */
+const UNFED_RETRY_PARTIAL_BLOCK_STANDARD = [
+  "⛔ RETURN ONLY THE MEALS NAMED ABOVE. Keep the same JSON shape, but:",
+  "- \"dishes\" holds ONLY the dishes of those day/slot cells -- every dish of each",
+  "  named cell (the table's dish, and any dish of someone's own at that cell),",
+  "  nothing from any other day or slot;",
+  "- \"preparations\" holds ONLY the preparations those dishes cite, as FULL recipes",
+  "  (title, method, ingredients with quantities, cook_on) -- a swapped component",
+  "  gets its own preparation, cooked apart;",
+  "- \"cooking_sessions\" holds only the sessions those preparations cook in;",
+  "- \"shopping_list\" holds only the lines those preparations need;",
+  "- write NO box and NO per-person figure: the app works those out.",
+  "Rewriting the rest of the plan is a mistake: it will be discarded.",
+].join("\n");
+
 export function unfedRetryInstruction(
   rows: readonly UnfedRetryRow[],
   options: {
+    /**
+     * ⟳ LOT 14 (2026-09-08) — DANS QUELLE LANGUE ON DEMANDE LA RÉPARATION.
+     *
+     * ⛔ REQUIS, ET DEUX VALEURS NOMMÉES — jamais un booléen. `boxes` est le
+     * texte d'origine, byte-identique, servi tant que le modèle écrit les
+     * couvercles. `standard_recipe` est celui du chemin où le MOTEUR les
+     * autore: y demander « nomme-la sur une boîte » ferait écrire une sortie
+     * qu'on jette, et un modèle à qui on jette la moitié de sa sortie finit
+     * par mal écrire l'autre.
+     *
+     * ⚠️ UN `?` ICI SERAIT UNE GARDE DÉSARMÉE: le chemin neuf recevrait
+     * silencieusement le texte de l'ancien, et personne ne le verrait.
+     */
+    readonly wording: "boxes" | "standard_recipe";
     readonly partial?: boolean;
     /**
      * ⟳ 2026-09-06 (FC4) — LES MOTS QUE LA TABLE ENTIÈRE ÉVITE. Une exclusion
@@ -413,13 +445,15 @@ export function unfedRetryInstruction(
      * pour tout le monde, et jeter la casserole qui le portait.
      */
     readonly tableTerms?: readonly string[];
-  } = {},
+  },
 ): string | null {
   const clean = (rows ?? []).filter((r) =>
     r && String(r.name ?? "").trim() && String(r.memberId ?? "").trim()
   );
   if (clean.length === 0) return null;
 
+  // ⟳ LOT 14 (2026-09-08) — LA LANGUE DE LA DEMANDE, LUE UNE FOIS.
+  const standard = options.wording === "standard_recipe";
   const remedy: Record<UnfedCause, string> = {
     held_off_regime:
       "their declared line refuses what that dish carries -- write them a box " +
@@ -429,14 +463,25 @@ export function unfedRetryInstruction(
       "they asked to avoid something that dish carries -- write them a box of " +
       "their OWN on that dish: same base, that one component swapped for one of " +
       "the same role, in \"boxes\" with its own \"items\"",
-    not_named:
-      "nobody put them on a box of that meal -- name them on exactly one box of it",
-    double:
-      "they are named on two boxes of that meal -- name them on ONE box only",
-    no_dish:
-      "NO dish at all was planned for that meal -- write one for that day and " +
-      "slot, with boxes naming everyone who eats then (them included), its " +
-      "preparations, and their cooking session and shopping lines",
+    not_named: standard
+      // ⛔ INATTEIGNABLE SUR CE CHEMIN, et gardé quand même. Le moteur autore
+      // les couvercles: personne ne peut « manquer sur une boîte ». Si cette
+      // ligne sortait, c'est que le parseur aurait laissé passer une boîte du
+      // modèle — un fait qu'on veut lire, pas taire.
+      ? "the plan has no dish they can eat at that meal -- give them a dish of " +
+        "their OWN there (for_member_id), or rewrite the shared dish so they can"
+      : "nobody put them on a box of that meal -- name them on exactly one box of it",
+    double: standard
+      ? "they are served twice at that meal -- leave exactly one dish for them"
+      : "they are named on two boxes of that meal -- name them on ONE box only",
+    no_dish: standard
+      ? "NO dish at all was planned for that meal -- write ONE standard recipe " +
+        "for that day and slot, its preparations, and their cooking session and " +
+        "shopping lines. Write no box and no per-person figure: the app works " +
+        "those out"
+      : "NO dish at all was planned for that meal -- write one for that day and " +
+        "slot, with boxes naming everyone who eats then (them included), its " +
+        "preparations, and their cooking session and shopping lines",
   };
 
   const fold = (v: string): string =>
@@ -523,7 +568,9 @@ export function unfedRetryInstruction(
     "Everyone eating a meal must be named on exactly one box of it. Do NOT drop " +
     "a dish, do NOT shorten the plan, and do NOT mention any of this in a " +
     "\"why\" -- what somebody eats is nobody's business but theirs.",
-    ...(options.partial ? [UNFED_RETRY_PARTIAL_BLOCK] : []),
+    ...(options.partial
+      ? [standard ? UNFED_RETRY_PARTIAL_BLOCK_STANDARD : UNFED_RETRY_PARTIAL_BLOCK]
+      : []),
   ].join("\n");
 }
 

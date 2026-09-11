@@ -1,0 +1,223 @@
+════ plan-M01-1-20260905-215634.json · solo
+  sun   1172 kcal    71 g  complet
+  mon   1118 kcal    83 g  complet
+  tue    885 kcal    85 g  1/2
+  wed   1610 kcal   103 g  complet
+  thu   2062 kcal   138 g  complet
+  fri   1241 kcal    88 g  complet
+  jours complets (5) : 1441 kcal/j = 70 % de 2059–2175 · protéine 97 g = 59 %
+  verdict: below under within · résolution 108/109 · non résolus: ['galette de ble complet']
+── explication IA: ABSENTE
+── plats: 13 · titres distincts 13 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 3 · issues 8
+════ plan-M02-1-20260905-215754.json · solo
+  sun   2224 kcal   151 g  complet
+  mon   2330 kcal   162 g  complet
+  jours complets (2) : 2277 kcal/j = 111 % de 2059–2175 · protéine 156 g = 95 %
+  verdict: within under within · résolution 49/49 · non résolus: []
+── explication IA: ABSENTE
+── plats: 6 · titres distincts 6 · jours composés 2 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 2}) · sessions 1 · issues 6
+════ plan-M05-1-20260905-215957.json · quatre
+── cibles (production)
+Paul    entretien 2700  cible 2200  déjeuner 880 kcal ≈ 652 g composés
+Claire  entretien 1986  cible 1986  déjeuner 794 kcal ≈ 588 g composés
+Leo     entretien 2459  cible 2459  déjeuner 984 kcal ≈ 729 g composés
+Nora    entretien 1926  cible 1926  déjeuner 770 kcal ≈ 570 g composés
+TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Claire         15     845        1327             95             0
+Leo            15     845        1327             95             0
+Nora           15     912        1428             98             0
+Paul           15    1146        1795            124             0
+⚠️ termes non résolus (10): poulet roti, legumes rotis, courgettes et poivrons rotis, boulettes de dinde, boulettes de lentilles, legumes mijotes, haricots verts et tomates rotis, orge perlee seche, tofu soyeux, boisson d'avoine
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 1500 / 29670 g = 5 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  6859      441 g
+── compteurs
+  anchor: {"anchored": 2, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 10, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 12}
+  unmet: {"none": 0, "factor_clamped": 0, "pot_ceiling": 2, "both": 10, "not_anchored": 12}
+  unmet_band: {"lt_200": 0, "gte_200": 12}
+  densify: moved 1597 g · closed 1208 kcal · remaining_gte_200 9 · stopped {"closed": 0, "floor": 3, "ceiling": 6, "pot_exhausted": 1, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 1 · merged 3
+  regime_belt: bites 12 separated 12 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 30 · g moyens 412 · min 322 · max 513
+── explication IA: {"lines": ["J’ai gardé les mêmes bases végétales pour la table et prévu la protéine animale ou végétale dans les boîtes individuelles, afin que chaque assiette puisse suivre sa ligne sans cuisiner deux repas.", "Les repas principaux alternent bols chauds, salades et présentations aux herbes pour utiliser les lots plusieurs fois sans servir le même plat trois jours de suite."], "refusal": null}
+── plats: 36 · titres distincts 34 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 3 · issues 35
+════ plan-M06-1-20260905-220331.json · quatre
+── cibles (production)
+Paul    entretien 2700  cible 2200  déjeuner 880 kcal ≈ 652 g composés
+Claire  entretien 1986  cible 1986  déjeuner 794 kcal ≈ 588 g composés
+Leo     entretien 2459  cible 2459  déjeuner 984 kcal ≈ 729 g composés
+Nora    entretien 1926  cible 1926  déjeuner 770 kcal ≈ 570 g composés
+TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Claire         11     749        1262            117             0
+Leo            11     749        1262            117             0
+Nora           11     752        1270            118             0
+Paul           11     945        1597            148             0
+⚠️ termes non résolus (1): poulet roti
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 22261 g = 0 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  6591      547 g
+── compteurs
+  anchor: {"anchored": 0, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 12, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 12}
+  unmet: {"none": 0, "factor_clamped": 0, "pot_ceiling": 0, "both": 12, "not_anchored": 12}
+  unmet_band: {"lt_200": 0, "gte_200": 12}
+  densify: moved 899 g · closed 881 kcal · remaining_gte_200 12 · stopped {"closed": 0, "floor": 7, "ceiling": 0, "pot_exhausted": 5, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 10 · retry_attempts 1 · merged 0
+  regime_belt: bites 11 separated 11 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 22 · g moyens 463 · min 410 · max 516
+── explication IA: {"lines": ["La base commune reste végétale, tandis que la protéine animale est préparée à part pour les autres convives et remplacée par du tofu dans les boîtes concernées.", "Les repas principaux répètent deux préparations, car deux séances courtes rendent la semaine plus facile à suivre.", "Les fruits de fin d’été et les légumes disponibles en France début septembre donnent une tonalité fraîche aux repas."], "refusal": null}
+── plats: 35 · titres distincts 26 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 2 · issues 24
+════ plan-M07-1-20260905-220651.json · cinq
+── cibles (production)
+Sonia   entretien 2148  cible 1648  déjeuner 659 kcal ≈ 488 g composés
+Marc    entretien 4226  cible 4226  déjeuner 1690 kcal ≈ 1252 g composés
+Lea     entretien 2418  cible 2418  déjeuner 967 kcal ≈ 716 g composés
+Tom     entretien 2324  cible 2324  déjeuner 930 kcal ≈ 689 g composés
+Zoe     entretien 1622  cible 1622  déjeuner 649 kcal ≈ 481 g composés
+TABLE   cible/jour 12238 kcal · déjeuner 4895 kcal ≈ 3626 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Lea            12    1006         204              8             0
+Marc           11    1901         379             16             0
+Sonia          12     907         184              7             0
+Tom            12    1006         204              8             0
+Zoe            12    1006         204              8             0
+⚠️ termes non résolus (4): orzo, pates a pizza, raviolis frais au fromage, champignons de paris
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 632 / 7246 g = 9 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  5104      283 g
+── compteurs
+  anchor: {"anchored": 0, "day_incomplete": 4, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 8, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 18}
+  unmet: {"none": 0, "factor_clamped": 8, "pot_ceiling": 0, "both": 0, "not_anchored": 22}
+  unmet_band: {"lt_200": 0, "gte_200": 8}
+  densify: moved 0 g · closed 0 kcal · remaining_gte_200 8 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 8, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 1 · merged 1
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 23 · g moyens 732 · min 382 · max 1060
+── explication IA: {"lines": ["Les raviolis aux champignons demandés sont servis au groupe, avec une préparation séparée aux épinards pour la boîte individuelle concernée.", "La pizza du vendredi reste au menu, préparée avec des légumes et de la mozzarella pour respecter la base partagée de la semaine."], "refusal": null}
+── plats: 37 · titres distincts 32 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 3 · issues 24
+════ plan-M08-1-20260905-221659.json · cinq
+── cibles (production)
+Sonia   entretien 2148  cible 1648  déjeuner 659 kcal ≈ 488 g composés
+Marc    entretien 4226  cible 4226  déjeuner 1690 kcal ≈ 1252 g composés
+Lea     entretien 2418  cible 2418  déjeuner 967 kcal ≈ 716 g composés
+Tom     entretien 2324  cible 2324  déjeuner 930 kcal ≈ 689 g composés
+Zoe     entretien 1622  cible 1622  déjeuner 649 kcal ≈ 481 g composés
+TABLE   cible/jour 12238 kcal · déjeuner 4895 kcal ≈ 3626 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Lea             6     436         274             13             0
+Marc            6     927         582             28             0
+Sonia           6     427         268             13             0
+Tom             6     436         274             13             0
+Zoe             6     436         274             13             0
+⚠️ termes non résolus (2): raviolis aux champignons, pate a pizza
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 3045 / 16070 g = 19 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  8646      389 g
+── compteurs
+  anchor: {"anchored": 0, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 12, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 18}
+  unmet: {"none": 0, "factor_clamped": 12, "pot_ceiling": 0, "both": 0, "not_anchored": 18}
+  unmet_band: {"lt_200": 4, "gte_200": 8}
+  densify: moved 0 g · closed 0 kcal · remaining_gte_200 8 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 12, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 0 · merged 0
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 12 · g moyens 677 · min 427 · max 927
+── explication IA: {"lines": ["Les raviolis aux champignons demandés restent au menu, avec une portion séparée aux courgettes pour Marc afin que le plat puisse être partagé cette semaine.", "La pizza demandée est gardée vendredi et reçoit la mozzarella comme ancrage protéiné, tandis que les autres repas restent plus simples et plus légers."], "refusal": null}
+── plats: 36 · titres distincts 28 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 2 · issues 30
+════ plan-M09-1-20260905-222100.json · cinq
+── cibles (production)
+Sonia   entretien 2148  cible 1648  déjeuner 659 kcal ≈ 488 g composés
+Marc    entretien 4226  cible 4226  déjeuner 1690 kcal ≈ 1252 g composés
+Lea     entretien 2418  cible 2418  déjeuner 967 kcal ≈ 716 g composés
+Tom     entretien 2324  cible 2324  déjeuner 930 kcal ≈ 689 g composés
+Zoe     entretien 1622  cible 1622  déjeuner 649 kcal ≈ 481 g composés
+TABLE   cible/jour 12238 kcal · déjeuner 4895 kcal ≈ 3626 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Lea             3     686         433             18             0
+Marc            2    1025         786             32             0
+Sonia           3     687         439             19             0
+Tom             3     686         433             18             0
+Zoe             3     686         433             18             0
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 5937 g = 0 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  8647      488 g
+── compteurs
+  anchor: {"anchored": 0, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 3, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 6}
+  unmet: {"none": 0, "factor_clamped": 3, "pot_ceiling": 0, "both": 0, "not_anchored": 6}
+  unmet_band: {"lt_200": 0, "gte_200": 3}
+  densify: moved 0 g · closed 0 kcal · remaining_gte_200 3 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 3, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 1 · merged 1
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 5 · g moyens 685 · min 428 · max 1059
+── explication IA: {"lines": ["La demande de raviolis a été remplacée par des bols de quinoa et de légumineuses, afin de rester dans les aliments compatibles avec la liste médicale et la base végétarienne partagée.", "La pizza n’est pas reprise dans cette courte période; les repas proposés gardent toutefois le même esprit convivial avec des préparations communes et des présentations variées."], "refusal": null}
+── plats: 13 · titres distincts 12 · jours composés 2 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 2}) · sessions 2 · issues 17
+════ plan-M10-1-20260905-222353.json · quatre
+── cibles (production)
+Paul    entretien 2700  cible 2200  déjeuner 880 kcal ≈ 652 g composés
+Claire  entretien 1986  cible 1986  déjeuner 794 kcal ≈ 588 g composés
+Leo     entretien 2459  cible 2459  déjeuner 984 kcal ≈ 729 g composés
+Nora    entretien 1926  cible 1926  déjeuner 770 kcal ≈ 570 g composés
+TABLE   cible/jour 8571 kcal · déjeuner 3428 kcal ≈ 2540 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Claire          7    1118        1844            104             0
+Leo             7    1118        1844            104             0
+Nora            7     953        1399             78             0
+Paul            5    1062        1519             93             0
+⚠️ termes non résolus (2): lentilles mijotees, boisson a l'avoine
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 0 / 10111 g = 0 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  7428      415 g
+── compteurs
+  anchor: {"anchored": 2, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 2, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 4}
+  unmet: {"none": 2, "factor_clamped": 2, "pot_ceiling": 0, "both": 0, "not_anchored": 4}
+  unmet_band: {"lt_200": 0, "gte_200": 2}
+  densify: moved 451 g · closed 340 kcal · remaining_gte_200 2 · stopped {"closed": 0, "floor": 2, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 2 · merged 5
+  regime_belt: bites 1 separated 1 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 12 · g moyens 336 · min 57 · max 652
+── explication IA: {"lines": ["La base partagée reste végétale, tandis que les boîtes individuelles permettent de garder du poulet, du saumon, de la dinde et du bœuf pour les autres personnes.", "J’ai choisi des préparations variées et des accompagnements de fin d’été pour respecter la préférence de saison sans répéter le même plat principal."], "refusal": null}
+── plats: 12 · titres distincts 12 · jours composés 2 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 1 · issues 31
+════ plan-M11-1-20260905-223225.json · duo
+── cibles (production)
+Julie   entretien 2007  cible 2007  déjeuner 803 kcal ≈ 595 g composés
+Marc    entretien 2679  cible 2179  déjeuner 872 kcal ≈ 646 g composés
+TABLE   cible/jour 4186 kcal · déjeuner 1674 kcal ≈ 1240 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Julie          10     732         750             51             0
+Marc           10     797         818             56             0
+⚠️ termes non résolus (4): raviolis frais aux champignons, raviolis frais aux courgettes, vinaigre de vin, comte
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 600 / 10954 g = 5 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  2737      168 g
+── compteurs
+  anchor: {"anchored": 4, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 10, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 0}
+  unmet: {"none": 4, "factor_clamped": 10, "pot_ceiling": 0, "both": 0, "not_anchored": 0}
+  unmet_band: {"lt_200": 0, "gte_200": 10}
+  densify: moved 0 g · closed 0 kcal · remaining_gte_200 10 · stopped {"closed": 0, "floor": 0, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 10, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 0 · merged 0
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 20 · g moyens 535 · min 183 · max 646
+── explication IA: {"lines": ["Les raviolis aux champignons restent au menu comme demandé, avec une préparation de courgettes dans l'autre boîte pour conserver un plat commun sans champignons partout."], "refusal": null}
+── plats: 19 · titres distincts 19 · jours composés 7 (fenêtre {'starts_on': '2026-09-05', 'duration_days': 7}) · sessions 3 · issues 9
+════ plan-M12-1-20260905-223536.json · duo
+── cibles (production)
+Julie   entretien 2007  cible 2007  déjeuner 803 kcal ≈ 595 g composés
+Marc    entretien 2679  cible 2179  déjeuner 872 kcal ≈ 646 g composés
+TABLE   cible/jour 4186 kcal · déjeuner 1674 kcal ≈ 1240 g composés
+── livré dans les boîtes (bac divisé par ses mangeurs)
+Julie           8     628         526             33             0
+Marc            8     684         577             36             0
+⚠️ termes non résolus (4): raviolis aux champignons, raviolis aux epinards, raviolis aux champignons frais, raviolis aux epinards frais
+MASSE NON RÉSOLUE (plats en boîtes, ingrédients en g) : 700 / 5998 g = 12 %
+jour    kcal   protéine   termes non résolus
+MOYENNE  2551      140 g
+── compteurs
+  anchor: {"anchored": 2, "day_incomplete": 0, "no_delivery": 0, "restriction_floor": 0, "restriction_unknown": 0, "no_body": 0, "age_unknown": 0, "clamped": 10, "pregnancy": 0, "breastfeeding": 0, "common_pot_day": 0}
+  unmet: {"none": 2, "factor_clamped": 10, "pot_ceiling": 0, "both": 0, "not_anchored": 0}
+  unmet_band: {"lt_200": 0, "gte_200": 8}
+  densify: moved 817 g · closed 901 kcal · remaining_gte_200 6 · stopped {"closed": 0, "floor": 8, "ceiling": 0, "pot_exhausted": 0, "no_dense_target": 0, "no_box": 0, "no_density": 0}
+  meals_delivered: missing 0 · retry_attempts 0 · merged 0
+  regime_belt: bites 0 separated 0 refused 0 citation_repaired 0 item_repaired 0
+  boîtes à un nom: 16 · g moyens 492 · min 210 · max 646
+── explication IA: {"lines": ["Les raviolis aux champignons restent au menu comme demandé, avec une portion parallèle aux épinards pour que le plat puisse être servi à la table.", "Les petits-déjeuners alternent yaourt, cottage cheese et œufs afin de garder trois rendez-vous réguliers sans ajouter de repas."], "refusal": null}
+── plats: 17 · titres distincts 16 · jours composés 6 (fenêtre {'starts_on': '2026-09-06', 'duration_days': 6}) · sessions 3 · issues 12

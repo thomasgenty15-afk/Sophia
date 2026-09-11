@@ -1,0 +1,192 @@
+[
+ {
+  "tag": "keel.draft_store",
+  "event": "reused",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "b58ee9e9-6aed-4eb2-af76-232a65fa5657"
+ },
+ {
+  "tag": "keel.meal.retained_items",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.age_gate",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "age_population": "adult",
+  "age_reason": "adult",
+  "number_allowed": true,
+  "age": 41
+ },
+ {
+  "tag": "keel.meal.notes",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "subject": "household",
+  "lines": 0,
+  "served": 0
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "draftId": "4b7bbe54-2d7b-4ddd-a1fe-1aa5752c1125",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.condition_gate",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "population": "none",
+  "goal": "fat_loss",
+  "served_goal": "fat_loss",
+  "cancelled": false
+ },
+ {
+  "tag": "keel.meal.portion_adjust",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "age_state": "adult",
+  "retained": 0,
+  "answers": 0,
+  "position": 0,
+  "raw": 0,
+  "factor": 1,
+  "applied": 0,
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": []
+ },
+ {
+  "tag": "keel.meal.envelope_direction",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "goal": "fat_loss",
+  "direction": "down",
+  "daily_delta_kcal": 500,
+  "energy_floor_kcal": 1200,
+  "pace_set": 1
+ },
+ {
+  "tag": "keel.meal.envelope",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "intent": "draft",
+  "mode": "per_kg",
+  "energy_low": 1700,
+  "energy_high": 1900,
+  "unadjusted_low": 1700,
+  "unadjusted_high": 1900
+ },
+ {
+  "tag": "keel.meal.composition_fill",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "measured": true,
+  "unknowns": 0,
+  "requested": 0,
+  "answered": 0,
+  "model": 0,
+  "group_bounds": 0,
+  "sas_group_armed": 0,
+  "sas_write_skipped_reused_group": 0,
+  "shares": {
+   "kcal": 8651,
+   "table": 1,
+   "promoted": 0,
+   "model": 0,
+   "group_bounds": 0
+  }
+ },
+ {
+  "tag": "keel.meal.empty_slots_retry",
+  "request_id": "20bb84d2-47a9-4d27-9821-b262a58461d2",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "before": 0,
+  "attempts": 0,
+  "filled": 0,
+  "shopping_added": 0,
+  "shopping_summed": 0,
+  "shopping_conflicts": 0,
+  "after": 0
+ },
+ {
+  "tag": "keel.meal.composition_correction",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "tokens": [
+   "raise_protein_component",
+   "lower_energy"
+  ],
+  "suppressed": [],
+  "retried": false,
+  "coverage_flag": "ok"
+ },
+ {
+  "tag": "keel.meal.portion_scaling",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "intent": "draft",
+  "applied": true,
+  "abstained": null,
+  "protein_factor": 1.598,
+  "other_factor": 0.75,
+  "lines_changed": 40,
+  "capped": 0,
+  "shopping_changed": 22,
+  "shopping_unrewritable": 0,
+  "verdict_energy": "above",
+  "verdict_protein": "under"
+ },
+ {
+  "tag": "keel.meal.fridge_window",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "dishes": 12,
+  "violations": 0,
+  "within": 9,
+  "not_evaluated": 0,
+  "routed": 33,
+  "unknown_group": 0
+ },
+ {
+  "tag": "keel.meal.plan_explanation",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "intent": "draft",
+  "asked": true,
+  "declared": 1,
+  "kept": 1,
+  "refused": null
+ },
+ {
+  "tag": "keel.meal.food_groups",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "intent": "draft",
+  "declared": 0,
+  "valid": 0,
+  "refused": 0,
+  "persisted": 0,
+  "lines": 61
+ },
+ {
+  "tag": "keel.meal.wall",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "request_id": "20bb84d2-47a9-4d27-9821-b262a58461d2",
+  "intent": "draft",
+  "outcome": "draft",
+  "wall_ms": 133650
+ },
+ {
+  "tag": "keel.meal.draft_store",
+  "user_id": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "request_id": "20bb84d2-47a9-4d27-9821-b262a58461d2",
+  "outcome": "stored",
+  "draft_id": "4b7bbe54-2d7b-4ddd-a1fe-1aa5752c1125",
+  "reason": null
+ }
+]

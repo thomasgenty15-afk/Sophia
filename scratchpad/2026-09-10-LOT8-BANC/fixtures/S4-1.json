@@ -1,0 +1,211 @@
+{
+ "cas": "S4",
+ "gen": 1,
+ "lane": "solo",
+ "plan": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-S4-20260910-141317.json",
+ "refDir": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref",
+ "sasFile": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref/food_composition_pending_by_form.ndjson",
+ "sasCutoff": "2026-09-10T12:14:59Z",
+ "declaredSlots": [
+  "breakfast",
+  "lunch",
+  "snack_pm",
+  "dinner"
+ ],
+ "lightSlots": [],
+ "mouths": [
+  {
+   "memberId": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+   "name": "Alba Vegane",
+   "ageYears": 29,
+   "weightKg": 62.0,
+   "heightCm": 170,
+   "gender": "female",
+   "activityLevel": "trains_some",
+   "dayActivity": null,
+   "sportFrequency": null,
+   "appetite": null,
+   "goal": "fat_loss",
+   "restriction": "clear",
+   "paceKgPerWeek": 0.25,
+   "targetKcalOverride": 2248
+  }
+ ],
+ "windowStartsOn": "2026-09-10",
+ "windowDurationDays": 4,
+ "leadDays": 0,
+ "todayLocalDate": "2026-09-10",
+ "hourNow": 14,
+ "request_id": "5c86208a-40b0-4fad-9a94-c29fee89cd61",
+ "archive": {
+  "requete": {
+   "lane": "solo",
+   "window": {
+    "kind": "exact",
+    "starts_on": "2026-09-10",
+    "duration_days": 4
+   },
+   "one_cooking_session": false,
+   "cooking_shape": null,
+   "intent": "draft"
+  },
+  "empreinte_referentiel": "# R\u00c9F\u00c9RENTIEL FIG\u00c9 \u2014 extrait le 2026-09-10T11:59:43Z\nfood_composition_refs  lignes=943  sha256=e8b838e73aa96c75f3a033b7292a04f6cb8ee50922e46d30d6a914b6d895719f\nfood_composition_aliases  lignes=2715  sha256=b39220eb9ea5c7cbb32d45517f226009c72934398ff86ea2850dbdf77fa57026",
+  "empreinte_code_keel": "4619ed297f76",
+  "empreinte_sas": "food_composition_pending_by_form lignes=291",
+  "payload_final": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-S4-20260910-141317.json",
+  "brouillon": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/draft-S4-20260910-141317.json",
+  "journal": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/log-S4-20260910-141317.json",
+  "generated_from": {
+   "goal": "fat_loss",
+   "boxes": {
+    "boxes": 9,
+    "items": 9,
+    "meals": 9,
+    "names": 0,
+    "capped": 0,
+    "refused": 0,
+    "delivery": "served",
+    "expected": 9,
+    "sum_over": 0,
+    "with_box": 9,
+    "mouth_slots": 0,
+    "sum_checked": 1,
+    "cells_no_box": 2,
+    "preparations": 4,
+    "items_refused": 0,
+    "legacy_folded": 0,
+    "mouths_double": 0,
+    "names_refused": 0,
+    "mouths_unboxed": 0,
+    "sum_unverifiable": 3,
+    "mouths_no_box_cell": 0,
+    "mouths_double_model": 0
+   },
+   "names": {
+    "kept": 11,
+    "dishes": 11,
+    "refused": 0,
+    "declared": 11
+   },
+   "access": {
+    "state": "coach_seat",
+    "household": false,
+    "coach_solvent": true,
+    "app_write_access": true
+   },
+   "intent": "draft",
+   "issues": [
+    "dietary_regime_breach: Soya yoghurt, plum and oats: yoghurt",
+    "dietary_regime_breach: Soya yoghurt, plum and oats: yoghurt",
+    "shopping_waves: 1 (2026-09-10)",
+    "freeze_on_purchase: 0/38",
+    "raw_keeping_needs_later_shop: 0/4 preparations",
+    "waves_kept_for_freshness: 0/38",
+    "sessions_fed_from_freezer: 0/0 name the freezer",
+    "dishes[0]: numeric target (macro_quantity) in an ingredient -- dish rejected (fri/breakfast)",
+    "dishes[1]: numeric target (macro_quantity) in an ingredient -- dish rejected (thu/snack_pm)",
+    "dishes[6]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[7]: numeric target (macro_quantity) in an ingredient -- dish rejected (sat/breakfast)",
+    "dishes[10]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[14]: numeric target (macro_quantity) in an ingredient -- dish rejected (sun/snack_pm)",
+    "shopping_list: 4 line(s) bought for a dish that is not in the plan -- removed (high-protein soy yoghurt, rolled oats, British berries, pear)",
+    "shopping_list_unattributed: 2/38 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "empty_slots: thu/snack_pm, sat/breakfast, sun/snack_pm",
+    "uses_kept_freezer: 4/9"
+   ],
+   "timing": {
+    "kind": "same_morning",
+    "reason": "starts_today",
+    "lead_day": null
+   },
+   "coach_id": "00000000-0000-4000-8000-00000000d15c",
+   "same_day": {
+    "dishes": 11,
+    "invalid": 0,
+    "declared": 11,
+    "minutes_missing": 0
+   },
+   "rationale": {
+    "lines": [
+     "This plan covers 4 days, starting today.",
+     "The plan sets 1 cooking sessions: Thursday.",
+     "You cook on Thursday: the plan sets its sessions on those days, and nowhere else.",
+     "You planned 2 shops; the plan organises 1, one per cooking session \u2014 nobody shops more often than they cook. You can still go back for fresh food.",
+     "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+     "For today, breakfast is off the plan: the day is already under way.",
+     "For today, lunch is not in the plan: there has to be time to shop first.",
+     "One shop, on Thursday: everything this plan asks for keeps until it is cooked.",
+     "The shopping budget is 70.",
+     "To stay inside it, expensive proteins give first, then out-of-season produce, then variety \u2014 never the portions."
+    ],
+    "refusal": null
+   },
+   "belief_keys": [
+    "whole_foods_first",
+    "protein_at_every_meal",
+    "regular_meals_beat_perfect_meals",
+    "one_change_at_a_time",
+    "a_missed_day_is_data",
+    "this_is_a_discovery_program"
+   ],
+   "empty_slots": [],
+   "explanation": {
+    "lines": [
+     "The Thursday cooking window is used for four overlapping batches, because the kitchen only allows one cooking day and later portions are frozen rather than held for too long.",
+     "Fresh noodles, rice and pasta are cooked at mealtimes, keeping their texture better than storing them in the Thursday batch."
+    ],
+    "refusal": null
+   },
+   "food_groups": {
+    "lines": 62,
+    "valid": 39,
+    "refused": 0,
+    "declared": 39,
+    "persisted": 46
+   },
+   "hunger_days": 0,
+   "plan_budget": {
+    "charged": [
+     "empty_slots_retry"
+    ],
+    "total_ms": 380000,
+    "usable_ms": 258727,
+    "elapsed_ms": 91273,
+    "reserve_ms": 30000,
+    "remaining_ms": 288727,
+    "repairs_used": 1,
+    "repairs_asked": 1,
+    "repairs_allowed": 2,
+    "repairs_refused": {},
+    "provider_attempts": 0
+   },
+   "fixed_intakes": [],
+   "day_properties": [],
+   "prompt_version": "meal.en.v30_one_shop_freezes_on_purchase",
+   "request_report": {
+    "lines": [],
+    "refusal": null
+   },
+   "doctrine_reason": "loaded",
+   "doctrine_version": 1,
+   "satiety_priority": false,
+   "hunger_window_end": "2026-09-10",
+   "hunger_window_days": 7,
+   "hunger_window_start": "2026-09-04",
+   "protein_anchor_retry": false,
+   "protein_anchor_missing": [],
+   "unquantified_dish_ingredients": {
+    "ingredients": 21,
+    "unquantified": 0
+   }
+  },
+  "composition_energy_sources": {
+   "kcal": 7938,
+   "model": 0.015,
+   "table": 0.869,
+   "promoted": 0,
+   "group_bounds": 0.116
+  },
+  "composition_unknowns": 3
+ }
+}

@@ -32,14 +32,20 @@
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import { BUDGET_MAX, buildMealPrompt, usableBudget } from "./meal_generation.ts";
 
-function mealArgs(budgetAmount: number | null) {
+function mealArgs(budgetAmount: number | null, budgetFloor: number | null = null) {
   return {
+    // ⟳ 2026-09-11 — `null` PAR DÉFAUT, donc les cas d'origine décrivent
+    // toujours la même propriété: « le prompt porte le MONTANT, pas un
+    // adjectif ». Le plancher a ses propres cas, plus bas.
+    budgetFloor,
     firstDayCookable: true,
     hasFreezer: false,
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
-    goal: "health",
+    groceryCadence: null,
+    standardRecipe: false,
+    goal: "maintenance",
     situation: null,
     context: null,
     slot: null,
@@ -47,6 +53,7 @@ function mealArgs(budgetAmount: number | null) {
     safetyConstraints: null,
     safetyConstraintTable: null,
     body: null,
+    lightSlots: [],
     focusAxis: null,
     dietBlock: "",
     doctrineBlock: "d",
@@ -152,4 +159,44 @@ Deno.test("aucune ligne de budget quand il n'y en a pas — et pas un mot de plu
     "l'interdit de rogner les portions n'a pas de sens sans budget: il ferait " +
       "croire à une contrainte que personne n'a posée",
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-11 — LE PLAFOND IMPOSSIBLE NE PART PLUS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le défaut: « budget for this plan: 1 » pour sept jours à quatre. Le modèle ne
+// refuse jamais un plafond — il COUPE dans l'ordre qu'on lui donne, puis rend
+// un plan qui a l'air de tenir. Toute la composition arbitre alors contre une
+// contrainte imaginaire, et le seul poste qui reste à rogner est celui que le
+// reste du prompt calcule.
+//
+// ⛔ CE QUE CES CAS NE PROUVENT PAS: que le plancher est au bon niveau. Les
+// prix sont mesurés (`scratchpad/2026-09-11-PLANCHER-BUDGET/mesure.sql`) et
+// épinglés (`constant_pins_test.ts`). Ici on ne garde que la RÈGLE.
+
+Deno.test("⛔ sous le plancher, AUCUNE ligne de budget — ni le montant, ni l'ordre", () => {
+  const text = JSON.stringify(buildMealPrompt(mealArgs(1, 74.2)));
+  assert(!text.includes("budget for this plan"), "le montant impossible est parti");
+  // ⚠️ L'ORDRE DE SACRIFICE S'EN VA AVEC. Le garder demanderait au modèle de
+  // renoncer à la viande sans lui dire pourquoi — appauvrir un plan au nom
+  // d'une contrainte qu'on vient de juger inapplicable.
+  assert(
+    !text.includes("expensive proteins first"),
+    "l'ordre de sacrifice est parti avec son montant",
+  );
+});
+
+Deno.test("au plancher PILE, le plafond part — la borne n'est pas exclusive", () => {
+  const text = JSON.stringify(buildMealPrompt(mealArgs(74.2, 74.2)));
+  assertStringIncludes(text, "budget for this plan: 74.2");
+});
+
+Deno.test("sans plancher (hors marché), le plafond part comme avant", () => {
+  // ⚠️ LA MOITIÉ DU LOT QUI NE DOIT RIEN CHANGER. Hors de France et des
+  // États-Unis il n'y a pas de grille de prix: le comportement d'hier est le
+  // comportement attendu, et un plancher inventé par conversion serait pire
+  // que pas de plancher du tout.
+  const text = JSON.stringify(buildMealPrompt(mealArgs(1, null)));
+  assertStringIncludes(text, "budget for this plan: 1");
 });

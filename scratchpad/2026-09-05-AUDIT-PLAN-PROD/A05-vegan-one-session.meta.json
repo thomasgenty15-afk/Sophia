@@ -1,0 +1,13 @@
+{
+  "id": "A05-vegan-one-session",
+  "uid": "2b252884-e267-4d2f-8394-9edaaef85ee2",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T18:41:17.537Z",
+  "end": "2026-09-05T18:44:06.920Z",
+  "http": 200,
+  "seconds": 169.33794320900006,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "request_id": "95135ad1-39df-41c0-adad-00141c5bbecf",
+  "ok": true
+}

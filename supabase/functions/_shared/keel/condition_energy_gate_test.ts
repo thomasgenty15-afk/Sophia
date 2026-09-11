@@ -74,11 +74,14 @@ const ANCHOR = (conditionRefs: readonly string[], direction: "down" | "up" | nul
   ageState: "adult" as const,
   restriction: "clear" as const,
   body: HER,
+  lightSlots: [],
   direction,
   paceKgPerWeek: 0.5,
   declaredSlots: [] as readonly string[],
-  slotExtraKcal: null,
   conditionRefs,
+  // ⟳ 2026-09-08 — `null` = aucune réponse de part. Ces cas mesurent la garde
+  // de grossesse sur un déficit; un cran ici en déplacerait les nombres.
+  portionIndex: null,
 });
 
 // ---------------------------------------------------------------------------
@@ -95,9 +98,17 @@ Deno.test("⛔ LE CAS QUI MORD — enceinte + une PERTE: l'ancre absolue s'absti
   // trait pour trait à une garde qui marche.
   const ouvert = mouthTargetKcal(ANCHOR([], "down"), "no_position");
   assertEquals(ouvert.reason, "anchored", "prémisse: l'ancre doit tirer sans condition");
-  // 1 480 kcal contre 1 980 d'entretien: **500 kcal/j de déficit**, mesurés le
-  // 2026-08-22 à 03:19:55 CEST avant toute ligne de correctif.
-  assertEquals(ouvert.kcal, 1480, "prémisse: la cible mesurée le 2026-08-22");
+  // ⟳ 2026-09-10 — LA CIBLE REVIENT À L'ÉQUATION DU CORPS, ET LE NOMBRE AVEC.
+  // Ce test a porté 1 480 (Mifflin), puis 1 350 pendant vingt-quatre heures
+  // (`poids × kcal/kg`, « le moteur suit l'écran », 2026-09-09 au matin), et de
+  // nouveau 1 480 — parce que l'ÉCRAN, lui, est passé à l'équation du corps le
+  // même après-midi (`ENERGY_TARGET_BASIS_BODY`). Les trois valeurs disent la
+  // même propriété; c'est la base qui a fait l'aller-retour, et il est écrit ici
+  // pour que le prochain lecteur ne le refasse pas une troisième fois.
+  //
+  // ⛔ CE QUI EST GARDÉ EST LE DÉFICIT, ET IL VAUT TOUJOURS 500 kcal/j: c'est
+  // A1, et c'est lui que la condition doit pouvoir annuler. Entretien 1 980.
+  assertEquals(ouvert.kcal, 1480, "prémisse: entretien 1 980 moins le déficit A1 de 500");
 
   for (const ref of DEFICIT_CANCELLING_CONDITION_REFS) {
     const out = mouthTargetKcal(ANCHOR([ref], "down"), "no_position");
@@ -114,8 +125,8 @@ Deno.test("⛔ LA GARDE NE MORD QUE VERS LE BAS — un surplus traverse intact",
   // demande, sous le nom d'une protection. Ce module retire des déficits.
   const ancreNue = mouthTargetKcal(ANCHOR([], "up"), "no_position");
   assert(
-    ancreNue.kcal !== null && ancreNue.kcal > 1980,
-    `prémisse: ${ancreNue.kcal} n'est pas un surplus au-dessus de l'entretien`,
+    ancreNue.kcal !== null && ancreNue.kcal > 1850,
+    `prémisse: ${ancreNue.kcal} n'est pas un surplus au-dessus de l'entretien 1 850`,
   );
   for (const ref of DEFICIT_CANCELLING_CONDITION_REFS) {
     const ancrePorteuse = mouthTargetKcal(ANCHOR([ref], "up"), "no_position");

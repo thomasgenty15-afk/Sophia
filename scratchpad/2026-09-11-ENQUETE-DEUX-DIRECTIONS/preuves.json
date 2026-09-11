@@ -1,0 +1,3816 @@
+{
+  "scope": "Deux fixtures locales du 2026-09-11. Aucun appel modèle pendant cette enquête. Les mesures ne prouvent pas la qualité nutritionnelle si la référence alimentaire est erronée.",
+  "plans": [
+    {
+      "id": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "created_at": "2026-09-11T03:08:42.530786+00:00"
+    },
+    {
+      "id": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "created_at": "2026-09-11T03:13:29.844831+00:00"
+    }
+  ],
+  "final_boxes_vs_report": [
+    {
+      "name": "perte",
+      "final": [
+        {
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Skyr, flocons d'avoine, pêche et noix",
+          "engineTarget": 614,
+          "engineExpectedG": 609,
+          "engineDensity": 100.7,
+          "reportKcal": 613,
+          "boxKcal": 613,
+          "boxG": 609,
+          "boxDensity": 100.6568144499179,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Thon, pain complet, tomate, concombre et olives",
+          "engineTarget": 982,
+          "engineExpectedG": 666,
+          "engineDensity": 147.3,
+          "reportKcal": 982,
+          "boxKcal": 982,
+          "boxG": 667,
+          "boxDensity": 147.2263868065967,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+          "engineTarget": 859,
+          "engineExpectedG": 660,
+          "engineDensity": 130.1,
+          "reportKcal": 757,
+          "boxKcal": 857.9456724287148,
+          "boxG": 660,
+          "boxDensity": 129.9917685498053,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_poulet_quinoa"
+            }
+          ]
+        },
+        {
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Fromage blanc, pain complet, prune et graines de courge",
+          "engineTarget": 614,
+          "engineExpectedG": 345,
+          "engineDensity": 177.9,
+          "reportKcal": 614,
+          "boxKcal": 614,
+          "boxG": 345,
+          "boxDensity": 177.97101449275362,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "engineTarget": 982,
+          "engineExpectedG": 624,
+          "engineDensity": 157.2,
+          "reportKcal": 1056,
+          "boxKcal": 981.6863072139208,
+          "boxG": 625,
+          "boxDensity": 157.06980915422733,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_poulet_quinoa"
+            }
+          ]
+        },
+        {
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts et yaourt",
+          "engineTarget": 859,
+          "engineExpectedG": 691,
+          "engineDensity": 124.4,
+          "reportKcal": 788,
+          "boxKcal": 858.9866312645066,
+          "boxG": 690,
+          "boxDensity": 124.4908161252908,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_saumon_pommes_de_terre"
+            }
+          ]
+        },
+        {
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Yaourt grec, flocons d'avoine, raisin et amandes",
+          "engineTarget": 614,
+          "engineExpectedG": 272,
+          "engineDensity": 225.3,
+          "reportKcal": 613,
+          "boxKcal": 613,
+          "boxG": 272,
+          "boxDensity": 225.36764705882354,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "engineTarget": 982,
+          "engineExpectedG": 672,
+          "engineDensity": 146.1,
+          "reportKcal": 1011,
+          "boxKcal": 981.4859847894185,
+          "boxG": 672,
+          "boxDensity": 146.05446202223487,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_poulet_quinoa"
+            }
+          ]
+        },
+        {
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+          "engineTarget": 859,
+          "engineExpectedG": 664,
+          "engineDensity": 129.4,
+          "reportKcal": 931,
+          "boxKcal": 857.1109301643982,
+          "boxG": 663,
+          "boxDensity": 129.27766669146277,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_saumon_pommes_de_terre"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "final": [
+        {
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Fromage blanc, avoine, poire et amandes",
+          "engineTarget": 728,
+          "engineExpectedG": 676,
+          "engineDensity": 107.7,
+          "reportKcal": 728,
+          "boxKcal": 728,
+          "boxG": 675,
+          "boxDensity": 107.85185185185185,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Skyr, avoine, raisins, noix et miel",
+          "engineTarget": 728,
+          "engineExpectedG": 383,
+          "engineDensity": 190.1,
+          "reportKcal": 728,
+          "boxKcal": 728,
+          "boxG": 383,
+          "boxDensity": 190.07832898172325,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Cottage cheese, muesli, prunes et graines de courge",
+          "engineTarget": 728,
+          "engineExpectedG": 373,
+          "engineDensity": 195.3,
+          "reportKcal": 728,
+          "boxKcal": 728,
+          "boxG": 373,
+          "boxDensity": 195.17426273458446,
+          "gap": null,
+          "uses": []
+        },
+        {
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade verte, feta et citron",
+          "engineTarget": 1165,
+          "engineExpectedG": 624,
+          "engineDensity": 186.7,
+          "reportKcal": 1172,
+          "boxKcal": 1163.2573978884145,
+          "boxG": 623,
+          "boxDensity": 186.71868344918371,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_chicken"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_quinoa"
+            }
+          ]
+        },
+        {
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Lentilles mijotées, pain complet et feta",
+          "engineTarget": 1019,
+          "engineExpectedG": 585,
+          "engineDensity": 174.3,
+          "reportKcal": 1021,
+          "boxKcal": 1019.0854819389782,
+          "boxG": 584,
+          "boxDensity": 174.5009386881812,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_lentil_ratatouille"
+            }
+          ]
+        },
+        {
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Saumon avec couscous, légumes rôtis et amandes",
+          "engineTarget": 1165,
+          "engineExpectedG": 657,
+          "engineDensity": 177.2,
+          "reportKcal": 1067,
+          "boxKcal": 1162.4122169418943,
+          "boxG": 727,
+          "boxDensity": 159.8916391942083,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_lentil_ratatouille"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_couscous"
+            }
+          ]
+        },
+        {
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Lentilles, couscous, feta, amandes et pain",
+          "engineTarget": 1019,
+          "engineExpectedG": 492,
+          "engineDensity": 207.3,
+          "reportKcal": 1144,
+          "boxKcal": 1014.9417001466768,
+          "boxG": 488,
+          "boxDensity": 207.97985658743374,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_salmon"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_couscous"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_roasted_vegetables"
+            }
+          ]
+        },
+        {
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade, houmous et feta",
+          "engineTarget": 1165,
+          "engineExpectedG": 677,
+          "engineDensity": 172.1,
+          "reportKcal": 1157,
+          "boxKcal": 1164.726106968796,
+          "boxG": 677,
+          "boxDensity": 172.04226099982216,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_chicken"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_quinoa"
+            }
+          ]
+        },
+        {
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, couscous, légumes rôtis, feta et tahini",
+          "engineTarget": 1019,
+          "engineExpectedG": 554,
+          "engineDensity": 184.1,
+          "reportKcal": 998,
+          "boxKcal": 1012.0244901590663,
+          "boxG": 549,
+          "boxDensity": 184.339615693819,
+          "gap": null,
+          "uses": [
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_salmon"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_couscous"
+            },
+            {
+              "kept": "fridge",
+              "servings": 1,
+              "preparation_id": "prep_roasted_vegetables"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "name": "perte",
+      "step": 0,
+      "over_or_under": 3,
+      "clamped_unmet_kcal": 366,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Skyr, flocons d'avoine, pêche et noix",
+          "check": 112,
+          "standard": {
+            "kcal": 418,
+            "cookedG": 415,
+            "densityPer100G": 100.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Thon, pain complet, tomate, concombre et olives",
+          "check": 142,
+          "standard": {
+            "kcal": 803,
+            "cookedG": 545,
+            "densityPer100G": 147.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+          "check": 141,
+          "standard": {
+            "kcal": 837,
+            "cookedG": 794,
+            "densityPer100G": 105.4,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.0261648745519714,
+            "personCookedG": 815,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8816120906801007,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 121
+          }
+        },
+        {
+          "i": 3,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Fromage blanc, pain complet, prune et graines de courge",
+          "check": 116,
+          "standard": {
+            "kcal": 747,
+            "cookedG": 420,
+            "densityPer100G": 177.9,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 4,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, feta et roquette",
+          "check": 149,
+          "standard": {
+            "kcal": 1006,
+            "cookedG": 839,
+            "densityPer100G": 119.9,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9757455268389662,
+            "personCookedG": 819,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.834326579261025,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 142
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts et yaourt",
+          "check": 131,
+          "standard": {
+            "kcal": 796,
+            "cookedG": 640,
+            "densityPer100G": 124.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 6,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Yaourt grec, flocons d'avoine, raisin et amandes",
+          "check": 121,
+          "standard": {
+            "kcal": 901,
+            "cookedG": 400,
+            "densityPer100G": 225.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "check": 147,
+          "standard": {
+            "kcal": 1178,
+            "cookedG": 939,
+            "densityPer100G": 125.5,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.833276740237691,
+            "personCookedG": 782,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.7454739084132055,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 103
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+          "check": 131,
+          "standard": {
+            "kcal": 964,
+            "cookedG": 745,
+            "densityPer100G": 129.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "perte",
+      "step": 1,
+      "over_or_under": 3,
+      "clamped_unmet_kcal": 91,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Skyr, flocons d'avoine, pêche et noix",
+          "check": 112,
+          "standard": {
+            "kcal": 418,
+            "cookedG": 415,
+            "densityPer100G": 100.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Thon, pain complet, tomate, concombre et olives",
+          "check": 142,
+          "standard": {
+            "kcal": 803,
+            "cookedG": 545,
+            "densityPer100G": 147.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+          "check": 141,
+          "standard": {
+            "kcal": 848,
+            "cookedG": 716,
+            "densityPer100G": 118.4,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.0128537735849057,
+            "personCookedG": 725,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.9776536312849162,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 30
+          }
+        },
+        {
+          "i": 3,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Fromage blanc, pain complet, prune et graines de courge",
+          "check": 116,
+          "standard": {
+            "kcal": 747,
+            "cookedG": 420,
+            "densityPer100G": 177.9,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 4,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, feta et roquette",
+          "check": 149,
+          "standard": {
+            "kcal": 1017,
+            "cookedG": 761,
+            "densityPer100G": 133.6,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9651917404129794,
+            "personCookedG": 735,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.9198423127463863,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 46
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts et yaourt",
+          "check": 131,
+          "standard": {
+            "kcal": 796,
+            "cookedG": 640,
+            "densityPer100G": 124.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 6,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Yaourt grec, flocons d'avoine, raisin et amandes",
+          "check": 121,
+          "standard": {
+            "kcal": 901,
+            "cookedG": 400,
+            "densityPer100G": 225.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "check": 147,
+          "standard": {
+            "kcal": 1189,
+            "cookedG": 861,
+            "densityPer100G": 138.1,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8255677039529016,
+            "personCookedG": 711,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8130081300813008,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 15
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+          "check": 131,
+          "standard": {
+            "kcal": 964,
+            "cookedG": 745,
+            "densityPer100G": 129.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "perte",
+      "step": 2,
+      "over_or_under": 0,
+      "clamped_unmet_kcal": 0,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Skyr, flocons d'avoine, pêche et noix",
+          "check": 112,
+          "standard": {
+            "kcal": 418,
+            "cookedG": 415,
+            "densityPer100G": 100.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.4677033492822966,
+            "personCookedG": 609,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Thon, pain complet, tomate, concombre et olives",
+          "check": 142,
+          "standard": {
+            "kcal": 803,
+            "cookedG": 545,
+            "densityPer100G": 147.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.2224159402241594,
+            "personCookedG": 666,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+          "check": 141,
+          "standard": {
+            "kcal": 971,
+            "cookedG": 746,
+            "densityPer100G": 130.1,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8845520082389289,
+            "personCookedG": 660,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8845520082389289,
+            "personCookedG": 660,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 3,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Fromage blanc, pain complet, prune et graines de courge",
+          "check": 116,
+          "standard": {
+            "kcal": 747,
+            "cookedG": 420,
+            "densityPer100G": 177.9,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.821285140562249,
+            "personCookedG": 345,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 4,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "check": 149,
+          "standard": {
+            "kcal": 1409,
+            "cookedG": 896,
+            "densityPer100G": 157.2,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.6966643009226402,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.6966643009226402,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts et yaourt",
+          "check": 131,
+          "standard": {
+            "kcal": 796,
+            "cookedG": 640,
+            "densityPer100G": 124.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.0790201005025126,
+            "personCookedG": 691,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 6,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Yaourt grec, flocons d'avoine, raisin et amandes",
+          "check": 121,
+          "standard": {
+            "kcal": 901,
+            "cookedG": 400,
+            "densityPer100G": 225.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 613.5,
+          "bounds": {
+            "min": 250,
+            "max": 614,
+            "preferred": 432,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "target",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.6809100998890122,
+            "personCookedG": 272,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+          "check": 147,
+          "standard": {
+            "kcal": 1317,
+            "cookedG": 901,
+            "densityPer100G": 146.1,
+            "pots": [
+              {
+                "id": "prep_poulet_quinoa",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 981.6,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.7453302961275626,
+            "personCookedG": 672,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.7453302961275626,
+            "personCookedG": 672,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+          "check": 131,
+          "standard": {
+            "kcal": 964,
+            "cookedG": 745,
+            "densityPer100G": 129.4,
+            "pots": [
+              {
+                "id": "prep_saumon_pommes_de_terre",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 858.9,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8909751037344398,
+            "personCookedG": 664,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "step": 0,
+      "over_or_under": 5,
+      "clamped_unmet_kcal": 697,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Fromage blanc, avoine, poire et amandes",
+          "check": 120,
+          "standard": {
+            "kcal": 404,
+            "cookedG": 375,
+            "densityPer100G": 107.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Skyr, avoine, raisins, noix et miel",
+          "check": 105,
+          "standard": {
+            "kcal": 732,
+            "cookedG": 385,
+            "densityPer100G": 190.1,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Cottage cheese, muesli, prunes et graines de courge",
+          "check": 125,
+          "standard": {
+            "kcal": 791,
+            "cookedG": 405,
+            "densityPer100G": 195.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 3,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade verte, feta et citron",
+          "check": 176,
+          "standard": {
+            "kcal": 782,
+            "cookedG": 498,
+            "densityPer100G": 157.1,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.4895140664961637,
+            "personCookedG": 742,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.4056224899598393,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 66
+          }
+        },
+        {
+          "i": 4,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Lentilles mijotées, pain complet et feta",
+          "check": 159,
+          "standard": {
+            "kcal": 844,
+            "cookedG": 916,
+            "densityPer100G": 92.2,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.2075829383886256,
+            "personCookedG": 1106,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.7641921397379913,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 374
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Lentilles, couscous, feta, amandes et pain",
+          "check": 172,
+          "standard": {
+            "kcal": 1267,
+            "cookedG": 843,
+            "densityPer100G": 150.3,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9193370165745856,
+            "personCookedG": 775,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.830367734282325,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 113
+          }
+        },
+        {
+          "i": 6,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Saumon, couscous, légumes rôtis et amandes",
+          "check": 149,
+          "standard": {
+            "kcal": 1069,
+            "cookedG": 805,
+            "densityPer100G": 132.9,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9534144059869037,
+            "personCookedG": 767,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8695652173913043,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 90
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade, houmous et feta",
+          "check": 177,
+          "standard": {
+            "kcal": 918,
+            "cookedG": 518,
+            "densityPer100G": 177.3,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.2688453159041393,
+            "personCookedG": 657,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.2688453159041393,
+            "personCookedG": 657,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, couscous, légumes rôtis, feta et tahini",
+          "check": 158,
+          "standard": {
+            "kcal": 1213,
+            "cookedG": 880,
+            "densityPer100G": 137.9,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8402308326463315,
+            "personCookedG": 739,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.7954545454545454,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 54
+          }
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "step": 1,
+      "over_or_under": 2,
+      "clamped_unmet_kcal": 137,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Fromage blanc, avoine, poire et amandes",
+          "check": 120,
+          "standard": {
+            "kcal": 404,
+            "cookedG": 375,
+            "densityPer100G": 107.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Skyr, avoine, raisins, noix et miel",
+          "check": 105,
+          "standard": {
+            "kcal": 732,
+            "cookedG": 385,
+            "densityPer100G": 190.1,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Cottage cheese, muesli, prunes et graines de courge",
+          "check": 125,
+          "standard": {
+            "kcal": 791,
+            "cookedG": 405,
+            "densityPer100G": 195.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 3,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade verte, feta et citron",
+          "check": 176,
+          "standard": {
+            "kcal": 1047,
+            "cookedG": 561,
+            "densityPer100G": 186.7,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.1125119388729703,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.1125119388729703,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 4,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Lentilles mijotées, pain complet et feta",
+          "check": 159,
+          "standard": {
+            "kcal": 1140,
+            "cookedG": 820,
+            "densityPer100G": 139,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8940350877192983,
+            "personCookedG": 733,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8536585365853658,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 46
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Saumon, couscous, légumes rôtis et amandes",
+          "check": 172,
+          "standard": {
+            "kcal": 1316,
+            "cookedG": 858,
+            "densityPer100G": 153.5,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8851063829787233,
+            "personCookedG": 759,
+            "verdict": "over_max",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8158508158508159,
+            "personCookedG": 700,
+            "verdict": "over_max",
+            "unmetKcal": 91
+          }
+        },
+        {
+          "i": 6,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Lentilles, couscous, feta, amandes et pain",
+          "check": 149,
+          "standard": {
+            "kcal": 2053,
+            "cookedG": 991,
+            "densityPer100G": 207.3,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.49644422795908427,
+            "personCookedG": 492,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.49644422795908427,
+            "personCookedG": 492,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade, houmous et feta",
+          "check": 177,
+          "standard": {
+            "kcal": 1025,
+            "cookedG": 596,
+            "densityPer100G": 172.1,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.136390243902439,
+            "personCookedG": 677,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.136390243902439,
+            "personCookedG": 677,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, couscous, légumes rôtis, feta et tahini",
+          "check": 158,
+          "standard": {
+            "kcal": 1708,
+            "cookedG": 928,
+            "densityPer100G": 184.1,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.5967213114754099,
+            "personCookedG": 554,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.5967213114754099,
+            "personCookedG": 554,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "step": 2,
+      "over_or_under": 0,
+      "clamped_unmet_kcal": 0,
+      "measure": [
+        {
+          "i": 0,
+          "day": "fri",
+          "slot": "breakfast",
+          "title": "Fromage blanc, avoine, poire et amandes",
+          "check": 120,
+          "standard": {
+            "kcal": 404,
+            "cookedG": 375,
+            "densityPer100G": 107.7,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.801980198019802,
+            "personCookedG": 676,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 1,
+          "day": "sat",
+          "slot": "breakfast",
+          "title": "Skyr, avoine, raisins, noix et miel",
+          "check": 105,
+          "standard": {
+            "kcal": 732,
+            "cookedG": 385,
+            "densityPer100G": 190.1,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.994535519125683,
+            "personCookedG": 383,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 2,
+          "day": "sun",
+          "slot": "breakfast",
+          "title": "Cottage cheese, muesli, prunes et graines de courge",
+          "check": 125,
+          "standard": {
+            "kcal": 791,
+            "cookedG": 405,
+            "densityPer100G": 195.3,
+            "pots": [],
+            "gaps": []
+          },
+          "target": 728,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.9203539823008849,
+            "personCookedG": 373,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 3,
+          "day": "fri",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade verte, feta et citron",
+          "check": 176,
+          "standard": {
+            "kcal": 1047,
+            "cookedG": 561,
+            "densityPer100G": 186.7,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.1125119388729703,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.1125119388729703,
+            "personCookedG": 624,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 4,
+          "day": "fri",
+          "slot": "dinner",
+          "title": "Lentilles mijotées, pain complet et feta",
+          "check": 159,
+          "standard": {
+            "kcal": 1261,
+            "cookedG": 724,
+            "densityPer100G": 174.3,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8082474226804124,
+            "personCookedG": 585,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8082474226804124,
+            "personCookedG": 585,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 5,
+          "day": "sat",
+          "slot": "lunch",
+          "title": "Saumon avec couscous, légumes rôtis et amandes",
+          "check": 172,
+          "standard": {
+            "kcal": 1437,
+            "cookedG": 811,
+            "densityPer100G": 177.2,
+            "pots": [
+              {
+                "id": "prep_lentil_ratatouille",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.8105775922059847,
+            "personCookedG": 657,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.8105775922059847,
+            "personCookedG": 657,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 6,
+          "day": "sat",
+          "slot": "dinner",
+          "title": "Lentilles, couscous, feta, amandes et pain",
+          "check": 149,
+          "standard": {
+            "kcal": 2053,
+            "cookedG": 991,
+            "densityPer100G": 207.3,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.49644422795908427,
+            "personCookedG": 492,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.49644422795908427,
+            "personCookedG": 492,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 7,
+          "day": "sun",
+          "slot": "lunch",
+          "title": "Poulet, quinoa, salade, houmous et feta",
+          "check": 177,
+          "standard": {
+            "kcal": 1025,
+            "cookedG": 596,
+            "densityPer100G": 172.1,
+            "pots": [
+              {
+                "id": "prep_chicken",
+                "draws": 2
+              },
+              {
+                "id": "prep_quinoa",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1164.8,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 1.136390243902439,
+            "personCookedG": 677,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 1.136390243902439,
+            "personCookedG": 677,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        },
+        {
+          "i": 8,
+          "day": "sun",
+          "slot": "dinner",
+          "title": "Saumon, couscous, légumes rôtis, feta et tahini",
+          "check": 158,
+          "standard": {
+            "kcal": 1708,
+            "cookedG": 928,
+            "densityPer100G": 184.1,
+            "pots": [
+              {
+                "id": "prep_salmon",
+                "draws": 2
+              },
+              {
+                "id": "prep_couscous",
+                "draws": 3
+              },
+              {
+                "id": "prep_roasted_vegetables",
+                "draws": 2
+              }
+            ],
+            "gaps": []
+          },
+          "target": 1019.2,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "preferred": 475,
+            "appetiteFactor": 1,
+            "densityFloorPerG": 1,
+            "band": "adult",
+            "slotClass": "meal",
+            "source": "age_known",
+            "boundSource": "table",
+            "physicalMax": 700
+          },
+          "sized": {
+            "factor": 0.5967213114754099,
+            "personCookedG": 554,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          },
+          "bounded": {
+            "factor": 0.5967213114754099,
+            "personCookedG": 554,
+            "verdict": "in_bounds",
+            "unmetKcal": 0
+          }
+        }
+      ]
+    }
+  ],
+  "diagnostic": {
+    "water": {
+      "components": [
+        {
+          "id": "fresh",
+          "grams": 20,
+          "items": [
+            {
+              "term": "Almonds",
+              "slug": "almonds",
+              "gramsRaw": 15,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 599.9
+            },
+            {
+              "term": "Olive oil",
+              "slug": "olive_oil",
+              "gramsRaw": 5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 900
+            }
+          ]
+        },
+        {
+          "id": "prep_lentil_ratatouille",
+          "grams": 548.5,
+          "items": [
+            {
+              "term": "Lentils (dry)",
+              "slug": "lentils_dry",
+              "gramsRaw": 120,
+              "yield": null,
+              "yieldClass": "legume_absorbs",
+              "kcal100": 331.3
+            },
+            {
+              "term": "Tomato",
+              "slug": "tomato",
+              "gramsRaw": 60,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 19.3
+            },
+            {
+              "term": "Courgette",
+              "slug": "courgette",
+              "gramsRaw": 50,
+              "yield": null,
+              "yieldClass": "veg_shrinks",
+              "kcal100": 16.5
+            },
+            {
+              "term": "Onion",
+              "slug": "onion",
+              "gramsRaw": 30,
+              "yield": null,
+              "yieldClass": "veg_shrinks",
+              "kcal100": 38.4
+            },
+            {
+              "term": "Olive oil",
+              "slug": "olive_oil",
+              "gramsRaw": 37.5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 900
+            },
+            {
+              "term": "Water",
+              "slug": "water",
+              "gramsRaw": 90,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 0
+            },
+            {
+              "term": "Salt",
+              "slug": "salt",
+              "gramsRaw": 0.5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 0
+            },
+            {
+              "term": "Black pepper",
+              "slug": "black_pepper",
+              "gramsRaw": 0.5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 330
+            }
+          ]
+        },
+        {
+          "id": "prep_couscous",
+          "grams": 332.5,
+          "items": [
+            {
+              "term": "Couscous",
+              "slug": "couscous",
+              "gramsRaw": 120,
+              "yield": null,
+              "yieldClass": "grain_absorbs",
+              "kcal100": 352
+            },
+            {
+              "term": "Water",
+              "slug": "water",
+              "gramsRaw": 150,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 0
+            },
+            {
+              "term": "Olive oil",
+              "slug": "olive_oil",
+              "gramsRaw": 15,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 900
+            },
+            {
+              "term": "Parsley",
+              "slug": "herbs_parsley",
+              "gramsRaw": 5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 43
+            },
+            {
+              "term": "Salt",
+              "slug": "salt",
+              "gramsRaw": 0.5,
+              "yield": null,
+              "yieldClass": "neutral",
+              "kcal100": 0
+            }
+          ]
+        }
+      ],
+      "together": 811,
+      "separate": 901,
+      "factor": 0.8105775922059847
+    },
+    "food": [
+      {
+        "name": "perte",
+        "day": "fri",
+        "ingredients": [
+          {
+            "term": "Skyr",
+            "slug": "skyr",
+            "gramsRaw": 200,
+            "kcal100": 63,
+            "source": "manual"
+          },
+          {
+            "term": "Oats",
+            "slug": "oats",
+            "gramsRaw": 45,
+            "kcal100": 367,
+            "source": "ciqual"
+          },
+          {
+            "term": "Peach",
+            "slug": "peach",
+            "gramsRaw": 150,
+            "kcal100": 46.3,
+            "source": "ciqual"
+          },
+          {
+            "term": "Walnuts",
+            "slug": "walnuts",
+            "gramsRaw": 15,
+            "kcal100": 377.8,
+            "source": "ciqual"
+          },
+          {
+            "term": "Honey",
+            "slug": "honey",
+            "gramsRaw": 5,
+            "kcal100": 329,
+            "source": "ciqual"
+          }
+        ]
+      },
+      {
+        "name": "perte",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "Fromage blanc",
+            "slug": "fromage_blanc",
+            "gramsRaw": 180,
+            "kcal100": 76.9,
+            "source": "ciqual"
+          },
+          {
+            "term": "Wholemeal bread",
+            "slug": "wholemeal_bread",
+            "gramsRaw": 80,
+            "kcal100": 262,
+            "source": "ciqual"
+          },
+          {
+            "term": "Prune",
+            "slug": "prune",
+            "gramsRaw": 150,
+            "kcal100": 229,
+            "source": "ciqual"
+          },
+          {
+            "term": "Pumpkin seeds",
+            "slug": "pumpkin_seeds",
+            "gramsRaw": 10,
+            "kcal100": 559,
+            "source": "manual"
+          }
+        ]
+      },
+      {
+        "name": "perte",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "Greek yogurt",
+            "slug": "greek_yogurt",
+            "gramsRaw": 200,
+            "kcal100": 113.1,
+            "source": "ciqual"
+          },
+          {
+            "term": "Oats",
+            "slug": "oats",
+            "gramsRaw": 35,
+            "kcal100": 367,
+            "source": "ciqual"
+          },
+          {
+            "term": "Raisin",
+            "slug": "raisin",
+            "gramsRaw": 150,
+            "kcal100": 321,
+            "source": "ciqual"
+          },
+          {
+            "term": "Almonds",
+            "slug": "almonds",
+            "gramsRaw": 15,
+            "kcal100": 599.9,
+            "source": "ciqual"
+          }
+        ]
+      },
+      {
+        "name": "gain",
+        "day": "fri",
+        "ingredients": [
+          {
+            "term": "Fromage blanc",
+            "slug": "fromage_blanc",
+            "gramsRaw": 200,
+            "kcal100": 76.9,
+            "source": "ciqual"
+          },
+          {
+            "term": "Oats",
+            "slug": "oats",
+            "gramsRaw": 40,
+            "kcal100": 367,
+            "source": "ciqual"
+          },
+          {
+            "term": "Pear",
+            "slug": "pear",
+            "gramsRaw": 120,
+            "kcal100": 32.3,
+            "source": "ciqual"
+          },
+          {
+            "term": "Almonds",
+            "slug": "almonds",
+            "gramsRaw": 15,
+            "kcal100": 599.9,
+            "source": "ciqual"
+          }
+        ]
+      },
+      {
+        "name": "gain",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "Skyr",
+            "slug": "skyr",
+            "gramsRaw": 200,
+            "kcal100": 63,
+            "source": "manual"
+          },
+          {
+            "term": "Oats",
+            "slug": "oats",
+            "gramsRaw": 40,
+            "kcal100": 367,
+            "source": "ciqual"
+          },
+          {
+            "term": "Raisins",
+            "slug": "raisins",
+            "gramsRaw": 120,
+            "kcal100": 321,
+            "source": "ciqual"
+          },
+          {
+            "term": "Walnuts",
+            "slug": "walnuts",
+            "gramsRaw": 15,
+            "kcal100": 377.8,
+            "source": "ciqual"
+          },
+          {
+            "term": "Honey",
+            "slug": "honey",
+            "gramsRaw": 10,
+            "kcal100": 329,
+            "source": "ciqual"
+          }
+        ]
+      },
+      {
+        "name": "gain",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "Cottage cheese",
+            "slug": "cottage_cheese",
+            "gramsRaw": 200,
+            "kcal100": 98,
+            "source": "manual"
+          },
+          {
+            "term": "Granola",
+            "slug": "granola",
+            "gramsRaw": 40,
+            "kcal100": 418,
+            "source": "ciqual"
+          },
+          {
+            "term": "Prune",
+            "slug": "prune",
+            "gramsRaw": 150,
+            "kcal100": 229,
+            "source": "ciqual"
+          },
+          {
+            "term": "Pumpkin seeds",
+            "slug": "pumpkin_seeds",
+            "gramsRaw": 15,
+            "kcal100": 559,
+            "source": "manual"
+          }
+        ]
+      }
+    ]
+  },
+  "mappings": [
+    {
+      "term": "skyr",
+      "slug": "skyr",
+      "label": "Skyr",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 63,
+      "source": "manual"
+    },
+    {
+      "term": "flocons d'avoine",
+      "slug": "oats",
+      "label": "Oats",
+      "ciqual": "Flocon d'avoine",
+      "code": "9311",
+      "kcal100": 367,
+      "source": "ciqual"
+    },
+    {
+      "term": "pêche",
+      "slug": "peach",
+      "label": "Peach",
+      "ciqual": "Pêche jaune, pulpe, crue",
+      "code": "13195",
+      "kcal100": 46.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "noix",
+      "slug": "walnuts",
+      "label": "Walnuts",
+      "ciqual": "Noix, fraîche",
+      "code": "15023",
+      "kcal100": 377.8,
+      "source": "ciqual"
+    },
+    {
+      "term": "miel",
+      "slug": "honey",
+      "label": "Honey",
+      "ciqual": "Miel",
+      "code": "31008",
+      "kcal100": 329,
+      "source": "ciqual"
+    },
+    {
+      "term": "tomate",
+      "slug": "tomato",
+      "label": "Tomato",
+      "ciqual": "Tomate, crue",
+      "code": "20047",
+      "kcal100": 19.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "concombre",
+      "slug": "cucumber",
+      "label": "Cucumber",
+      "ciqual": "Concombre, pulpe, cru",
+      "code": "20210",
+      "kcal100": 14.7,
+      "source": "ciqual"
+    },
+    {
+      "term": "thon au naturel égoutté",
+      "slug": "tuna_tinned",
+      "label": "Tinned tuna",
+      "ciqual": "Thon, au naturel, appertisé, égoutté",
+      "code": "26039",
+      "kcal100": 111,
+      "source": "ciqual"
+    },
+    {
+      "term": "pain complet",
+      "slug": "wholemeal_bread",
+      "label": "Wholemeal bread",
+      "ciqual": "Pain de mie, complet",
+      "code": "7111",
+      "kcal100": 262,
+      "source": "ciqual"
+    },
+    {
+      "term": "huile d'olive",
+      "slug": "olive_oil",
+      "label": "Olive oil",
+      "ciqual": "Huile d'olive vierge extra",
+      "code": "17270",
+      "kcal100": 900,
+      "source": "ciqual"
+    },
+    {
+      "term": "olives",
+      "slug": "olives",
+      "label": "Olives",
+      "ciqual": "Olive noire (aliment moyen)",
+      "code": "13186",
+      "kcal100": 195.6,
+      "source": "ciqual"
+    },
+    {
+      "term": "yaourt nature",
+      "slug": "plain_yogurt",
+      "label": "Plain yogurt",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 59,
+      "source": "manual"
+    },
+    {
+      "term": "citron",
+      "slug": "lemon",
+      "label": "Lemon",
+      "ciqual": "Citron, pulpe, cru",
+      "code": "13009",
+      "kcal100": 27.6,
+      "source": "ciqual"
+    },
+    {
+      "term": "fromage blanc",
+      "slug": "fromage_blanc",
+      "label": "Fromage blanc",
+      "ciqual": "Fromage blanc nature, 3% MG environ",
+      "code": "19646",
+      "kcal100": 76.9,
+      "source": "ciqual"
+    },
+    {
+      "term": "prune",
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 229,
+      "source": "ciqual"
+    },
+    {
+      "term": "graines de courge",
+      "slug": "pumpkin_seeds",
+      "label": "Pumpkin seeds",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 559,
+      "source": "manual"
+    },
+    {
+      "term": "feta",
+      "slug": "feta",
+      "label": "Feta",
+      "ciqual": "Feta AOP",
+      "code": "12066",
+      "kcal100": 285,
+      "source": "ciqual"
+    },
+    {
+      "term": "roquette",
+      "slug": "rocket",
+      "label": "Rocket",
+      "ciqual": "Roquette, crue",
+      "code": "20217",
+      "kcal100": 27.9,
+      "source": "ciqual"
+    },
+    {
+      "term": "yaourt grec",
+      "slug": "greek_yogurt",
+      "label": "Greek yogurt",
+      "ciqual": "Yaourt à la grecque, nature",
+      "code": "19860",
+      "kcal100": 113.1,
+      "source": "ciqual"
+    },
+    {
+      "term": "raisin",
+      "slug": "raisin",
+      "label": "Raisin",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 321,
+      "source": "ciqual"
+    },
+    {
+      "term": "amandes",
+      "slug": "almonds",
+      "label": "Almonds",
+      "ciqual": "Amande (avec peau)",
+      "code": "15000",
+      "kcal100": 599.9,
+      "source": "ciqual"
+    },
+    {
+      "term": "cuisses de poulet désossées",
+      "slug": "chicken_thigh",
+      "label": "Chicken thigh",
+      "ciqual": "Poulet, cuisse, viande, cru",
+      "code": "36024",
+      "kcal100": 114,
+      "source": "ciqual"
+    },
+    {
+      "term": "quinoa",
+      "slug": "quinoa",
+      "label": "Quinoa",
+      "ciqual": "Quinoa, cru",
+      "code": "9340",
+      "kcal100": 358,
+      "source": "ciqual"
+    },
+    {
+      "term": "courgette",
+      "slug": "courgette",
+      "label": "Courgette",
+      "ciqual": "Courgette, pulpe et peau, crue",
+      "code": "20020",
+      "kcal100": 16.5,
+      "source": "ciqual"
+    },
+    {
+      "term": "poivron rouge",
+      "slug": "bell_pepper",
+      "label": "Bell pepper",
+      "ciqual": "Poivron vert, cru",
+      "code": "20085",
+      "kcal100": 26,
+      "source": "ciqual"
+    },
+    {
+      "term": "oignon",
+      "slug": "onion",
+      "label": "Onion",
+      "ciqual": "Oignon, cru",
+      "code": "20034",
+      "kcal100": 38.4,
+      "source": "ciqual"
+    },
+    {
+      "term": "paprika",
+      "slug": "paprika",
+      "label": "Paprika",
+      "ciqual": "Paprika",
+      "code": "11049",
+      "kcal100": 319,
+      "source": "ciqual"
+    },
+    {
+      "term": "sel",
+      "slug": "salt",
+      "label": "Salt",
+      "ciqual": "Sel blanc alimentaire, iodé, non fluoré (marin, ignigène ou gemme)",
+      "code": "11058",
+      "kcal100": 0,
+      "source": "ciqual"
+    },
+    {
+      "term": "poivre noir",
+      "slug": "black_pepper",
+      "label": "Black pepper",
+      "ciqual": "Poivre noir, poudre",
+      "code": "11015",
+      "kcal100": 330,
+      "source": "ciqual"
+    },
+    {
+      "term": "filet de saumon",
+      "slug": "salmon",
+      "label": "Salmon",
+      "ciqual": "Saumon, cru, élevage",
+      "code": "26036",
+      "kcal100": 194,
+      "source": "ciqual"
+    },
+    {
+      "term": "pomme de terre",
+      "slug": "potato",
+      "label": "Potato",
+      "ciqual": "Pomme de terre nouvelle, crue",
+      "code": "4023",
+      "kcal100": 76.4,
+      "source": "ciqual"
+    },
+    {
+      "term": "haricots verts",
+      "slug": "green_beans",
+      "label": "Green beans",
+      "ciqual": "Haricot vert, cru",
+      "code": "20061",
+      "kcal100": 31.6,
+      "source": "ciqual"
+    },
+    {
+      "term": "aneth",
+      "slug": "herbs_dill",
+      "label": "Dill",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 43,
+      "source": "manual"
+    },
+    {
+      "term": "poire",
+      "slug": "pear",
+      "label": "Pear",
+      "ciqual": "Poireau, cru",
+      "code": "20039",
+      "kcal100": 32.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "raisins",
+      "slug": "raisins",
+      "label": "Raisins",
+      "ciqual": "Raisin, sec",
+      "code": "13046",
+      "kcal100": 321,
+      "source": "ciqual"
+    },
+    {
+      "term": "cottage cheese",
+      "slug": "cottage_cheese",
+      "label": "Cottage cheese",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 98,
+      "source": "manual"
+    },
+    {
+      "term": "muesli",
+      "slug": "granola",
+      "label": "Granola",
+      "ciqual": "Muesli (aliment moyen)",
+      "code": "32004",
+      "kcal100": 418,
+      "source": "ciqual"
+    },
+    {
+      "term": "prunes",
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual": null,
+      "code": null,
+      "kcal100": 229,
+      "source": "ciqual"
+    },
+    {
+      "term": "salade verte",
+      "slug": "lettuce",
+      "label": "Lettuce",
+      "ciqual": "Laitue, crue",
+      "code": "20031",
+      "kcal100": 14.7,
+      "source": "ciqual"
+    },
+    {
+      "term": "houmous",
+      "slug": "hummus",
+      "label": "Hummus",
+      "ciqual": "Houmous, préemballé",
+      "code": "25621",
+      "kcal100": 288.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "tahini",
+      "slug": "tahini",
+      "label": "Tahini",
+      "ciqual": "Tahin ou Purée de sésame",
+      "code": "15203",
+      "kcal100": 620.6,
+      "source": "ciqual"
+    },
+    {
+      "term": "ail",
+      "slug": "garlic",
+      "label": "Garlic",
+      "ciqual": "Ail, cru",
+      "code": "11000",
+      "kcal100": 111,
+      "source": "ciqual"
+    },
+    {
+      "term": "quinoa sec",
+      "slug": "quinoa",
+      "label": "Quinoa",
+      "ciqual": "Quinoa, cru",
+      "code": "9340",
+      "kcal100": 358,
+      "source": "ciqual"
+    },
+    {
+      "term": "eau",
+      "slug": "water",
+      "label": "Water",
+      "ciqual": "Eau du robinet",
+      "code": "18066",
+      "kcal100": 0,
+      "source": "ciqual"
+    },
+    {
+      "term": "lentilles vertes sèches",
+      "slug": "lentils_dry",
+      "label": "Lentils (dry)",
+      "ciqual": "Lentille, sèche",
+      "code": "20504",
+      "kcal100": 331.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "tomates",
+      "slug": "tomato",
+      "label": "Tomato",
+      "ciqual": "Tomate, crue",
+      "code": "20047",
+      "kcal100": 19.3,
+      "source": "ciqual"
+    },
+    {
+      "term": "filets de saumon",
+      "slug": "salmon",
+      "label": "Salmon",
+      "ciqual": "Saumon, cru, élevage",
+      "code": "26036",
+      "kcal100": 194,
+      "source": "ciqual"
+    },
+    {
+      "term": "couscous sec",
+      "slug": "couscous",
+      "label": "Couscous",
+      "ciqual": "Semoule de blé dur, crue",
+      "code": "9610",
+      "kcal100": 352,
+      "source": "ciqual"
+    },
+    {
+      "term": "persil",
+      "slug": "herbs_parsley",
+      "label": "Parsley",
+      "ciqual": "Persil, frais",
+      "code": "11014",
+      "kcal100": 43,
+      "source": "ciqual"
+    },
+    {
+      "term": "aubergine",
+      "slug": "aubergine",
+      "label": "Aubergine",
+      "ciqual": "Aubergine, crue",
+      "code": "20053",
+      "kcal100": 20.7,
+      "source": "ciqual"
+    },
+    {
+      "term": "poivron",
+      "slug": "bell_pepper",
+      "label": "Bell pepper",
+      "ciqual": "Poivron vert, cru",
+      "code": "20085",
+      "kcal100": 26,
+      "source": "ciqual"
+    }
+  ],
+  "fruit_counterfactual": [
+    {
+      "id": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "boxes": [
+        {
+          "day": "fri",
+          "slot": "breakfast",
+          "kcal": 613,
+          "grams": 609,
+          "gap": null
+        },
+        {
+          "day": "fri",
+          "slot": "lunch",
+          "kcal": 982,
+          "grams": 667,
+          "gap": null
+        },
+        {
+          "day": "fri",
+          "slot": "dinner",
+          "kcal": 857.9456724287148,
+          "grams": 660,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "breakfast",
+          "kcal": 388,
+          "grams": 345,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "lunch",
+          "kcal": 981.6863072139208,
+          "grams": 625,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "dinner",
+          "kcal": 858.9866312645066,
+          "grams": 690,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "breakfast",
+          "kcal": 356,
+          "grams": 272,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "lunch",
+          "kcal": 981.4859847894185,
+          "grams": 672,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "dinner",
+          "kcal": 857.1109301643982,
+          "grams": 663,
+          "gap": null
+        }
+      ]
+    },
+    {
+      "id": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "boxes": [
+        {
+          "day": "fri",
+          "slot": "breakfast",
+          "kcal": 728,
+          "grams": 675,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "breakfast",
+          "kcal": 427,
+          "grams": 383,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "breakfast",
+          "kcal": 475,
+          "grams": 373,
+          "gap": null
+        },
+        {
+          "day": "fri",
+          "slot": "lunch",
+          "kcal": 1163.2573978884145,
+          "grams": 623,
+          "gap": null
+        },
+        {
+          "day": "fri",
+          "slot": "dinner",
+          "kcal": 1019.0854819389782,
+          "grams": 584,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "lunch",
+          "kcal": 1162.4122169418943,
+          "grams": 727,
+          "gap": null
+        },
+        {
+          "day": "sat",
+          "slot": "dinner",
+          "kcal": 1014.9417001466768,
+          "grams": 488,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "lunch",
+          "kcal": 1164.726106968796,
+          "grams": 677,
+          "gap": null
+        },
+        {
+          "day": "sun",
+          "slot": "dinner",
+          "kcal": 1012.0244901590663,
+          "grams": 549,
+          "gap": null
+        }
+      ]
+    }
+  ],
+  "transport": [
+    {
+      "source": "generate-household-meal-v1",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 97371,
+      "prompt_tokens": 8592,
+      "output_tokens": 16644,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    },
+    {
+      "source": "generate-household-meal-v1.density_repair",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 67161,
+      "prompt_tokens": 9550,
+      "output_tokens": 14811,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    },
+    {
+      "source": "generate-household-meal-v1.density_repair",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 72472,
+      "prompt_tokens": 9550,
+      "output_tokens": 16354,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    },
+    {
+      "source": "generate-household-meal-v1",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 78569,
+      "prompt_tokens": 8591,
+      "output_tokens": 17172,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    },
+    {
+      "source": "generate-household-meal-v1.density_repair",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 113672,
+      "prompt_tokens": 9990,
+      "output_tokens": 17732,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    },
+    {
+      "source": "generate-household-meal-v1.density_repair",
+      "model": "gpt-5.6-luna",
+      "latency_ms": 93784,
+      "prompt_tokens": 9313,
+      "output_tokens": 18044,
+      "service_tier_sent": "fast",
+      "service_tier_echoed": "priority"
+    }
+  ],
+  "snapshotted_code_sha256": {
+    "_shared/keel/portion_sizing.ts": "bab34eb87c1d8b9bdcf7f91e2c252909f3828d66ac4e3c03679e167a84e2daa0",
+    "_shared/keel/plan_energy.ts": "daed4a3e045802ee79e167bec346496aea2649f320b0b4cdc2a497af2227c5b8",
+    "_shared/keel/plan_energy_read.ts": "58ff2d1f2628cf695ed98426c973f4248547c358909db1988e30bb4724d09714",
+    "_shared/keel/food_composition.ts": "622e18cdc4aa6dbccef0bb4228a66b994515d340ade77b0518c47a4535a20d03",
+    "_shared/keel/meal_generation.ts": "b72126bd8fa855673908ea11e2047f0142a2842dc121dd1c6a872ab6fa3c236a",
+    "_shared/keel/retry_merge.ts": "66d29d44103cf34417ebc049304191442d67dca3e65cdc1467d393b8abb978ea",
+    "_shared/keel/mouth_energy.ts": "a2eb9c1098d4a79a34531fbf9570d9047bf0f70f767bcdca1d3289ec4552b077",
+    "_shared/keel/food_composition_io.ts": "05de47ce2d860c8418c669914e19f83ffa444f50c1c320fd04eddf58e40157b9",
+    "_shared/keel/box_densify.ts": "207418f144fa7f250c13c887beac2bf1fe190407bda4dd38811b91ebeba3aaaa"
+  }
+}

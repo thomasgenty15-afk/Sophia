@@ -92,19 +92,78 @@ describe("le câblage — l'envie part quand le maître compose pour le foyer", 
   /**
    * ① LE CHAMP EST RENDU SANS GARDE DE LANE, ET C'EST VOLONTAIRE: une envie a
    * un sujet à une bouche comme à six. Ce qui manquait était le départ.
+   *
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-03 — LA QUESTION EST TOUJOURS SANS GARDE DE LANE; SA
+   * DESTINATION, ELLE, EN A UNE.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Ce test exigeait `preferences: preferences.trim() || null,` DEUX fois —
+   * une par lane. C'était juste tant que `/app/plan` posait DEUX questions
+   * d'envie: « Ce dont tu as envie cette fois » (le corps de la requête) et,
+   * quinze lignes plus bas, « C'est la maison a envie de quoi ? » (la ligne de
+   * la semaine). Un maître de foyer lisait les deux, dans le même formulaire.
+   *
+   * L'alignement sur l'étape 3 n'en laisse qu'UNE, avec les mots de
+   * l'entonnoir. La lane foyer l'écrit par `submitEnvy` — l'écrivain de
+   * l'entonnoir, sur l'ancre du départ choisi —, et `preferences` part `null`
+   * dans la requête, exactement comme `draftInput`.
+   *
+   * ⛔ CE QUE ÇA NE RELÂCHE PAS: la prémisse ④ (le serveur LIT
+   * `body.preferences`) reste vraie et gardée, la signature du client reste
+   * requise et nullable (②), et le nom du champ reste celui du serveur (③).
+   * Ce qui change est ce que CET écran met dans ce canal-là, pas ce que le
+   * serveur sait lire — et la lane individuelle, elle, y met toujours l'envie.
    */
-  it("`MealBuilder` monte le champ sans garde de lane et l'envoie sur la branche foyer", () => {
+  it("`MealBuilder` monte UNE question d'envie, et elle a UN écrivain", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-10 · LOT 7 — UNE QUESTION, UN CANAL.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Ce cas gardait « chaque lane a son écrivain »: la ligne de la semaine
+    // (`submitEnvy`) pour le foyer, le corps de la requête (`preferences`) pour
+    // le solo. Il n'y a plus qu'un moteur, donc plus qu'un canal — celui de
+    // l'entonnoir, qui l'écrivait déjà pour tout le monde.
+    //
+    // ⛔ LA PROPRIÉTÉ GARDÉE NE CHANGE PAS: la question posée à l'écran a une
+    // destination, et une seule. C'est l'assertion « il y a un champ, il part
+    // quelque part, et pas deux fois ».
     const src = code("frontend/src/keel/components/MealBuilder.tsx");
     expect(src, "le champ d'envie n'est plus monté").toContain(
-      'htmlFor="meals-preferences"',
+      'htmlFor="meals-envy"',
     );
-    // Deux départs, un par lane, et la MÊME expression. Deux normalisations
-    // pour un seul champ finissent par diverger.
-    const sent = src.match(/preferences: preferences\.trim\(\) \|\| null,/g) ?? [];
+    // ⛔ UNE SEULE, ET C'EST MESURÉ: un second `<textarea>` d'envie ferait
+    // revenir la question en double que ce lot a retirée.
+    const asked = src.match(/t\("plan\.envy\.title"\)/g) ?? [];
+    expect(asked.length, "l'envie est posée deux fois dans le même formulaire")
+      .toBe(1);
+
+    // ⛔ ET ELLE NE PART PLUS DANS LE CORPS DE LA REQUÊTE. Les deux ensemble
+    // mettraient la même phrase deux fois dans la consigne — une fois comme
+    // ligne de la semaine, une fois comme envie du moment.
     expect(
-      sent.length,
-      "l'envie ne part plus des DEUX lanes (foyer + individuelle)",
-    ).toBe(2);
+      src,
+      "l'envie repart AUSSI dans le corps: la phrase serait servie deux fois",
+    ).not.toMatch(/preferences: envy/);
+
+    // LE CANAL — la ligne de la semaine, écrite AVANT la composition: le
+    // générateur relit la table côté serveur, donc écrire après composerait le
+    // plan sans ce qu'on vient de saisir.
+    const write = src.indexOf("await submitEnvy(envyWeek, line)");
+    const compose = src.indexOf("await generateHouseholdMeal(");
+    expect(write, "l'écrivain de la ligne de la semaine a disparu")
+      .toBeGreaterThan(-1);
+    expect(compose, "la composition est introuvable").toBeGreaterThan(-1);
+    expect(write, "l'envie est écrite APRÈS la composition").toBeLessThan(compose);
+
+    // ⛔ ET SON REFUS NE PASSE PLUS EN SILENCE. `keel_household_submit_envy`
+    // rend `{ok:false, reason}` — elle ne lève PAS. Ignorer ce résultat laissait
+    // composer un plan sans la phrase qu'on venait d'écrire, sans un mot: un
+    // champ visible dont le contenu disparaît est pire qu'un champ absent.
+    expect(
+      src,
+      "le refus d'écriture de l'envie repart en silence",
+    ).toMatch(/if \(!wrote\.ok\) throw new Error\(/);
   });
 
   /**
@@ -122,22 +181,30 @@ describe("le câblage — l'envie part quand le maître compose pour le foyer", 
   });
 
   /** ③ LE NOM DU CHAMP EST CELUI DU SERVEUR, sur les DEUX chemins d'appel. */
-  it("le corps de requête porte `preferences` sur les deux chemins du foyer", () => {
+  it("le corps de requête porte `preferences` sur les deux chemins d'appel", () => {
     expect(
       code("frontend/src/keel/api/household.ts"),
       "la génération directe n'envoie plus l'envie",
     ).toContain("preferences: args.preferences,");
-    // ⚠️ UN COMPTE, PAS UNE PRÉSENCE — ET C'EST UNE MUTATION QUI L'A DIT.
-    // `preferences: input.preferences,` vit DÉJÀ dans la branche individuelle
-    // de ce fichier: un `toContain` restait VERT quand on retirait la ligne de
-    // la branche FOYER, c'est-à-dire exactement le défaut qu'on ferme. Les deux
-    // branches doivent la porter, donc deux occurrences.
+    // ⟳ 2026-09-10 · LOT 7 — UNE OCCURRENCE, ET C'EST UN COMPTE EXACT.
+    //
+    // Il en fallait DEUX tant que `callGenerator` avait deux branches de corps:
+    // un `toContain` restait vert quand on retirait la ligne de l'une des deux.
+    // Le corps est unique depuis ce lot, donc `2` ferait rougir sur une règle
+    // morte — et `>= 1` laisserait passer le retour d'une seconde branche sans
+    // le champ, très exactement le défaut d'origine.
     const draftSends = (code("frontend/src/keel/api/planDraft.ts")
       .match(/preferences: input\.preferences,/g) ?? []).length;
     expect(
       draftSends,
-      "l'envie a disparu d'une des deux branches de `callGenerator`",
-    ).toBe(2);
+      "le corps de `callGenerator` ne porte plus l'envie une fois et une seule",
+    ).toBe(1);
+    // ⚠️ LA PRÉMISSE QUI REND LE COMPTE LISIBLE: il n'y a bien qu'un corps.
+    // Sans elle, `1` se relirait « une des deux branches l'a perdue ».
+    expect(
+      code("frontend/src/keel/api/planDraft.ts"),
+      "`callGenerator` a retrouvé une seconde branche de corps",
+    ).not.toMatch(/input\.lane === "household"/);
   });
 
   /**

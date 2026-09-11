@@ -1,0 +1,13 @@
+{
+  "id": "B03-minimal-five-allergy",
+  "uid": "2076c2b3-fddc-48af-a0a5-65d5d49a51d7",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T18:55:51.346Z",
+  "end": "2026-09-05T18:56:18.855Z",
+  "http": 422,
+  "seconds": 27.47275462500006,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "request_id": "4d6d3846-f56f-4704-8682-a694d0c66653",
+  "error": "draft_not_composed"
+}

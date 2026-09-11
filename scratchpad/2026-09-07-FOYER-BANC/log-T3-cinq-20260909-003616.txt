@@ -1,0 +1,6 @@
+{"tag":"keel.household_meal.member_bodies","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","members":5,"accounts":1,"with_body":5,"reads":8}
+{"tag":"keel.household_meal.member_allergies","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","rows":2,"refs":5}
+{"tag":"keel.household_meal.constraint_attribution","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","declared":5,"attributed":5,"unattributed":0}
+{"tag":"keel.household_meal.condition_gate","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","pregnancy":0,"breastfeeding":0,"other":0,"none":5}
+{"tag":"keel.household_meal.composition","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","mode":"per_portion","deltas":0,"family_service":true,"residual_gaps_count":0,"residual_gaps_max_band":"none"}
+{"tag":"keel.household_meal.retained_items","user_id":"33b5cd99-b7a9-4505-9c01-acafd0e3cc60","household_id":"fb235931-b4b8-4052-903f-876ef0f3c7f1","composition":2,"portion":0,"rhythm":0,"logistics":0,"craving":0,"unrouted":0,"portion_excluded":[],"refused":0,"legacy_notes":0,"other_subjects":0,"portion_applied":0}

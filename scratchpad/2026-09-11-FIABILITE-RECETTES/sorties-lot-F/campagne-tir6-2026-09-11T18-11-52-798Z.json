@@ -1,0 +1,3945 @@
+{
+  "cas": "perte",
+  "tir": 6,
+  "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+  "reel": true,
+  "lance_le": "2026-09-11T18:11:52.798Z",
+  "jour_local": "2026-09-11",
+  "heure_locale": "20:11",
+  "cases_annoncees": 6,
+  "bouches": 2,
+  "duree_ms": 106733,
+  "plafond_heberge_ms": 150000,
+  "statut": 200,
+  "erreur_reseau": null,
+  "reponse": {
+    "ok": true,
+    "meal": {
+      "id": "e988e698-3299-44aa-8b5a-9d4489db73ae"
+    },
+    "window": {
+      "starts_on": "2026-09-12",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "suggested_window": {
+      "starts_on": "2026-09-12",
+      "shifted": "shopping_cutoff"
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+        "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 2 bouches.",
+        "Chaque personne a chacun de ses repas."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "cab4e292-e510-4c77-9192-52fffe809313",
+      "member_count": 2
+    },
+    "dishes": [
+      {
+        "name": "Bol d’avoine aux fruits",
+        "title": "Yaourt grec, flocons d’avoine et fruits rouges",
+        "slot": "breakfast",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "yaourt grec",
+            "ref": "greek_yogurt",
+            "ref_refused": false,
+            "quantity": "428 g",
+            "in_pantry": false,
+            "amount": 428,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 428,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "flocons d’avoine",
+            "ref": "oats",
+            "ref_refused": false,
+            "quantity": "125,88 g",
+            "in_pantry": false,
+            "amount": 125.88235294117646,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 125.88235294117646,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "fruits rouges mélangés",
+            "ref": "mixed_berries",
+            "ref_refused": false,
+            "quantity": "251,76 g",
+            "in_pantry": false,
+            "amount": 251.76470588235293,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 251.76470588235293,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          }
+        ],
+        "method": "Mélanger le yaourt grec et les flocons d’avoine, puis ajouter les fruits rouges.",
+        "why": "Un petit-déjeuner rapide avec des fruits de saison et une texture rassasiante.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "yaourt grec",
+                "grams": 183,
+                "ref": "greek_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "flocons d’avoine",
+                "grams": 54,
+                "ref": "oats",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "fruits rouges mélangés",
+                "grams": 107,
+                "ref": "mixed_berries",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_breakfast_0_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "yaourt grec",
+                "grams": 245,
+                "ref": "greek_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "flocons d’avoine",
+                "grams": 72,
+                "ref": "oats",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "fruits rouges mélangés",
+                "grams": 144,
+                "ref": "mixed_berries",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      },
+      {
+        "name": "Orge au poulet et feta",
+        "title": "Poulet, orge, tomate, feta et huile d’olive",
+        "slot": "lunch",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "32,35 g",
+            "in_pantry": false,
+            "amount": 32.34766178554558,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 32.34766178554558,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "80,87 g",
+            "in_pantry": false,
+            "amount": 80.86915446386396,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 80.86915446386396,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "0,81 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 0.8086915446386396,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 12.130373169579594,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Assembler le poulet et l’orge, puis ajouter la tomate, la feta et l’huile d’olive.",
+        "why": "Une assiette complète qui se prépare vite et met en valeur les tomates de saison.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_barley",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti",
+                "grams": 80,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_barley",
+                "term": "Orge perlé cuit",
+                "grams": 359,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 14,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 35,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 5,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_lunch_1_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti",
+                "grams": 107,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_barley",
+                "term": "Orge perlé cuit",
+                "grams": 482,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 19,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 46,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 7,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "grain_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Salade de pâtes au bœuf",
+        "title": "Bœuf mijoté, pâtes complètes, parmesan et huile d’olive",
+        "slot": "dinner",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "parmesan",
+            "ref": "parmesan",
+            "ref_refused": false,
+            "quantity": "14,46 g",
+            "in_pantry": false,
+            "amount": 14.455971049457176,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 14.455971049457176,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "0,36 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 0.3613992762364294,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 5.420989143546441,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Mélanger la sauce de bœuf et les pâtes complètes, puis terminer avec le parmesan et l’huile d’olive.",
+        "why": "Cette salade de pâtes utilise la préparation du jour dans un dîner complet et facile à servir.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_beef_sauce",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_wholewheat_pasta",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_beef_sauce",
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 205,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_wholewheat_pasta",
+                "term": "Pâtes complètes cuites",
+                "grams": 257,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "parmesan",
+                "grams": 6,
+                "ref": "parmesan",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 2,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_dinner_2_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_beef_sauce",
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 276,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_wholewheat_pasta",
+                "term": "Pâtes complètes cuites",
+                "grams": 345,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "parmesan",
+                "grams": 8,
+                "ref": "parmesan",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 3,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pasta_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Tartine jambon chèvre pêche",
+        "title": "Pain complet, jambon, chèvre et pêche",
+        "slot": "breakfast",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "224,08 g",
+            "in_pantry": false,
+            "amount": 224.0837696335078,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 224.0837696335078,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "jambon",
+            "ref": "ham",
+            "ref_refused": false,
+            "quantity": "168,06 g",
+            "in_pantry": false,
+            "amount": 168.06282722513086,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 168.06282722513086,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "fromage de chèvre",
+            "ref": "goat_cheese",
+            "ref_refused": false,
+            "quantity": "84,03 g",
+            "in_pantry": false,
+            "amount": 84.03141361256543,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 84.03141361256543,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "pêche",
+            "ref": "peach",
+            "ref_refused": false,
+            "quantity": "364,14 g",
+            "in_pantry": false,
+            "amount": 364.1361256544502,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 364.1361256544502,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          }
+        ],
+        "method": "Garnir le pain complet avec le jambon et le fromage de chèvre, puis servir avec la pêche.",
+        "why": "Une tartine fraîche et simple qui change du bol sucré tout en gardant une source de protéines.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 96,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "jambon",
+                "grams": 72,
+                "ref": "ham",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "fromage de chèvre",
+                "grams": 36,
+                "ref": "goat_cheese",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pêche",
+                "grams": 155,
+                "ref": "peach",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_breakfast_3_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 128,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "jambon",
+                "grams": 96,
+                "ref": "ham",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "fromage de chèvre",
+                "grams": 48,
+                "ref": "goat_cheese",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pêche",
+                "grams": 209,
+                "ref": "peach",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      },
+      {
+        "name": "Wrap poulet tomate et feta",
+        "title": "Poulet, tortilla complète, tomate, laitue, yaourt, feta et huile d’olive",
+        "slot": "lunch",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "tortilla complète",
+            "ref": "tortilla_wholemeal",
+            "ref_refused": false,
+            "quantity": "110,1 g",
+            "in_pantry": false,
+            "amount": 110.09646302250805,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 110.09646302250805,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "146,8 g",
+            "in_pantry": false,
+            "amount": 146.79528403001075,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 146.79528403001075,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "sauce"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "183,49 g",
+            "in_pantry": false,
+            "amount": 183.49410503751344,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 183.49410503751344,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "91,75 g",
+            "in_pantry": false,
+            "amount": 91.74705251875672,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 91.74705251875672,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "55,05 g",
+            "in_pantry": false,
+            "amount": 55.04823151125402,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 55.04823151125402,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1,83 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 1.8349410503751342,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 27.52411575562701,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Étaler le yaourt sur la tortilla, ajouter le poulet, la tomate, la laitue et la feta, puis finir avec l’huile d’olive et rouler.",
+        "why": "Un déjeuner nomade et frais qui réutilise le poulet sous une forme différente.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti",
+                "grams": 181,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tortilla complète",
+                "grams": 47,
+                "ref": "tortilla_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 63,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 78,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 39,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 23,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 12,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_lunch_4_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti",
+                "grams": 243,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tortilla complète",
+                "grams": 63,
+                "ref": "tortilla_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 84,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 105,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 53,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 32,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 16,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Pita bœuf tomate et feta",
+        "title": "Bœuf mijoté, pita complète, tomate, laitue, yaourt, feta et huile d’olive",
+        "slot": "dinner",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pita complète",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "68,38 g",
+            "in_pantry": false,
+            "amount": 68.37580829212628,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 68.37580829212628,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "91,17 g",
+            "in_pantry": false,
+            "amount": 91.1677443895017,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 91.1677443895017,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "sauce"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "113,96 g",
+            "in_pantry": false,
+            "amount": 113.95968048687712,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 113.95968048687712,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "56,98 g",
+            "in_pantry": false,
+            "amount": 56.97984024343856,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 56.97984024343856,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "34,19 g",
+            "in_pantry": false,
+            "amount": 34.18790414606314,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 34.18790414606314,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1,71 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 1.7093952073031569,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 25.640928109547353,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Ouvrir la pita, la garnir avec le yaourt, le bœuf, la tomate, la laitue et la feta, puis ajouter l’huile d’olive.",
+        "why": "Un dîner convivial et rapide qui donne une seconde vie à la sauce de bœuf.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_beef_sauce",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_beef_sauce",
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 323,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pita complète",
+                "grams": 29,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 39,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 49,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 24,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 15,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 11,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_dinner_5_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_beef_sauce",
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 435,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pita complète",
+                "grams": 39,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 52,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 65,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 33,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 20,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 15,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "blanc de poulet",
+            "ref": "chicken_breast",
+            "ref_refused": false,
+            "quantity": "795 g",
+            "in_pantry": false,
+            "amount": 795,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 795,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "2,64 cuillères à soupe",
+            "in_pantry": false,
+            "amount": 2.6436325950137736,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 39.65448892520661,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Enrober le blanc de poulet avec l’huile d’olive, le rôtir jusqu’à cuisson complète, le laisser tiédir puis le répartir.",
+        "active_minutes": 10,
+        "total_minutes": 35,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "id": "prep_barley",
+        "title": "Orge perlé cuit",
+        "servings_made": 1,
+        "ingredients": [
+          {
+            "term": "orge perlé",
+            "ref": "barley",
+            "ref_refused": false,
+            "quantity": "323,48 g",
+            "in_pantry": false,
+            "amount": 323.47661785545586,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 323.47661785545586,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          }
+        ],
+        "method": "Rincer l’orge perlé, le cuire dans l’eau jusqu’à ce qu’il soit tendre, l’égoutter puis le répartir.",
+        "active_minutes": 5,
+        "total_minutes": 35,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      },
+      {
+        "id": "prep_beef_sauce",
+        "title": "Sauce de bœuf aux légumes",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "bœuf haché",
+            "ref": "beef_mince",
+            "ref_refused": false,
+            "quantity": "560 g",
+            "in_pantry": false,
+            "amount": 560,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 560,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "oignon",
+            "ref": "onion",
+            "ref_refused": false,
+            "quantity": "185 g",
+            "in_pantry": false,
+            "amount": 185,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 185,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "carotte",
+            "ref": "carrot",
+            "ref_refused": false,
+            "quantity": "260 g",
+            "in_pantry": false,
+            "amount": 260,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 260,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "375 g",
+            "in_pantry": false,
+            "amount": 375,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 375,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "3,72 cuillères à soupe",
+            "in_pantry": false,
+            "amount": 3.72479071468326,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 55.871860720248904,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "garnish_fat"
+          }
+        ],
+        "method": "Faire revenir le bœuf avec l’huile d’olive, ajouter l’oignon, la carotte et la tomate, puis mijoter jusqu’à obtenir une sauce épaisse avant de la répartir.",
+        "active_minutes": 15,
+        "total_minutes": 40,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "id": "prep_wholewheat_pasta",
+        "title": "Pâtes complètes cuites",
+        "servings_made": 1,
+        "ingredients": [
+          {
+            "term": "pâtes complètes",
+            "ref": "wholewheat_pasta",
+            "ref_refused": false,
+            "quantity": "230 g",
+            "in_pantry": false,
+            "amount": 230,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 230,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          }
+        ],
+        "method": "Cuire les pâtes complètes dans l’eau bouillante, les égoutter puis les répartir après refroidissement.",
+        "active_minutes": 5,
+        "total_minutes": 20,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_barley",
+          "prep_beef_sauce",
+          "prep_wholewheat_pasta"
+        ],
+        "run_through": "Mettre le four à chauffer et enfourner le poulet. Pendant ce temps, lancer l’orge, préparer la sauce avec le bœuf, l’oignon, la carotte et la tomate, puis laisser mijoter. Cuire les pâtes vers la fin, égoutter, laisser tiédir et répartir toutes les préparations au réfrigérateur.",
+        "total_minutes": 55
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "yaourt grec",
+        "quantity": "855 g",
+        "aisle": "dairy",
+        "food_group": "dairy_yogurt",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d’avoine",
+        "quantity": "250 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fruits rouges mélangés",
+        "quantity": "505 g",
+        "aisle": "produce",
+        "food_group": "berries",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "blanc de poulet",
+        "quantity": "795 g",
+        "aisle": "protein",
+        "food_group": "poultry",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "orge perlé",
+        "quantity": "325 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "bœuf haché",
+        "quantity": "560 g",
+        "aisle": "protein",
+        "food_group": "red_meat",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pâtes complètes",
+        "quantity": "230 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "quantity": "450 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tortilla complète",
+        "quantity": "220 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pita complète",
+        "quantity": "135 g",
+        "aisle": "grains",
+        "food_group": null,
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "jambon",
+        "quantity": "335 g",
+        "aisle": "protein",
+        "food_group": "lean_protein",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "quantity": "245 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "parmesan",
+        "quantity": "30 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fromage de chèvre",
+        "quantity": "170 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt nature",
+        "quantity": "475 g",
+        "aisle": "dairy",
+        "food_group": "dairy_yogurt",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomates",
+        "quantity": "1 kg",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "quantity": "295 g",
+        "aisle": "produce",
+        "food_group": "leafy_greens",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "quantity": "185 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carottes",
+        "quantity": "280 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêches",
+        "quantity": "260 g",
+        "aisle": "produce",
+        "food_group": "other_fruit",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d’olive",
+        "quantity": "16 c. à soupe",
+        "aisle": "pantry",
+        "food_group": "olive_oil",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+        "display_name": "Paul",
+        "portion_note": null,
+        "eating_slots": null,
+        "preparation_shares": []
+      },
+      {
+        "member_id": "0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+        "display_name": "Lea",
+        "portion_note": null,
+        "eating_slots": null,
+        "preparation_shares": []
+      }
+    ],
+    "member_deltas": [
+      {
+        "member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+        "food_ref": "white_rice",
+        "grams": 210,
+        "moment": "cooking",
+        "channel": "more_of_the_same"
+      }
+    ],
+    "merged_members": [],
+    "issues": [
+      "spent_first_day_dropped: fri (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-12)",
+      "freeze_on_purchase: 0/21",
+      "raw_keeping_needs_later_shop: 0/2 preparations",
+      "waves_kept_for_freshness: 0/21",
+      "sessions_fed_from_freezer: 0/0 name the freezer",
+      "quantity_prose_stale:27",
+      "final_gate_flagged:3",
+      "final_gate_delivery:deliverable_with_gaps",
+      "shopping_list_unattributed: 3/21 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "model_returned_no_box: 0/8 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/6",
+      "portion_standard_recipe:c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+      "portion_standard_recipe:0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+    ],
+    "request_id": "1384d9d3-3ea5-40c8-aa9a-afd6dfae70dd"
+  },
+  "reponse_brute": "{\n  \"dishes\": [\n    {\n      \"name\": \"Bol d’avoine aux fruits\",\n      \"title\": \"Yaourt grec, flocons d’avoine et fruits rouges\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"yaourt grec\",\n          \"quantity\": \"170 g\",\n          \"amount\": 170,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"greek_yogurt\"\n        },\n        {\n          \"term\": \"flocons d’avoine\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"oats\"\n        },\n        {\n          \"term\": \"fruits rouges mélangés\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"mixed_berries\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        }\n      ],\n      \"method\": \"Mélanger le yaourt grec et les flocons d’avoine, puis ajouter les fruits rouges.\",\n      \"why\": \"Un petit-déjeuner rapide avec des fruits de saison et une texture rassasiante.\",\n      \"density_check\": 132.7,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Orge au poulet et feta\",\n      \"title\": \"Poulet, orge, tomate, feta et huile d’olive\",\n      \"slot\": \"lunch\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"1 c. à soupe\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"grain_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Assembler le poulet et l’orge, puis ajouter la tomate, la feta et l’huile d’olive.\",\n      \"why\": \"Une assiette complète qui se prépare vite et met en valeur les tomates de saison.\",\n      \"density_check\": 159.6,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        },\n        {\n          \"preparation_id\": \"prep_barley\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Salade de pâtes au bœuf\",\n      \"title\": \"Bœuf mijoté, pâtes complètes, parmesan et huile d’olive\",\n      \"slot\": \"dinner\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"parmesan\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"parmesan\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"0.5 c. à soupe\",\n          \"amount\": 0.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"pasta_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Mélanger la sauce de bœuf et les pâtes complètes, puis terminer avec le parmesan et l’huile d’olive.\",\n      \"why\": \"Cette salade de pâtes utilise la préparation du jour dans un dîner complet et facile à servir.\",\n      \"density_check\": 145.6,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_sauce\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        },\n        {\n          \"preparation_id\": \"prep_wholewheat_pasta\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Tartine jambon chèvre pêche\",\n      \"title\": \"Pain complet, jambon, chèvre et pêche\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"jambon\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"ham\"\n        },\n        {\n          \"term\": \"fromage de chèvre\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"goat_cheese\"\n        },\n        {\n          \"term\": \"pêche\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"peach\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        }\n      ],\n      \"method\": \"Garnir le pain complet avec le jambon et le fromage de chèvre, puis servir avec la pêche.\",\n      \"why\": \"Une tartine fraîche et simple qui change du bol sucré tout en gardant une source de protéines.\",\n      \"density_check\": 127.1,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Wrap poulet tomate et feta\",\n      \"title\": \"Poulet, tortilla complète, tomate, laitue, yaourt, feta et huile d’olive\",\n      \"slot\": \"lunch\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"tortilla complète\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tortilla_wholemeal\"\n        },\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"sauce\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"1 c. à soupe\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Étaler le yaourt sur la tortilla, ajouter le poulet, la tomate, la laitue et la feta, puis finir avec l’huile d’olive et rouler.\",\n      \"why\": \"Un déjeuner nomade et frais qui réutilise le poulet sous une forme différente.\",\n      \"density_check\": 155.5,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pita bœuf tomate et feta\",\n      \"title\": \"Bœuf mijoté, pita complète, tomate, laitue, yaourt, feta et huile d’olive\",\n      \"slot\": \"dinner\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pita complète\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"pita_wholemeal\"\n        },\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"sauce\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"1.5 c. à soupe\",\n          \"amount\": 1.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Ouvrir la pita, la garnir avec le yaourt, le bœuf, la tomate, la laitue et la feta, puis ajouter l’huile d’olive.\",\n      \"why\": \"Un dîner convivial et rapide qui donne une seconde vie à la sauce de bœuf.\",\n      \"density_check\": 135.8,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_sauce\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Poulet rôti\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"blanc de poulet\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"chicken_breast\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"2 c. à soupe\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Enrober le blanc de poulet avec l’huile d’olive, le rôtir jusqu’à cuisson complète, le laisser tiédir puis le répartir.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"sat\"\n    },\n    {\n      \"id\": \"prep_barley\",\n      \"title\": \"Orge perlé cuit\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"orge perlé\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"barley\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        }\n      ],\n      \"method\": \"Rincer l’orge perlé, le cuire dans l’eau jusqu’à ce qu’il soit tendre, l’égoutter puis le répartir.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"sat\"\n    },\n    {\n      \"id\": \"prep_beef_sauce\",\n      \"title\": \"Sauce de bœuf aux légumes\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"bœuf haché\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"beef_mince\"\n        },\n        {\n          \"term\": \"oignon\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"onion\"\n        },\n        {\n          \"term\": \"carotte\",\n          \"quantity\": \"280 g\",\n          \"amount\": 280,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"carrot\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"4 c. à soupe\",\n          \"amount\": 4,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"garnish_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"garnish_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Faire revenir le bœuf avec l’huile d’olive, ajouter l’oignon, la carotte et la tomate, puis mijoter jusqu’à obtenir une sauce épaisse avant de la répartir.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"sat\"\n    },\n    {\n      \"id\": \"prep_wholewheat_pasta\",\n      \"title\": \"Pâtes complètes cuites\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"pâtes complètes\",\n          \"quantity\": \"320 g\",\n          \"amount\": 320,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"wholewheat_pasta\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        }\n      ],\n      \"method\": \"Cuire les pâtes complètes dans l’eau bouillante, les égoutter puis les répartir après refroidissement.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"sat\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"sat\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_barley\",\n        \"prep_beef_sauce\",\n        \"prep_wholewheat_pasta\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Mettre le four à chauffer et enfourner le poulet. Pendant ce temps, lancer l’orge, préparer la sauce avec le bœuf, l’oignon, la carotte et la tomate, puis laisser mijoter. Cuire les pâtes vers la fin, égoutter, laisser tiédir et répartir toutes les préparations au réfrigérateur.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"yaourt grec\",\n      \"quantity\": \"340 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"flocons d’avoine\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"fruits rouges mélangés\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"blanc de poulet\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"orge perlé\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"bœuf haché\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"pâtes complètes\",\n      \"quantity\": \"320 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pain complet\",\n      \"quantity\": \"160 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tortilla complète\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pita complète\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"jambon\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"parmesan\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"fromage de chèvre\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"yaourt nature\",\n      \"quantity\": \"320 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"tomates\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"laitue\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"oignon\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carottes\",\n      \"quantity\": \"280 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pêches\",\n      \"quantity\": \"260 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"huile d’olive\",\n      \"quantity\": \"14 c. à soupe\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"explanation\": []\n}",
+  "ligne_ecrite": {
+    "id": "e988e698-3299-44aa-8b5a-9d4489db73ae",
+    "user_id": "698911b6-0252-44c3-8aab-f10bde946ffe",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 2,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "sat",
+        "why": "Un petit-déjeuner rapide avec des fruits de saison et une texture rassasiante.",
+        "name": "Bol d’avoine aux fruits",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": "greek_yogurt",
+                "term": "yaourt grec",
+                "grams": 183,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "flocons d’avoine",
+                "grams": 54,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "mixed_berries",
+                "term": "fruits rouges mélangés",
+                "grams": 107,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_breakfast_0_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": "greek_yogurt",
+                "term": "yaourt grec",
+                "grams": 245,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "flocons d’avoine",
+                "grams": 72,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "mixed_berries",
+                "term": "fruits rouges mélangés",
+                "grams": 144,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Yaourt grec, flocons d’avoine et fruits rouges",
+        "method": "Mélanger le yaourt grec et les flocons d’avoine, puis ajouter les fruits rouges.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "greek_yogurt",
+            "part": "main",
+            "term": "yaourt grec",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 428,
+            "quantity": "428 g",
+            "grams_raw": 428,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": "main",
+            "term": "flocons d’avoine",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 125.88235294117646,
+            "quantity": "125,88 g",
+            "grams_raw": 125.88235294117646,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "mixed_berries",
+            "part": "main",
+            "term": "fruits rouges mélangés",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 251.76470588235293,
+            "quantity": "251,76 g",
+            "grams_raw": 251.76470588235293,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "Une assiette complète qui se prépare vite et met en valeur les tomates de saison.",
+        "name": "Orge au poulet et feta",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_barley"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti",
+                "grams": 80,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": null,
+                "term": "Orge perlé cuit",
+                "grams": 359,
+                "ref_refused": false,
+                "preparation_id": "prep_barley"
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 14,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 35,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 5,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_lunch_1_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti",
+                "grams": 107,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": null,
+                "term": "Orge perlé cuit",
+                "grams": 482,
+                "ref_refused": false,
+                "preparation_id": "prep_barley"
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 19,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 46,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 7,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet, orge, tomate, feta et huile d’olive",
+        "method": "Assembler le poulet et l’orge, puis ajouter la tomate, la feta et l’huile d’olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "grain_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "feta",
+            "part": "garnish_fat",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 32.34766178554558,
+            "quantity": "32,35 g",
+            "grams_raw": 32.34766178554558,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "main",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 80.86915446386396,
+            "quantity": "80,87 g",
+            "grams_raw": 80.86915446386396,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 0.8086915446386396,
+            "quantity": "0,81 cuillère à soupe",
+            "grams_raw": 12.130373169579594,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "Cette salade de pâtes utilise la préparation du jour dans un dîner complet et facile à servir.",
+        "name": "Salade de pâtes au bœuf",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_beef_sauce"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_wholewheat_pasta"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": null,
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 205,
+                "ref_refused": false,
+                "preparation_id": "prep_beef_sauce"
+              },
+              {
+                "ref": null,
+                "term": "Pâtes complètes cuites",
+                "grams": 257,
+                "ref_refused": false,
+                "preparation_id": "prep_wholewheat_pasta"
+              },
+              {
+                "ref": "parmesan",
+                "term": "parmesan",
+                "grams": 6,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 2,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sat_dinner_2_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": null,
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 276,
+                "ref_refused": false,
+                "preparation_id": "prep_beef_sauce"
+              },
+              {
+                "ref": null,
+                "term": "Pâtes complètes cuites",
+                "grams": 345,
+                "ref_refused": false,
+                "preparation_id": "prep_wholewheat_pasta"
+              },
+              {
+                "ref": "parmesan",
+                "term": "parmesan",
+                "grams": 8,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 3,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Bœuf mijoté, pâtes complètes, parmesan et huile d’olive",
+        "method": "Mélanger la sauce de bœuf et les pâtes complètes, puis terminer avec le parmesan et l’huile d’olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pasta_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "parmesan",
+            "part": "garnish_fat",
+            "term": "parmesan",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 14.455971049457176,
+            "quantity": "14,46 g",
+            "grams_raw": 14.455971049457176,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 0.3613992762364294,
+            "quantity": "0,36 cuillère à soupe",
+            "grams_raw": 5.420989143546441,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Une tartine fraîche et simple qui change du bol sucré tout en gardant une source de protéines.",
+        "name": "Tartine jambon chèvre pêche",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 96,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "ham",
+                "term": "jambon",
+                "grams": 72,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "goat_cheese",
+                "term": "fromage de chèvre",
+                "grams": 36,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "peach",
+                "term": "pêche",
+                "grams": 155,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_breakfast_3_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 128,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "ham",
+                "term": "jambon",
+                "grams": 96,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "goat_cheese",
+                "term": "fromage de chèvre",
+                "grams": 48,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "peach",
+                "term": "pêche",
+                "grams": 209,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Pain complet, jambon, chèvre et pêche",
+        "method": "Garnir le pain complet avec le jambon et le fromage de chèvre, puis servir avec la pêche.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "main",
+            "term": "pain complet",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 224.0837696335078,
+            "quantity": "224,08 g",
+            "grams_raw": 224.0837696335078,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "ham",
+            "part": "main",
+            "term": "jambon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 168.06282722513086,
+            "quantity": "168,06 g",
+            "grams_raw": 168.06282722513086,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "goat_cheese",
+            "part": "main",
+            "term": "fromage de chèvre",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 84.03141361256543,
+            "quantity": "84,03 g",
+            "grams_raw": 84.03141361256543,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "peach",
+            "part": "main",
+            "term": "pêche",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 364.1361256544502,
+            "quantity": "364,14 g",
+            "grams_raw": 364.1361256544502,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Un déjeuner nomade et frais qui réutilise le poulet sous une forme différente.",
+        "name": "Wrap poulet tomate et feta",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti",
+                "grams": 181,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": "tortilla_wholemeal",
+                "term": "tortilla complète",
+                "grams": 47,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 63,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 78,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 39,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 23,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 12,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_lunch_4_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti",
+                "grams": 243,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": "tortilla_wholemeal",
+                "term": "tortilla complète",
+                "grams": 63,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 84,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 105,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 53,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 32,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 16,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet, tortilla complète, tomate, laitue, yaourt, feta et huile d’olive",
+        "method": "Étaler le yaourt sur la tortilla, ajouter le poulet, la tomate, la laitue et la feta, puis finir avec l’huile d’olive et rouler.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "tortilla_wholemeal",
+            "part": "main",
+            "term": "tortilla complète",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 110.09646302250805,
+            "quantity": "110,1 g",
+            "grams_raw": 110.09646302250805,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "plain_yogurt",
+            "part": "sauce",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 146.79528403001075,
+            "quantity": "146,8 g",
+            "grams_raw": 146.79528403001075,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "main",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 183.49410503751344,
+            "quantity": "183,49 g",
+            "grams_raw": 183.49410503751344,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "main",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 91.74705251875672,
+            "quantity": "91,75 g",
+            "grams_raw": 91.74705251875672,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "garnish_fat",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 55.04823151125402,
+            "quantity": "55,05 g",
+            "grams_raw": 55.04823151125402,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.8349410503751342,
+            "quantity": "1,83 cuillère à soupe",
+            "grams_raw": 27.52411575562701,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Un dîner convivial et rapide qui donne une seconde vie à la sauce de bœuf.",
+        "name": "Pita bœuf tomate et feta",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_beef_sauce"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5_0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+            "items": [
+              {
+                "ref": null,
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 323,
+                "ref_refused": false,
+                "preparation_id": "prep_beef_sauce"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complète",
+                "grams": 29,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 39,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 49,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 24,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 15,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 11,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+            ],
+            "legacy_total_grams": null
+          },
+          {
+            "id": "box_sun_dinner_5_c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+            "items": [
+              {
+                "ref": null,
+                "term": "Sauce de bœuf aux légumes",
+                "grams": 435,
+                "ref_refused": false,
+                "preparation_id": "prep_beef_sauce"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complète",
+                "grams": 39,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 52,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 65,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 33,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 20,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 15,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Bœuf mijoté, pita complète, tomate, laitue, yaourt, feta et huile d’olive",
+        "method": "Ouvrir la pita, la garnir avec le yaourt, le bœuf, la tomate, la laitue et la feta, puis ajouter l’huile d’olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "main",
+            "term": "pita complète",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 68.37580829212628,
+            "quantity": "68,38 g",
+            "grams_raw": 68.37580829212628,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "plain_yogurt",
+            "part": "sauce",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 91.1677443895017,
+            "quantity": "91,17 g",
+            "grams_raw": 91.1677443895017,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "main",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 113.95968048687712,
+            "quantity": "113,96 g",
+            "grams_raw": 113.95968048687712,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "main",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 56.97984024343856,
+            "quantity": "56,98 g",
+            "grams_raw": 56.97984024343856,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "garnish_fat",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 34.18790414606314,
+            "quantity": "34,19 g",
+            "grams_raw": 34.18790414606314,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.7093952073031569,
+            "quantity": "1,71 cuillère à soupe",
+            "grams_raw": 25.640928109547353,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "yaourt grec",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "855 g",
+        "food_group": "dairy_yogurt",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d’avoine",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "250 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fruits rouges mélangés",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "505 g",
+        "food_group": "berries",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "blanc de poulet",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "795 g",
+        "food_group": "poultry",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "orge perlé",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "325 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "bœuf haché",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "560 g",
+        "food_group": "red_meat",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pâtes complètes",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "230 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "450 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tortilla complète",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "220 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pita complète",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "135 g",
+        "food_group": null,
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "jambon",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "335 g",
+        "food_group": "lean_protein",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "245 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "parmesan",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "30 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fromage de chèvre",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "170 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt nature",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "475 g",
+        "food_group": "dairy_yogurt",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomates",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "1 kg",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "295 g",
+        "food_group": "leafy_greens",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "185 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carottes",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "280 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêches",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "260 g",
+        "food_group": "other_fruit",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d’olive",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "16 c. à soupe",
+        "food_group": "olive_oil",
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "fat_loss",
+      "names": {
+        "kept": 6,
+        "dishes": 6,
+        "refused": 0,
+        "declared": 6
+      },
+      "intent": "prepare_next",
+      "issues": [
+        "spent_first_day_dropped: fri (shopping_cutoff)",
+        "shopping_waves: 1 (2026-09-12)",
+        "freeze_on_purchase: 0/21",
+        "raw_keeping_needs_later_shop: 0/2 preparations",
+        "waves_kept_for_freshness: 0/21",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "quantity_prose_stale:27",
+        "shopping_list_unattributed: 3/21 lines match no kept and no dropped ingredient -- kept, not guessed",
+        "model_returned_no_box: 0/8 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/6",
+        "portion_standard_recipe:c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+        "portion_standard_recipe:0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+      ],
+      "timing": {
+        "kind": "starts_tomorrow",
+        "reason": "today_already_spent",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 6,
+        "invalid": 0,
+        "declared": 6,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "cab4e292-e510-4c77-9192-52fffe809313",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": null,
+          "free_mouths": 0,
+          "absent_cells": [],
+          "bound_mouths": 0,
+          "cells_checked": 0,
+          "cells_carrying": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "retry_reverted": false,
+          "cells_swap_absent": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 4,
+          "names": 0,
+          "capped": 0,
+          "mouths": 2,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 8,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 6,
+          "preparations": 4,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 12,
+          "mouths_double_model": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_dish",
+          "unused": false,
+          "computed": "one_dish",
+          "diverging": [],
+          "dish_bearing": []
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 2
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 6,
+          "holders": 1,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-07",
+        "box_sizing": {
+          "boxes": 12,
+          "items": 60,
+          "share": {
+            "sized": 2,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 0,
+          "unmet": {
+            "both": 0,
+            "none": 4,
+            "pot_ceiling": 0,
+            "not_anchored": 0,
+            "tub_estimate": 0,
+            "factor_clamped": 0
+          },
+          "anchor": {
+            "clamped": 0,
+            "no_body": 0,
+            "anchored": 4,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_direction": 1,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 2,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 2,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 60,
+          "anchor_cap": {
+            "none": 4,
+            "density": 0,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 3,
+            "shopping": 18,
+            "regrammed": 6,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 4,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 0,
+            "unboxed_use": 0,
+            "lines_scaled": 18,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 3,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 12,
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 2
+          },
+          "pot_attribution": {
+            "ratio": 1,
+            "drawnGrams": 3293,
+            "potsUnreadable": 0,
+            "attributedGrams": 3291
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 2,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 2,
+          "ranks_without_object": 3
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 0,
+          "refused": 0,
+          "declared": 0,
+          "attributed": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 0,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 0,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "silenced_homograph": 0
+        },
+        "member_count": 2,
+        "member_deltas": [
+          {
+            "grams": 210,
+            "moment": "cooking",
+            "channel": "more_of_the_same",
+            "food_ref": "white_rice",
+            "member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce"
+          }
+        ],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "lids": {
+            "tub_of_one": 0,
+            "own_expected": 12,
+            "tub_expected": 0
+          },
+          "apply": {
+            "regrammed": 33,
+            "pots_scaled": 4,
+            "fresh_scaled": 24,
+            "own_authored": 12,
+            "tubs_authored": 0,
+            "boxes_authored": 12,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "servings_rewritten": 4
+          },
+          "final": {
+            "boxes": 12,
+            "water": {
+              "kept": 2,
+              "absorbed": 2,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 12,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 12,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 0,
+            "composed": 3,
+            "declared": 0,
+            "without_target": 0
+          },
+          "dishes": 6,
+          "mouths": 2,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 0,
+            "no_target": 0
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 0,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 0,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 0,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 0,
+            "recipe_quantified": 0,
+            "retry_skipped_small": 0
+          },
+          "day_kcal": {
+            "rows": 4,
+            "over_5pct": 0,
+            "per_mouth": [
+              {
+                "n": 1,
+                "day": "sat",
+                "pct": 100,
+                "served": 1826,
+                "target": 1826,
+                "eater_bucket": "adult_maintenance"
+              },
+              {
+                "n": 2,
+                "day": "sun",
+                "pct": 100,
+                "served": 1826,
+                "target": 1826,
+                "eater_bucket": "adult_maintenance"
+              },
+              {
+                "n": 1,
+                "day": "sat",
+                "pct": 100,
+                "served": 2454,
+                "target": 2454,
+                "eater_bucket": "adult_fat_loss"
+              },
+              {
+                "n": 2,
+                "day": "sun",
+                "pct": 100,
+                "served": 2454,
+                "target": 2454,
+                "eater_bucket": "adult_fat_loss"
+              }
+            ],
+            "within_5pct": 4
+          },
+          "measured": 6,
+          "verdicts": {
+            "over_max": 0,
+            "in_bounds": 12,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "repair_needs": {
+            "by_reason": {
+              "none": 6,
+              "conflict": 0,
+              "over_max": 0,
+              "all_under_min": 0,
+              "partial_under_min": 0,
+              "minor_blocks_lighten": 0
+            },
+            "would_ask": 0,
+            "by_direction": {
+              "densify": 0,
+              "lighten": 0
+            },
+            "clamped_eaters": 0
+          },
+          "verification": {
+            "anchored": 4,
+            "pot_shrunk": 0,
+            "unmet_none": 4,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 0,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 18,
+            "shopping_unattributed": 3
+          },
+          "bounds_source": {
+            "age_known": 12,
+            "age_unknown": 0
+          },
+          "fixed_covered": 0,
+          "repair_effect": {
+            "ran": false,
+            "after": {
+              "over_max": 0,
+              "in_bounds": 12,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "before": {
+              "over_max": 0,
+              "in_bounds": 12,
+              "under_min": 0,
+              "unmeasurable": 0
+            }
+          },
+          "bounds_applied": false,
+          "eaters_by_dish": {
+            "dishes": 6,
+            "placed": 6,
+            "excluded": 0,
+            "fed_hist": {
+              "0": 0,
+              "1": 0,
+              "2": 6,
+              "3_plus": 0
+            },
+            "off_cell": 0,
+            "complements": 0,
+            "shared_fed_nobody": 0,
+            "dedicated_off_cell": 0
+          },
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 0,
+            "loose_ignored_kcal": 0
+          },
+          "served_over_max": 0,
+          "unmeasurable_by": {},
+          "dedicated_repair": {
+            "asked": 0,
+            "accepted": 0,
+            "rejected": {
+              "degraded": 0,
+              "unsolvable": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "bearer_missing": 0
+            },
+            "still_out": 0,
+            "complement": {
+              "solved": 0,
+              "moved_kcal": 0,
+              "clamped_max": 0,
+              "clamped_min": 0,
+              "unsolvable_by": {}
+            },
+            "missed_aim": 0,
+            "fill_absorbed": null,
+            "fill_unknowns": null,
+            "shopping_added": 0,
+            "skipped_budget": 0
+          },
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 12,
+          "rows": [],
+          "mouths": 2,
+          "missing": 0,
+          "rehomed": 0,
+          "retried": false,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 12,
+          "restored": 0,
+          "retry_on": {},
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "restored_fallback": 0,
+          "cells_without_dish": 0,
+          "retry_merged_cells": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "pairs_from_stores": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "accountless_count": 1,
+        "restriction_count": 0,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 0,
+          "skipped_no_dedicated": 1
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 24,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+          "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+          "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Les quantités sont faites pour 2 bouches.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 0,
+        "lines": [],
+        "refusal": null,
+        "declared": 0
+      },
+      "food_groups": {
+        "lines": 33,
+        "valid": 0,
+        "refused": 0,
+        "declared": 0,
+        "persisted": 0
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "gender.personal": 1,
+        "ageYears.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "gender.member_sheet": 1,
+        "activityAxes.personal": 1,
+        "ageYears.member_sheet": 1,
+        "appetite.member_sheet": 2,
+        "heightCm.member_sheet": 1,
+        "weightKg.member_sheet": 1,
+        "activityLevel.personal": 1,
+        "activityAxes.member_sheet": 1,
+        "activityLevel.member_sheet": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 243804,
+        "elapsed_ms": 106196,
+        "reserve_ms": 30000,
+        "remaining_ms": 273804,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 10.6,
+        "plausible": 15.08,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v32_the_recipe_says_what_holds_it+household.v34_one_card_per_person_the_engine_weighs",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-11",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 2,
+        "master_member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+        "served_member_ids": [
+          "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+          "0bcc7b93-b25c-4e19-b940-71dd75a8c664"
+        ],
+        "plan_owner_user_id": "698911b6-0252-44c3-8aab-f10bde946ffe",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-05",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-11T18:13:39.98337+00:00",
+    "updated_at": "2026-09-11T18:13:39.98337+00:00",
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti",
+        "method": "Enrober le blanc de poulet avec l’huile d’olive, le rôtir jusqu’à cuisson complète, le laisser tiédir puis le répartir.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "chicken_breast",
+            "part": "main",
+            "term": "blanc de poulet",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 795,
+            "quantity": "795 g",
+            "grams_raw": 795,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 2.6436325950137736,
+            "quantity": "2,64 cuillères à soupe",
+            "grams_raw": 39.65448892520661,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 10
+      },
+      {
+        "id": "prep_barley",
+        "title": "Orge perlé cuit",
+        "method": "Rincer l’orge perlé, le cuire dans l’eau jusqu’à ce qu’il soit tendre, l’égoutter puis le répartir.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "barley",
+            "part": "main",
+            "term": "orge perlé",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 323.47661785545586,
+            "quantity": "323,48 g",
+            "grams_raw": 323.47661785545586,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 1,
+        "total_minutes": 35,
+        "active_minutes": 5
+      },
+      {
+        "id": "prep_beef_sauce",
+        "title": "Sauce de bœuf aux légumes",
+        "method": "Faire revenir le bœuf avec l’huile d’olive, ajouter l’oignon, la carotte et la tomate, puis mijoter jusqu’à obtenir une sauce épaisse avant de la répartir.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "beef_mince",
+            "part": "main",
+            "term": "bœuf haché",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 560,
+            "quantity": "560 g",
+            "grams_raw": 560,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 185,
+            "quantity": "185 g",
+            "grams_raw": 185,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "carrot",
+            "part": "main",
+            "term": "carotte",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 260,
+            "quantity": "260 g",
+            "grams_raw": 260,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "main",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 375,
+            "quantity": "375 g",
+            "grams_raw": 375,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d’olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 3.72479071468326,
+            "quantity": "3,72 cuillères à soupe",
+            "grams_raw": 55.871860720248904,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 40,
+        "active_minutes": 15
+      },
+      {
+        "id": "prep_wholewheat_pasta",
+        "title": "Pâtes complètes cuites",
+        "method": "Cuire les pâtes complètes dans l’eau bouillante, les égoutter puis les répartir après refroidissement.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholewheat_pasta",
+            "part": "main",
+            "term": "pâtes complètes",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 230,
+            "quantity": "230 g",
+            "grams_raw": 230,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 1,
+        "total_minutes": 20,
+        "active_minutes": 5
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "run_through": "Mettre le four à chauffer et enfourner le poulet. Pendant ce temps, lancer l’orge, préparer la sauce avec le bœuf, l’oignon, la carotte et la tomate, puis laisser mijoter. Cuire les pâtes vers la fin, égoutter, laisser tiédir et répartir toutes les préparations au réfrigérateur.",
+        "total_minutes": 55,
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_barley",
+          "prep_beef_sauce",
+          "prep_wholewheat_pasta"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-12",
+    "duration_days": 2,
+    "retired_at": null,
+    "ends_on": "2026-09-13",
+    "household_id": "cab4e292-e510-4c77-9192-52fffe809313",
+    "member_portions": [
+      {
+        "member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+        "display_name": "Paul",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      },
+      {
+        "member_id": "0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+        "display_name": "Lea",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 4100,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  },
+  "meta_bouche": {
+    "member_id": "c837e898-54e4-4d2a-9aa2-89ae084e2cce",
+    "second_member": "0bcc7b93-b25c-4e19-b940-71dd75a8c664",
+    "user_id": "698911b6-0252-44c3-8aab-f10bde946ffe",
+    "email": "lotf.camp6@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": "arachide"
+  }
+}

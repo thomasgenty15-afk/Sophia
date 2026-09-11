@@ -270,7 +270,7 @@ export function adoptability(
  * exact où il servait (cicatrice `as-cast-on-foreign-type-disarms-typecheck`).
  *
  * On garde donc la convention des autres portes du dossier
- * (`memory_clarification_io.ts`, `draft_note_safety_io.ts`): la prod passe son
+ * (`memory_clarification_io.ts`): la prod passe son
  * client tel quel, les tests injectent un faux avec `as never`.
  */
 export type DraftStoreClient = SupabaseClient;

@@ -548,6 +548,11 @@ export function augmentedIndexFor(
     const per100 = 100 / intake.servingGrams;
     bySlug.set(intake.foodRef, {
       slug: intake.foodRef,
+      // ⛔ AUCUN RENDEMENT PAR ALIMENT SUR UN APPORT DÉCLARÉ. La personne a lu
+      // les chiffres SUR SON POT: ils décrivent déjà ce qu'elle avale, dans
+      // l'état où elle l'avale. Il n'y a pas de « cru » derrière un shaker, et
+      // la classe (`neutral`, facteur 1,0) dit exactement ça.
+      yieldFactor: null,
       // ── ⟳ L4 · LE GROUPE VIENT DE LA DÉCLARATION, OU DE NULLE PART ─────
       //
       // Ce champ valait `"lean_protein"` EN DUR, et le commentaire d'alors

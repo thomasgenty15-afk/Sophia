@@ -27,6 +27,7 @@
 // à une garde qui marche (cicatrice `guards-need-a-passing-case`): le premier
 // cas de ce fichier rend un montant EXACT, calculé de tête.
 
+import { YIELD_FACTORS } from "./food_composition.ts";
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -68,6 +69,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -397,4 +399,33 @@ Deno.test("L30b — ⛔ il n'y a que TROIS verdicts, et aucun ne dit « dans le 
       `⛔ « ${v} » affirme le respect d'un plafond sur un panier PARTIEL`,
     );
   }
+});
+
+Deno.test("la grille de prix reste sur la CLASSE — et l'équivalence qui l'autorise", () => {
+  // ⛔ LIS ÇA AVANT DE « MODERNISER » `priceBasisContradictsYield`.
+  //
+  // Depuis la migration `20260907160000`, le rendement d'un aliment peut
+  // contredire celui de sa classe (`food_composition_refs.yield_factor`), et
+  // CINQ lecteurs du moteur sont passés à `yieldFactorOf`. Celui-ci **non**, et
+  // c'est délibéré: `cooked_label_dry_input` veut dire « le prix est affiché
+  // sur un produit vendu SEC », une propriété du MARCHÉ, pas de la cuisson
+  // d'une ligne. 111 prix reposent sur ce verdict.
+  //
+  // Ce qui rend l'abstention SÛRE, c'est cette équivalence, et elle est tenue
+  // en base par le CHECK `yield_factor_agrees_with_class`: `neutral` est la
+  // seule classe à 1,0, et un facteur par aliment ne peut jamais la faire
+  // basculer (neutral ⇒ exactement 1,0; toute autre classe ⇒ ≠ 1).
+  for (const [cls, f] of Object.entries(YIELD_FACTORS)) {
+    assertEquals(
+      f === 1.0,
+      cls === "neutral",
+      `${cls}: l'équivalence « facteur 1,0 ⇔ neutre » est rompue — la grille de prix ` +
+        `ne peut plus se dériver de la classe, et 111 prix deviennent faux en silence`,
+    );
+  }
+  // Et le verdict lui-même, dans les deux sens.
+  assertEquals(priceBasisContradictsYield("cooked_label_dry_input", "neutral"), false);
+  assertEquals(priceBasisContradictsYield("cooked_label_dry_input", "grain_absorbs"), true);
+  assertEquals(priceBasisContradictsYield("cooked_label_yield_absorbed", "neutral"), true);
+  assertEquals(priceBasisContradictsYield("cooked_label_yield_absorbed", "grain_absorbs"), false);
 });

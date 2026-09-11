@@ -274,6 +274,64 @@ export function householdTrialCovers(
   return today <= `${m[1]}-${m[2]}-${m[3]}`;
 }
 
+/**
+ * L'INSTANT DU PREMIER PRÉLÈVEMENT — `subscription_data[trial_end]` de Stripe.
+ *
+ * ── CE QUE CETTE FONCTION REND POSSIBLE ───────────────────────────────────
+ * Payer PENDANT son essai. Jusqu'au 2026-09-09 le tunnel refusait
+ * (`409 household_in_trial`), et le pavé qui portait ce refus nommait la bonne
+ * objection: Stripe exige un `trial_end` à plus de 48 h, donc un essai qui
+ * finit demain « violerait la promesse en silence ». La réponse est le repli
+ * ci-dessous — et il ne peut que DÉPASSER la promesse.
+ *
+ * ── LE CALCUL, ET POURQUOI CE JOUR-LÀ ─────────────────────────────────────
+ * `free_until` est un DERNIER JOUR INCLUS. Le premier instant facturable est
+ * donc le lendemain à 00:00 UTC — la même frontière que
+ * `householdTrialCovers`, qui est réutilisée telle quelle plutôt que
+ * recopiée: « l'essai couvre-t-il encore » n'a qu'une définition.
+ *
+ * ── LES TROIS BRANCHES ────────────────────────────────────────────────────
+ *   ① Déjà gelé (ou aucun essai posé) -> `undefined`. La promesse est
+ *      consommée, on prélève tout de suite. C'est le cas du mur.
+ *   ② Date illisible -> `undefined`, aligné sur `householdTrialCovers`.
+ *   ③ Moins de 48 h restantes -> `now + 49 h`. On n'entre dans cette branche
+ *      QUE quand il reste moins de 48 h, donc `now + 49 h` est FORCÉMENT plus
+ *      tard que `free_until + 1 j`: on offre au pire ~2 jours de plus, jamais
+ *      une minute de moins. C'est la seule direction acceptable — la vitrine
+ *      écrit « première semaine offerte », et une semaine offerte qui se fait
+ *      raccourcir par une contrainte technique est une promesse cassée.
+ *
+ * ⚠️ CECI NE CRÉE PAS UNE SECONDE HORLOGE D'ACCÈS, et c'est ce qu'il faut
+ * vérifier avant de la « simplifier ». `stripe-webhook` écrit le `status`
+ * Stripe VERBATIM — donc `trialing` — et `current_period_end`, qui pendant un
+ * essai Stripe vaut ce `trial_end`. La branche (c) de
+ * `keel_household_is_covered` accepte `('active','trialing')`: la couverture
+ * passe de l'essai maison à l'abonnement sans trou, et `households.free_until`
+ * n'est JAMAIS réécrit. Un foyer garde ce qui lui a été promis (D4bis).
+ *
+ * @returns un timestamp Unix en SECONDES, ou `undefined` — que
+ *          `toStripeFormBody` omet, si bien que « pas d'essai » et « clé
+ *          absente » sont le même octet sur le fil.
+ */
+export const STRIPE_TRIAL_END_MIN_LEAD_SECONDS = 48 * 3600;
+export const STRIPE_TRIAL_END_FALLBACK_SECONDS = 49 * 3600;
+
+export function householdStripeTrialEnd(
+  freeUntil: string | null | undefined,
+  now: Date = new Date(),
+): number | undefined {
+  if (!householdTrialCovers(freeUntil, now)) return undefined;
+  const m = String(freeUntil ?? "").trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return undefined;
+  const lastDayUtc = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const firstBillable = Math.floor((lastDayUtc + 86_400_000) / 1000);
+  const nowSec = Math.floor(now.getTime() / 1000);
+  if (firstBillable - nowSec < STRIPE_TRIAL_END_MIN_LEAD_SECONDS) {
+    return nowSec + STRIPE_TRIAL_END_FALLBACK_SECONDS;
+  }
+  return firstBillable;
+}
+
 export function tierFromStripePriceId(
   priceId: string | null | undefined,
 ): SellableTier | null {

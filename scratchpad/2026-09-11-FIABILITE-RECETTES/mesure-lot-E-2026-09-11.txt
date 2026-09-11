@@ -1,0 +1,542 @@
+
+══════════════════════════════════════════════════════════════════════════════
+PLAN 1f8a8988-b3ed-4b83-a4d0-93297ac0d652  ·  requête f5a3dd19-d47d-4f52-9678-536f2cfb3bc5
+══════════════════════════════════════════════════════════════════════════════
+bouche      Paul · 3cd7524e-9e74-4141-b595-a5baa86341a8
+corps       178 cm · 88 kg · male · 36 ans (30_44)
+objectif    fat_loss · cran 0.5 kg/sem · appétit average
+grille      {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+dates       {"fri":"2026-09-11","sat":"2026-09-12","sun":"2026-09-13"}
+
+── BILAN DE LIVRAISON ─────────────────────────────────────
+livré       oui (ligne écrite)
+durée       116367 ms · appels modèle 1 · réparations 0/2
+prompt      meal.en.v31_shape_not_plate_weight+household.v33_one_standard_recipe_the_engine_multiplies
+final_gate  ok=true · refus 2 · bloquants 0
+⚠️ le gate a reçu energy: null et boxContract: null — son ok=true ne certifie
+   ni les calories, ni les protéines, ni la présence d'une portion par case.
+
+── LES CINQ DÉNOMINATEURS ─────────────────────────────────
+cases attendues      7   (déduites de la DEMANDE, pas des plats)
+plats présents       7
+portions calculées   6   sans portion : sat/lunch
+portions mesurables  6
+portions conformes   6 / 6 mesurables   (±10 % par repas)
+
+══ 1. CALORIES DU CRÉNEAU ═════════════════════════════════
+tolérance ±10 % — source : docs/keel/PLAN-FIABILITE-ET-EQUILIBRE-RECETTES-2026-09-11.md § lot E — CRITÈRE ANNONCÉ, non branché dans le moteur (final_plan_gate reçoit energy: null)
+date        créneau     cible(dim.)  cible(prompt)   archive  mesuré     écart       état
+2026-09-11  dinner         858.90        858.90   2454.00     859.09     +0.02 %  ✅ conforme
+2026-09-12  breakfast      613.50        613.50    613.50     613.42     -0.01 %  ✅ conforme
+2026-09-12  lunch          981.60        981.60    981.60          —           —  ⚪ aucune portion calculée
+2026-09-12  dinner         858.90        858.90    858.90     858.67     -0.03 %  ✅ conforme
+2026-09-13  breakfast      613.50        613.50    613.50     614.00     +0.08 %  ✅ conforme
+2026-09-13  lunch          981.60        981.60    981.60     982.19     +0.06 %  ✅ conforme
+2026-09-13  dinner         858.90        858.90    858.90     859.50     +0.07 %  ✅ conforme
+✅ UNE SEULE CIBLE PAR CASE. Le prompt et le dimensionnement lisent le même
+   `SlotNutritionContract` (slot_nutrition_contract.ts), clé personne+date+créneau.
+⚠️ 1 CASE(S) ONT ÉTÉ ENVOYÉES AVEC UNE AUTRE CIBLE le 2026-09-11 :
+   2026-09-11 dinner : 2454.00 envoyés pour 858.90 à composer — facteur 2.86
+   La grille de ce jour-là servait de rythme. Le rythme déclaré vaut
+   [] (vide ⇒ les trois repas de la maison).
+
+══ 2. GRAMMAGE DE L'ASSIETTE (par personne) ═══════════════
+date        créneau     Gmin   Gpréf   Gmax   servis   état
+2026-09-11  dinner       250    475    700     356   ✅ dans les bornes
+2026-09-12  breakfast    250    432    614     551   ✅ dans les bornes
+2026-09-12  lunch        250    475    700       —   ⚪ non mesurable
+2026-09-12  dinner       250    475    700     352   ✅ dans les bornes
+2026-09-13  breakfast    250    432    614     555   ✅ dans les bornes
+2026-09-13  lunch        250    475    700     674   ✅ dans les bornes
+2026-09-13  dinner       250    475    700     357   ✅ dans les bornes
+
+══ 3. INGRÉDIENTS COMPTABILISÉS — LES QUATRE ÉTATS ════════
+lignes d'ingrédient                 47
+① référence vérifiée                47
+② estimation de groupe              0
+③ en attente de validation          0
+④ ingrédient non mesurable          0
+
+champ « ref » écrit par le modèle   41 / 47
+⛔ CE TAUX N'EST PAS UN TAUX DE VÉRIFICATION : un « ref » écrit peut viser
+   une ligne de modèle. Les quatre états ci-dessus sont les seuls faits.
+⟳ LOT A (2026-09-11) : `plan_energy_read.ts::readIngredient` TRANSMET
+   désormais « ref » et « ref_refused ». Avant ce lot il ne les transmettait
+   pas, la mesure repartait du terme français, et ce même plan comptait
+   jusqu'à 2 ingrédients non mesurables avec 49 « ref » sur 49 lignes.
+
+pesés par convention (condiments)   poivre noir, sel
+pesés par la prose                  —
+faux amis mordus                    —
+
+── LES TROIS INDEX ────────────────────────────────────────
+index historique   943 lignes · 2727 alias · 4 faux amis (langue du plan)
+index génération   920 / 943 composables (isComposable) — 23 refusées
+index relecture    +sas : asked 0 · kept 0
+témoin meal-energy-v1 : asked 1 · kept 1   ⚠️ L'INDEX DE RELECTURE NE DEMANDE PLUS AUTANT QUE LE TÉMOIN
+⟳ LOT A (2026-09-11) — LE TÉMOIN EST UN JOURNAL DU RUN, PAS UNE CIBLE.
+   Il dit ce que le moteur a demandé au sas CE JOUR-LÀ, avec le code de ce
+   jour-là. Depuis que « ref » traverse les lecteurs, un terme sans alias
+   français (« pita complète » → pita_wholemeal) se résout sans passer par
+   le sas : le nombre de demandes BAISSE, et l'écart est daté, pas cassé.
+   Ce qui resterait un défaut, c'est l'inverse — demander PLUS que le run.
+⚠️ les règles DIFFÈRENT : la porte de validation vaut à la COMPOSITION, pas
+   à la relecture. Relire avec l'index de génération effacerait la trace du
+   défaut au lieu de la lire.
+⛔ ET LE SAS D'AUJOURD'HUI N'EST PAS CELUI DU RUN. `grams_raw` est figé à la
+   génération ; le référentiel et le sas, non. Sur ces deux tirs, le second
+   run a écrit 2 lignes de sas (sas_written: 2) dont le PREMIER n'a pas pu
+   profiter : une relecture d'aujourd'hui peut donc lire un terme que le run
+   a compté inconnu. La portion manquante, elle, reste manquante.
+
+══ 4. COUVERTURE DU PLAN ══════════════════════════════════
+attendues 7 · plats 7 · manquantes 0
+témoin moteur (keel.household_meal.cells) : {"tag":"keel.household_meal.cells","user_id":"4566b443-073c-4343-9e0e-73a1a93d0b94","request_id":"f5a3dd19-d47d-4f52-9678-536f2cfb3bc5","cells":9,"non_empty":7,"empty":2,"light":0,"light_mixed":0,"eaters_hist":{"1":7,"2":0,"3":0,"4_plus":0},"dedicated_cells":0,"dedicated_mouths":0,"dedicated_by_reason":{"regime":0,"own_meal":0},"one_eater_cells":7,"cook_day_cells":0,"spent_cells":2,"regime_by_cell":{"none":7},"dish_bearing_delta":0,"dish_bearing_only_cells":0,"dish_bearing_only_current":0}
+
+══ 5. COHÉRENCE DE LA JOURNÉE ═════════════════════════════
+tolérance ±5 % sur le PÉRIMÈTRE COUVERT
+date        cases  mesurables  budget couvert  cible du jour  servi      écart       état
+2026-09-11      1           1          858.90        2454.00     859.09     +0.02 %  ✅ conforme
+2026-09-12      3           2         2454.00        2454.00    1472.09           —  ⚪ non mesurable — 1 portion(s) non mesurée(s) sur 3
+2026-09-13      3           3         2454.00        2454.00    2455.69     +0.07 %  ✅ conforme
+⛔ LA SOMME EST CELLE DES MÊMES PORTIONS QUE LE CONTRÔLE 1 — boxNutrition, les
+   items écrits. Aucune part conventionnelle n'entre ici.
+
+══ 6. DENSITÉ CALORIQUE ═══════════════════════════════════
+consigne refaite : — dishes served here: up to 245 kcal per 100 g at breakfast (aim 110, not 142), 141 to 250 at lunch (aim 154, not 207), 250 at dinner — its share does not fit the plate; get as close as you can (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+✅ PREUVE : cette phrase est présente CARACTÈRE POUR CARACTÈRE dans le prompt archivé.
+consigne réparée : — dishes served here: up to 245 kcal per 100 g at breakfast (aim 110, not 142), 141 to 250 at lunch (aim 154, not 207), 123 to 250 at dinner (aim 135, not 181) (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+⟳ LOT B : la consigne a changé — chaque nombre qui bouge est expliqué au rapport.
+
+date        créneau     couloir du JOUR          couloir TRANSMIS        couloir ARCHIVE         mesuré    état
+2026-09-11  dinner     [123–250] aim 135       [123–250] aim 135       [250–250] aim 250 ⛔        241    ✅ dans le couloir
+2026-09-12  breakfast  [100–245] aim 110       [100–245] aim 110       [100–245] aim 110          111    ✅ dans le couloir
+2026-09-12  lunch      [141–250] aim 154       [141–250] aim 154       [141–250] aim 154            —    ⚪ non mesurable
+2026-09-12  dinner     [123–250] aim 135       [123–250] aim 135       [250–250] aim 250 ⛔        244    ✅ dans le couloir
+2026-09-13  breakfast  [100–245] aim 110       [100–245] aim 110       [100–245] aim 110          111    ✅ dans le couloir
+2026-09-13  lunch      [141–250] aim 154       [141–250] aim 154       [141–250] aim 154          146    ✅ dans le couloir
+2026-09-13  dinner     [123–250] aim 135       [123–250] aim 135       [250–250] aim 250 ⛔        241    ✅ dans le couloir
+⛔ « couloir du JOUR » et « couloir TRANSMIS » sortent du MÊME contrat, par
+   sa clé personne+date+créneau. Deux dates ne partagent une ligne que si
+   leurs bandes se croisent ; sinon elles sortent séparées, avec leurs jours.
+« couloir ARCHIVE » est ce que le tir du 2026-09-11 a envoyé, grille prise
+   pour rythme et couloirs repliés par NOM de moment, sans clé de date.
+⚠️ 3 CASE(S) ont reçu le couloir d'un autre jour le 2026-09-11 :
+   2026-09-11 dinner : [123–250] aim 135 mérité, [250–250] aim 250 above_askable_cap reçu
+   2026-09-12 dinner : [123–250] aim 135 mérité, [250–250] aim 250 above_askable_cap reçu
+   2026-09-13 dinner : [123–250] aim 135 mérité, [250–250] aim 250 above_askable_cap reçu
+⛔ 3 PORTION(S) « dans le couloir » MAIS À PLUS DE 50 % DE LA VISÉE.
+   Ces plats ont été composés sous la consigne du 2026-09-11 (250 au dîner).
+   Un couloir élargi après coup ne prouve RIEN sur l'obéissance future :
+   2026-09-11 dinner : 241 servis pour une visée de 135 (×1.79)
+   2026-09-12 dinner : 244 servis pour une visée de 135 (×1.81)
+   2026-09-13 dinner : 241 servis pour une visée de 135 (×1.78)
+
+══ 7. CONTRAINTES ALIMENTAIRES ET SÉCURITÉ ════════════════
+allergies déclarées      0 · exclusions 0 · régimes 0 (fixtures de campagne)
+⛔ CE CONTRÔLE NE PROUVE RIEN ICI. Aucune contrainte n'est déclarée sur ces
+   deux fixtures : « aucune violation » ne veut donc pas dire « la ceinture
+   tient », ça veut dire « on ne l'a pas essayée ». Tir n° 6 du lot F.
+   (bouche 3cd7524e-9e74-4141-b595-a5baa86341a8)
+
+══ 8. PROTÉINES ═══════════════════════════════════════════
+plancher applicable   176 g/jour
+source                meal_envelope.ts::envelopeFor + weight_pace.ts::envelopeDirectionFor (fonctions de production, entrées figées)
+date        part couverte  plancher couvert  mesuré     état
+2026-09-11          35 %                62     61.5 g  ❌ SOUS LE PLANCHER COUVERT (−1 %)
+2026-09-12         100 %               176          —  ⚪ non mesurable — une portion de la journée manque
+2026-09-13         100 %               176    126.1 g  ❌ SOUS LE PLANCHER COUVERT (−28 %)
+⛔ CE VERDICT N'EST PAS CELUI DU PRODUIT : aucune garde du dépôt ne compare
+   ces grammes à ce plancher sur ce chemin. C'est une exigence NON
+   SATISFAITE (lot E), pas un sujet non applicable.
+
+══ 9. COHÉRENCE RECETTE ↔ STOCKAGE ════════════════════════
+lignes rapprochées à la réponse brute   47
+  · nombre inchangé                     12
+  · nombre changé, prose réécrite       6
+  · nombre changé, PROSE PÉRIMÉE        29
+    ❌ plat fri/dinner · pain complet : le calcul emploie 77.61 g, la personne lit « 60 g de pain complet »   ×1.294
+    ❌ plat fri/dinner · laitue : le calcul emploie 25.87 g, la personne lit « 20 g de laitue »   ×1.294
+    ❌ plat sat/breakfast · tortilla complète : le calcul emploie 75.28 g, la personne lit « 60 g de tortilla complète »   ×1.255
+    ❌ plat sat/breakfast · tomate : le calcul emploie 125.46 g, la personne lit « 100 g de tomate »   ×1.255
+    ❌ plat sat/breakfast · laitue : le calcul emploie 125.46 g, la personne lit « 100 g de laitue »   ×1.255
+    ❌ plat sat/breakfast · yaourt nature : le calcul emploie 62.73 g, la personne lit « 50 g de yaourt nature »   ×1.255
+    ❌ plat sat/dinner · tahini : le calcul emploie 38.42 g, la personne lit « 45 g de tahini »   ×0.854
+    ❌ plat sun/breakfast · yaourt grec : le calcul emploie 264.44 g, la personne lit « 200 g de yaourt grec »   ×1.322
+    ❌ plat sun/breakfast · flocons d'avoine : le calcul emploie 39.67 g, la personne lit « 30 g de flocons d'avoine »   ×1.322
+    ❌ plat sun/breakfast · pêche : le calcul emploie 171.89 g, la personne lit « 130 g de pêche »   ×1.322
+    ❌ plat sun/breakfast · framboises : le calcul emploie 66.11 g, la personne lit « 50 g de framboises »   ×1.322
+    ❌ plat sun/breakfast · amandes : le calcul emploie 13.22 g, la personne lit « 10 g d'amandes »   ×1.322
+    ❌ plat sun/lunch · feta : le calcul emploie 37.56 g, la personne lit « 30 g de feta »   ×1.252
+    ❌ plat sun/lunch · tomate : le calcul emploie 125.20 g, la personne lit « 100 g de tomate »   ×1.252
+    ❌ plat sun/lunch · laitue : le calcul emploie 62.60 g, la personne lit « 50 g de laitue »   ×1.252
+    ❌ plat sun/lunch · huile d'olive : le calcul emploie 6.26 g, la personne lit « 5 g d'huile d'olive »   ×1.252
+    ❌ plat sun/lunch · citron : le calcul emploie 0.63 unit, la personne lit « un demi-citron »   ×1.252
+    ❌ plat sun/dinner · pain complet : le calcul emploie 46.72 g, la personne lit « 60 g de pain complet »   ×0.779
+    ❌ plat sun/dinner · fromage de chèvre : le calcul emploie 31.15 g, la personne lit « 40 g de fromage de chèvre »   ×0.779
+    ❌ plat sun/dinner · tahini : le calcul emploie 48.28 g, la personne lit « 62 g de tahini »   ×0.779
+    ❌ plat sun/dinner · laitue : le calcul emploie 23.36 g, la personne lit « 30 g de laitue »   ×0.779
+    ❌ préparation prep_chicken · cuisses de poulet désossées : le calcul emploie 458.66 g, la personne lit « 360 g de cuisses de poulet désossées »   ×1.274
+    ❌ préparation prep_chicken · huile d'olive : le calcul emploie 12.74 g, la personne lit « 10 g d'huile d'olive »   ×1.274
+    ❌ préparation prep_beef · bœuf haché : le calcul emploie 355.74 g, la personne lit « 400 g de bœuf haché »   ×0.889
+    ❌ préparation prep_beef · oignon : le calcul emploie 97.83 g, la personne lit « 110 g d'oignon »   ×0.889
+    ❌ préparation prep_beef · huile d'olive : le calcul emploie 8.89 g, la personne lit « 10 g d'huile d'olive »   ×0.889
+    ❌ préparation prep_salmon_couscous · saumon : le calcul emploie 273.76 g, la personne lit « 260 g de saumon »   ×1.053
+    ❌ préparation prep_salmon_couscous · couscous complet : le calcul emploie 168.47 g, la personne lit « 160 g de couscous complet »   ×1.053
+    ❌ préparation prep_salmon_couscous · huile d'olive : le calcul emploie 21.06 g, la personne lit « 20 g d'huile d'olive »   ×1.053
+── ce que la FINALISATION du lot C ferme, sur ce même plan ─────────
+  · PROSE PÉRIMÉE après finalisation    0   (avant : 29)
+⚠️ LA FIXTURE N'EST PAS MODIFIÉE : finalizeQuantityProse — la fonction
+   de production — tourne sur une COPIE. Ce nombre dit ce que le moteur
+   d'aujourd'hui écrirait à quantités structurées constantes ; il ne dit
+   rien d'un plan neuf, ni du goût.
+prose lisible par le lecteur du produit 0 / 47
+⚠️ AUCUNE PROSE N'EST INTERPRÉTÉE ICI : la comparaison est une ÉGALITÉ DE
+   CHAÎNES contre la réponse brute. Le texte de MÉTHODE, lui, n'est pas
+   contrôlé du tout — trou nommé du lot C.
+
+── CONTREFACTUEL D'IDENTITÉ ───────────────────────────────
+référence rebranchée : petit_suisse_cream_cheese (quantités inchangées)
+  aucune portion ne bouge — TÉMOIN : ce plan ne porte pas cette référence,
+  et un contrefactuel dont le témoin bougerait mesurerait autre chose.
+
+══ 10. RÉPARATIONS, ACHATS ET LIVRAISON ═══════════════════
+issues : ["shopping_waves: 1 (2026-09-11)","freeze_on_purchase: 0/23","raw_keeping_needs_later_shop: 0/3 preparations","waves_kept_for_freshness: 0/23","sessions_fed_from_freezer: 0/0 name the freezer","shopping_list_unattributed: 2/23 lines match no kept and no dropped ingredient -- kept, not guessed","ref_absent: 6/47 ingredients","model_returned_no_box: 0/6 -- 6 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan","uses_kept_freezer: 0/6"]
+état de livraison : deliverable_with_gaps
+alertes de courses rejouées : 1
+   · ingredient_short_bought « tomate » — « tomate » : 400 g achetés pour 446.8 g requis
+── ARCHIVE : ce que l'ANCIENNE règle de libellés produisait (2) ──
+   · ingredient_not_bought « citron »
+   · ingredient_not_bought « tomate »
+⛔ L'ANCIENNE RÈGLE COMPARAIT DES MOTS (normalizePantryTerm + covers), et
+   son inclusion était ASYMÉTRIQUE : « citrons » ne couvrait pas « citron ».
+   8 de ses 9 alertes du 2026-09-11 étaient fausses. Elle est RETIRÉE ; la
+   colonne ci-dessus la rejoue pour que sa disparition se VOIE.
+── AUDIT PAR IDENTITÉ (23 identités demandées) ──
+   check_incomplete : 1
+   covered_measured : 19
+   present_unquantified : 2
+   short : 1
+   ⛔ short « tomate » (tomato) : 400.00 g achetés pour 446.82 g requis
+
+══════════════════════════════════════════════════════════════════════════════
+PLAN 1eada05b-2c3d-4ed5-aa85-14edf2840b77  ·  requête ecaf04b2-354e-460f-b6c5-df81b54c5640
+══════════════════════════════════════════════════════════════════════════════
+bouche      Max · 07965f74-c04e-40f8-acd5-54917b3739ed
+corps       178 cm · 62 kg · male · 28 ans (18_29)
+objectif    muscle_gain · cran 0.25 kg/sem · appétit average
+grille      {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+dates       {"fri":"2026-09-11","sat":"2026-09-12","sun":"2026-09-13"}
+
+── BILAN DE LIVRAISON ─────────────────────────────────────
+livré       oui (ligne écrite)
+durée       137549 ms · appels modèle 1 · réparations 0/2
+prompt      meal.en.v31_shape_not_plate_weight+household.v33_one_standard_recipe_the_engine_multiplies
+final_gate  ok=true · refus 7 · bloquants 0
+⚠️ le gate a reçu energy: null et boxContract: null — son ok=true ne certifie
+   ni les calories, ni les protéines, ni la présence d'une portion par case.
+
+── LES CINQ DÉNOMINATEURS ─────────────────────────────────
+cases attendues      7   (déduites de la DEMANDE, pas des plats)
+plats présents       7
+portions calculées   6   sans portion : fri/dinner
+portions mesurables  6
+portions conformes   5 / 6 mesurables   (±10 % par repas)
+   ❌ sat/breakfast -25.00 %
+
+══ 1. CALORIES DU CRÉNEAU ═════════════════════════════════
+tolérance ±10 % — source : docs/keel/PLAN-FIABILITE-ET-EQUILIBRE-RECETTES-2026-09-11.md § lot E — CRITÈRE ANNONCÉ, non branché dans le moteur (final_plan_gate reçoit energy: null)
+date        créneau     cible(dim.)  cible(prompt)   archive  mesuré     écart       état
+2026-09-11  dinner        1019.20       1019.20   2912.00          —           —  ⚪ aucune portion calculée
+2026-09-12  breakfast      728.00        728.00    728.00     546.00    -25.00 %  ❌ NON CONFORME
+2026-09-12  lunch         1164.80       1164.80   1164.80    1161.88     -0.25 %  ✅ conforme
+2026-09-12  dinner        1019.20       1019.20   1019.20    1018.88     -0.03 %  ✅ conforme
+2026-09-13  breakfast      728.00        728.00    728.00     727.00     -0.14 %  ✅ conforme
+2026-09-13  lunch         1164.80       1164.80   1164.80    1164.44     -0.03 %  ✅ conforme
+2026-09-13  dinner        1019.20       1019.20   1019.20    1024.71     +0.54 %  ✅ conforme
+✅ UNE SEULE CIBLE PAR CASE. Le prompt et le dimensionnement lisent le même
+   `SlotNutritionContract` (slot_nutrition_contract.ts), clé personne+date+créneau.
+⚠️ 1 CASE(S) ONT ÉTÉ ENVOYÉES AVEC UNE AUTRE CIBLE le 2026-09-11 :
+   2026-09-11 dinner : 2912.00 envoyés pour 1019.20 à composer — facteur 2.86
+   La grille de ce jour-là servait de rythme. Le rythme déclaré vaut
+   [] (vide ⇒ les trois repas de la maison).
+
+══ 2. GRAMMAGE DE L'ASSIETTE (par personne) ═══════════════
+date        créneau     Gmin   Gpréf   Gmax   servis   état
+2026-09-11  dinner       250    475    700       —   ⚪ non mesurable
+2026-09-12  breakfast    250    475    700     523   ✅ dans les bornes
+2026-09-12  lunch        250    475    700     691   ✅ dans les bornes
+2026-09-12  dinner       250    475    700     413   ✅ dans les bornes
+2026-09-13  breakfast    250    475    700     576   ✅ dans les bornes
+2026-09-13  lunch        250    475    700     697   ✅ dans les bornes
+2026-09-13  dinner       250    475    700     449   ✅ dans les bornes
+
+══ 3. INGRÉDIENTS COMPTABILISÉS — LES QUATRE ÉTATS ════════
+lignes d'ingrédient                 49
+① référence vérifiée                49
+② estimation de groupe              0
+③ en attente de validation          0
+④ ingrédient non mesurable          0
+
+champ « ref » écrit par le modèle   49 / 49
+⛔ CE TAUX N'EST PAS UN TAUX DE VÉRIFICATION : un « ref » écrit peut viser
+   une ligne de modèle. Les quatre états ci-dessus sont les seuls faits.
+⟳ LOT A (2026-09-11) : `plan_energy_read.ts::readIngredient` TRANSMET
+   désormais « ref » et « ref_refused ». Avant ce lot il ne les transmettait
+   pas, la mesure repartait du terme français, et ce même plan comptait
+   jusqu'à 2 ingrédients non mesurables avec 49 « ref » sur 49 lignes.
+
+pesés par convention (condiments)   —
+pesés par la prose                  —
+faux amis mordus                    —
+
+── LES TROIS INDEX ────────────────────────────────────────
+index historique   943 lignes · 2727 alias · 4 faux amis (langue du plan)
+index génération   920 / 943 composables (isComposable) — 23 refusées
+index relecture    +sas : asked 0 · kept 0
+témoin meal-energy-v1 : asked 2 · kept 1   ⚠️ L'INDEX DE RELECTURE NE DEMANDE PLUS AUTANT QUE LE TÉMOIN
+⟳ LOT A (2026-09-11) — LE TÉMOIN EST UN JOURNAL DU RUN, PAS UNE CIBLE.
+   Il dit ce que le moteur a demandé au sas CE JOUR-LÀ, avec le code de ce
+   jour-là. Depuis que « ref » traverse les lecteurs, un terme sans alias
+   français (« pita complète » → pita_wholemeal) se résout sans passer par
+   le sas : le nombre de demandes BAISSE, et l'écart est daté, pas cassé.
+   Ce qui resterait un défaut, c'est l'inverse — demander PLUS que le run.
+⚠️ les règles DIFFÈRENT : la porte de validation vaut à la COMPOSITION, pas
+   à la relecture. Relire avec l'index de génération effacerait la trace du
+   défaut au lieu de la lire.
+⛔ ET LE SAS D'AUJOURD'HUI N'EST PAS CELUI DU RUN. `grams_raw` est figé à la
+   génération ; le référentiel et le sas, non. Sur ces deux tirs, le second
+   run a écrit 2 lignes de sas (sas_written: 2) dont le PREMIER n'a pas pu
+   profiter : une relecture d'aujourd'hui peut donc lire un terme que le run
+   a compté inconnu. La portion manquante, elle, reste manquante.
+
+══ 4. COUVERTURE DU PLAN ══════════════════════════════════
+attendues 7 · plats 7 · manquantes 0
+témoin moteur (keel.household_meal.cells) : {"tag":"keel.household_meal.cells","user_id":"6c2aa5d2-362c-42d4-9bd7-67120f8dac1c","request_id":"ecaf04b2-354e-460f-b6c5-df81b54c5640","cells":9,"non_empty":7,"empty":2,"light":0,"light_mixed":0,"eaters_hist":{"1":7,"2":0,"3":0,"4_plus":0},"dedicated_cells":0,"dedicated_mouths":0,"dedicated_by_reason":{"regime":0,"own_meal":0},"one_eater_cells":7,"cook_day_cells":0,"spent_cells":2,"regime_by_cell":{"none":7},"dish_bearing_delta":0,"dish_bearing_only_cells":0,"dish_bearing_only_current":0}
+
+══ 5. COHÉRENCE DE LA JOURNÉE ═════════════════════════════
+tolérance ±5 % sur le PÉRIMÈTRE COUVERT
+date        cases  mesurables  budget couvert  cible du jour  servi      écart       état
+2026-09-11      1           0         1019.20        2912.00          —           —  ⚪ non mesurable — 1 portion(s) non mesurée(s) sur 1
+2026-09-12      3           3         2912.00        2912.00    2726.76     -6.36 %  ❌ NON CONFORME
+2026-09-13      3           3         2912.00        2912.00    2916.14     +0.14 %  ✅ conforme
+⛔ LA SOMME EST CELLE DES MÊMES PORTIONS QUE LE CONTRÔLE 1 — boxNutrition, les
+   items écrits. Aucune part conventionnelle n'entre ici.
+
+══ 6. DENSITÉ CALORIQUE ═══════════════════════════════════
+consigne refaite : — dishes served here: 104 to 250 kcal per 100 g at breakfast (aim 114, not 153), 167 to 250 at lunch (aim 183, not 245), 250 at dinner — its share does not fit the plate; get as close as you can (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+✅ PREUVE : cette phrase est présente CARACTÈRE POUR CARACTÈRE dans le prompt archivé.
+consigne réparée : — dishes served here: 104 to 250 kcal per 100 g at breakfast (aim 114, not 153), 167 to 250 at lunch (aim 183, not 245), 146 to 250 at dinner (aim 160, not 215) (the "not N" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)
+⟳ LOT B : la consigne a changé — chaque nombre qui bouge est expliqué au rapport.
+
+date        créneau     couloir du JOUR          couloir TRANSMIS        couloir ARCHIVE         mesuré    état
+2026-09-11  dinner     [146–250] aim 160       [146–250] aim 160       [250–250] aim 250 ⛔          —    ⚪ non mesurable
+2026-09-12  breakfast  [104–250] aim 114       [104–250] aim 114       [104–250] aim 114          104    ✅ dans le couloir
+2026-09-12  lunch      [167–250] aim 183       [167–250] aim 183       [167–250] aim 183          168    ✅ dans le couloir
+2026-09-12  dinner     [146–250] aim 160       [146–250] aim 160       [250–250] aim 250 ⛔        247    ✅ dans le couloir
+2026-09-13  breakfast  [104–250] aim 114       [104–250] aim 114       [104–250] aim 114          126    ✅ dans le couloir
+2026-09-13  lunch      [167–250] aim 183       [167–250] aim 183       [167–250] aim 183          167    ✅ dans le couloir
+2026-09-13  dinner     [146–250] aim 160       [146–250] aim 160       [250–250] aim 250 ⛔        228    ✅ dans le couloir
+⛔ « couloir du JOUR » et « couloir TRANSMIS » sortent du MÊME contrat, par
+   sa clé personne+date+créneau. Deux dates ne partagent une ligne que si
+   leurs bandes se croisent ; sinon elles sortent séparées, avec leurs jours.
+« couloir ARCHIVE » est ce que le tir du 2026-09-11 a envoyé, grille prise
+   pour rythme et couloirs repliés par NOM de moment, sans clé de date.
+⚠️ 3 CASE(S) ont reçu le couloir d'un autre jour le 2026-09-11 :
+   2026-09-11 dinner : [146–250] aim 160 mérité, [250–250] aim 250 above_askable_cap reçu
+   2026-09-12 dinner : [146–250] aim 160 mérité, [250–250] aim 250 above_askable_cap reçu
+   2026-09-13 dinner : [146–250] aim 160 mérité, [250–250] aim 250 above_askable_cap reçu
+⛔ 1 PORTION(S) « dans le couloir » MAIS À PLUS DE 50 % DE LA VISÉE.
+   Ces plats ont été composés sous la consigne du 2026-09-11 (250 au dîner).
+   Un couloir élargi après coup ne prouve RIEN sur l'obéissance future :
+   2026-09-12 dinner : 247 servis pour une visée de 160 (×1.54)
+
+══ 7. CONTRAINTES ALIMENTAIRES ET SÉCURITÉ ════════════════
+allergies déclarées      0 · exclusions 0 · régimes 0 (fixtures de campagne)
+⛔ CE CONTRÔLE NE PROUVE RIEN ICI. Aucune contrainte n'est déclarée sur ces
+   deux fixtures : « aucune violation » ne veut donc pas dire « la ceinture
+   tient », ça veut dire « on ne l'a pas essayée ». Tir n° 6 du lot F.
+   (bouche 07965f74-c04e-40f8-acd5-54917b3739ed)
+
+══ 8. PROTÉINES ═══════════════════════════════════════════
+plancher applicable   99 g/jour · 33 g/repas
+source                meal_envelope.ts::envelopeFor + weight_pace.ts::envelopeDirectionFor (fonctions de production, entrées figées)
+date        part couverte  plancher couvert  mesuré     état
+2026-09-11          35 %                35          —  ⚪ non mesurable — une portion de la journée manque
+2026-09-12         100 %                99    140.4 g  ✅ au-dessus du plancher couvert
+2026-09-13         100 %                99    108.5 g  ✅ au-dessus du plancher couvert
+⛔ CE VERDICT N'EST PAS CELUI DU PRODUIT : aucune garde du dépôt ne compare
+   ces grammes à ce plancher sur ce chemin. C'est une exigence NON
+   SATISFAITE (lot E), pas un sujet non applicable.
+
+══ 9. COHÉRENCE RECETTE ↔ STOCKAGE ════════════════════════
+lignes rapprochées à la réponse brute   49
+  · nombre inchangé                     4
+  · nombre changé, prose réécrite       10
+  · nombre changé, PROSE PÉRIMÉE        35
+    ❌ plat sat/breakfast · petits-suisses nature : le calcul emploie 258.16 g, la personne lit « 200 g de petits-suisses nature »   ×1.291
+    ❌ plat sat/breakfast · flocons d’avoine : le calcul emploie 51.63 g, la personne lit « 40 g de flocons d’avoine »   ×1.291
+    ❌ plat sat/breakfast · fraises : le calcul emploie 193.62 g, la personne lit « 150 g de fraises »   ×1.291
+    ❌ plat sat/breakfast · noix : le calcul emploie 19.36 g, la personne lit « 15 g de noix »   ×1.291
+    ❌ plat sat/lunch · feta : le calcul emploie 26.98 g, la personne lit « 25 g de feta »   ×1.079
+    ❌ plat sat/lunch · tahini : le calcul emploie 10.79 g, la personne lit « 10 g de tahini »   ×1.079
+    ❌ plat sat/lunch · citron : le calcul emploie 0.54 unit, la personne lit « la moitié d’un citron »   ×1.079
+    ❌ plat sat/dinner · tortilla complète : le calcul emploie 0.92 unit, la personne lit « 1 tortilla complète »   ×0.920
+    ❌ plat sat/dinner · tomate : le calcul emploie 55.19 g, la personne lit « 60 g de tomate »   ×0.920
+    ❌ plat sat/dinner · citron : le calcul emploie 0.46 unit, la personne lit « la moitié d’un citron »   ×0.920
+    ❌ plat sun/breakfast · yaourt grec nature : le calcul emploie 303.33 g, la personne lit « 200 g de yaourt grec nature »   ×1.517
+    ❌ plat sun/breakfast · flocons d’avoine : le calcul emploie 53.08 g, la personne lit « 35 g de flocons d’avoine »   ×1.517
+    ❌ plat sun/breakfast · pêche : le calcul emploie 197.17 g, la personne lit « 130 g de pêche »   ×1.517
+    ❌ plat sun/breakfast · amandes : le calcul emploie 22.75 g, la personne lit « 15 g d’amandes »   ×1.517
+    ❌ plat sun/lunch · feta : le calcul emploie 38.16 g, la personne lit « 40 g de feta »   ×0.954
+    ❌ plat sun/lunch · laitue : le calcul emploie 95.40 g, la personne lit « 100 g de laitue »   ×0.954
+    ❌ plat sun/lunch · citron : le calcul emploie 0.48 unit, la personne lit « la moitié d’un citron »   ×0.954
+    ❌ plat sun/lunch · huile d’olive : le calcul emploie 9.54 ml, la personne lit « 10 ml d’huile d’olive »   ×0.954
+    ❌ plat sun/dinner · tahini : le calcul emploie 38.52 g, la personne lit « 100 g de tahini »   ×0.385
+    ❌ plat sun/dinner · huile d’olive : le calcul emploie 19.26 ml, la personne lit « 50 ml d’huile d’olive »   ×0.385
+    ❌ plat sun/dinner · parmesan : le calcul emploie 15.41 g, la personne lit « 40 g de parmesan »   ×0.385
+    ❌ préparation prep_lamb · agneau : le calcul emploie 311.85 g, la personne lit « 300 g d’agneau »   ×1.040
+    ❌ préparation prep_lamb · oignon : le calcul emploie 114.35 g, la personne lit « 110 g d’oignon »   ×1.040
+    ❌ préparation prep_lamb · flocons d’avoine : le calcul emploie 41.58 g, la personne lit « 40 g de flocons d’avoine »   ×1.040
+    ❌ préparation prep_lamb · huile d’olive : le calcul emploie 2.08 tbsp, la personne lit « 2 cuillères à soupe d’huile d’olive »   ×1.040
+    ❌ préparation prep_lamb · ail : le calcul emploie 5.20 g, la personne lit « 5 g d’ail »   ×1.040
+    ❌ préparation prep_couscous · couscous complet : le calcul emploie 102.49 g, la personne lit « 140 g de couscous complet »   ×0.732
+    ❌ préparation prep_couscous · huile d’olive : le calcul emploie 0.73 tbsp, la personne lit « 1 cuillère à soupe d’huile d’olive »   ×0.732
+    ❌ préparation prep_roasted_vegetables · poivron : le calcul emploie 109.82 g, la personne lit « 150 g de poivron »   ×0.732
+    ❌ préparation prep_roasted_vegetables · carotte : le calcul emploie 102.49 g, la personne lit « 140 g de carotte »   ×0.732
+    ❌ préparation prep_roasted_vegetables · oignon : le calcul emploie 80.53 g, la personne lit « 110 g d’oignon »   ×0.732
+    ❌ préparation prep_roasted_vegetables · huile d’olive : le calcul emploie 1.46 tbsp, la personne lit « 2 cuillères à soupe d’huile d’olive »   ×0.732
+    ❌ préparation prep_salmon · huile d’olive : le calcul emploie 1.87 tbsp, la personne lit « 2 cuillères à soupe d’huile d’olive »   ×0.937
+    ❌ préparation prep_lentils · huile d’olive : le calcul emploie 0.77 tbsp, la personne lit « 2 cuillères à soupe d’huile d’olive »   ×0.385
+    ❌ préparation prep_lentils · cube de bouillon : le calcul emploie 0.39 unit, la personne lit « 1 cube de bouillon »   ×0.385
+── ce que la FINALISATION du lot C ferme, sur ce même plan ─────────
+  · PROSE PÉRIMÉE après finalisation    0   (avant : 35)
+⚠️ LA FIXTURE N'EST PAS MODIFIÉE : finalizeQuantityProse — la fonction
+   de production — tourne sur une COPIE. Ce nombre dit ce que le moteur
+   d'aujourd'hui écrirait à quantités structurées constantes ; il ne dit
+   rien d'un plan neuf, ni du goût.
+prose lisible par le lecteur du produit 6 / 49
+⚠️ AUCUNE PROSE N'EST INTERPRÉTÉE ICI : la comparaison est une ÉGALITÉ DE
+   CHAÎNES contre la réponse brute. Le texte de MÉTHODE, lui, n'est pas
+   contrôlé du tout — trou nommé du lot C.
+
+── CONTREFACTUEL D'IDENTITÉ ───────────────────────────────
+référence rebranchée : petit_suisse_cream_cheese (quantités inchangées)
+  aucune portion ne bouge — TÉMOIN : ce plan ne porte pas cette référence,
+  et un contrefactuel dont le témoin bougerait mesurerait autre chose.
+
+══ 10. RÉPARATIONS, ACHATS ET LIVRAISON ═══════════════════
+issues : ["shopping_waves: 1 (2026-09-11)","freeze_on_purchase: 0/26","raw_keeping_needs_later_shop: 0/4 preparations","waves_kept_for_freshness: 0/26","sessions_fed_from_freezer: 0/0 name the freezer","pot_density_drift_after_measure","shopping_list_unattributed: 6/26 lines match no kept and no dropped ingredient -- kept, not guessed","model_returned_no_box: 0/5 -- 5 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan","uses_kept_freezer: 0/10"]
+état de livraison : deliverable_with_gaps
+alertes de courses rejouées : 1
+   · unclassified_perishable « petits-suisses nature » — « petits-suisses nature » est au rayon « dairy » sans groupe d'aliment — sa fenêtre crue est inconnue
+── ARCHIVE : ce que l'ANCIENNE règle de libellés produisait (6) ──
+   · ingredient_not_bought « carotte »
+   · ingredient_not_bought « citron »
+   · ingredient_not_bought « oignon »
+   · ingredient_not_bought « pita complète »
+   · ingredient_not_bought « pomme de terre »
+   · ingredient_not_bought « tomate »
+⛔ L'ANCIENNE RÈGLE COMPARAIT DES MOTS (normalizePantryTerm + covers), et
+   son inclusion était ASYMÉTRIQUE : « citrons » ne couvrait pas « citron ».
+   8 de ses 9 alertes du 2026-09-11 étaient fausses. Elle est RETIRÉE ; la
+   colonne ci-dessus la rejoue pour que sa disparition se VOIE.
+── AUDIT PAR IDENTITÉ (26 identités demandées) ──
+   check_incomplete : 26
+
+══════════════════════════════════════════════════════════════════════════════
+PROUVÉ / ÉCHOUE / NON MESURABLE
+══════════════════════════════════════════════════════════════════════════════
+
+── PROUVÉ (9) ──
+  ✅ Paul (1f8a8988) — 7 cases attendues, 7 plats, 6 portions calculées, 6 mesurables, 6 conformes à ±10 %
+  ✅ Paul (1f8a8988) — la consigne de densité refaite est IDENTIQUE au prompt archivé
+  ✅ Paul (1f8a8988) — 2026-09-11 : 859.09 kcal contre 858.90 couverts (+0.02 %)
+  ✅ Paul (1f8a8988) — 2026-09-13 : 2455.69 kcal contre 2454.00 couverts (+0.07 %)
+  ✅ Max (1eada05b) — 7 cases attendues, 7 plats, 6 portions calculées, 6 mesurables, 5 conformes à ±10 %
+  ✅ Max (1eada05b) — la consigne de densité refaite est IDENTIQUE au prompt archivé
+  ✅ Max (1eada05b) — 2026-09-13 : 2916.14 kcal contre 2912.00 couverts (+0.14 %)
+  ✅ Max (1eada05b) — 2026-09-12 : 140.4 g de protéine, plancher couvert 99 g
+  ✅ Max (1eada05b) — 2026-09-13 : 108.5 g de protéine, plancher couvert 99 g
+
+── ÉCHOUE (70) ──
+  ❌ Paul (1f8a8988) — case sat/lunch : plat présent, AUCUNE portion calculée
+  ❌ Paul (1f8a8988) — plat fri/dinner · pain complet : calcul 77.61 g, affiché « 60 g de pain complet » (×1.294)
+  ❌ Paul (1f8a8988) — plat fri/dinner · laitue : calcul 25.87 g, affiché « 20 g de laitue » (×1.294)
+  ❌ Paul (1f8a8988) — plat sat/breakfast · tortilla complète : calcul 75.28 g, affiché « 60 g de tortilla complète » (×1.255)
+  ❌ Paul (1f8a8988) — plat sat/breakfast · tomate : calcul 125.46 g, affiché « 100 g de tomate » (×1.255)
+  ❌ Paul (1f8a8988) — plat sat/breakfast · laitue : calcul 125.46 g, affiché « 100 g de laitue » (×1.255)
+  ❌ Paul (1f8a8988) — plat sat/breakfast · yaourt nature : calcul 62.73 g, affiché « 50 g de yaourt nature » (×1.255)
+  ❌ Paul (1f8a8988) — plat sat/dinner · tahini : calcul 38.42 g, affiché « 45 g de tahini » (×0.854)
+  ❌ Paul (1f8a8988) — plat sun/breakfast · yaourt grec : calcul 264.44 g, affiché « 200 g de yaourt grec » (×1.322)
+  ❌ Paul (1f8a8988) — plat sun/breakfast · flocons d'avoine : calcul 39.67 g, affiché « 30 g de flocons d'avoine » (×1.322)
+  ❌ Paul (1f8a8988) — plat sun/breakfast · pêche : calcul 171.89 g, affiché « 130 g de pêche » (×1.322)
+  ❌ Paul (1f8a8988) — plat sun/breakfast · framboises : calcul 66.11 g, affiché « 50 g de framboises » (×1.322)
+  ❌ Paul (1f8a8988) — plat sun/breakfast · amandes : calcul 13.22 g, affiché « 10 g d'amandes » (×1.322)
+  ❌ Paul (1f8a8988) — plat sun/lunch · feta : calcul 37.56 g, affiché « 30 g de feta » (×1.252)
+  ❌ Paul (1f8a8988) — plat sun/lunch · tomate : calcul 125.20 g, affiché « 100 g de tomate » (×1.252)
+  ❌ Paul (1f8a8988) — plat sun/lunch · laitue : calcul 62.60 g, affiché « 50 g de laitue » (×1.252)
+  ❌ Paul (1f8a8988) — plat sun/lunch · huile d'olive : calcul 6.26 g, affiché « 5 g d'huile d'olive » (×1.252)
+  ❌ Paul (1f8a8988) — plat sun/lunch · citron : calcul 0.63 unit, affiché « un demi-citron » (×1.252)
+  ❌ Paul (1f8a8988) — plat sun/dinner · pain complet : calcul 46.72 g, affiché « 60 g de pain complet » (×0.779)
+  ❌ Paul (1f8a8988) — plat sun/dinner · fromage de chèvre : calcul 31.15 g, affiché « 40 g de fromage de chèvre » (×0.779)
+  ❌ Paul (1f8a8988) — plat sun/dinner · tahini : calcul 48.28 g, affiché « 62 g de tahini » (×0.779)
+  ❌ Paul (1f8a8988) — plat sun/dinner · laitue : calcul 23.36 g, affiché « 30 g de laitue » (×0.779)
+  ❌ Paul (1f8a8988) — préparation prep_chicken · cuisses de poulet désossées : calcul 458.66 g, affiché « 360 g de cuisses de poulet désossées » (×1.274)
+  ❌ Paul (1f8a8988) — préparation prep_chicken · huile d'olive : calcul 12.74 g, affiché « 10 g d'huile d'olive » (×1.274)
+  ❌ Paul (1f8a8988) — préparation prep_beef · bœuf haché : calcul 355.74 g, affiché « 400 g de bœuf haché » (×0.889)
+  ❌ Paul (1f8a8988) — préparation prep_beef · oignon : calcul 97.83 g, affiché « 110 g d'oignon » (×0.889)
+  ❌ Paul (1f8a8988) — préparation prep_beef · huile d'olive : calcul 8.89 g, affiché « 10 g d'huile d'olive » (×0.889)
+  ❌ Paul (1f8a8988) — préparation prep_salmon_couscous · saumon : calcul 273.76 g, affiché « 260 g de saumon » (×1.053)
+  ❌ Paul (1f8a8988) — préparation prep_salmon_couscous · couscous complet : calcul 168.47 g, affiché « 160 g de couscous complet » (×1.053)
+  ❌ Paul (1f8a8988) — préparation prep_salmon_couscous · huile d'olive : calcul 21.06 g, affiché « 20 g d'huile d'olive » (×1.053)
+  ❌ Paul (1f8a8988) — 2026-09-11 : 61.5 g de protéine contre 62 g de plancher couvert
+  ❌ Paul (1f8a8988) — 2026-09-13 : 126.1 g de protéine contre 176 g de plancher couvert
+  ❌ Max (1eada05b) — case fri/dinner : plat présent, AUCUNE portion calculée
+  ❌ Max (1eada05b) — case sat/breakfast : -25.00 % hors tolérance de repas
+  ❌ Max (1eada05b) — 2026-09-12 : -6.36 % hors tolérance de journée
+  ❌ Max (1eada05b) — plat sat/breakfast · petits-suisses nature : calcul 258.16 g, affiché « 200 g de petits-suisses nature » (×1.291)
+  ❌ Max (1eada05b) — plat sat/breakfast · flocons d’avoine : calcul 51.63 g, affiché « 40 g de flocons d’avoine » (×1.291)
+  ❌ Max (1eada05b) — plat sat/breakfast · fraises : calcul 193.62 g, affiché « 150 g de fraises » (×1.291)
+  ❌ Max (1eada05b) — plat sat/breakfast · noix : calcul 19.36 g, affiché « 15 g de noix » (×1.291)
+  ❌ Max (1eada05b) — plat sat/lunch · feta : calcul 26.98 g, affiché « 25 g de feta » (×1.079)
+  ❌ Max (1eada05b) — plat sat/lunch · tahini : calcul 10.79 g, affiché « 10 g de tahini » (×1.079)
+  ❌ Max (1eada05b) — plat sat/lunch · citron : calcul 0.54 unit, affiché « la moitié d’un citron » (×1.079)
+  ❌ Max (1eada05b) — plat sat/dinner · tortilla complète : calcul 0.92 unit, affiché « 1 tortilla complète » (×0.920)
+  ❌ Max (1eada05b) — plat sat/dinner · tomate : calcul 55.19 g, affiché « 60 g de tomate » (×0.920)
+  ❌ Max (1eada05b) — plat sat/dinner · citron : calcul 0.46 unit, affiché « la moitié d’un citron » (×0.920)
+  ❌ Max (1eada05b) — plat sun/breakfast · yaourt grec nature : calcul 303.33 g, affiché « 200 g de yaourt grec nature » (×1.517)
+  ❌ Max (1eada05b) — plat sun/breakfast · flocons d’avoine : calcul 53.08 g, affiché « 35 g de flocons d’avoine » (×1.517)
+  ❌ Max (1eada05b) — plat sun/breakfast · pêche : calcul 197.17 g, affiché « 130 g de pêche » (×1.517)
+  ❌ Max (1eada05b) — plat sun/breakfast · amandes : calcul 22.75 g, affiché « 15 g d’amandes » (×1.517)
+  ❌ Max (1eada05b) — plat sun/lunch · feta : calcul 38.16 g, affiché « 40 g de feta » (×0.954)
+  ❌ Max (1eada05b) — plat sun/lunch · laitue : calcul 95.40 g, affiché « 100 g de laitue » (×0.954)
+  ❌ Max (1eada05b) — plat sun/lunch · citron : calcul 0.48 unit, affiché « la moitié d’un citron » (×0.954)
+  ❌ Max (1eada05b) — plat sun/lunch · huile d’olive : calcul 9.54 ml, affiché « 10 ml d’huile d’olive » (×0.954)
+  ❌ Max (1eada05b) — plat sun/dinner · tahini : calcul 38.52 g, affiché « 100 g de tahini » (×0.385)
+  ❌ Max (1eada05b) — plat sun/dinner · huile d’olive : calcul 19.26 ml, affiché « 50 ml d’huile d’olive » (×0.385)
+  ❌ Max (1eada05b) — plat sun/dinner · parmesan : calcul 15.41 g, affiché « 40 g de parmesan » (×0.385)
+  ❌ Max (1eada05b) — préparation prep_lamb · agneau : calcul 311.85 g, affiché « 300 g d’agneau » (×1.040)
+  ❌ Max (1eada05b) — préparation prep_lamb · oignon : calcul 114.35 g, affiché « 110 g d’oignon » (×1.040)
+  ❌ Max (1eada05b) — préparation prep_lamb · flocons d’avoine : calcul 41.58 g, affiché « 40 g de flocons d’avoine » (×1.040)
+  ❌ Max (1eada05b) — préparation prep_lamb · huile d’olive : calcul 2.08 tbsp, affiché « 2 cuillères à soupe d’huile d’olive » (×1.040)
+  ❌ Max (1eada05b) — préparation prep_lamb · ail : calcul 5.20 g, affiché « 5 g d’ail » (×1.040)
+  ❌ Max (1eada05b) — préparation prep_couscous · couscous complet : calcul 102.49 g, affiché « 140 g de couscous complet » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_couscous · huile d’olive : calcul 0.73 tbsp, affiché « 1 cuillère à soupe d’huile d’olive » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_roasted_vegetables · poivron : calcul 109.82 g, affiché « 150 g de poivron » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_roasted_vegetables · carotte : calcul 102.49 g, affiché « 140 g de carotte » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_roasted_vegetables · oignon : calcul 80.53 g, affiché « 110 g d’oignon » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_roasted_vegetables · huile d’olive : calcul 1.46 tbsp, affiché « 2 cuillères à soupe d’huile d’olive » (×0.732)
+  ❌ Max (1eada05b) — préparation prep_salmon · huile d’olive : calcul 1.87 tbsp, affiché « 2 cuillères à soupe d’huile d’olive » (×0.937)
+  ❌ Max (1eada05b) — préparation prep_lentils · huile d’olive : calcul 0.77 tbsp, affiché « 2 cuillères à soupe d’huile d’olive » (×0.385)
+  ❌ Max (1eada05b) — préparation prep_lentils · cube de bouillon : calcul 0.39 unit, affiché « 1 cube de bouillon » (×0.385)
+
+── NON MESURABLE (8) ──
+  ⚪ Paul (1f8a8988) — 2026-09-12 : 1 portion(s) non mesurée(s) sur 3
+  ⚪ Paul (1f8a8988) — 2026-09-12 : protéine non mesurable sur la journée
+  ⚪ Paul (1f8a8988) — contraintes alimentaires : aucune déclarée sur cette fixture
+  ⚪ Paul (1f8a8988) — goût, texture, faisabilité : aucune dégustation, aucun test de cuisine
+  ⚪ Max (1eada05b) — 2026-09-11 : 1 portion(s) non mesurée(s) sur 1
+  ⚪ Max (1eada05b) — 2026-09-11 : protéine non mesurable sur la journée
+  ⚪ Max (1eada05b) — contraintes alimentaires : aucune déclarée sur cette fixture
+  ⚪ Max (1eada05b) — goût, texture, faisabilité : aucune dégustation, aucun test de cuisine

@@ -89,12 +89,16 @@ export interface SetupDraftPayload {
    * transforme une famille encore vide en couple par le repli historique.
    */
   householdSize: number | null;
-  cookingShape: string | null;
   /**
    * « TOUT CUISINER EN UNE SEULE FOIS » — 2026-09-01.
    *
-   * ⚠️ IL EST DANS LE BROUILLON POUR LA MÊME RAISON QUE `cookingShape`: il ne
-   * s'écrit dans AUCUNE colonne, donc un onglet rechargé le perdrait sans qu'il
+   * ⛔ `cookingShape` VIVAIT JUSTE AU-DESSUS, retiré le 2026-09-06 avec la
+   * question qu'il gardait (voir la pierre tombale dans `SetupPage.tsx`). Un
+   * brouillon écrit avant ce jour-là porte encore la clé: elle est simplement
+   * ignorée à la relecture, comme toute clé inconnue.
+   *
+   * ⚠️ CELUI-CI EST DANS LE BROUILLON POUR LA RAISON QU'ON ÉCRIVAIT POUR LUI:
+   * il ne s'écrit dans AUCUNE colonne, donc un onglet rechargé le perdrait sans qu'il
    * existe la moindre trace ailleurs. Les réponses de `plan`, elles, sont en
    * base — le brouillon ne fait que les devancer.
    */
@@ -126,7 +130,6 @@ export interface StoredSetupDraft {
     mouth: Record<string, unknown>;
     stepIndex: number;
     householdSize: number | null;
-    cookingShape: string | null;
     oneCookingSession: boolean;
     envy: string;
     envyWeek: string;
@@ -137,7 +140,7 @@ export interface StoredSetupDraft {
  * ÉGALITÉ DE VALEUR, EN PROFONDEUR.
  *
  * ⚠️ `===` NE SUFFIT PAS ICI, et s'en contenter aurait désarmé la règle 2 de
- * l'en-tête sur la moitié des champs: `habits`, `extras`, `allergies`,
+ * l'en-tête sur la moitié des champs: `habits`, `light`, `allergies`,
  * `dislikes`, `rhythm`, `cookDays` et `shaker` sont des objets. Deux lectures
  * successives de la base en rendent des instances DIFFÉRENTES, donc « le
  * serveur a bougé » aurait été vrai à chaque montage — et le brouillon
@@ -336,9 +339,6 @@ export function readSetupDraft(
       householdSize: typeof draft.householdSize === "number" &&
           Number.isInteger(draft.householdSize) && draft.householdSize >= 1
         ? draft.householdSize
-        : null,
-      cookingShape: typeof draft.cookingShape === "string"
-        ? draft.cookingShape
         : null,
       // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Ce qui sort de
       // `JSON.parse` est un sac de clés: `"true"`, `1` et `{}` sont truthy et

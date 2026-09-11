@@ -8,6 +8,7 @@ import { declaredCountryFor } from '../keel/api/countryFromTimezone';
 import { consumePendingCoachInvitation } from '../keel/api/coachInvite';
 import SEO from '../components/SEO';
 import { LocaleSwitch } from '../keel/components/LocaleSwitch';
+import { BrandMark } from '../keel/components/BrandMark';
 import { Button, ButtonLink } from '../keel/components/ui/Button';
 import { t } from '../keel/i18n/t';
 import { chosenUiLocale, signupProfileLocale } from '../keel/i18n/runtime';
@@ -227,8 +228,10 @@ function Shell(
         <div className="mx-auto flex h-14 w-full max-w-lg items-center justify-between gap-3 px-5">
           <Link
             to={world === "pro" ? "/pro" : "/"}
-            className="eq shrink-0 font-display text-lg leading-none text-ink"
+            className="flex shrink-0 items-center gap-1.5 font-display text-lg leading-none text-ink"
           >
+            {/* Le symbole remplace l'équerre — voir `PublicHeader`. */}
+            <BrandMark className="h-6 w-6 shrink-0 text-fig-700" />
             {t("brand.wordmark")}
           </Link>
           <LocaleSwitch />

@@ -33,7 +33,15 @@ import {
 } from "./body_measure_series.ts";
 import { loadBodyMeasures } from "./body_measure_io.ts";
 import { addDays } from "./local_date.ts";
-import { ACTIVITY_LEVELS, type ActivityLevel } from "./tokens.ts";
+import {
+  ACTIVITY_LEVELS,
+  type ActivityLevel,
+  DAY_ACTIVITY_LEVELS,
+  type DayActivityLevel,
+  SPORT_FREQUENCIES,
+  type SportFrequency,
+} from "./tokens.ts";
+import type { ActivityAxes } from "./meal_envelope.ts";
 import { WEIGHT_KG_MAX, WEIGHT_KG_MIN } from "./weight_bounds.ts";
 import {
   MEAL_BODY_GENDERS,
@@ -80,6 +88,23 @@ export interface StudentBodySnapshot {
    * ressortir `undefined`, qui deviendrait un `NaN` de besoin énergétique.
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * ⟳ 2026-09-09 — LES DEUX AXES, `profiles.day_activity` / `sport_frequency`.
+   *
+   * ⛔ POURQUOI ILS ARRIVENT ICI, ET CE QUE LEUR ABSENCE COÛTAIT. Ils étaient
+   * ÉCRITS par l'entonnoir solo (`saveOwnProfile`, deux colonnes de `profiles`)
+   * et LUS par personne: ce `select` ne prenait que `activity_level`, le cran
+   * MÉLANGÉ, que le même entonnoir n'écrit plus. Mesuré le 2026-09-09 sur
+   * poul@gmail.com — `day_activity = seated`, `sport_frequency = 3_4`,
+   * `activity_level` VIDE: le facteur servi était 1,5 (« on ne sait pas »)
+   * au lieu de 1,63, soit 230 kcal/jour d'entretien perdus sur quelqu'un qui
+   * avait répondu aux deux questions.
+   *
+   * `asked` vient de `activity_axes_asked_at`, et il n'est pas décoratif:
+   * `activityAnswerState` sépare « la question n'a pas été posée » de « elle a
+   * été posée et refusée », et les deux ne demandent pas la même réparation.
+   */
+  activityAxes: ActivityAxes;
   /** Du plus ancien au plus récent. Vide = l'élève n'a jamais saisi de mesure. */
   weights: DatedMeasure[];
   waists: DatedMeasure[];
@@ -154,6 +179,25 @@ function readActivityLevel(raw: unknown): ActivityLevel | null {
 }
 
 /**
+ * Les deux axes, lus avec la MÊME règle que le cran ci-dessus: un jeton hors
+ * vocabulaire vaut `null`, jamais une valeur inventée. `activityAnswerState`
+ * retombe alors sur le cran, c'est-à-dire sur le nombre d'avant ce lot.
+ */
+function readDayActivity(raw: unknown): DayActivityLevel | null {
+  const value = String(raw ?? "").trim().toLowerCase();
+  return (DAY_ACTIVITY_LEVELS as readonly string[]).includes(value)
+    ? (value as DayActivityLevel)
+    : null;
+}
+
+function readSportFrequency(raw: unknown): SportFrequency | null {
+  const value = String(raw ?? "").trim().toLowerCase();
+  return (SPORT_FREQUENCIES as readonly string[]).includes(value)
+    ? (value as SportFrequency)
+    : null;
+}
+
+/**
  * Lit une mesure d'un `biofeedback`, avec repli documenté.
  *
  * Le repli sur `outcomes.weight_7d_avg` est repris tel quel de
@@ -205,7 +249,10 @@ export async function loadStudentBody(
 ): Promise<StudentBodySnapshot> {
   const profileRes = await db
     .from("profiles")
-    .select("birth_date, timezone, height_cm, gender, activity_level")
+    .select(
+      "birth_date, timezone, height_cm, gender, activity_level, " +
+        "day_activity, sport_frequency, activity_axes_asked_at",
+    )
     .eq("id", userId)
     .maybeSingle();
   if (profileRes.error) throw profileRes.error;
@@ -309,6 +356,11 @@ export async function loadStudentBody(
     heightCm: readHeightCm(profile.height_cm),
     gender: readGender(profile.gender),
     activityLevel: readActivityLevel(profile.activity_level),
+    activityAxes: {
+      day: readDayActivity(profile.day_activity),
+      sport: readSportFrequency(profile.sport_frequency),
+      asked: String(profile.activity_axes_asked_at ?? "").trim() !== "",
+    },
     weights,
     waists,
   };

@@ -17,6 +17,12 @@ import { groupByAisle } from "../../lib/mealBuilderModel";
 import { type DayMoment } from "../../lib/planDayView";
 import { groupDayBySlot } from "../../lib/planDaySlots";
 import { boxLinesForDish, boxLinesForSession } from "../../lib/mealBoxes";
+import { thawLineFor } from "../../lib/thawLine";
+// ⟳ LOT C (2026-09-11) — la quantité vient de la donnée structurée finale.
+// Voir `lib/ingredientQuantity.ts`; la liste de courses, elle, n'a AUCUNE
+// donnée structurée (`shopping_list[]` ne porte qu'une prose) et garde donc
+// son texte — c'est le lot E qui doit lui donner une identité et une unité.
+import { ingredientQuantityText } from "../../lib/ingredientQuantity";
 import { BoxTable } from "./BoxTable";
 import DayPersonSplit from "./DayPersonSplit";
 import DishCard from "../DishCard";
@@ -91,6 +97,24 @@ export interface PlanDayBlockProps {
    */
   moments: readonly DayMoment[];
   /**
+   * ⟳ 2026-09-09 — LA PHRASE DE TIMING DU JOUR, ou `null`.
+   *
+   * « Courses et cuisson dès le matin, pour être prêt à midi. » Elle vivait
+   * dans une carte EN TÊTE DU PLAN, au-dessus du rail des jours, et ne nommait
+   * aucun jour: on lisait une consigne de matinée sans savoir de quelle
+   * matinée. Signalé tel quel: *« si ça concerne le mercredi, ça devrait être
+   * sur le mercredi »*.
+   *
+   * Elle introduit exactement les deux blocs qui la suivent — les courses, puis
+   * la cuisson — donc c'est ici qu'elle a sa place, et pas ailleurs.
+   *
+   * ⚠️ REQUISE, `null` pour « rien à dire », jamais `?`. C'est le parent qui
+   * sait quel jour la phrase concerne (`starts_on`, `lead_day`); un `?` aurait
+   * laissé un appelant l'oublier, et la phrase serait redevenue invisible —
+   * c'est-à-dire le défaut d'origine, sans un seul rouge pour le dire.
+   */
+  timingLine: string | null;
+  /**
    * LOT 3 — LES PARTS PAR BOUCHE DU PLAN RENDU (`member_portions`). REQUISE,
    * pas optionnelle: un `?` ferait de la séparation par personne une prop
    * morte chez l'appelant qui oublie, et le jour se lirait comme un jour sans
@@ -159,6 +183,22 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
         </h3>
       )}
       <div className="space-y-3">
+        {/* ── LA PHRASE DE TIMING, AVANT LES DEUX GESTES QU'ELLE ANNONCE ────
+            Elle dit « courses et cuisson »; les courses et la cuisson sont
+            juste en dessous. Au-dessus du rail des jours, elle annonçait deux
+            blocs qu'on ne voyait pas encore. */}
+        {/* ⚠️ TEST DE VÉRITÉ, PAS `=== null`. Les tests montent ce composant
+            hors de `tsconfig.app.json` (les `*.test.*` en sont exclus): un
+            appelant qui oublie la prop passe `undefined`, et `undefined !==
+            null` aurait rendu une carte VIDE. Une carte vide est pire qu'une
+            phrase manquante — elle se voit et ne dit rien. */}
+        {props.timingLine
+          ? (
+            <Card>
+              <p className="break-words text-sm text-ink">{props.timingLine}</p>
+            </Card>
+          )
+          : null}
         {/* ══════════════════════════════════════════════════════════════════
             LE BLOC D'UN JOUR SUIT L'ORDRE DES GESTES: ACHETER, CUISINER, MANGER.
             ══════════════════════════════════════════════════════════════════
@@ -193,6 +233,9 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
             key={`${session.day}-${index}`}
             session={session}
             preparations={props.preparations}
+            // ⟳ 2026-09-09 — pour la phrase de la veille (« sors la dinde du
+            // congélateur »), lue sur la liste, jamais sur le déroulé du modèle.
+            shoppingList={props.shoppingList}
             // LES REPAS QUE CETTE SESSION MET EN BOÎTES — tout le plan, jamais
             // le seul jour rendu: une session du dimanche remplit les boîtes du
             // mardi.
@@ -376,15 +419,33 @@ function DaySessionCard(props: {
   preparations: readonly MealPreparation[];
   allDishes: readonly GeneratedDish[];
   portions: readonly MemberPortionView[];
+  /** ⟳ 2026-09-09 — la liste entière: la phrase de la veille lit `freeze_on_purchase`. */
+  shoppingList: readonly ShoppingItem[];
 }) {
   const [open, setOpen] = React.useState(false);
   const panelId = React.useId();
   const { session } = props;
+  const thaw = thawLineFor(session, props.preparations, props.shoppingList);
   // LES `id` INCONNUS SONT ÉCARTÉS, PAS RENDUS TELS QUELS — même règle que
   // `sessionForDish`: un slug de lot ne veut rien dire à table.
   const preps = session.preparation_ids
     .map((id) => props.preparations.find((p) => p.id === id))
     .filter((p): p is MealPreparation => p !== undefined);
+  const boxLines = boxLinesForSession(
+    session.preparation_ids,
+    props.allDishes,
+    props.portions,
+  );
+  /**
+   * ⟳ 2026-09-09 — Y A-T-IL QUELQUE CHOSE À OUVRIR ? Le bouton était gardé par
+   * `session.run_through` SEUL, du temps où c'était la seule chose repliée.
+   * Maintenant que le corps entier est sous le pli, cette garde-là replierait
+   * les casseroles et la pesée d'une session sans déroulé DERRIÈRE AUCUN
+   * BOUTON: un contenu rendu incollectable par sa propre porte. Les trois
+   * morceaux sont donc nommés, et `BoxTable` se tait déjà sur `[]`.
+   */
+  const hasBody = preps.length > 0 || boxLines.length > 0 ||
+    Boolean(session.run_through);
 
   return (
     <Card>
@@ -400,7 +461,7 @@ function DaySessionCard(props: {
             )}
           </span>
         )}
-        {session.run_through && (
+        {hasBody && (
           <button
             type="button"
             aria-expanded={open}
@@ -419,6 +480,36 @@ function DaySessionCard(props: {
           </button>
         )}
       </div>
+      {/* ⟳ 2026-09-09 — LE GESTE DE LA VEILLE, AVANT LES CASSEROLES ET HORS DU
+          DÉPLIANT: on le lit la veille au soir, pas au moment de cuisiner. Il
+          est DÉTERMINISTE (la liste de courses), et il contredit au besoin un
+          déroulé du modèle qui dirait « acheter frais le jour même ». */}
+      {thaw && (
+        <p className="mt-2 flex flex-wrap items-baseline gap-2 text-sm leading-6 text-ink">
+          <Badge tone="caution">{mealCopy("meals.shopping.freeze")}</Badge>
+          <span>{thaw}</span>
+        </p>
+      )}
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-09 — LE CORPS DE LA SESSION EST SOUS LE PLI, SUR DEMANDE.
+          ══════════════════════════════════════════════════════════════════
+
+          Demandé le 2026-09-09: « les sessions de cuisine étaient
+          automatiquement déroulées, il faut que ce soit déroulé sur commande ».
+          Un jour de cuisine rendait ici la matière de chaque casserole, sa
+          méthode, la table de pesée ET le déroulé — la carte faisait un écran
+          à elle seule, sur un bloc dont la question est « qu'est-ce qui se
+          passe ce jour-là ».
+
+          ⚠️ CE QUI RESTE DEHORS EST CE QU'ON LIT SANS OUVRIR: le titre, la
+          durée, et la phrase de la veille. Cette dernière est dehors DEUX FOIS
+          pour la même raison — elle se lit le soir d'avant, pas devant la
+          casserole, et le badge « à congeler » de la carte des courses a déjà
+          payé ce défaut-là: sous un dépliant, personne ne l'a vu.
+
+          ⛔ ET LE BOUTON N'EST PLUS GARDÉ PAR `run_through`. Voir `hasBody`. */}
+      {open && hasBody && (
+        <div id={panelId}>
       {/* ══════════════════════════════════════════════════════════════════
           UNE CASSEROLE À LA FOIS: SON NOM, COMMENT ON LA CUIT, SES BOÎTES.
           ══════════════════════════════════════════════════════════════════
@@ -471,17 +562,20 @@ function DaySessionCard(props: {
               donnerait à un silence l'air d'une panne. */}
           {prep.ingredients.length > 0 && (
             <ul className="mt-1 flex flex-col gap-0.5">
-              {prep.ingredients.map((ing, i) => (
-                <li
-                  key={`${ing.term}-${i}`}
-                  className="flex flex-wrap items-baseline gap-2 break-words text-sm text-ink"
-                >
-                  <span>{ing.term}</span>
-                  {ing.quantity && (
-                    <span className="tabular-nums text-ink-soft">{ing.quantity}</span>
-                  )}
-                </li>
-              ))}
+              {prep.ingredients.map((ing, i) => {
+                const quantity = ingredientQuantityText(ing);
+                return (
+                  <li
+                    key={`${ing.term}-${i}`}
+                    className="flex flex-wrap items-baseline gap-2 break-words text-sm text-ink"
+                  >
+                    <span>{ing.term}</span>
+                    {quantity && (
+                      <span className="tabular-nums text-ink-soft">{quantity}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {prep.method && (
@@ -509,14 +603,16 @@ function DaySessionCard(props: {
           de se mettre à cuisiner. Le dépliant porte le DÉROULÉ, qui est une
           autre question. */}
       <BoxTable
-        lines={boxLinesForSession(session.preparation_ids, props.allDishes, props.portions)}
+        lines={boxLines}
         context="session"
         boxEnergy={props.boxEnergy}
       />
-      {open && session.run_through && (
-        <p id={panelId} className="mt-2 text-sm leading-6 text-ink">
+      {session.run_through && (
+        <p className="mt-2 text-sm leading-6 text-ink">
           {session.run_through}
         </p>
+      )}
+        </div>
       )}
     </Card>
   );
@@ -544,6 +640,13 @@ function DayGroceriesCard(props: {
   // le serveur a écrite (`freeze_on_purchase`). Même marque que sur la liste de
   // courses complète (`ShoppingListPanel`): deux rendus du même geste.
   const freezeAtPurchase = new Set(props.wave.freezeIndices);
+  // ⟳ 2026-09-09 — CE QUI PART AU CONGÉLATEUR, VISIBLE MÊME CARTE REPLIÉE. Le
+  // badge par ligne vivait sous le dépliant, donc derrière un clic sur une
+  // liste de 46 lignes: personne ne l'a vu. Le geste du jour des courses est
+  // la seule chose de cette carte qu'on ne peut pas rater.
+  const frozenLines = props.wave.freezeIndices
+    .map((index) => ({ index, item: props.shoppingList[index] }))
+    .filter((e) => e.item !== undefined);
   const groups = groupByAisle(props.shoppingList)
     .map((g) => ({
       aisle: g.aisle,
@@ -572,6 +675,24 @@ function DayGroceriesCard(props: {
           )}
         </button>
       </div>
+      {frozenLines.length > 0 && (
+        <div className="mt-2">
+          <p className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-ink">
+            <Badge tone="caution">{mealCopy("meals.shopping.freeze")}</Badge>
+            {frozenLines.length === 1
+              ? mealCopy("meals.shopping.freeze_block_one")
+              : mealCopy("meals.shopping.freeze_block_many", { n: frozenLines.length })}
+          </p>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {frozenLines.map(({ index, item }) => (
+              <li key={`freeze-${index}`} className="flex flex-wrap items-baseline gap-2 text-sm text-ink">
+                <span className="break-words">{item.term}</span>
+                {item.quantity && <span className="tabular-nums text-ink-soft">{item.quantity}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {open && (
         <div id={panelId} className="mt-2">
           {groups.map((g) => (

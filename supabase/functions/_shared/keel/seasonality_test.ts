@@ -20,9 +20,11 @@ import { buildMealPrompt } from "./meal_generation.ts";
 // ===========================================================================
 
 function promptWith(args: { today?: string | null; country?: string | null }): string {
-  return buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  return buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -36,7 +38,7 @@ function promptWith(args: { today?: string | null; country?: string | null }): s
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",

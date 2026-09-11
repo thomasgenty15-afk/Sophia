@@ -1,0 +1,73 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 6,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Frittata aux œufs, pommes de terre et courgette",
+      "member_id": null,
+      "pots": [
+        "Frittata aux œufs et légumes ÷1"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 618,
+      "density_kcal_per_100g": null,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pêche fraîche et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 147,
+      "density_kcal_per_100g": 91.9,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Saumon, pommes de terre et haricots verts",
+      "member_id": null,
+      "pots": [
+        "Saumon, pommes de terre et haricots verts ÷1"
+      ],
+      "standard_kcal": 414,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 339,
+      "density_kcal_per_100g": 122.2,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, couscous et légumes d'été",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti, couscous et légumes d'été ÷1"
+      ],
+      "standard_kcal": 842,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 701,
+      "density_kcal_per_100g": 120.2,
+      "boxes": 1
+    }
+  ]
+}

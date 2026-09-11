@@ -1,0 +1,180 @@
+{
+ "unresolved_terms": [
+  "galette de ble complet"
+ ],
+ "unweighed_terms": [],
+ "case": "C01-solo",
+ "window": {
+  "starts_on": "2026-09-06",
+  "duration_days": 6
+ },
+ "suggested_window": {
+  "starts_on": "2026-09-06",
+  "shifted": "shopping_cutoff"
+ },
+ "envelope": {
+  "mode": "per_kg",
+  "energy": {
+   "low": 2059,
+   "high": 2175
+  },
+  "proteinFloorG": 164,
+  "proteinPerMealG": null,
+  "densityCeiling": 1.3
+ },
+ "maintenance_range": {
+  "low": 2150,
+  "high": 2400
+ },
+ "verdict": {
+  "resolution": {
+   "resolved": 108,
+   "total": 109,
+   "unresolvedEnergyDense": false,
+   "unweighedEnergyDense": false
+  },
+  "energy": "below",
+  "protein": "under",
+  "density": "within",
+  "sentinels": {
+   "missing": [],
+   "uncoverable": []
+  }
+ },
+ "days": [
+  {
+   "day": "sun",
+   "kcal": 1172,
+   "complete": true,
+   "counted": "2/2",
+   "boundedKcal": 0,
+   "protein_g": 71,
+   "protein_complete": true
+  },
+  {
+   "day": "mon",
+   "kcal": 1118,
+   "complete": true,
+   "counted": "2/2",
+   "boundedKcal": 0,
+   "protein_g": 83,
+   "protein_complete": true
+  },
+  {
+   "day": "tue",
+   "kcal": 885,
+   "complete": false,
+   "counted": "1/2",
+   "boundedKcal": 0,
+   "protein_g": 85,
+   "protein_complete": false
+  },
+  {
+   "day": "wed",
+   "kcal": 1610,
+   "complete": true,
+   "counted": "2/2",
+   "boundedKcal": 0,
+   "protein_g": 103,
+   "protein_complete": true
+  },
+  {
+   "day": "thu",
+   "kcal": 2062,
+   "complete": true,
+   "counted": "3/3",
+   "boundedKcal": 0,
+   "protein_g": 138,
+   "protein_complete": true
+  },
+  {
+   "day": "fri",
+   "kcal": 1241,
+   "complete": true,
+   "counted": "2/2",
+   "boundedKcal": 0,
+   "protein_g": 88,
+   "protein_complete": true
+  }
+ ],
+ "dish_kcal": [
+  {
+   "day": "sun",
+   "slot": "breakfast",
+   "name": "Œufs du marché",
+   "kcal": 438
+  },
+  {
+   "day": "sun",
+   "slot": "dinner",
+   "name": "Poulet rôti d'été",
+   "kcal": 734
+  },
+  {
+   "day": "mon",
+   "slot": "breakfast",
+   "name": "Skyr pomme cannelle",
+   "kcal": 453
+  },
+  {
+   "day": "mon",
+   "slot": "lunch",
+   "name": "Poulet en salade",
+   "kcal": 665
+  },
+  {
+   "day": "tue",
+   "slot": "breakfast",
+   "name": "Fromage blanc fruité",
+   "kcal": 885
+  },
+  {
+   "day": "tue",
+   "slot": "dinner",
+   "name": "Poulet façon tacos",
+   "kcal": null
+  },
+  {
+   "day": "wed",
+   "slot": "breakfast",
+   "name": "Skyr raisin croquant",
+   "kcal": 863
+  },
+  {
+   "day": "wed",
+   "slot": "lunch",
+   "name": "Boulettes sauce tomate",
+   "kcal": 747
+  },
+  {
+   "day": "thu",
+   "slot": "breakfast",
+   "name": "Omelette aux poivrons",
+   "kcal": 517
+  },
+  {
+   "day": "thu",
+   "slot": "lunch",
+   "name": "Boulettes en couscous",
+   "kcal": 757
+  },
+  {
+   "day": "thu",
+   "slot": "dinner",
+   "name": "Saumon pommes de terre",
+   "kcal": 788
+  },
+  {
+   "day": "fri",
+   "slot": "breakfast",
+   "name": "Skyr poire amandes",
+   "kcal": 454
+  },
+  {
+   "day": "fri",
+   "slot": "lunch",
+   "name": "Saumon salade fraîche",
+   "kcal": 787
+  }
+ ]
+}

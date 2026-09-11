@@ -1685,3 +1685,170 @@ Diff A/B hors case visée : **11 / 11 identiques** (plat + quantités écrites).
 Case visée : table « Saumon, sarrasin, aubergine » → « Poulet, quinoa,
 courgette, tomates », bouche dédiée « Lentilles, sarrasin » → « Poulet,
 quinoa, courgette, concombre ». Le lot tient de bout en bout.
+
+## 2026-09-09 · le complément — raboter la part gelée, l'entrée porte le reste
+
+Décision du propriétaire : « dans le cas où tout est gelé, on diminue la
+portion et on ajoute de la calorie dans l'entrée ». Ce n'était pas ce qui était
+codé, sur trois points : la table ne rabotait jamais (`factor: r.factor` nu,
+`served_over_max` compté), le plat ajouté RETIRAIT la personne du plat partagé
+(`mouthsFedByDish`, sémantique du végane), et il portait donc la cible entière.
+Livré : `complements_shared` (un écrivain, `appendDedicatedDishes`, qui reprend
+aussi les courses de l'entrée), `complementAskFor` (densité d'un complément,
+part d'assiette 0,2), `splitPlateWithComplement` (masse = borne, énergie =
+cible), passage ③ bis de `shadowSizing` avant casseroles et couvercles,
+retrait d'un complément insoluble, front : la case garde la table et rend
+l'entrée en « + ». Suite Deno : 6180 verts, 2 rouges de l'autre session
+(`cooking_style_brief_test`, `household_merge_quota_test` — cinq
+`return jsonResponse(` ajoutés entre la réclamation et le modèle par leurs
+refus `edit_cells`, pas par ce chantier). Front : 37 verts sur les deux
+fichiers touchés, `tsc -b tsconfig.app.json` propre.
+
+### Tir `COMP1` (cinq, 261 s, delta registre 2 + 1 dedicated) — le pain-comté jeté sans raison dite
+
+```
+verdicts 12/15 · journée 5/5 · residual_stuck 3 · dedicated asked 2 (budget 2 sur 3)
+append : added 1 (« Pain complet, comté et huile d'olive », ~340 kcal/100 g, pour l'adulte en prise) · citing_pot 1 · shopping_added 2
+dedicated_repair_unsolvable : dropped 1, kept 0  →  accepted 0, complement.solved 0
+```
+
+Par le calcul il aurait dû résoudre (ρs 244, ρc ~340 > 244, cible 1 910 <
+700 × 3,4). Le journal ne disait pas POURQUOI : ajouté
+`keel.household_meal.complement_unsolvable` avec la raison nommée
+(`no_shared_dish`, `owner_not_on_shared`, `complement_unmeasurable:<gaps>`,
+`wrong_side_or_whole_plate`, …) et `complement.unsolvable_by`. Tir COMP2 ensuite.
+
+### Tir `COMP2` (cinq, essai 1 coupé à 402 s par le worker, essai 2 en 305 s) — les deux compléments RÉSOLVENT
+
+```
+verdicts 14/15 (COMP1 : 12/15) · clamped {max 0, min 2} · served_over_max 2
+dedicated : asked 2 · accepted 2 · added 2 · unsolvable 0 · shopping_added 3
+complement : solved 2 · moved_kcal 56
+   breakfast adult_fat_loss  table 140 g + « Concombre, tomates et yaourt » 109 g = 249 g (borne 250) · 369 + 43 = 412 kcal = cible
+   breakfast minor_12_17     table 216 g + même entrée 33 g = 249 g · bac [deux ados] 370 g = 154 + 216 ✓
+```
+
+Le rabotage et l'entrée dimensionnée à la différence tiennent en direct, sur
+deux personnes, dans la même case, avec un bac partagé qui reste la somme des
+parts. Trois défauts vus et corrigés avant COMP3 : (1) la journée comptait la
+CIBLE deux fois pour une personne complétée (3/5 au lieu de 5/5, artefact de
+journal : `servedByMouthDay`) ; (2) `missed_aim 2` lu sur le plat PARTAGÉ, pas
+sur l'entrée ; (3) le budget de 2 servait les deux « trop petit » du
+petit-déjeuner (ordre des plats) et laissait 1 021 g et 879 g à l'adulte en
+prise — bloqués triés « trop gros » d'abord, budget porté à 4 (un seul appel
+modèle quel que soit le nombre). `WORKER_LIMIT` à l'essai 1 : composition à
+`high` au-delà des 400 s du worker, sans lien avec ce chantier.
+
+### Tir `COMP3` (cinq) — INVALIDE : 502 × 3 sans appel modèle, le code a changé sous la mesure
+
+`empreinte APRÈS ≠ AVANT`, `llm_usage delta 0`. L'autre session écrivait
+`composition_fill.ts`, `composition_fill_io.ts` et `meal-energy-v1/index.ts`
+(03:47–03:49) ; `functions serve` recharge à chaud sur chaque écriture et annule
+la requête en vol. Rien à réparer côté chantier ; tir COMP4 gardé par le
+silence (aucune écriture sous `supabase/functions` depuis 3 min).
+
+### Tir `COMP4` (cinq, après 3 min de silence) — INVALIDE aussi : écritures de l'autre session à 03:57 et 04:01
+
+`composition_fill_io.ts`, `composition_reading_index_test.ts`, `self_presence.ts`
+pendant les essais ; 502 × 3, un seul appel modèle facturé pour rien. Les
+trois correctifs d'après COMP2 (cible comptée une fois, `missed_aim` sur le
+plat ajouté, budget 4 avec « trop gros » d'abord) sont couverts par ㊵ et les
+épingles ; leur preuve en direct attend une fenêtre sans écriture.
+
+### Tir `COMP5` (cinq, après 5 min de silence) — INVALIDE : `household_portions.ts`, `meal-energy-v1`, `target_grams_test.ts` écrits à 04:09–04:10
+
+502 × 3, delta registre 0. Garde suivante : 8 min de silence (COMP6, en attente).
+
+### Tir `COMP6` (cinq, 206 s, après 8 min de silence) — budget 4 et « trop gros » d'abord tiennent ; deux entrées sur trois IMPESABLES
+
+```
+verdicts 14/15 · journée 5/5 (cible comptée une fois ✓) · missed_aim 0 ✓ · clamped {max 0, min 1}
+dedicated : asked 3 (trois bloqués, budget 4) · added 3 · shopping_added 5 · unsolvable 2 · accepted 1
+complement : solved 1 — lunch adult_fat_loss : table 223 g + « Concombre, tomate, yaourt, huile » 27 g = 250 g, moved 11 kcal
+complement_unsolvable : breakfast over_max (« Pain complet, comté, huile ») et dinner under_min (« Chou, carotte, yaourt, huile »)
+                        → complement_unmeasurable:unknown_ingredient  (« comté » absent du référentiel, « chou blanc » sans alias cru/cuit)
+```
+
+Le sas de remplissage de composition (`composition_fill`) tourne sur le plan
+composé, AVANT que l'entrée n'existe : un terme inconnu de l'entrée n'est
+jamais réparé. Correctif : les ingrédients des plats ajoutés passent par le
+même sas (`fillPlanComposition` / `repairPlanComposition`, source
+`dedicated_repair_fill`), l'index réparé est ABSORBÉ en place
+(`absorbIndexInto` — réassigner `composition` ferait perdre son rétrécissement
+aux fermetures, le compilateur le refuse), l'entrée est repesée, puis mesurée.
+Câblage ㊶, `fill_unknowns` et `fill_absorbed` dans `dedicated_repair`. Coût :
+un appel de remplissage de plus, seulement quand une entrée est ajoutée.
+Tir COMP7 gardé par 8 min de silence.
+
+### Tir `COMP7` (cinq, après 8 min de silence) — INVALIDE : l'autre session tire (`generate-meal-v1` 04:31–04:40) et écrit (`self_presence`, `meal-energy-v1`, `tracking_v2`, 04:36–04:41)
+
+502 × 3 ; l'essai 3 a facturé 4 appels (composition, fill, dédié, fill de
+l'entrée) avant d'être coupé par un rechargement. Garde suivante : 15 min.
+
+### Tir `COMP8` (cinq, 250 s, après 15 min de silence) — 17/17 DANS LES BORNES, journée 5/5, still_out 0
+
+```
+residual_stuck 2 (deux « trop petit » de l'adulte en perte, petit-déjeuner et dîner)
+dedicated : asked 2 · added 2 · accepted 2 · unsolvable 0 · missed_aim 0 · shopping_added 3
+complement : solved 2 · clamped_min 2 · moved_kcal 9
+   breakfast adult_fat_loss  table 235 g + « Tomate, concombre, laitue et citron » 15 g = 250 g
+   dinner    adult_fat_loss  table 237 g + « Courgette, tomate, roquette et haricots blancs » 13 g = 250 g
+verdicts {in_bounds 17, over_max 0, under_min 0} · served_over_max 0 · day_kcal 5/5
+```
+
+Premier tir du foyer où toutes les assiettes sont dans les bornes et toutes
+les journées à ±5 %. Le sas de remplissage de l'entrée n'a rien eu à réparer
+ici (termes connus) ; sa preuve sur un terme inconnu reste à voir.
+
+### 2026-09-09 · ligne `nuts` de Claire (`quatre`) retirée sur décision du propriétaire
+
+`delete from household_member_allergies where label='nuts' and member_id='620d929d-…'`
+(posée par l'autre session le 2026-09-08 à 21:19:42, hors catalogue, bloquait
+toute composition de `quatre`). Tir Q1 gardé par 15 min de silence.
+
+### Tir `Q1` (quatre, 14:05) — INVALIDE : l'autre session a repris à 14:05 (`energy_target`, `household_portions`, `weight_pace`, `meal_envelope` en deux minutes), 502 × 3 sans appel modèle
+
+Garde réarmée (15 min de silence), tir Q2.
+
+### Tir `Q2` (quatre, 180 s, après 15 min de silence) — 12/12 dans les bornes, 4/4 journées, aucun rattrapage demandé
+
+```
+verdicts {in_bounds 12, over_max 0, under_min 0} · served_over_max 0 · clamped {0,0}
+repairs asked 0 · residual_stuck 0 · dedicated asked 0 · complement solved 0
+day_kcal 4/4 · les 5 critères de bascule verts
+```
+
+Premier tir de `quatre` depuis le retrait de la ligne `nuts` (fixture débloquée).
+Trois cases, un plat de table par case + deux plats de régime (Claire œufs/
+lentilles, Nora tofu/pois chiches) : la règle du plat à part joue, le
+complément ne se déclenche pas — il n'y avait aucun bloqué. Le chemin nominal
+n'est donc pas touché par le lot : `dedicated` et `complement` restent à zéro,
+et les douze assiettes tiennent sans rien raboter. Avec COMP8 (cinq, 17/17,
+2 compléments résolus), les deux fixtures sont vertes.
+
+### 2026-09-09 · le pourcentage par bouche et par jour, ÉCRIT (`day_kcal.per_mouth`)
+
+Demande du propriétaire : « je veux le % par rapport aux cibles caloriques sur
+chaque journée ». Le journal ne portait que l'agrégat (`within_5pct / rows`) :
+lire 5/5 ne dit pas si c'est 100 % ou 96 %. Ajouté une ligne par bouche-jour
+(`day`, `eater_bucket`, rang `n`, `served`, `target`, `pct`), sans `member_id` —
+deux personnes du même seau se distinguent par le rang. Câblage ㊷, lecteur
+`45-lire-complement.py` mis à jour.
+
+Reconstruit sur les archives (kcal servis par personne, un jour) :
+
+| tir | bouche | plat de la table | son plat / son entrée | total |
+|---|---|---|---|---|
+| COMP8 `cinq` | Marc (prise) | 4 774 | — | 4 774 |
+| | Sonia (perte) | 1 637 | entrée 9 | 1 646 |
+| | ado (table) | 2 323 | — | 2 323 |
+| | ado (végé) | — | 2 419 | 2 419 |
+| | enfant | 1 620 | — | 1 620 |
+| Q2 `quatre` | Léo (12 ans) | 2 459 | — | 2 459 |
+| | Paul (perte) | 1 924 | — | 1 924 |
+| | Claire (végétarienne) | — | 1 900 | 1 900 |
+| | Nora (végane) | — | 1 824 | 1 824 |
+
+Marc à 4 775 kcal n'est pas une dérive : 183 cm, 84 kg, `trains_hard`,
+`physical_job`, 5 séances et plus, gros appétit, en prise. La fixture est
+extrême exprès.

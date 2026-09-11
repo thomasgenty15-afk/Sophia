@@ -24,11 +24,7 @@
 
 import { supabase } from "../../lib/supabase";
 import { EATING_OCCASIONS, type EatingOccasion } from "./mealGeneration";
-import {
-  habitEntriesToWrite,
-  type MealExtra,
-  parseHabitExtras,
-} from "../lib/mealExtras";
+import { habitEntriesToWrite, parseHabitLight } from "../lib/mealExtras";
 // ⚠️ LE PLAFOND DE TEXTE EST CELUI DU SERVEUR, IMPORTÉ TEL QUEL — même geste
 // que `household.ts` avec `student_age.ts`, et `groceryWaves.ts` avec son
 // module partagé. `usual` et `note` passent tous deux par
@@ -65,9 +61,9 @@ export interface HabitSlot {
  *
  * ⛔ DEUX TYPES POUR UNE MÊME COLONNE, ET C'EST VOULU. `HabitSlot` décrit ce
  * que l'ÉCRAN AFFICHE — une phrase, donc `own_usual` obligatoire. Une entrée
- * qui ne porte que des extras (« le plat de la maison, plus du pain ») n'a
- * aucune phrase, part en `household_dish`, et `parseHabitSlots` la jette
- * exprès. Elle existe pourtant en base, et `parseHabitExtras` la lit.
+ * qui ne porte qu'un « repas léger » (« le plat de la maison, en plus petit »)
+ * n'a aucune phrase, part en `household_dish`, et `parseHabitSlots` la jette
+ * exprès. Elle existe pourtant en base, et `parseHabitLight` la lit.
  *
  * Fondre les deux ferait porter à `HabitSlot` un `usual` vide, que la moitié
  * des lecteurs d'écran rendrait comme une ligne blanche.
@@ -77,11 +73,12 @@ export interface HabitSlotWrite {
   kind: HabitKind;
   usual: string;
   /**
-   * ⚠️ FACULTATIF, ET SON ABSENCE EST UNE RÉPONSE: « ce moment n'a pas été
-   * renseigné ». `[]` en est une autre: « renseigné, rien à côté du plat ».
-   * Voir `lib/mealExtras.ts`.
+   * ⟳ 2026-09-07 — « + repas léger ». FACULTATIF au sens du protocole: la clé
+   * ABSENTE veut dire « la question n'a pas été posée à ce moment-là », et
+   * c'est un état distinct de `false`. La contrainte SQL le refuse hors des
+   * trois repas.
    */
-  extras?: MealExtra[];
+  light?: boolean;
 }
 
 /**
@@ -98,14 +95,19 @@ export interface MemberHabitsView {
   /** Les moments où elle a SON habitude. Vide = elle mange le plat commun. */
   slots: HabitSlot[];
   /**
-   * CE QU'ELLE PREND À CÔTÉ DU PLAT, par moment répondu.
+   * ⟳ 2026-09-07 — « + repas léger », LU SUR LA MÊME COLONNE que la prose.
    *
    * ⛔ À CÔTÉ DE `slots`, PAS DEDANS, et c'est le même partage qu'au serveur
-   * (`parseMemberHabits` / `parseMemberExtras`): `parseHabitSlots` JETTE les
-   * entrées `household_dish`, or ce sont précisément celles qui portent des
-   * extras sans prose. Une clé absente ici = ce moment n'a pas été renseigné.
+   * (`parseMemberHabits` / `parseMemberLight`): `parseHabitSlots` JETTE les
+   * entrées `household_dish`, or ce sont précisément celles qui portent un
+   * « léger » sans prose.
+   *
+   * ⚠️ Trois états, et ils ne se confondent pas: clé absente = la question
+   * n'a pas été posée à ce moment-là; `false` = posée, réponse non; `true` =
+   * ce moment pèse moins. L'écran doit les distinguer, sinon il repose la
+   * question à quelqu'un qui a déjà répondu.
    */
-  extras: Record<string, MealExtra[]>;
+  light: Record<string, boolean>;
   /** La ligne libre durable, ou `null`. */
   note: string | null;
 }
@@ -189,8 +191,10 @@ export async function loadMemberHabits(): Promise<Map<string, MemberHabitsView>>
     out.set(memberId, {
       memberId,
       slots: parseHabitSlots(r.slots),
-      // LA MÊME COLONNE, LU DEUX FOIS. Voir `MemberHabitsView.extras`.
-      extras: parseHabitExtras(r.slots),
+      // LA MÊME COLONNE, LUE DEUX FOIS — deux parseurs séparés parce que les
+      // deux questions n'ont ni les mêmes moments ni les mêmes états. Les
+      // fondre perdrait la plus fréquente des deux.
+      light: parseHabitLight(r.slots),
       note: parseHabitNote(r.note),
     });
   }
@@ -284,7 +288,8 @@ export function habitDraft(
  * `keel_household_set_member_habits` REMPLACE la liste entière. Cette carte-ci
  * n'édite QUE la prose — elle n'a pas de bulles —, donc ce qu'elle n'envoie
  * pas disparaît. Sans `carried`, enregistrer une habitude depuis
- * `/app/household` effacerait en silence les extras cochés dans la fiche.
+ * `/app/household` effacerait en silence le « + repas léger » coché dans la
+ * fiche.
  *
  * ⚠️ REQUIS ET PAS `?`: un appelant qui omet la clé passerait `undefined`,
  * qui se traverse sans un mot. `{}` est une valeur qu'on peut lire — et c'est
@@ -293,11 +298,20 @@ export function habitDraft(
  */
 export function habitPayload(
   draft: readonly HabitDraftSlot[],
-  /** `MemberHabitsView.extras` de CETTE bouche. `{}` si elle n'en a aucun. */
-  carried: Readonly<Record<string, MealExtra[]>>,
+  /**
+   * CE QUE LA FICHE PORTE DÉJÀ ET QUE CE FORMULAIRE NE MONTRE PAS.
+   *
+   * ⟳ 2026-09-07 — UN OBJET, ET PAS UN ARGUMENT POSITIONNEL. Le « + repas
+   * léger » vit sur la même colonne que la prose; un argument facultatif aurait
+   * laissé chaque appelant l'oublier en silence, et la PROSE aurait effacé le
+   * léger à chaque enregistrement.
+   */
+  carried: {
+    light: Readonly<Record<string, boolean>>;
+  },
 ): HabitSlotWrite[] {
   // ⛔ LE MÊME SÉRIALISEUR QUE LES TROIS AUTRES ÉCRIVAINS. Il sait produire
-  // l'entrée `household_dish` qu'un moment sans prose mais avec des extras
+  // l'entrée `household_dish` qu'un moment sans prose mais avec un « léger »
   // exige, ce qu'une boucle locale referait de travers.
   return habitEntriesToWrite({
     habits: Object.fromEntries(
@@ -305,7 +319,7 @@ export function habitPayload(
         .filter((d) => d.choice === "own_usual")
         .map((d) => [d.slot, d.usual]),
     ),
-    extras: carried,
+    light: carried.light,
     occasions: EATING_OCCASIONS,
   });
 }

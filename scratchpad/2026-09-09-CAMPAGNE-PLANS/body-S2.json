@@ -1,0 +1,15 @@
+{
+ "case": "S2",
+ "goal": "fat_loss",
+ "weightKg": 78.0,
+ "heightCm": 165,
+ "gender": "female",
+ "ageBand": "30_44",
+ "ageYears": 41,
+ "activityLevel": "on_feet",
+ "servings": 1,
+ "regime": null,
+ "pace": 0.5,
+ "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+ "email": "camp0909.s2@keeltest.dev"
+}

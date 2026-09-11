@@ -15,7 +15,6 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   buildMemoryRecap,
-  buildSafetyNotWrittenNotice,
   fieldValueLabel,
   type RecapKept,
   settingRecapLine,
@@ -170,11 +169,6 @@ Deno.test("LE CÂBLAGE — la bulle « j'ai noté … » part AU MOMENT DU GESTE
   assert(
     classify.includes("notifyMemoryWrite("),
     "LE CLASSIFIEUR N'ANNONCE PLUS ce qu'il range.",
-  );
-  assert(
-    classify.includes("notifySafetyNotWritten("),
-    "LE REFUS DE SÉCURITÉ N'EST PLUS DIT: un refus muet se lit comme un " +
-      "enregistrement réussi.",
   );
 
   // ⚠️ ET CE N'EST PAS ÉCRIT AU REGISTRE DES DEMANDES. Un énoncé qui
@@ -356,24 +350,6 @@ Deno.test("LE CAS QUI PASSE — la SÉCURITÉ, elle, se dit toujours le soir", a
   assertEquals(src.includes("household_member_allergies"), true);
 });
 
-
-Deno.test("⟳ 2026-09-05 — la bulle « je n'ai pas pu enregistrer » nomme la bouche, le genre, et où réparer", () => {
-  const fr = buildSafetyNotWrittenNotice({
-    failed: [{ kind: "allergy", ref: "peanut", who: "Tom" }],
-    language: "fr",
-  });
-  assert(fr !== null);
-  assert(/pas pu enregistrer/.test(fr!), fr!);
-  assert(/Tom/.test(fr!) && /peanut/.test(fr!), fr!);
-  assert(/fiche du foyer/.test(fr!), fr!);
-  const en = buildSafetyNotWrittenNotice({
-    failed: [{ kind: "diet", ref: "vegetarian", who: null }],
-    language: "en",
-  });
-  assert(en !== null && /could not save/.test(en!) && /vegetarian/.test(en!), String(en));
-  // Rien à dire = pas de bulle.
-  assertEquals(buildSafetyNotWrittenNotice({ failed: [], language: "fr" }), null);
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ⟳ 2026-09-06 — L'ACCUSÉ DIT LE SENS (cas « Léa n'aime pas les asperges, Marc adore »)

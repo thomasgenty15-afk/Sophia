@@ -1,40 +1,44 @@
 {
+  "redirects": [
+    {
+      "source": "/meal-prep",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/en/meal-prep",
+      "destination": "/en",
+      "permanent": true
+    },
+    {
+      "source": "/couples",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/en/couples",
+      "destination": "/en",
+      "permanent": true
+    },
+    {
+      "source": "/families",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/en/families",
+      "destination": "/en",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/favicon.ico",
       "destination": "/favicon.png"
     },
     {
-      "source": "/favicon.svg",
-      "destination": "/favicon.png"
-    },
-    {
       "source": "/en",
       "destination": "/en.html"
-    },
-    {
-      "source": "/meal-prep",
-      "destination": "/meal-prep.html"
-    },
-    {
-      "source": "/en/meal-prep",
-      "destination": "/en-meal-prep.html"
-    },
-    {
-      "source": "/couples",
-      "destination": "/couples.html"
-    },
-    {
-      "source": "/en/couples",
-      "destination": "/en-couples.html"
-    },
-    {
-      "source": "/families",
-      "destination": "/families.html"
-    },
-    {
-      "source": "/en/families",
-      "destination": "/en-families.html"
     },
     {
       "source": "/((?!_vercel|.*\\..*).*)",

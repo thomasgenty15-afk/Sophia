@@ -1,0 +1,119 @@
+{
+  "profile": [
+    {
+      "id": "2b252884-e267-4d2f-8394-9edaaef85ee2",
+      "full_name": "Paul Quatre",
+      "birth_date": "1984-07-03",
+      "gender": "male",
+      "height_cm": 180,
+      "activity_level": "on_feet",
+      "timezone": "Europe/Paris",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "13a13ae6-27d7-4d0a-9e05-7ed998d718e8",
+      "user_id": "2b252884-e267-4d2f-8394-9edaaef85ee2",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "grocery_runs": 2,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "cooking_style": "balanced",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "kitchen_equipment": [
+          "oven",
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-04T15:01:52.459842+00:00",
+      "updated_at": "2026-09-06T00:16:39.134213+00:00",
+      "target_weight_kg": 76,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ],
+  "roster": [
+    {
+      "member_id": "b60378e6-1956-4dbd-b8dc-7480578a8282",
+      "user_id": "2b252884-e267-4d2f-8394-9edaaef85ee2",
+      "first_name": "Paul",
+      "age_state": "adult",
+      "role": "owner",
+      "goal": "fat_loss",
+      "away_days": [],
+      "eating_rhythm": [
+        {
+          "size": "medium",
+          "slot": "breakfast"
+        },
+        {
+          "size": "medium",
+          "slot": "lunch"
+        },
+        {
+          "size": "medium",
+          "slot": "dinner"
+        }
+      ],
+      "diet": "omnivore"
+    },
+    {
+      "member_id": "620d929d-3c61-4af5-8575-150442486648",
+      "user_id": null,
+      "first_name": "Claire",
+      "age_state": "adult",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "49375b46-a94a-43d3-8a3e-e2df1a8151cf",
+      "user_id": null,
+      "first_name": "Leo",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+      "user_id": null,
+      "first_name": "Nora",
+      "age_state": "adult",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": "vegan"
+    }
+  ],
+  "snapshot_timing": "AFTER run; initial service read was filtered by RLS, corrected opaque apikey header"
+}

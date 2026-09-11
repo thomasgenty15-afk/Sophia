@@ -284,7 +284,6 @@ Deno.serve(async (req) => {
         clarify_proposed: trace.clarify_proposed,
         clarify_refused_unknown_kind: trace.clarify_refused_unknown_kind,
         // ⟳ 2026-09-08 — deux issues qui ne sont ni « rien » ni un échec.
-        safety_written: out.safety.written.length,
         at_edge: out.atEdge,
         cells: out.cells.length,
       },

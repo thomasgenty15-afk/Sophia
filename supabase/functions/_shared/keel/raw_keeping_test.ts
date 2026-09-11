@@ -16,6 +16,7 @@ import {
   RAW_FAMILIES,
   rawKeepingBreaches,
   rawReachLines,
+  sessionsFedFromFreezer,
 } from "./raw_keeping.ts";
 import { buyDatesByIndex } from "./grocery_waves.ts";
 
@@ -89,7 +90,7 @@ Deno.test("une famille qui atteint toute la fenêtre ne dit RIEN", () => {
 });
 
 Deno.test("la consigne NOMME des jours, jamais des durées", () => {
-  const lines = rawReachLines(WEEK).join("\n");
+  const lines = rawReachLines(WEEK, null).join("\n");
   assertStringIncludes(lines, "fresh until tue");
   assertStringIncludes(lines, "fresh until wed");
   // ⛔ AUCUN NOMBRE DE JOURS: « la volaille tient deux jours » est la règle
@@ -105,18 +106,50 @@ Deno.test("la consigne NOMME des jours, jamais des durées", () => {
 Deno.test("une fenêtre courte ne dit rien du tout", () => {
   // Deux jours: aucune famille ne mord, et trois lignes de bruit seraient pires
   // que le silence.
-  assertEquals(rawReachLines(["mon", "tue"]), []);
-  assertEquals(rawReachLines([]), []);
+  assertEquals(rawReachLines(["mon", "tue"], null), []);
+  assertEquals(rawReachLines([], null), []);
 });
 
 // ---------------------------------------------------------------------------
 // 3. LE CONSTAT — quelles préparations réclament leur propre course
 // ---------------------------------------------------------------------------
 
+// ⟳ 2026-09-09 — le contrat porte le RAYON avec le groupe; ces fixtures sont
+// toutes en rayon périssable, c'est le cas qui fait mordre la règle.
+const perishable = (groups: readonly (string | null)[]) =>
+  groups.map((group) => ({ group, perishable: true }));
 const prep = (id: string, cookOn: string | null, groups: (string | null)[]) => ({
   id,
   cookOn,
-  groups,
+  ingredients: perishable(groups),
+});
+
+Deno.test("⛔ LE ROMARIN EN PETIT POT — un rayon qui ne périt pas ne fait pas de brèche, et se COMPTE", () => {
+  // Rapporté le 2026-09-08: « romarin, 1 petit pot » en épicerie, groupe
+  // feuilles fraîches par son alias, faisait dire « ce qui se cuisine dimanche
+  // s'achète au plus près » de pommes de terre au romarin.
+  const out = rawKeepingBreaches({
+    window: WEEK,
+    preparations: [{
+      id: "prep_potatoes",
+      cookOn: "sun",
+      ingredients: [
+        { group: "starchy_veg", perishable: true },
+        { group: "leafy_greens", perishable: false },
+        { group: "olive_oil", perishable: false },
+      ],
+    }],
+  });
+  assertEquals(out.breaches, []);
+  assertEquals(out.nonPerishable, 2);
+  assertEquals(out.unknownGroups, 0);
+  assertEquals(out.checked, 1);
+  // Le même pot en rayon frais mordrait: c'est le rayon qui décide, pas le mot.
+  const fresh = rawKeepingBreaches({
+    window: WEEK,
+    preparations: [prep("p", "sun", ["starchy_veg", "leafy_greens"])],
+  });
+  assertEquals(fresh.breaches.map((b) => b.group), ["leafy_greens"]);
 });
 
 Deno.test("LE CAS RAPPORTÉ — poulet cuisiné samedi, acheté lundi", () => {
@@ -208,6 +241,8 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -218,7 +253,7 @@ const PROMPT_BASE = {
   merge: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -229,6 +264,7 @@ const PROMPT_BASE = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   daysToFill: WEEK,
   cookDays: [],
@@ -237,7 +273,7 @@ const PROMPT_BASE = {
 };
 
 Deno.test("PROMPT — la fenêtre crue est DITE, sous les moyens de cuisson", () => {
-  const msg = buildMealPrompt({ ...PROMPT_BASE }).userMessage;
+  const msg = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE }).userMessage;
   assertStringIncludes(msg, "what a FIRST-DAY shop can still be cooked from");
   assertStringIncludes(msg, "chicken, turkey, and any minced meat: fresh until wed");
   // La place: dans le bloc qui décide d'une session, avant l'arbitrage du temps.
@@ -260,13 +296,13 @@ Deno.test("⛔ LA VEILLE COMPTE DANS CETTE RÈGLE — c'est le jour de la course
   //
   // Fenêtre `mon..sun` dont `mon` est la veille: la volaille achetée lundi
   // tient jusqu'à MERCREDI (rang 2 de la fenêtre) — pas jusqu'à jeudi.
-  const msg = buildMealPrompt({ ...PROMPT_BASE, cookOnlyDay: "mon" }).userMessage;
+  const msg = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, cookOnlyDay: "mon" }).userMessage;
   assertStringIncludes(msg, "chicken, turkey, and any minced meat: fresh until wed");
   assert(!msg.includes("minced meat: fresh until thu"), msg);
 });
 
 Deno.test("PROMPT — une fenêtre de deux jours ne porte PAS le bloc", () => {
-  const msg = buildMealPrompt({ ...PROMPT_BASE, daysToFill: ["mon", "tue"] })
+  const msg = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, daysToFill: ["mon", "tue"] })
     .userMessage;
   assert(!msg.includes("FIRST-DAY shop"));
 });
@@ -290,7 +326,10 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });
 
 // ---------------------------------------------------------------------------
@@ -350,7 +389,6 @@ Deno.test("sans fenêtre lisible, aucune date n'est inventée", () => {
 
 for (
   const [name, rel] of [
-    ["solo", "../../generate-meal-v1/index.ts"],
     ["foyer", "../../generate-household-meal-v1/index.ts"],
   ] as const
 ) {
@@ -409,7 +447,7 @@ Deno.test("REJEU — le plan réel, tel qu'il a été composé, est PROPRE", () 
   // tout est cuisiné le premier jour, donc rien n'attend.
   const out = rawKeepingBreaches({
     window: REAL_WINDOW,
-    preparations: REAL_PREPS.map((p) => ({ id: p.id, cookOn: "thu", groups: p.groups })),
+    preparations: REAL_PREPS.map((p) => ({ id: p.id, cookOn: "thu", ingredients: perishable(p.groups) })),
   });
   assertEquals(out.breaches, []);
   assertEquals(out.checked, 5, "les cinq préparations doivent être EXAMINÉES");
@@ -418,7 +456,7 @@ Deno.test("REJEU — le plan réel, tel qu'il a été composé, est PROPRE", () 
 Deno.test("REJEU — la MÊME cuisson au lundi fait mordre quatre préparations", () => {
   const out = rawKeepingBreaches({
     window: REAL_WINDOW,
-    preparations: REAL_PREPS.map((p) => ({ id: p.id, cookOn: "mon", groups: p.groups })),
+    preparations: REAL_PREPS.map((p) => ({ id: p.id, cookOn: "mon", ingredients: perishable(p.groups) })),
   });
   assertEquals(out.checked, 5);
   // Le cabillaud (1 jour) et les trois qui portent de la feuille (3 jours).
@@ -498,3 +536,159 @@ Deno.test("⛔ LOT C — `mealShoppingPayload` rend `freeze_on_purchase`, TOUJOU
   // La date continue de partir avec, et les deux voyagent ensemble.
   assertEquals(payload[0].buy_on, "2026-09-05");
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 8. LA CADENCE ATTEINT LA CONSIGNE — 2026-09-09
+//
+// ⛔ LE CAS RAPPORTÉ (poul, brouillon du 2026-09-08): « une course », congélateur
+// déclaré, six jours. Le moteur datait la dinde hachée du mercredi et la
+// marquait « à congeler à l'achat »; le déroulé de la session de dimanche disait
+// « Acheter la dinde fraîche le jour même ou la veille ». Le modèle obéissait à
+// la phrase d'alors, qui supposait une course de plus — personne ne lui avait
+// dit qu'il n'y en aurait pas.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ UNE COURSE + CONGÉLATEUR — la consigne dit « congeler à l'achat », plus « racheter la veille »", () => {
+  const lines = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true }).join("\n");
+  assertStringIncludes(lines, "They shop ONCE, on mon");
+  assertStringIncludes(lines, "STRAIGHT INTO THE FREEZER");
+  assertStringIncludes(lines, "comes out of the freezer the night before");
+  // La phrase d'hier promettait un magasin que la liste n'ouvre pas.
+  assert(!lines.includes("bought that day or the day before"), lines);
+  // Et les lignes par famille ne bougent pas: la règle est la même, seule la
+  // SORTIE change.
+  assertStringIncludes(lines, "chicken, turkey, and any minced meat: fresh until wed");
+});
+
+Deno.test("deux courses pour trois sessions — la consigne nomme l'écart", () => {
+  const lines = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true }).join("\n");
+  assertStringIncludes(lines, "2 times for 3 cooking sessions");
+  assertStringIncludes(lines, "STRAIGHT INTO THE FREEZER");
+});
+
+Deno.test("sans congélateur, ou cadence jamais déclarée: la phrase d'avant, au caractère près", () => {
+  const before = rawReachLines(WEEK, null).join("\n");
+  assertStringIncludes(before, "bought that day or the day before");
+  assert(!before.includes("FREEZER"), before);
+  // `usesFreezer: false` = le plan ne s'appuie pas sur le congélateur (assez de
+  // courses, ou pas d'appareil): la sortie honnête reste la course plus proche.
+  assertEquals(rawReachLines(WEEK, { runs: 1, sessions: 2, usesFreezer: false }), rawReachLines(WEEK, null));
+});
+
+Deno.test("⛔ la cadence est `null` ou complète — un objet sans `usesFreezer` JETTE", () => {
+  let threw = false;
+  try {
+    rawReachLines(WEEK, { runs: 1, sessions: 1 } as never);
+  } catch (e) {
+    threw = String((e as Error).message).includes("usesFreezer");
+  }
+  assert(threw, "un `?` en ferait une garde désarmée");
+});
+
+Deno.test("PROMPT — avec une course et un congélateur, le tronc porte la sortie du congélateur", () => {
+  const msg = buildMealPrompt({ budgetFloor: null,
+    ...PROMPT_BASE,
+    hasFreezer: true,
+    groceryCadence: { runs: 1, sessions: 3, usesFreezer: true },
+  }).userMessage;
+  assertStringIncludes(msg, "They shop ONCE, on mon");
+  assertStringIncludes(msg, "STRAIGHT INTO THE FREEZER");
+  assert(!msg.includes("bought that day or the day before"), msg);
+  // Et `null` rend le prompt d'avant ce lot.
+  const before = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE }).userMessage;
+  assertStringIncludes(before, "bought that day or the day before");
+});
+
+Deno.test("le compteur des sessions nourries au congélateur — fed, named, silent", () => {
+  const out = sessionsFedFromFreezer({
+    sessions: [
+      { day: "wed", preparationIds: ["p_lentils"], runThrough: "Faire mijoter les lentilles." },
+      { day: "fri", preparationIds: ["p_chicken"], runThrough: "Acheter le poulet frais le jour même." },
+      { day: "sun", preparationIds: ["p_turkey"], runThrough: "Sortir la dinde du congélateur la veille, façonner les boulettes." },
+    ],
+    frozenPreparationIds: new Set(["p_chicken", "p_turkey"]),
+  });
+  // Mercredi ne puise dans rien de congelé: hors du compte.
+  assertEquals(out.fed, 2);
+  assertEquals(out.named, 1);
+  // Vendredi promet un magasin qui n'existe pas: c'est le cas rapporté, nommé.
+  assertEquals(out.silentDays, ["fri"]);
+  // Les deux langues du produit.
+  assertEquals(
+    sessionsFedFromFreezer({
+      sessions: [{ day: "sun", preparationIds: ["p"], runThrough: "Take the turkey out of the freezer the night before." }],
+      frozenPreparationIds: new Set(["p"]),
+    }).named,
+    1,
+  );
+});
+
+for (
+  const [name, rel] of [
+    ["foyer", "../../generate-household-meal-v1/index.ts"],
+  ] as const
+) {
+  Deno.test(`⛔ la lane ${name} DONNE la cadence à la consigne et LIT les vagues écrites`, async () => {
+    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    // La consigne reçoit la lecture de `capacity.plan`, jamais un second calcul.
+    assertStringIncludes(src, "groceryCadence: capacity.plan === null ? null : {");
+    assertStringIncludes(src, "usesFreezer: capacity.plan.usesFreezer,");
+    // La phrase « s'achète au plus près » lit les VAGUES, plus les brèches.
+    assertStringIncludes(src, "const writtenWaves = describeWrittenWaves({");
+    assertStringIncludes(src, "const shopLaterDays = writtenWaves.laterShopDays;");
+    assertStringIncludes(src, "frozenAtPurchase: writtenWaves.frozenAtPurchase as never,");
+    // Et la consigne du congélateur se COMPTE, avec son dénominateur.
+    assertStringIncludes(src, "sessions_fed_from_freezer:");
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OPTION A DU POINT 3 — pas de feuilles fraîches au-delà de leur ligne quand
+// la course est unique (2026-09-09)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ UNE COURSE — les feuilles et herbes fraîches ne vont pas dans une session après leur ligne", () => {
+  const one = rawReachLines(WEEK, { runs: 1, sessions: 3, usesFreezer: true }).join("\n");
+  // WEEK ouvre lundi: les feuilles (3 jours) tiennent jusqu'à jeudi.
+  assertStringIncludes(one, "never put them into a session after thu");
+  assertStringIncludes(one, "use dried or frozen herbs");
+  // Deux courses: il y a un magasin plus tard, la phrase ne sort pas.
+  const two = rawReachLines(WEEK, { runs: 2, sessions: 3, usesFreezer: true }).join("\n");
+  assert(!two.includes("never put them into a session"), two);
+  assert(!rawReachLines(WEEK, null).join("\n").includes("never put them into a session"));
+});
+
+Deno.test("buyDatesByIndex — la ligne qui fait SURVIVRE une vague est marquée", () => {
+  const out = buyDatesByIndex({
+    startsOn: "2026-09-09",
+    durationDays: 6,
+    runs: 1,
+    freezer: true,
+    shoppingList: [
+      { term: "dinde hachée", aisle: "protein", food_group: "poultry" },
+      { term: "persil", aisle: "produce", food_group: "leafy_greens" },
+      { term: "lentilles", aisle: "pantry", food_group: "legumes" },
+    ],
+    preparations: [
+      { id: "p", cookOn: "sun", ingredientTerms: ["dinde hachée", "persil"] },
+      { id: "q", cookOn: "wed", ingredientTerms: ["lentilles"] },
+    ],
+  });
+  // La dinde est absorbée (congelée); le persil ne peut pas l'être et garde
+  // sa vague du jeudi: c'est LUI qui coûte un déplacement.
+  assertEquals(out.freezeOnPurchase, [true, false, false]);
+  assertEquals(out.keptForFreshness, [false, true, false]);
+  assertEquals(out.buyOn, ["2026-09-09", "2026-09-10", "2026-09-09"]);
+});
+
+for (
+  const [name, rel] of [
+    ["foyer", "../../generate-household-meal-v1/index.ts"],
+  ] as const
+) {
+  Deno.test(`la lane ${name} passe le RAYON au constat et compte les vagues survivantes`, async () => {
+    const src = await Deno.readTextFile(new URL(rel, import.meta.url));
+    assertStringIncludes(src, "perishable: PERISHABLE_AISLES.has(String(line.aisle)),");
+    assertStringIncludes(src, "waves_kept_for_freshness:");
+  });
+}

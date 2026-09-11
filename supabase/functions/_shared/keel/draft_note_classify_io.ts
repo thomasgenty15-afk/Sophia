@@ -71,9 +71,8 @@ import { generateWithGemini } from "../gemini.ts";
 import {
   type MemoryClarificationAskReason,
   notifyMemoryWrite,
-  notifySafetyNotWritten,
 } from "./memory_clarification_io.ts";
-import { type RecapKept, type RecapSafety, safetyRecapLine, settingRecapLine } from "./memory_recap.ts";
+import { type RecapKept, settingRecapLine } from "./memory_recap.ts";
 // ⟳ 2026-09-08 — LA PORTE DU BILAN, POUR LES RÉGLAGES. `retainedItemsFromPlanFeedback`
 // tient l'échelle de chaque champ, le cadran unique du style, les bords et le
 // conflit des deux axes: une phrase passe par LÀ, jamais par une arithmétique
@@ -91,15 +90,8 @@ import {
 import { memberSubject, type RetainedItem } from "./retained_item.ts";
 // ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
 // de plan EST une allergie: elle part dans une table qui a sa ceinture.
-import { safetyOf } from "./draft_note_safety.ts";
 import {
-  safetyHeldForScope,
-  withoutSafetyHeldForScope,
 } from "./draft_note_classify.ts";
-import {
-  persistSafetyDeclarations,
-  type SafetyWriteOutcome,
-} from "./draft_note_safety_io.ts";
 
 // ===========================================================================
 // LES DEUX CONSTANTES, ET AUCUNE N'EST DÉCORATIVE
@@ -225,8 +217,6 @@ export interface DraftNoteClassifyResult {
   readonly classification: DraftNoteClassification;
   /** ⚠️ LE MODÈLE RÉELLEMENT DEMANDÉ. Rendu, pas seulement journalisé. */
   readonly model: string;
-  /** ⛔ CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ — arbitrage du 2026-09-01. */
-  readonly safety: SafetyWriteOutcome;
   /** Ce que la porte a fait. `null` quand on ne l'a pas appelée. */
   readonly write: RetainedWriteOutcome | null;
 }
@@ -493,13 +483,6 @@ export async function classifyAndPersistDraftNote(args: {
   const NO_CLARIFICATION = { asked: false, reason: null, id: null } as const;
   const NO_NOTICE = { delivered: false, reason: "not_attempted" } as const;
 
-  const noSafety: SafetyWriteOutcome = {
-    written: [],
-    proposed: 0,
-    refused: 0,
-    failed: 0,
-    notWritten: [],
-  };
   const empty = EMPTY_DRAFT_NOTE_CLASSIFICATION;
   const bail = (reason: DraftNoteClassifyReason): DraftNoteClassifyResult => {
     warn(reason, { user_id: String(args?.userId ?? ""), model: modelIfAsked });
@@ -512,7 +495,6 @@ export async function classifyAndPersistDraftNote(args: {
       classification: empty,
       model: modelIfAsked,
       write: null,
-      safety: noSafety,
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
@@ -555,7 +537,6 @@ export async function classifyAndPersistDraftNote(args: {
       classification: empty,
       model,
       write: null,
-      safety: noSafety,
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
@@ -603,7 +584,6 @@ export async function classifyAndPersistDraftNote(args: {
       classification,
       model,
       write: null,
-      safety: noSafety,
       clarification: NO_CLARIFICATION,
       notice: NO_NOTICE,
       announced: [],
@@ -611,65 +591,6 @@ export async function classifyAndPersistDraftNote(args: {
       atEdge: 0,
       cells: [],
     };
-  }
-
-  // ── LE SECOND CANAL, ET IL PASSE AVANT LES SORTIES ANTICIPÉES ──────────
-  // Une note qui ne dit QUE « je suis allergique aux arachides » produit zéro
-  // ligne dans les trois portes et une déclaration de sécurité: la placer
-  // après `nothing_to_file` rendrait le canal muet sur son cas le plus
-  // important. Les listes sont disjointes; un échec de l'une ne doit rien à
-  // l'autre.
-  // ⟳ 2026-09-05 — UNE QUESTION DE PORTÉE RETIENT LA CONTRAINTE. Mesuré au
-  // premier tir: le modèle a posé la question ET écrit le régime dans
-  // `safety`. La garde est déterministe (`safetyHeldForScope`), et comptée.
-  const heldForScope = withoutSafetyHeldForScope(
-    safetyOf(raw),
-    safetyHeldForScope(raw),
-  );
-  const safety = await persistSafetyDeclarations({
-    admin: args.admin,
-    userId,
-    raw: heldForScope.safety,
-    memberIds: (args.members ?? []).map((m) => m.memberId),
-    contentLocale: args.contentLocale,
-    sourceMessageId: String(args.requestId ?? ""),
-  });
-  // ⟳ 2026-09-05 — L'ÉCHEC SE DIT, AVANT TOUT LE RESTE. Une déclaration que la
-  // base a refusée (bouche hors foyer, régime hors liste, port en panne) ne
-  // doit pas rester un chiffre dans un journal: la personne croirait Sophia
-  // prévenue d'une allergie qu'elle ne connaît pas. La bulle part AVANT
-  // l'accusé et AVANT la question, parce que seule la dernière bulle armée
-  // est tapable.
-  if (safety.notWritten.length > 0) {
-    await notifySafetyNotWritten(args.admin as never, {
-      userId,
-      failed: safety.notWritten.map((f) => ({
-        kind: f.declaration.kind,
-        ref: f.declaration.ref,
-        who: f.declaration.memberId === null
-          ? null
-          : (args.members ?? []).find((m) =>
-            String(m?.memberId ?? "").trim().toLowerCase() === f.declaration.memberId
-          )?.label ?? null,
-      })),
-      language: /^fr/i.test(String(args.contentLocale ?? "")) ? "fr" : "en",
-      requestId: args.requestId,
-      now: args.now ? new Date(args.now) : undefined,
-    });
-  }
-  if (safety.proposed > 0 || safety.failed > 0 || heldForScope.held > 0) {
-    (safety.failed === 0 ? console.info : console.warn)(JSON.stringify({
-      tag: "keel/draft_note_safety",
-      event: safety.failed === 0 ? "written" : "partial",
-      user_id: userId,
-      proposed: safety.proposed,
-      held_for_scope: heldForScope.held,
-      written: safety.written.length,
-      refused: safety.refused,
-      failed: safety.failed,
-      attributed: safety.written.filter((d) => d.memberId !== null).length,
-      kinds: [...new Set(safety.written.map((d) => d.kind))].sort(),
-    }));
   }
 
   // ══ ⑤ LA QUESTION — UNE SEULE, ET APRÈS L'ÉCRITURE ═════════════════════
@@ -717,14 +638,10 @@ export async function classifyAndPersistDraftNote(args: {
     written: readonly RecapKept[],
   ): Promise<{ delivered: boolean; reason: string }> => {
     const all = [...(args.alsoAnnounce ?? []), ...written];
-    if (all.length === 0 && safetyRecap.length === 0) return NO_NOTICE;
+    if (all.length === 0) return NO_NOTICE;
     return await notifyMemoryWrite(args.admin as never, {
       userId,
-      // ⚠️ LES LIGNES DE SÉCURITÉ SONT DANS `all` (pour le front) ET DANS
-      // `safety` (pour le bloc « si je me suis trompée… » de la bulle). Le
-      // récap ignore le genre `safety` dans ses destinations: pas de doublon.
       kept: all,
-      safety: safetyRecap,
       language,
       requestId: args.requestId,
       now: args.now ? new Date(args.now) : undefined,
@@ -741,25 +658,6 @@ export async function classifyAndPersistDraftNote(args: {
     const label = String(found?.label ?? "").trim();
     return label || null;
   };
-
-  // ── ⟳ 2026-09-08 — CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ SE DIT, ET EN PREMIER ──
-  // Avant la sortie « rien à ranger », parce que c'est SON cas: « Claire est
-  // végétarienne » ne remplit aucune porte et écrit un régime. Mesuré au banc
-  // de phrases: trois déclarations écrites, trois réponses « je n'ai rien
-  // trouvé à changer ».
-  const safetyRecap: RecapSafety[] = safety.written.map((d) => ({
-    kind: d.kind,
-    ref: d.ref,
-    who: d.memberId === null ? null : whoOf(memberSubject(d.memberId) ?? ""),
-  }));
-  // ⚠️ LA BOUCHE VOYAGE DANS `who`, PAS DANS LE TEXTE: le front la préfixe
-  // lui-même (« Claire : … »). Mesuré: « Claire : un régime de Claire : … ».
-  const safetyLines: RecapKept[] = safetyRecap.map((s) => ({
-    text: safetyRecapLine({ ...s, who: null }, language),
-    until: null,
-    kind: "safety",
-    who: s.who,
-  }));
 
   if (
     classification.preferences.items.length === 0 &&
@@ -780,7 +678,7 @@ export async function classifyAndPersistDraftNote(args: {
     // fréquent de cette porte: « ma fille n'aime pas le poisson » ne remplit
     // aucune des trois listes — c'est précisément pour ça qu'on relance.
     const clarification = NO_CLARIFICATION;
-    const notice = await announce(safetyLines);
+    const notice = await announce([]);
     // ⟳ `clarification_asked` n'est plus atteignable: rien ne demande.
     // ⚠️ `nothing_to_file` RESTE LE MOTIF même quand une sécurité a été
     // écrite: il parle des PORTES. Les lignes annoncées, elles, disent
@@ -814,10 +712,9 @@ export async function classifyAndPersistDraftNote(args: {
       classification,
       model,
       write: null,
-      safety,
       clarification,
       notice,
-      announced: safetyLines,
+      announced: [],
       questions,
       atEdge: 0,
       cells: classification.cells.requests,
@@ -1016,7 +913,7 @@ export async function classifyAndPersistDraftNote(args: {
   // refusée (un doublon, un mémo plein) apprendrait à la personne que les
   // accusés ne veulent rien dire — la même règle que « on ne dit jamais noté
   // sur une écriture qu'on n'a pas faite ».
-  const announced: RecapKept[] = [...safetyLines];
+  const announced: RecapKept[] = [];
   if (write.ok) {
     if (write.durableWritten > 0) {
       // ⛔ ON N'ANNONCE QUE CE QUI EST VRAIMENT ENTRÉ, et un mouvement de part
@@ -1093,7 +990,6 @@ export async function classifyAndPersistDraftNote(args: {
     classification,
     model,
     write,
-    safety,
     clarification,
     notice,
     announced,
@@ -1360,7 +1256,6 @@ export async function answerDraftNotePortion(args: {
   const notice = announced.length === 0 ? NO_NOTICE : await notifyMemoryWrite(args.admin as never, {
     userId,
     kept: announced,
-    safety: [],
     language,
     requestId: args.requestId,
     now: args.now ? new Date(args.now) : undefined,

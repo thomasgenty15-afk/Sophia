@@ -1,0 +1,2159 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 2
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+      "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+      "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+      "Tu avais prévu 3 courses ; le plan n'en organise que 2, une par session de cuisine — on ne va pas au magasin plus souvent qu'on ne cuisine. Rien ne t'empêche d'y retourner pour du frais.",
+      "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+      "Les quantités sont faites pour 5 bouches.",
+      "Cette semaine, toute la table mange végétarien : c'est la ligne de Lea.",
+      "Chaque personne a chacun de ses repas.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [
+      "Tu as demandé zoe : il n'y en a pas cette fois."
+    ],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "La pizza demandée est gardée avec une garniture de légumes de saison, et les raviolis aux champignons sont servis au déjeuner.",
+      "Pour la portion séparée, les raviolis sont remplacés par une version aux épinards afin de conserver le même rôle dans l'assiette.",
+      "Les préparations partagées restent végétariennes, avec des pois chiches, du fromage ou du tofu comme sources de protéines."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 12,
+    "declared": 12,
+    "kept": 12,
+    "refused": 0
+  },
+  "food_groups": {
+    "declared": 88,
+    "valid": 88,
+    "refused": 0,
+    "persisted": 61,
+    "lines": 69
+  },
+  "household": {
+    "id": "fb235931-b4b8-4052-903f-876ef0f3c7f1",
+    "member_count": 5,
+    "dish_owners": {
+      "asked": 2,
+      "declared": 1,
+      "attributed": 0,
+      "refused": 1
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 3,
+      "dishes": 24,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 1,
+      "skipped_no_medical": 0,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 5,
+      "ranks_without_object": 0,
+      "by_rank": {
+        "rank_1": 6,
+        "rank_2": 6,
+        "rank_3": 7,
+        "rank_4": 2,
+        "rank_5": 1
+      }
+    },
+    "boxes": {
+      "meals": 4,
+      "with_box": 4,
+      "boxes": 8,
+      "expected": 12,
+      "delivery": "served",
+      "refused": 0,
+      "names": 18,
+      "names_refused": 0,
+      "items": 10,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 4,
+      "sum_checked": 2,
+      "sum_over": 0,
+      "sum_unverifiable": 2,
+      "mouth_slots": 20,
+      "mouths_unboxed": 4,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 8,
+      "mouths_no_box_cell": 40,
+      "mouths": 5
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 43,
+      "unquantified": 0
+    },
+    "vague_portions": {
+      "notes": 5,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 0,
+      "unknown": 20,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 1,
+      "checked": 4,
+      "kept": 4,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 2,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 4,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 88,
+      "groups_valid": 88,
+      "groups_refused": 0,
+      "group_excluded": 0,
+      "group_plant_only": 19,
+      "group_undecided": 7
+    },
+    "swap": {
+      "strictest": "vegetarian",
+      "bound_mouths": 1,
+      "free_mouths": 4,
+      "cells_checked": 4,
+      "cells_carrying": 0,
+      "cells_swap_absent": 4,
+      "flagrant": true,
+      "absent_cells": [
+        "sun/lunch",
+        "sun/dinner",
+        "mon/lunch",
+        "mon/dinner"
+      ],
+      "retry_attempts": 1,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 1,
+      "checked": 2,
+      "kept": 2,
+      "refused": 0,
+      "bites": 1,
+      "separated": 1,
+      "not_separated": 0,
+      "box_scoped": 2
+    },
+    "meals_delivered": {
+      "mouths": 5,
+      "expected": 52,
+      "fed": 52,
+      "missing": 0,
+      "by_cause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 0,
+      "retried": true,
+      "retry_attempts": 1,
+      "retry_accepted": 1,
+      "retry_merged_cells": 4,
+      "retry_on": {
+        "not_named": 4
+      },
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": []
+    },
+    "box_sizing": {
+      "boxes": 12,
+      "common": 4,
+      "items": 12,
+      "sized": 12,
+      "unchanged": 0,
+      "capped_by_pot": 0,
+      "unverifiable": 5,
+      "mouths": {
+        "sized": 2,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 3,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 0,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 5,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 1,
+      "anchor": {
+        "anchored": 1,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 3,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 6
+      },
+      "anchor_applied": 8,
+      "unmet": {
+        "none": 1,
+        "factor_clamped": 3,
+        "pot_ceiling": 0,
+        "both": 0,
+        "not_anchored": 6
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 3
+      },
+      "densify": {
+        "mouth_days": 3,
+        "boxes_touched": 0,
+        "moved_g": 0,
+        "closed_kcal": 0,
+        "stopped": {
+          "closed": 0,
+          "floor": 0,
+          "ceiling": 0,
+          "pot_exhausted": 0,
+          "no_dense_target": 3,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 0,
+        "remaining_gte_200": 3
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 5,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 5,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 5
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 5
+      },
+      "appetite": {
+        "declared": 5,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 5,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Bol frais au yaourt",
+      "title": "Yaourt, flocons d'avoine et poire",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt grec",
+          "quantity": "200 g de yaourt grec",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g de noix",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Déposez le yaourt dans un bol, ajoutez les flocons, la poire en dés et les noix.",
+      "why": "Un petit-déjeuner frais, nourrissant et rapide pour commencer la journée régulièrement.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Pomme et fromage blanc",
+      "title": "Fromage blanc et pomme",
+      "slot": "snack_am",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "150 g de fromage blanc",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servez le fromage blanc avec la pomme croquée ou coupée.",
+      "why": "Une collation fraîche et très simple entre deux repas.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poire et noix",
+      "title": "Skyr, poire et noix",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "150 g de skyr",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g de noix",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servez le skyr avec la poire en quartiers et les noix.",
+      "why": "Une collation fraîche qui tient facilement jusqu'au dîner.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Skyr du soir",
+      "title": "Skyr, pêche et amandes",
+      "slot": "before_bed",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "150 g de skyr",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "1 pêche",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g d'amandes",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servez le skyr avec la pêche en morceaux et les amandes.",
+      "why": "Une petite fin de journée simple et régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Porridge aux prunes",
+      "title": "Porridge au lait, skyr et prunes",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "flocons d'avoine",
+          "quantity": "60 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "lait",
+          "quantity": "200 ml de lait",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "150 g de skyr",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faites cuire les flocons avec le lait cinq minutes à feu doux, puis ajoutez le skyr et les prunes.",
+      "why": "Un petit-déjeuner chaud avec des fruits de saison et une préparation courte.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Raisin et yaourt",
+      "title": "Yaourt nature et raisin",
+      "slot": "snack_am",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt nature",
+          "quantity": "170 g de yaourt nature",
+          "in_pantry": false,
+          "amount": 170,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 170,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "150 g de raisin",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servez le yaourt avec le raisin lavé.",
+      "why": "Une collation rapide qui accompagne une journée régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Shake de Marc",
+      "title": "Lait, avoine, banane et purée de tournesol",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "300 ml de lait",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée de graines de tournesol",
+          "quantity": "1 c. à soupe de purée de graines de tournesol",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écrasez la banane à la fourchette, fouettez-la avec le lait, les flocons et la purée de graines, puis servez dans un grand verre.",
+      "why": "Un grand verre nourrissant, préparé sans appareil électrique.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 6
+      }
+    },
+    {
+      "name": "Yaourt aux prunes",
+      "title": "Yaourt, prunes et amandes",
+      "slot": "before_bed",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt grec",
+          "quantity": "170 g de yaourt grec",
+          "in_pantry": false,
+          "amount": 170,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 170,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g d'amandes",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servez le yaourt avec les prunes coupées et les amandes.",
+      "why": "Une fin de journée légère à assembler en quelques minutes.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Couscous doré aux pois chiches",
+      "title": "Pois chiches, couscous et légumes rôtis",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Sortir la boîte du réfrigérateur et réchauffer doucement le couscous, les pois chiches et les légumes dans une poêle couverte. Mélanger avant de servir.",
+      "why": "Un plat complet, coloré et facile à réchauffer, avec des légumes de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chickpea_couscous__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch_sonia",
+          "member_ids": [
+            "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chickpea_couscous__r",
+              "term": "pois chiches, couscous et légumes rôtis",
+              "grams": 453
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_shared",
+          "member_ids": [
+            "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+            "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+            "20a7dde3-b208-4567-9832-ab10ecda7eca"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chickpea_couscous__r",
+              "term": "pois chiches, couscous et légumes rôtis",
+              "grams": 1496
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Couscous personnel aux pois chiches",
+      "title": "Pois chiches, couscous et légumes rôtis",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Sortir la boîte du réfrigérateur et réchauffer doucement son contenu dans une poêle couverte. Remuer une fois avant de servir.",
+      "why": "Une assiette généreuse de céréales, de légumineuses et de légumes, prête rapidement.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chickpea_couscous__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch_marc",
+          "member_ids": [
+            "398f89f0-6d43-4f12-8065-30948ced66bc"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chickpea_couscous__r",
+              "term": "pois chiches, couscous et légumes rôtis",
+              "grams": 858
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Pizza dorée aux légumes",
+      "title": "Pizza aux légumes rôtis et mozzarella",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Réchauffer la pizza dans le four chaud jusqu’à ce que la pâte soit croustillante et le fromage fondant. Utiliser une plaque et une spatule propres pour cette boîte.",
+      "why": "La pizza demandée reste au menu, avec une garniture de légumes rôtis et de mozzarella.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_pizza__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_sonia",
+          "member_ids": [
+            "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_pizza__r",
+              "term": "pizza aux légumes rôtis et mozzarella",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_shared",
+          "member_ids": [
+            "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+            "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+            "20a7dde3-b208-4567-9832-ab10ecda7eca"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_pizza__r",
+              "term": "pizza aux légumes rôtis et mozzarella",
+              "grams": 1309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Pizza personnelle aux légumes",
+      "title": "Pizza aux légumes rôtis et mozzarella",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Réchauffer sa pizza dans le four chaud, sur une plaque propre, jusqu’à ce que la pâte soit croustillante et le fromage fondu. Garder la boîte fermée jusqu’à ce que la pizza soit sortie du four.",
+      "why": "Une pizza individuelle aux légumes rôtis, cuite dans la même session et réchauffée au four.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_pizza__r",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_marc",
+          "member_ids": [
+            "398f89f0-6d43-4f12-8065-30948ced66bc"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_pizza__r",
+              "term": "pizza aux légumes rôtis et mozzarella",
+              "grams": 924
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Raviolis crémeux aux épinards",
+      "title": "Raviolis aux champignons, épinards et ricotta",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffer la boîte dans une poêle avec deux cuillères à soupe d’eau, à couvert, puis mélanger délicatement. Servir dès que les raviolis sont bien chauds.",
+      "why": "Les raviolis demandés apportent une assiette réconfortante avec des épinards et de la ricotta.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_ravioli_shared",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_sonia",
+          "member_ids": [
+            "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_ravioli_shared",
+              "term": "raviolis aux champignons, épinards et ricotta",
+              "grams": 453
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_shared",
+          "member_ids": [
+            "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+            "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+            "20a7dde3-b208-4567-9832-ab10ecda7eca"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_ravioli_shared",
+              "term": "raviolis aux champignons, épinards et ricotta",
+              "grams": 1496
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Raviolis aux épinards",
+      "title": "Raviolis aux épinards et ricotta",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffer cette boîte en premier, sur une poêle, une planche et des ustensiles propres, avec deux cuillères à soupe d’eau. Fermer la boîte avant de préparer l’autre plat.",
+      "why": "La farce aux épinards et à la ricotta offre une variante douce et rassasiante des raviolis.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_ravioli_marc",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_marc",
+          "member_ids": [
+            "398f89f0-6d43-4f12-8065-30948ced66bc"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_ravioli_marc",
+              "term": "raviolis aux épinards et ricotta",
+              "grams": 984
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Tofu mijoté aux légumes",
+      "title": "Tofu, légumes mijotés et pommes de terre",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffer la boîte dans une casserole à feu doux avec son couvercle, en remuant une fois. Servir le tofu, les légumes et les pommes de terre ensemble.",
+      "why": "Un mijoté chaud et simple qui utilise des légumes de saison et se réchauffe très bien.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_stew",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_sonia",
+          "member_ids": [
+            "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_tofu_stew",
+              "term": "tofu, légumes mijotés et pommes de terre",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_shared",
+          "member_ids": [
+            "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+            "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+            "20a7dde3-b208-4567-9832-ab10ecda7eca"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_tofu_stew",
+              "term": "tofu, légumes mijotés et pommes de terre",
+              "grams": 1309
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Tofu mijoté aux pommes de terre",
+      "title": "Tofu, légumes mijotés et pommes de terre",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [],
+      "method": "Réchauffer sa boîte dans une casserole propre, à feu doux et à couvert, puis mélanger délicatement. Garder cette portion séparée jusqu’au service.",
+      "why": "Un plat complet de tofu, de pommes de terre et de légumes, pratique pour le dîner.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_tofu_stew",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_marc",
+          "member_ids": [
+            "398f89f0-6d43-4f12-8065-30948ced66bc"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_tofu_stew",
+              "term": "tofu, légumes mijotés et pommes de terre",
+              "grams": 1060
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_chickpea_couscous__r",
+      "title": "Pois chiches, couscous et légumes rôtis",
+      "servings_made": 5,
+      "ingredients": [
+        {
+          "term": "pois chiches cuits",
+          "quantity": "1.2 kg",
+          "in_pantry": false,
+          "amount": 1200,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 1200,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "couscous complet",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignons",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "feta",
+          "quantity": "250 g",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": "dairy_cheese",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "4 tbsp",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Préchauffer le four à 220 °C. Mélanger les courgettes, les poivrons et les oignons avec l’huile, puis rôtir jusqu’à coloration. Cuire le couscous, l’égrener, puis incorporer les pois chiches, les légumes et la feta. Refroidir et répartir dans les boîtes.",
+      "active_minutes": 30,
+      "total_minutes": 55,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_pizza__r",
+      "title": "Pizza aux légumes rôtis et mozzarella",
+      "servings_made": 5,
+      "ingredients": [
+        {
+          "term": "farine de blé",
+          "quantity": "750 g",
+          "in_pantry": false,
+          "amount": 750,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 750,
+          "group": "refined_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "450 ml",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": "water",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "levure boulangère",
+          "quantity": "10 g",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "5 tbsp",
+          "in_pantry": false,
+          "amount": 5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 75,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "mozzarella",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "dairy_cheese",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "coulis de tomate",
+          "quantity": "500 ml",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "sauce_dressing",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Préparer la pâte avec la farine, l’eau, la levure et l’huile, puis la laisser lever. Émincer les légumes et les rôtir au four. Étaler la pâte, garnir de coulis, de légumes et de mozzarella, puis cuire les pizzas jusqu’à ce que les bords soient dorés. Refroidir et fermer les boîtes.",
+      "active_minutes": 45,
+      "total_minutes": 105,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_ravioli_shared",
+      "title": "Raviolis aux champignons, épinards et ricotta",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "farine de blé",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "refined_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "œufs",
+          "quantity": "4 unit",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 220,
+          "group": "eggs",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "champignons",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "épinards",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "leafy_greens",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "ricotta",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "parmesan",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "dairy_cheese",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "2 tbsp",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Former la pâte avec la farine et les œufs, puis la laisser reposer. Faire revenir les champignons et les épinards avec l’huile, laisser refroidir et mélanger avec la ricotta et le parmesan. Façonner les raviolis, les cuire dans l’eau frémissante, les égoutter et les répartir dans les boîtes.",
+      "active_minutes": 55,
+      "total_minutes": 90,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_ravioli_marc",
+      "title": "Raviolis aux épinards et ricotta",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "farine de blé",
+          "quantity": "305 g",
+          "in_pantry": false,
+          "amount": 305,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 305,
+          "group": "refined_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "œufs",
+          "quantity": "3 unit",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 165,
+          "group": "eggs",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "épinards",
+          "quantity": "380 g",
+          "in_pantry": false,
+          "amount": 380,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 380,
+          "group": "leafy_greens",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "ricotta",
+          "quantity": "380 g",
+          "in_pantry": false,
+          "amount": 380,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 380,
+          "group": "dairy_yogurt",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "parmesan",
+          "quantity": "75 g",
+          "in_pantry": false,
+          "amount": 75,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 75,
+          "group": "dairy_cheese",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1.5 tbsp",
+          "in_pantry": false,
+          "amount": 1.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 22.5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Préparer cette farce en premier avec une planche, un couteau, une poêle et une cuillère propres. Façonner et cuire les raviolis, fermer sa boîte avant toute autre préparation, puis laver le matériel et changer l’huile.",
+      "active_minutes": 35,
+      "total_minutes": 65,
+      "cook_on": "mon"
+    },
+    {
+      "id": "prep_tofu_stew",
+      "title": "Tofu, légumes mijotés et pommes de terre",
+      "servings_made": 5,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "900 g",
+          "in_pantry": false,
+          "amount": 900,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 900,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pommes de terre",
+          "quantity": "1.5 kg",
+          "in_pantry": false,
+          "amount": 1500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1500,
+          "group": "starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "carottes",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poireaux",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "800 g",
+          "in_pantry": false,
+          "amount": 800,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 800,
+          "group": "sauce_dressing",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignons",
+          "quantity": "300 g",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "3 tbsp",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 45,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "eau",
+          "quantity": "400 ml",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "water",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "1 pinch",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Faire revenir les oignons et le tofu dans l’huile. Ajouter les carottes, les poireaux, les pommes de terre, les tomates et l’eau, puis mijoter jusqu’à ce que les légumes soient tendres. Refroidir et répartir dans les boîtes.",
+      "active_minutes": 30,
+      "total_minutes": 75,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_chickpea_couscous__r",
+        "prep_pizza__r"
+      ],
+      "run_through": "Préchauffez le four, coupez les légumes et lancez leur cuisson. Préparez le couscous et les pois chiches pendant le rôtissage. Étalez ensuite la pâte, garnissez les pizzas, cuisez-les, laissez refroidir puis répartissez dans les boîtes nommées.",
+      "total_minutes": 115
+    },
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_ravioli_shared",
+        "prep_ravioli_marc",
+        "prep_tofu_stew"
+      ],
+      "run_through": "Lavez et désinfectez tout le plan de travail, préparez d'abord les raviolis du plat partagé et fermez leurs boîtes. Relavez planche, couteau et poêle, changez l'huile, préparez la portion séparée et fermez sa boîte. Lancez ensuite les pommes de terre et le tofu au four, faites mijoter les légumes, puis répartissez dans les boîtes nommées.",
+      "total_minutes": 120
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "yaourt grec",
+      "quantity": "1 kg de yaourt grec",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt nature",
+      "quantity": "605 g de yaourt nature",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "skyr",
+      "quantity": "1 kg de skyr",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fromage blanc",
+      "quantity": "755 g de fromage blanc",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "lait",
+      "quantity": "1 litre de lait",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "ricotta",
+      "quantity": "910 g de ricotta",
+      "aisle": "dairy",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "mozzarella",
+      "quantity": "985 g de mozzarella",
+      "aisle": "dairy",
+      "food_group": "dairy_cheese",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pois chiches cuits",
+      "quantity": "1.2 kg de pois chiches cuits",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "flocons d'avoine",
+      "quantity": "455 g de flocons d'avoine",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tofu ferme",
+      "quantity": "1 kg de tofu ferme",
+      "aisle": "protein",
+      "food_group": "tofu_tempeh",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "1.7 kg de courgettes",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivrons",
+      "quantity": "1.3 kg de poivrons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "aubergines",
+      "quantity": "1210 g d'aubergines",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "épinards",
+      "quantity": "1330 g d'épinards",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "oignons",
+      "quantity": "1210 g d'oignons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes de terre",
+      "quantity": "1.4 kg de pommes de terre",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prunes",
+      "quantity": "9 prunes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "banane",
+      "quantity": "1 banane",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "120 g de noix",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "75 g d'amandes",
+      "aisle": "other",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "purée de graines de tournesol",
+      "quantity": "1 petit pot de purée de graines de tournesol",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "coulis de tomate",
+      "quantity": "1240 g de coulis de tomate",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "couscous complet",
+      "quantity": "755 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "feta",
+      "quantity": "380 g",
+      "aisle": "dairy",
+      "food_group": "dairy_cheese",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "farine de blé",
+      "quantity": "1.35 kg",
+      "aisle": "grains",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "eau",
+      "quantity": "1285 ml",
+      "aisle": "pantry",
+      "food_group": "water",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "levure boulangère",
+      "quantity": "15 g",
+      "aisle": "pantry",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d’olive",
+      "quantity": "23 tbsp",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "œufs",
+      "quantity": "9 unit",
+      "aisle": "dairy",
+      "food_group": "eggs",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "champignons",
+      "quantity": "755 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "parmesan",
+      "quantity": "225 g",
+      "aisle": "dairy",
+      "food_group": "dairy_cheese",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "carottes",
+      "quantity": "910 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poireaux",
+      "quantity": "755 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates concassées",
+      "quantity": "1210 g",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "sel",
+      "quantity": "1 pinch",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivre noir",
+      "quantity": "1 pinch",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554",
+      "display_name": "Sonia",
+      "portion_note": "Au petit-déjeuner, commencez par les fruits ou légumes, puis prenez le composant protéiné et terminez par le féculent. Au déjeuner et au dîner, gardez cet ordre et ajoutez les accompagnements prévus.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "398f89f0-6d43-4f12-8065-30948ced66bc",
+      "display_name": "Marc",
+      "portion_note": "À chaque repas, servez d'abord le composant protéiné et le féculent, puis les légumes ou les fruits. L'après-midi, prenez le grand verre préparé avec le lait, l'avoine, la banane et la purée de graines.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+      "display_name": "Lea",
+      "portion_note": "Mélangez tous les composants dans l'assiette et prenez-les ensemble, sans séparer les accompagnements.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+      "display_name": "Tom",
+      "portion_note": "Mélangez tous les composants dans l'assiette et prenez-les ensemble, sans séparer les accompagnements.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "20a7dde3-b208-4567-9832-ab10ecda7eca",
+      "display_name": "Zoe",
+      "portion_note": "Mélangez tous les composants dans l'assiette et prenez-les ensemble, sans séparer les accompagnements.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": []
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 1 (2026-09-06)",
+    "freeze_on_purchase: 0/36",
+    "raw_keeping_needs_later_shop: 0/5 preparations",
+    "preparations[3]: servings_made must be > 1, dropped",
+    "dishes[1]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[5]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[7]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[9]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[11]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[12]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, pêche et amandes\" (sun/before_bed) was dropped instead",
+    "dishes[13]: over the 12-dish cap for several_days, dropped",
+    "dishes[14]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Pizza aux légumes rôtis et mozzarella\" (sun/dinner) was dropped instead",
+    "dishes[15]: over the 12-dish cap for several_days, dropped",
+    "dishes[16]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Pois chiches, couscous et légumes rôtis\" (sun/lunch) was dropped instead",
+    "dishes[17]: over the 12-dish cap for several_days, dropped",
+    "dishes[18]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Fromage blanc et pomme\" (sun/snack_am) was dropped instead",
+    "dishes[18]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[19]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Yaourt, flocons d'avoine et poire\" (sun/breakfast) was dropped instead",
+    "dishes[20]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Fromage blanc, raisin et noix\" (mon/snack_pm) was dropped instead",
+    "dishes[21]: over the 12-dish cap for several_days, dropped",
+    "dishes[22]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, poire et noix\" (sun/snack_pm) was dropped instead",
+    "dishes[23]: over the 12-dish cap for several_days, dropped",
+    "shopping_list_unattributed: 6/32 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "dishes[8]: protein_source_missing -- lunch carries no protein food",
+    "sun/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+    "sun/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+    "mon/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+    "mon/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+    "uses_kept_freezer: 0/6",
+    "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_chickpea_couscous",
+    "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_pizza",
+    "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_ravioli_mushroom",
+    "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_tofu_ratatouille",
+    "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_chickpea_couscous",
+    "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_pizza",
+    "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_ravioli_plain",
+    "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_tofu_ratatouille",
+    "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_chickpea_couscous",
+    "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_pizza",
+    "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_ravioli_mushroom",
+    "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_tofu_ratatouille",
+    "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_chickpea_couscous",
+    "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_pizza",
+    "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_ravioli_mushroom",
+    "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_tofu_ratatouille",
+    "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_chickpea_couscous",
+    "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_pizza",
+    "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_ravioli_mushroom",
+    "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_tofu_ratatouille"
+  ],
+  "request_id": "19e9f361-5b49-473f-a9d8-7ccd059ba093"
+}

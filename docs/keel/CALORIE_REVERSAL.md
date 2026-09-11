@@ -264,3 +264,59 @@ vaut « on ne sait pas » ⇒ **pas de chiffre, jamais de repli**.
   (le bloc « no calories » a été retiré des pages de vente, et `CommunitiesPage.tsx` porte
   l'interdit de le faire revenir). **Ce qui reste vrai de la ligne, et qui est le seul morceau
   à garder : tout chiffre porte sa base** — calculé ou estimé, l'interface le dit.
+
+---
+
+## 8. LE PLANCHER TCA DIMENSIONNE — 2026-09-07 (lot 6 du plan solo)
+
+Chantier : [METHODE-GENERATION-DE-PLAN-SOLO.md](METHODE-GENERATION-DE-PLAN-SOLO.md).
+
+### Ce que ce lot change, et c'est une ligne
+
+Sous plancher TCA (`restriction: "raised"`), `mouthTargetKcal` rend `null`.
+C'est **juste** : sa question est « quel objectif pour cette personne », et la
+bonne réponse est *aucun*.
+
+`portion_sizing.ts::dayTargetFor` pose une **autre question** — *combien mettre
+dans l'assiette* — et y répond par l'**entretien**.
+
+> ~~Une bouche dont le plancher est levé n'est pas dimensionnée.~~
+> **Depuis le 2026-09-07 : elle l'est, à l'entretien, et le compteur le dit
+> (`gap_closed: restriction_floor`).**
+
+### Pourquoi refuser de dimensionner ne protégeait personne
+
+⛔ **Une assiette non dimensionnée n'est pas une assiette neutre.** C'est la
+recette du modèle servie telle quelle, c'est-à-dire une quantité **tirée au
+sort** : le modèle écrit une portion standard sans connaître le corps de
+personne (v33). Quelqu'un dont le plancher est levé recevait donc, au hasard,
+trop ou pas assez — et « pas assez » est très exactement le sens d'erreur qu'un
+plancher TCA existe pour empêcher.
+
+### Ce qui reste fermé, et n'a pas bougé d'un octet
+
+- **L'écart d'objectif.** `goalGapKcalOf` rend zéro sous plancher — la chaîne
+  ①②③ le ferme déjà. La cible **est** l'entretien ; aucun déficit n'est ouvert.
+- **L'affichage.** `canShowEnergy`, `decideBoxEnergy`, `energySafetyGates`,
+  `canSizeFromTarget` : **non touchés**. La boîte se dimensionne, son chiffre ne
+  se montre pas. Deux épingles de câblage le tiennent.
+- **`restriction: "unreadable"`.** « Plancher levé » est une décision connue ;
+  « on n'a pas su lire » est une ignorance, et sur une ignorance on s'abstient.
+- **Le journal.** ⛔ Sous plancher, **aucun nombre de kcal ne sort, pas même en
+  log** : `standard_kcal`, `density`, `target_kcal` et `unmet_kcal` sont omis de
+  la ligne par plat, qui garde ses grammes et son verdict et porte
+  `floored: true`. « Pas montré aujourd'hui » n'est pas une propriété du
+  produit : un journal se copie dans un rapport, s'exporte, se relit au support.
+
+### Le retour arrière
+
+`RESTRICTION_FLOOR_SIZES_MAINTENANCE = false` (`portion_sizing.ts`) referme
+tout, sans toucher une ligne de câblage. La constante est épinglée.
+
+### La factorisation qui l'a rendu possible
+
+`mouthTargetKcal` est devenue la **composition** de deux fonctions extraites :
+`maintenanceKcalOf` (le corps, sans la porte ①) et `goalGapKcalOf` (l'écart,
+chaîne ①②③ et garde de grossesse comprises). Ses **56 cas de test n'ont pas
+bougé d'un octet** — c'est ce qui prouve que le lot n'a déplacé la cible de
+personne d'autre.

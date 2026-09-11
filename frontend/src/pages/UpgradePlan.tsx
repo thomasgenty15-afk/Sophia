@@ -37,6 +37,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { Badge } from '../keel/components/ui/Badge';
 import { Button } from '../keel/components/ui/Button';
 import { Card } from '../keel/components/ui/Card';
+import { BrandMark } from '../keel/components/BrandMark';
 
 type BillingInterval = 'monthly' | 'yearly';
 type PaidTier = 'system' | 'alliance' | 'architecte';
@@ -269,10 +270,11 @@ const UpgradePlan = () => {
             Retour
           </button>
 
-          {/* ⛔ PAS DE `px-*` SUR CE NŒUD: `.eq` pose son `padding-left` hors
-              de toute couche CSS, donc il bat un utilitaire de même
-              spécificité et la marge intérieure casse en silence. */}
-          <span className="eq shrink-0 font-display text-lg leading-none text-ink">
+          {/* Le symbole remplace l'équerre — voir `PublicHeader`. L'avertissement
+              sur le `padding-left` de `.eq` tombe avec elle: `flex`+`gap`
+              n'écrit rien hors des couches CSS. */}
+          <span className="flex shrink-0 items-center gap-1.5 font-display text-lg leading-none text-ink">
+            <BrandMark className="h-6 w-6 shrink-0 text-fig-700" />
             Sophia
           </span>
 

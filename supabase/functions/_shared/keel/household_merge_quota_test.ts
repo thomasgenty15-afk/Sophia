@@ -15,6 +15,10 @@
  *   4. le fait que la lane individuelle n'y touche pas;
  *   5. le fait qu'aucun fichier du produit ne connaît le nombre.
  */
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -265,43 +269,6 @@ Deno.test("LA DÉFUSION ET LA COMPOSITION NE PAIENT PAS LE PLAFOND", async () =>
     "la réclamation ne nomme plus la personne fusionnée: `last_member_id` " +
       "désignerait quelqu'un d'autre, et une semaine suspecte deviendrait " +
       "illisible.",
-  );
-});
-
-// ===========================================================================
-// 4. CE QUI N'EST PAS AU FRAIS DU FOYER
-// ===========================================================================
-
-Deno.test("LES GÉNÉRATIONS INDIVIDUELLES NE CONSOMMENT PAS CE QUOTA", async () => {
-  // Registre D11, mot pour mot: « Les générations individuelles gardent leur
-  // propre limite par personne: elles ne sont pas au frais du foyer. »
-  // `generate-meal-v1` compose pour UNE personne — un secondaire qui prend la
-  // main, ou un compte sans foyer. Lui faire payer le plafond du foyer
-  // laisserait un maître épuiser la semaine et couper les plans personnels de
-  // tout le monde.
-  const solo = await source("generate-meal-v1/index.ts");
-  for (
-    const forbidden of [
-      "keel_household_claim_merge_quota",
-      "keel_household_merge_quota_state",
-      "household_merge_quota",
-      "merge_quota_exhausted",
-    ]
-  ) {
-    assert(
-      !solo.includes(forbidden),
-      `la lane individuelle nomme \`${forbidden}\`: elle est passée au frais ` +
-        `du foyer, ce que D11 exclut en toutes lettres.`,
-    );
-  }
-  // LE CAS QUI PASSE: la lane du FOYER, elle, DOIT les nommer — sans quoi la
-  // garde ci-dessus serait verte sur un produit où le plafond n'existe pas.
-  const household = await source("generate-household-meal-v1/index.ts");
-  assert(
-    household.includes("keel_household_claim_merge_quota"),
-    "le générateur de foyer ne réclame plus rien: le plafond n'est branché " +
-      "nulle part, et le test du dessus garderait une porte qui ne s'ouvre " +
-      "sur rien.",
   );
 });
 

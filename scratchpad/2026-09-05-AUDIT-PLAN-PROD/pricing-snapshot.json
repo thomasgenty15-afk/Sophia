@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "data": [
+    {
+      "provider": "openai",
+      "model": "gpt-5-nano",
+      "input_per_1k_tokens_usd": 0,
+      "output_per_1k_tokens_usd": 0,
+      "is_active": true
+    }
+  ]
+}

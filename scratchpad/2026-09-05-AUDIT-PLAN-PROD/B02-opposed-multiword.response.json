@@ -1,0 +1,3095 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 6
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+      "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+      "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+      "Ce qui se cuisine mardi et jeudi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+      "Les quantités sont faites pour 2 bouches.",
+      "Chaque personne a chacun de ses repas.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [
+      "Tu as demandé lasagnes : il y en a mercredi et jeudi."
+    ],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "Les lasagnes et les lentilles sont intégrées cette semaine dans des plats distincts, avec des accompagnements frais pour varier les repas.",
+      "Les portions de lentilles et de pois chiches sont préparées séparément afin de garder la même assiette de base tout en laissant le choix du légume sec dans la boîte."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 24,
+    "declared": 24,
+    "kept": 24,
+    "refused": 0
+  },
+  "food_groups": {
+    "declared": 0,
+    "valid": 0,
+    "refused": 0,
+    "persisted": 0,
+    "lines": 115
+  },
+  "household": {
+    "id": "3740425f-527a-4049-803e-744f1dbb91de",
+    "member_count": 2,
+    "dish_owners": {
+      "asked": 6,
+      "declared": 6,
+      "attributed": 0,
+      "refused": 6
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 0,
+      "dishes": 24,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 3,
+      "ranks_without_object": 2,
+      "by_rank": {
+        "rank_1": 0,
+        "rank_2": 6,
+        "rank_3": 8,
+        "rank_4": 2,
+        "rank_5": 0
+      }
+    },
+    "boxes": {
+      "meals": 12,
+      "with_box": 12,
+      "boxes": 24,
+      "expected": 24,
+      "delivery": "served",
+      "refused": 0,
+      "names": 24,
+      "names_refused": 0,
+      "items": 24,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 6,
+      "sum_checked": 4,
+      "sum_over": 2,
+      "sum_unverifiable": 1,
+      "mouth_slots": 24,
+      "mouths_unboxed": 0,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 12,
+      "mouths_no_box_cell": 24,
+      "mouths": 2
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 77,
+      "unquantified": 0
+    },
+    "vague_portions": {
+      "notes": 12,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 10,
+      "unknown": 0,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 0,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 0,
+      "groups_valid": 0,
+      "groups_refused": 0,
+      "group_excluded": 0,
+      "group_plant_only": 0,
+      "group_undecided": 0
+    },
+    "swap": {
+      "strictest": null,
+      "bound_mouths": 0,
+      "free_mouths": 0,
+      "cells_checked": 0,
+      "cells_carrying": 0,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": [],
+      "retry_attempts": 0,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 1,
+      "checked": 12,
+      "kept": 12,
+      "refused": 0,
+      "bites": 1,
+      "separated": 1,
+      "not_separated": 0,
+      "box_scoped": 12
+    },
+    "meals_delivered": {
+      "mouths": 2,
+      "expected": 42,
+      "fed": 42,
+      "missing": 0,
+      "by_cause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 0,
+      "retried": false,
+      "retry_attempts": 0,
+      "retry_accepted": 0,
+      "retry_merged_cells": 0,
+      "retry_on": {},
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": []
+    },
+    "box_sizing": {
+      "boxes": 24,
+      "common": 0,
+      "items": 24,
+      "sized": 24,
+      "unchanged": 0,
+      "capped_by_pot": 0,
+      "unverifiable": 0,
+      "mouths": {
+        "sized": 2,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 0,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 0,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 2,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 12,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 0
+      },
+      "anchor_applied": 24,
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 12,
+        "pot_ceiling": 0,
+        "both": 0,
+        "not_anchored": 0
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 12
+      },
+      "densify": {
+        "mouth_days": 12,
+        "boxes_touched": 0,
+        "moved_g": 0,
+        "closed_kcal": 0,
+        "stopped": {
+          "closed": 0,
+          "floor": 0,
+          "ceiling": 0,
+          "pot_exhausted": 0,
+          "no_dense_target": 12,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 0,
+        "remaining_gte_200": 12
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 2,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 2,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 2
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 2
+      },
+      "appetite": {
+        "declared": 2,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 2,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Bol de skyr aux fruits",
+      "title": "Skyr, flocons d'avoine, pêche et noix",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "200 g de skyr",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "1 pêche",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g de noix",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le skyr et les flocons d'avoine, puis ajouter la pêche en morceaux et les noix.",
+      "why": "Un petit-déjeuner simple et régulier, avec un aliment protéiné et des produits de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poulet rôti du dimanche",
+      "title": "Poulet rôti, pommes de terre et courgettes",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [],
+      "method": "Sortir la boîte du réfrigérateur et réchauffer doucement le contenu à la poêle couverte avec une cuillère à soupe d'eau. Ajouter le persil frais au moment de servir.",
+      "why": "Un déjeuner préparé d'avance, construit autour de vrais aliments et facile à manger à heure régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Lentilles mijotées",
+      "title": "Lentilles, carottes, tomates et œuf",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "œufs",
+          "quantity": "2 œufs",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil",
+          "quantity": "10 g de persil",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte de lentilles à la poêle. Faire cuire les œufs dans une petite casserole d'eau pendant 9 minutes, les écaler et les poser sur les lentilles.",
+      "why": "Cette assiette met les lentilles au centre avec une préparation différente pour garder le repas demandé convivial.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_lentils",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lentils",
+              "term": "lentilles, carottes et tomates",
+              "grams": 284
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chickpeas",
+              "term": "pois chiches, carottes et tomates",
+              "grams": 501
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 12
+      }
+    },
+    {
+      "name": "Shake banane et avoine",
+      "title": "Lait, skyr, banane, avoine et purée d'amande",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée d'amande",
+          "quantity": "1 tbsp de purée d'amande",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser la banane dans un grand bocal, ajouter le lait, le skyr, les flocons d'avoine et la purée d'amande, fermer et secouer fortement.",
+      "why": "Une collation liquide qui respecte le format demandé sans nécessiter de blender.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Porridge froid aux poires",
+      "title": "Skyr, flocons d'avoine, poire et noisettes",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "200 g de skyr",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "45 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 45,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 45,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "15 g de noisettes",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le skyr et les flocons d'avoine, puis ajouter la poire en dés et les noisettes concassées.",
+      "why": "Un petit-déjeuner préparé en quelques minutes pour conserver un horaire stable.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Wrap de poulet rôti",
+      "title": "Poulet rôti, tortilla complète, tomates et salade",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tortilla complète",
+          "quantity": "1 tortilla complète",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "120 g de tomate",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "60 g de salade verte",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "40 g de yaourt nature",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le poulet et les légumes de la boîte à la poêle. Garnir la tortilla avec le yaourt, la salade, la tomate et le contenu chaud.",
+      "why": "Le même poulet devient un déjeuner différent, rapide à assembler et facile à emporter.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Poêlée de poulet citronnée",
+      "title": "Poulet rôti, pommes de terre, courgettes et citron",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle avec l'huile d'olive. Presser le demi-citron dessus juste avant de servir.",
+      "why": "Une troisième présentation courte du poulet, avec une touche fraîche plutôt qu'une assiette répétée à l'identique.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Shake cacao banane",
+      "title": "Lait, skyr, banane, avoine et purée de cacahuète",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée de cacahuète",
+          "quantity": "1 tbsp de purée de cacahuète",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser la banane dans un bocal, ajouter les autres ingrédients, fermer et secouer jusqu'à obtenir une boisson homogène.",
+      "why": "Une collation pratique et différente de la veille, sans appareil de mixage.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Skyr aux prunes",
+      "title": "Skyr, flocons d'avoine, prunes et amandes",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "200 g de skyr",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g d'amandes",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le skyr dans un bol, incorporer les flocons d'avoine et ajouter les prunes coupées avec les amandes.",
+      "why": "Les fruits de fin d'été donnent un petit-déjeuner simple qui soutient la régularité.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Salade tiède de poulet",
+      "title": "Poulet rôti, salade, tomates et pain complet",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "salade verte",
+          "quantity": "80 g de salade verte",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "150 g de tomate",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "100 g de pain complet",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle, puis la déposer sur la salade et les tomates. Servir avec le pain et l'huile d'olive.",
+      "why": "La dernière utilisation du poulet change la texture et garde le déjeuner varié.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet rôti, pommes de terre et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Poisson rôti aux légumes",
+      "title": "Poisson blanc, pommes de terre et haricots verts",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [],
+      "method": "Réchauffer doucement la boîte au four à 160 °C pendant 10 minutes, ou à la poêle couverte avec un peu d'eau.",
+      "why": "Un dîner de poisson cuit le jour même, avec des légumes d'été et une préparation sans appareil spécial.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_fish",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fish",
+              "term": "poisson blanc, pommes de terre et haricots verts",
+              "grams": 480
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fish",
+              "term": "poisson blanc, pommes de terre et haricots verts",
+              "grams": 887
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Shake poire et noisette",
+      "title": "Lait, skyr, poire, avoine et purée de noisette",
+      "slot": "snack_pm",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée de noisette",
+          "quantity": "1 tbsp de purée de noisette",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser la poire bien mûre dans un bocal, ajouter le lait, le skyr, les flocons et la purée de noisette, puis secouer.",
+      "why": "Une collation fraîche et transportable qui garde la structure habituelle de l'après-midi.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Bol de fromage blanc",
+      "title": "Fromage blanc, raisin, avoine et noix",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "200 g de fromage blanc",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "120 g de raisin",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g de noix",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le fromage blanc et les flocons d'avoine, puis ajouter le raisin et les noix.",
+      "why": "Un petit-déjeuner nourrissant avec un produit laitier protéiné et des fruits locaux de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Lasagnes familiales",
+      "title": "Lasagnes de bœuf, tomates, courgettes et salade",
+      "slot": "lunch",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "salade verte",
+          "quantity": "60 g de salade verte",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "vinaigre de vin",
+          "quantity": "1 tsp de vinaigre de vin",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte au four à 160 °C pendant 12 minutes. Servir avec la salade assaisonnée de vinaigre.",
+      "why": "Les lasagnes demandées arrivent au milieu de la semaine, avec une salade fraîche pour alléger l'assiette.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_lasagne",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 12
+      }
+    },
+    {
+      "name": "Lasagnes réconfortantes",
+      "title": "Lasagnes de bœuf, tomates, courgettes et roquette",
+      "slot": "dinner",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "roquette",
+          "quantity": "60 g de roquette",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte au four à 160 °C pendant 12 minutes. Servir avec la roquette et l'huile d'olive.",
+      "why": "Une deuxième présentation espacée des lasagnes, avec un accompagnement cru et poivré.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_lasagne",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_wed_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_wed_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 12
+      }
+    },
+    {
+      "name": "Shake pêche et amande",
+      "title": "Lait, skyr, pêche, avoine et purée d'amande",
+      "slot": "snack_pm",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "1 pêche",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée d'amande",
+          "quantity": "1 tbsp de purée d'amande",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser la pêche dans un bocal, ajouter les autres ingrédients, fermer et secouer énergiquement.",
+      "why": "Une collation de saison qui reste réalisable sans blender.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt aux prunes",
+      "title": "Yaourt grec, prunes, avoine et amandes",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "yaourt grec",
+          "quantity": "200 g de yaourt grec",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g d'amandes",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt et les flocons, puis ajouter les prunes coupées et les amandes.",
+      "why": "Un petit-déjeuner frais et régulier avant une journée utilisant une nouvelle préparation.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Part de lasagnes",
+      "title": "Lasagnes de bœuf, tomates, courgettes et salade",
+      "slot": "lunch",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "salade verte",
+          "quantity": "60 g de salade verte",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "1 tsp de jus de citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte au four à 160 °C pendant 12 minutes, puis ajouter la salade et le jus de citron.",
+      "why": "La dernière portion de lasagnes est accompagnée différemment pour éviter une répétition monotone.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_lasagne",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 473
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_lasagne",
+              "term": "lasagnes de bœuf et courgettes",
+              "grams": 874
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 12
+      }
+    },
+    {
+      "name": "Dinde rôtie aux légumes",
+      "title": "Dinde rôtie, semoule et aubergines",
+      "slot": "dinner",
+      "day": "thu",
+      "ingredients": [],
+      "method": "Réchauffer la boîte à la poêle couverte avec une cuillère à soupe d'eau pendant 8 minutes.",
+      "why": "Une nouvelle préparation apporte de la variété au dîner tout en restant une assiette complète de produits simples.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Shake banane et tahini",
+      "title": "Lait, skyr, banane, avoine et tahini",
+      "slot": "snack_pm",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "1 banane",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tahini",
+          "quantity": "1 tbsp de tahini",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser la banane dans un bocal, ajouter le reste, fermer et secouer jusqu'à homogénéité.",
+      "why": "Une collation riche en aliments reconnaissables, préparée sans blender.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Skyr aux raisins",
+      "title": "Skyr, raisins, avoine et noix",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "skyr",
+          "quantity": "200 g de skyr",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "40 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "120 g de raisin",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g de noix",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le skyr et les flocons, puis ajouter le raisin et les noix.",
+      "why": "Un petit-déjeuner rapide qui garde le même rythme jusqu'à la fin de la période.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Bowl de dinde",
+      "title": "Dinde rôtie, semoule, aubergines et tomates",
+      "slot": "lunch",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "tomate",
+          "quantity": "120 g de tomate",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil",
+          "quantity": "10 g de persil",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle couverte. Ajouter la tomate, le persil et l'huile d'olive au moment de servir.",
+      "why": "La dinde devient un bowl frais avec une garniture crue différente de la veille.",
+      "honours_belief_keys": [
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_lunch_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_lunch_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Dinde au citron",
+      "title": "Dinde rôtie, semoule, aubergines et courgettes",
+      "slot": "dinner",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "150 g de courgette",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir la courgette fraîche dans une poêle pendant 5 minutes, ajouter la boîte et réchauffer 8 minutes. Presser le citron au service.",
+      "why": "Un dernier repas simple et différent, avec un légume frais ajouté au moment de manger.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_dinner_alice",
+          "member_ids": [
+            "1cb1b32a-d336-4d07-9684-e82880741d5a"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_dinner_marc",
+          "member_ids": [
+            "9e541380-5093-442d-ad7d-b92fffedbe7b"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde rôtie, semoule et aubergines",
+              "grams": 900
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "cook_fresh",
+        "minutes": 15
+      }
+    },
+    {
+      "name": "Shake pomme et amande",
+      "title": "Lait, skyr, pomme, avoine et purée d'amande",
+      "slot": "snack_pm",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "lait",
+          "quantity": "250 ml de lait",
+          "in_pantry": false,
+          "amount": 250,
+          "unit": "ml",
+          "state": "raw",
+          "grams_raw": 250,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "skyr",
+          "quantity": "100 g de skyr",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "30 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "purée d'amande",
+          "quantity": "1 tbsp de purée d'amande",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Râper la pomme dans un bocal, ajouter les autres ingrédients, fermer et secouer fortement.",
+      "why": "Une collation finale simple, sans appareil, qui conserve le rendez-vous de l'après-midi.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_chicken",
+      "title": "Poulet rôti, pommes de terre et courgettes",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "cuisses de poulet désossées",
+          "quantity": "2225 g",
+          "in_pantry": false,
+          "amount": 2225,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2225,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pommes de terre",
+          "quantity": "2225 g",
+          "in_pantry": false,
+          "amount": 2225,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2225,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1670 g",
+          "in_pantry": false,
+          "amount": 1670,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1670,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignons",
+          "quantity": "4 oignons",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 440,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "5.5 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 5.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 82.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "thym",
+          "quantity": "3.5 tsp de thym",
+          "in_pantry": false,
+          "amount": 3.5,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 17.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "1 tsp de sel",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 tsp de black pepper",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Acheter le poulet frais le dimanche ou la veille. Chauffer le four à 210 °C. Couper les pommes de terre, les courgettes et les oignons, mélanger avec l'huile et les assaisonnements, puis ajouter le poulet. Rôtir 45 minutes en retournant à mi-cuisson. Laisser tiédir et portionner dans les boîtes nommées.",
+      "active_minutes": 20,
+      "total_minutes": 55,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_lentils",
+      "title": "Lentilles, carottes et tomates",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "lentilles vertes cuites",
+          "quantity": "500 g de lentilles vertes cuites",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 208.33333333333334,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "carottes",
+          "quantity": "300 g de carottes",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "400 g de tomates concassées",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "cumin",
+          "quantity": "1 tsp de cumin",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir l'oignon et les carottes dans l'huile pendant 5 minutes. Ajouter les tomates, les lentilles et le cumin, puis mijoter 20 minutes. Portionner dans les boîtes, en gardant la portion de remplacement séparée.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_chickpeas",
+      "title": "Pois chiches, carottes et tomates",
+      "servings_made": 2,
+      "ingredients": [
+        {
+          "term": "pois chiches cuits",
+          "quantity": "500 g de pois chiches cuits",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 500,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "carottes",
+          "quantity": "300 g de carottes",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "400 g de tomates concassées",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "cumin",
+          "quantity": "1 tsp de cumin",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir l'oignon et les carottes dans l'huile, ajouter les tomates, les pois chiches et le cumin, puis mijoter 20 minutes. Portionner dans les boîtes nommées.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_fish",
+      "title": "Poisson blanc, pommes de terre et haricots verts",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "filets de poisson blanc",
+          "quantity": "700 g de filets de poisson blanc",
+          "in_pantry": false,
+          "amount": 700,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 700,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pommes de terre",
+          "quantity": "800 g de pommes de terre",
+          "in_pantry": false,
+          "amount": 800,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 800,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "600 g de haricots verts",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Acheter le poisson le mardi ou la veille. Cuire les pommes de terre à l'eau 20 minutes et les haricots verts 8 minutes. Cuire le poisson au four à 200 °C avec l'huile et le citron pendant 12 minutes. Refroidir rapidement et portionner dans les boîtes.",
+      "active_minutes": 20,
+      "total_minutes": 40,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_lasagne",
+      "title": "Lasagnes de bœuf et courgettes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "bœuf haché",
+          "quantity": "870 g",
+          "in_pantry": false,
+          "amount": 870,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 870,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "feuilles de lasagne",
+          "quantity": "365 g",
+          "in_pantry": false,
+          "amount": 365,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 365,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "870 g",
+          "in_pantry": false,
+          "amount": 870,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 870,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates concassées",
+          "quantity": "1160 g",
+          "in_pantry": false,
+          "amount": 1160,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1160,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignons",
+          "quantity": "3 oignons",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 330,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "mozzarella",
+          "quantity": "290 g",
+          "in_pantry": false,
+          "amount": 290,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 290,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 45,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir les oignons et le bœuf dans l'huile, ajouter les courgettes et les tomates, puis mijoter 15 minutes. Monter les lasagnes avec les feuilles et la mozzarella. Cuire à 190 °C pendant 35 minutes, laisser tiédir et portionner.",
+      "active_minutes": 25,
+      "total_minutes": 60,
+      "cook_on": "tue"
+    },
+    {
+      "id": "prep_turkey",
+      "title": "Dinde rôtie, semoule et aubergines",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "escalopes de dinde",
+          "quantity": "1305 g",
+          "in_pantry": false,
+          "amount": 1305,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1305,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "semoule complète cuite",
+          "quantity": "1390 g",
+          "in_pantry": false,
+          "amount": 1390,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 534.6153846153846,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "1215 g",
+          "in_pantry": false,
+          "amount": 1215,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1215,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "695 g",
+          "in_pantry": false,
+          "amount": 695,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 695,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3.5 tbsp d'huile d'olive",
+          "in_pantry": false,
+          "amount": 3.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 52.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "paprika",
+          "quantity": "3.5 tsp de paprika",
+          "in_pantry": false,
+          "amount": 3.5,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 17.5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Acheter la dinde fraîche le jeudi ou la veille. Cuire la semoule. Faire rôtir les aubergines et les tomates avec l'huile et le paprika à 210 °C pendant 30 minutes. Saisir la dinde 5 minutes de chaque côté, puis la laisser reposer. Portionner avec la semoule dans les boîtes nommées.",
+      "active_minutes": 25,
+      "total_minutes": 50,
+      "cook_on": "thu"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_chicken",
+        "prep_lentils",
+        "prep_chickpeas"
+      ],
+      "run_through": "Chauffer le four et préparer le poulet, les pommes de terre, les courgettes et les oignons. Enfourner, puis faire mijoter les lentilles et les pois chiches dans deux casseroles. Laisser tiédir, portionner dans les boîtes nommées et réfrigérer.",
+      "total_minutes": 60
+    },
+    {
+      "day": "tue",
+      "preparation_ids": [
+        "prep_fish",
+        "prep_lasagne"
+      ],
+      "run_through": "Acheter le poisson frais le mardi ou la veille. Préparer les pommes de terre et les haricots verts, puis cuire le poisson. Pendant ce temps, préparer la sauce de lasagnes, monter le plat et l'enfourner. Laisser refroidir et portionner dans les boîtes nommées.",
+      "total_minutes": 60
+    },
+    {
+      "day": "thu",
+      "preparation_ids": [
+        "prep_turkey"
+      ],
+      "run_through": "Acheter la dinde fraîche le jeudi ou la veille. Cuire la semoule, lancer les aubergines et les tomates au four, puis saisir la dinde. Laisser reposer, portionner dans les boîtes nommées et réfrigérer.",
+      "total_minutes": 55
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "cuisses de poulet désossées",
+      "quantity": "1.2 kg de cuisses de poulet désossées",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "filets de poisson blanc",
+      "quantity": "1175 g de filets de poisson blanc",
+      "aisle": "protein",
+      "food_group": "white_fish",
+      "buy_on": "2026-09-07",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "bœuf haché",
+      "quantity": "1010 g de bœuf haché",
+      "aisle": "protein",
+      "food_group": "red_meat",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "escalopes de dinde",
+      "quantity": "1260 g d'escalopes de dinde",
+      "aisle": "protein",
+      "food_group": "lean_protein",
+      "buy_on": "2026-09-07",
+      "freeze_on_purchase": true
+    },
+    {
+      "term": "œufs",
+      "quantity": "3 œufs",
+      "aisle": "protein",
+      "food_group": "eggs",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "skyr",
+      "quantity": "4 kg de skyr",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt grec",
+      "quantity": "335 g de yaourt grec",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fromage blanc",
+      "quantity": "335 g de fromage blanc",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "lait",
+      "quantity": "1.5 l de lait",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "mozzarella",
+      "quantity": "335 g de mozzarella",
+      "aisle": "dairy",
+      "food_group": "dairy_cheese",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes de terre",
+      "quantity": "3 kg de pommes de terre",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "4 kg de courgettes",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "carottes",
+      "quantity": "1010 g de carottes",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "oignons",
+      "quantity": "8 oignons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates",
+      "quantity": "925 g de tomates fraîches",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates concassées",
+      "quantity": "1.6 kg de tomates concassées",
+      "aisle": "pantry",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "aubergines",
+      "quantity": "1175 g d'aubergines",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots verts",
+      "quantity": "1010 g de haricots verts",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "salade verte",
+      "quantity": "675 g de salade verte",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "roquette",
+      "quantity": "100 g de roquette",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "persil",
+      "quantity": "35 g de persil",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pêches",
+      "quantity": "5 pêches",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poires",
+      "quantity": "3 poires",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prunes",
+      "quantity": "7 prunes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "raisins",
+      "quantity": "405 g de raisins",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "bananes",
+      "quantity": "5 bananes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes",
+      "quantity": "1 pomme",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citrons",
+      "quantity": "5 citrons",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "lentilles vertes cuites",
+      "quantity": "840 g de lentilles vertes cuites",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pois chiches cuits",
+      "quantity": "840 g de pois chiches cuits",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "feuilles de lasagne",
+      "quantity": "420 g de feuilles de lasagne",
+      "aisle": "grains",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "semoule complète",
+      "quantity": "505 g de semoule complète sèche",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pain complet",
+      "quantity": "170 g de pain complet",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tortillas complètes",
+      "quantity": "3 tortillas complètes",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "flocons d'avoine",
+      "quantity": "755 g de flocons d'avoine",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "75 g de noix",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "75 g d'amandes",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noisettes",
+      "quantity": "25 g de noisettes",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "purée d'amande",
+      "quantity": "5 tbsp de purée d'amande",
+      "aisle": "pantry",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "purée de cacahuète",
+      "quantity": "1 tbsp de purée de cacahuète",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "purée de noisette",
+      "quantity": "1 tbsp de purée de noisette",
+      "aisle": "pantry",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tahini",
+      "quantity": "1 tbsp de tahini",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d'olive",
+      "quantity": "19 tbsp d'huile d'olive",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "vinaigre de vin",
+      "quantity": "1 tsp de vinaigre de vin",
+      "aisle": "pantry",
+      "food_group": null,
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "cumin",
+      "quantity": "1 tsp de cumin",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "thym",
+      "quantity": "3 tsp de thym",
+      "aisle": "pantry",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "paprika",
+      "quantity": "3 tsp de paprika",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "sel",
+      "quantity": "1 tsp de sel",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "black pepper",
+      "quantity": "1 tsp de black pepper",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "1cb1b32a-d336-4d07-9684-e82880741d5a",
+      "display_name": "Alice",
+      "portion_note": "Commencer par les légumes, ajouter ensuite le poulet, le poisson, la dinde ou les œufs, puis terminer par les pommes de terre, la semoule, le pain ou les lasagnes.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_chicken",
+          "note": "Servir les courgettes avant le poulet et les pommes de terre."
+        },
+        {
+          "preparation_id": "prep_lentils",
+          "note": "Servir les lentilles après les légumes et les œufs avant le pain éventuel."
+        },
+        {
+          "preparation_id": "prep_fish",
+          "note": "Servir les haricots verts avant le poisson et les pommes de terre."
+        },
+        {
+          "preparation_id": "prep_lasagne",
+          "note": "Ajouter la salade avant de servir les lasagnes."
+        },
+        {
+          "preparation_id": "prep_turkey",
+          "note": "Servir les aubergines avant la dinde et la semoule."
+        }
+      ]
+    },
+    {
+      "member_id": "9e541380-5093-442d-ad7d-b92fffedbe7b",
+      "display_name": "Marc",
+      "portion_note": "Commencer par le poulet, le poisson, la dinde, les œufs ou la viande, ajouter ensuite les pommes de terre, la semoule ou les lasagnes, puis terminer par les légumes.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_chicken",
+          "note": "Servir le poulet et les pommes de terre avant les courgettes."
+        },
+        {
+          "preparation_id": "prep_chickpeas",
+          "note": "Servir les pois chiches et les légumes ensemble, avec les légumes en dernier."
+        },
+        {
+          "preparation_id": "prep_fish",
+          "note": "Servir le poisson et les pommes de terre avant les haricots verts."
+        },
+        {
+          "preparation_id": "prep_lasagne",
+          "note": "Servir les lasagnes avant la salade."
+        },
+        {
+          "preparation_id": "prep_turkey",
+          "note": "Servir la dinde et la semoule avant les aubergines."
+        }
+      ]
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "household asked to avoid \"pain complet\" and \"Poulet rôti, salade, tomates et pain complet\" still contains pain",
+    "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+    "freeze_on_purchase: 1/49",
+    "raw_keeping_needs_later_shop: 2/6 preparations",
+    "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[7]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[11]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[15]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[19]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "dishes[23]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+    "shopping_list_unattributed: 8/49 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "preparations[0]: the meals that take from \"Poulet rôti, pommes de terre et courgettes\" hold 5280 g but it makes about 2993 g ready -- the boxes cannot all be filled",
+    "preparations[5]: the meals that take from \"Dinde rôtie, semoule et aubergines\" hold 3960 g but it makes about 2395 g ready -- the boxes cannot all be filled",
+    "uses_kept_freezer: 0/12"
+  ],
+  "request_id": "bc4afa88-e803-42e1-bbe2-6770892d6999"
+}

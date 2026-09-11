@@ -392,9 +392,9 @@ Deno.test("une doctrine entièrement ciblée ailleurs: vide POUR CET OBJECTIF, p
     voice: {},
   });
 
-  const health = compileDoctrineBlock(doctrine, "maintenance");
-  assertEquals(health.isEmpty, true);
-  assertEquals(health.emptyForGoal, true);
+  const held = compileDoctrineBlock(doctrine, "maintenance");
+  assertEquals(held.isEmpty, true);
+  assertEquals(held.emptyForGoal, true);
 
   const fatLoss = compileDoctrineBlock(doctrine, "fat_loss");
   assertEquals(fatLoss.isEmpty, false);
@@ -454,11 +454,11 @@ Deno.test("la compilation d'une variante est déterministe", () => {
 Deno.test("l'ordre des objectifs dans une portée ne change RIEN au bloc servi", () => {
   const a = parseCoachDoctrine({
     ...ROW,
-    beliefs: [{ claim: "Both.", goal_scope: ["fat_loss", "health"] }],
+    beliefs: [{ claim: "Both.", goal_scope: ["fat_loss", "maintenance"] }],
   }).doctrine;
   const b = parseCoachDoctrine({
     ...ROW,
-    beliefs: [{ claim: "Both.", goal_scope: ["health", "fat_loss"] }],
+    beliefs: [{ claim: "Both.", goal_scope: ["maintenance", "fat_loss"] }],
   }).doctrine;
   for (const goal of DOCTRINE_VARIANT_GOALS) {
     assertEquals(compileDoctrineBlock(a, goal).hash, compileDoctrineBlock(b, goal).hash);

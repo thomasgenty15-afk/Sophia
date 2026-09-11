@@ -1,8 +1,8 @@
 import {
   type CookingStyle,
-  type GroceryRuns,
+  type GroceryRunsAnswer,
   readCookingStyle,
-  readGroceryRuns,
+  readGroceryRunsAnswer,
 } from "./cookingPlan";
 // KEEL — L'ENTONNOIR D'ENTRÉE (FF-060): décisions pures d'un côté, écran de
 // l'autre. Même partage que `coachSeat.ts` et `household.ts`.
@@ -387,7 +387,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // l'entonnoir ne peut pas se permettre de laisser passer: il tombe après
     // que tout a été saisi.
     id: "own_goal",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#goal_required",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#goal_required",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "people",
@@ -585,7 +585,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // que ce registre existe pour montrer. Elle est écrite vide par
     // `savePlanInputs` et par `savePlanAnswers`.
     id: "cook_days",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#cook_days",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#cook_days",
     weight: "better",
     // ⚠️ `NEVER`, ET LE TEST DU CATALOGUE L'EXIGE: une question `better` ne
     // vit sur AUCUNE branche, sinon `funnelSteps` la rendrait — c'est-à-dire
@@ -601,7 +601,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   // trace qu'elle est encore lue.
   {
     id: "cooking_time_min",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#cooking_time_min",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#cooking_time_min",
     weight: "better",
     // ⛔ `NEVER` ET PAS `ALL_BRANCHES`: le contrat de §3.1 est qu'une `better`
     // ne vit dans AUCUNE branche et n'a PAS d'étape — sinon `funnelSteps` la
@@ -633,7 +633,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
   {
     id: "budget_amount",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#budget_amount",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#budget_amount",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "request",
@@ -674,7 +674,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
   {
     id: "situation",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#situation",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#situation",
     weight: "better",
     branches: NEVER,
     step: null,
@@ -690,7 +690,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
   {
     id: "recipe_difficulty",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#recipe_difficulty",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#recipe_difficulty",
     weight: "better",
     branches: NEVER,
     step: null,
@@ -698,7 +698,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   },
   {
     id: "variety",
-    consumer: "supabase/functions/generate-meal-v1/index.ts#variety",
+    consumer: "supabase/functions/generate-household-meal-v1/index.ts#variety",
     weight: "better",
     branches: NEVER,
     step: null,
@@ -779,10 +779,7 @@ export interface FunnelPerson {
    */
   dayActivity: DayActivityLevel | null;
   sportFrequency: SportFrequency | null;
-  /** ① ce qu'il y a d'autre dans l'assiette · ⑤ l'appétit (2026-08-20). */
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
+  /** ⑤ l'appétit (2026-08-20). */
   appetite: AppetiteLevel | null;
   kind: "adult" | "child";
   /** ISO `YYYY-MM-DD`, ou `null`. */
@@ -815,13 +812,21 @@ export interface FunnelPerson {
   diet: DietAnswer | null;
 }
 
-/** Les trois régimes de `student_safety_constraints_diet_ref_check`, plus la
+/** Les QUATRE régimes de `student_safety_constraints_diet_ref_check`, plus la
  * réponse « je mange de tout ». Miroir de `DIETARY_REGIMES` côté moteur. */
 export const DIET_ANSWERS = [
   "omnivore",
   "vegetarian",
   "vegan",
   "pescatarian",
+  // ⟳ 2026-09-08 — LE QUATRIÈME RÉGIME, et le premier qui ne tient pas sur
+  // l'axe animal. Il existait déjà dans le produit, mais UNIQUEMENT comme
+  // allergène (`allergen.gluten`): quelqu'un qui mange sans gluten par choix
+  // ou par sensibilité n'avait donc rien à cocher ici, et devait se déclarer
+  // allergique pour être entendu. Ce que ça a coûté côté moteur — le
+  // classement des régimes ne pouvait plus se faire par comptage — est écrit
+  // sur `REGIME_COVERS` (`_shared/keel/household_diet.ts`).
+  "gluten_free",
 ] as const;
 export type DietAnswer = (typeof DIET_ANSWERS)[number];
 
@@ -868,7 +873,14 @@ export interface FunnelPlanAnswers {
    * remonter aucun site de montage au compilateur.
    */
   cookingStyle: CookingStyle | null;
-  groceryRuns: GroceryRuns | null;
+  /**
+   * ⟳ 2026-09-09 — PORTE AUSSI « peu importe » (`GROCERY_RUNS_ANY`).
+   *
+   * ⛔ C'EST UNE RÉPONSE, DONC ELLE LÈVE LA GARDE DE L'ÉTAPE. `null` reste
+   * « jamais demandé », et les deux ne se confondent pas: le type dit lequel
+   * est lequel, là où un nombre sentinelle aurait laissé deviner.
+   */
+  groceryRuns: GroceryRunsAnswer | null;
   /**
    * L'ARGENT DE CE PLAN-LÀ, EN CHIFFRE — pas une bande.
    *
@@ -1497,9 +1509,6 @@ export function emptyFunnelState(): FunnelState {
       activityLevel: null,
       dayActivity: null,
       sportFrequency: null,
-      takesDessert: null,
-      takesCheese: null,
-      takesBread: null,
       appetite: null,
     },
     others: [],
@@ -1531,9 +1540,6 @@ export function emptyFunnelPerson(): FunnelPerson {
     activityLevel: null,
     dayActivity: null,
     sportFrequency: null,
-    takesDessert: null,
-    takesCheese: null,
-    takesBread: null,
     appetite: null,
   };
 }
@@ -1859,9 +1865,6 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // moins qui rendrait une valeur périmée.
       dayActivity: bodies.get(m.memberId)?.dayActivity ?? null,
       sportFrequency: bodies.get(m.memberId)?.sportFrequency ?? null,
-      takesDessert: bodies.get(m.memberId)?.takesDessert ?? null,
-      takesCheese: bodies.get(m.memberId)?.takesCheese ?? null,
-      takesBread: bodies.get(m.memberId)?.takesBread ?? null,
       appetite: bodies.get(m.memberId)?.appetite ?? null,
     }));
 
@@ -1954,16 +1957,13 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
         )
         ? (String(profile.sport_frequency).trim() as SportFrequency)
         : null,
-      // ── ① ET ⑤ VIENNENT DE MA LIGNE DE CORPS, PAS DE `profiles` ─────────
+      // ── ⑤ VIENT DE MA LIGNE DE CORPS, PAS DE `profiles` ────────────────
       // ⛔ ET C'EST L'INVERSE DES DEUX AXES JUSTE AU-DESSUS. Les axes sont
       // écrits AUX DEUX ENDROITS (profil pour la lane solo, ligne de corps pour
-      // le foyer) parce que deux moteurs les lisent. Ces quatre-là n'ont qu'UN
+      // le foyer) parce que deux moteurs les lisent. Celui-là n'a qu'UN
       // lecteur — `generate-household-meal-v1` — et il ne lit que la ligne de
-      // corps. Les poser aussi sur `profiles` ferait une colonne que personne
+      // corps. Le poser aussi sur `profiles` ferait une colonne que personne
       // n'interroge, c'est-à-dire un champ décoratif.
-      takesDessert: ownMemberId ? bodies.get(ownMemberId)?.takesDessert ?? null : null,
-      takesCheese: ownMemberId ? bodies.get(ownMemberId)?.takesCheese ?? null : null,
-      takesBread: ownMemberId ? bodies.get(ownMemberId)?.takesBread ?? null : null,
       appetite: ownMemberId ? bodies.get(ownMemberId)?.appetite ?? null : null,
     },
     others: mouths,
@@ -2017,7 +2017,11 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
     // lecture: deux idées du vocabulaire des styles produiraient un écran
     // qui montre autre chose que ce avec quoi on compose.
     cookingStyle: readCookingStyle(pc),
-    groceryRuns: readGroceryRuns(pc),
+    // ⚠️ `readGroceryRunsAnswer`, PAS `readGroceryRuns`. Le second rend `null`
+    // pour « peu importe » — l'étape se rebloquerait sur une question déjà
+    // répondue, et l'écran afficherait « Pas encore répondu » au-dessus d'un
+    // choix que la personne vient de faire.
+    groceryRuns: readGroceryRunsAnswer(pc),
     // `parseEatingRhythm` et pas une seconde lecture: deux lectures de la même
     // colonne qui divergent produisent un écran qui montre autre chose que ce
     // avec quoi on compose.
@@ -2308,10 +2312,7 @@ export async function saveMouthBody(args: {
    */
   dayActivity: DayActivityLevel | null;
   sportFrequency: SportFrequency | null;
-  /** ① ce qu'il y a d'autre dans l'assiette · ⑤ l'appétit (2026-08-20). */
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
+  /** ⑤ l'appétit (2026-08-20). */
   appetite: AppetiteLevel | null;
 }): Promise<void> {
   const result = await setMemberBody(
@@ -2320,31 +2321,17 @@ export async function saveMouthBody(args: {
     args.weightKg,
     args.gender,
     args.activityLevel,
-    // ── ⛔ L'ENTONNOIR NE POSE PAS LES DEUX AXES NI LES TROIS CASES ───────
-    //
-    // Le lot du 2026-08-20 les pose dans la FICHE (`MouthFormDialog`), pas
-    // ici: `FUNNEL_QUESTIONS` porte `own_activity_level` /
-    // `member_activity_level`, c'est-à-dire le cran MÉLANGÉ, et rien d'autre.
-    //
-    // ⚠️ LES DEUX DRAPEAUX SONT DONC `false`, ET C'EST LA VÉRITÉ, PAS UN
-    // OUBLI. `false` veut dire « cet écran n'a rien demandé », et la base ne
-    // touche alors à AUCUNE des sept colonnes — ni pour écrire, ni pour
-    // effacer. Les passer à `true` ferait horodater une question jamais posée:
-    // toute la base basculerait de `not_asked` à `not_answered`, et le
-    // compteur dirait « ils ont refusé de répondre » de gens à qui on n'a
-    // jamais rien demandé.
     {
-      // ── ⛔ LES TROIS DRAPEAUX SONT À `true` DEPUIS LE 2026-08-20 (soir) ────
+      // ── ⛔ LES DEUX DRAPEAUX SONT À `true` DEPUIS LE 2026-08-20 (soir) ─────
       //
       // Ils valaient `false`, et c'était juste tant que l'entonnoir ne posait
       // AUCUNE de ces questions: `false` veut dire « cet écran n'a rien
       // demandé », donc la base ne touche à rien.
       //
-      // L'entonnoir les pose maintenant toutes: les deux axes à l'étape 2, à la
-      // place du cran mélangé, et les trois cases + l'appétit dans la fenêtre
-      // des préférences. Laisser `false` aurait rendu ces champs DÉCORATIFS —
-      // saisis à l'écran, jetés avant la base, sans un refus. C'est le mode
-      // d'échec n°1 de ce dépôt, et c'est très exactement ce que ce lot répare.
+      // L'entonnoir les pose maintenant: les deux axes à l'étape 2, à la place
+      // du cran mélangé, et l'appétit dans la fenêtre des préférences. Laisser
+      // `false` aurait rendu ces champs DÉCORATIFS — saisis à l'écran, jetés
+      // avant la base, sans un refus. C'est le mode d'échec n°1 de ce dépôt.
       //
       // ⚠️ `true` NE VEUT PAS DIRE « ELLE A RÉPONDU », mais « on lui a
       // demandé ». C'est ce qui autorise l'écriture d'un `null` — donc une
@@ -2353,10 +2340,6 @@ export async function saveMouthBody(args: {
       dayActivity: args.dayActivity,
       sportFrequency: args.sportFrequency,
       axesAsked: true,
-      takesDessert: args.takesDessert,
-      takesCheese: args.takesCheese,
-      takesBread: args.takesBread,
-      structureAsked: true,
       appetite: args.appetite,
       appetiteAsked: true,
     },

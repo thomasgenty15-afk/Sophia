@@ -191,7 +191,18 @@ describe("ce que la réponse va faire, DIT sur la fiche — et plus « à l'éta
           "setup.work_lunch.intro",
           "setup.work_lunch.outside_note",
           "setup.work_lunch.grid_wins",
-          "setup.request.presence_intro",
+          // ⛔ `setup.request.presence_intro` A ÉTÉ RETIRÉE DE CETTE LISTE —
+          // 2026-09-08, parce que LA CLÉ N'EXISTE PLUS. Le bloc « qui est là,
+          // jour par jour » de l'entonnoir est supprimé (décision produit): il
+          // rendait une ligne par bouche, donc UNE ligne sur un foyer solo,
+          // ouvrant la même grille que le lien juste au-dessus. La phrase qui
+          // renvoyait à « la page Foyer » n'a plus de porteur.
+          //
+          // ⚠️ CE QUE CETTE LISTE GARDE EST INTACT: les trois clés de la carte
+          // du déjeuner ne doivent toujours nommer aucune ÉTAPE — la question
+          // a quitté l'entonnoir pour `/app/household`, et une copie qui
+          // dirait encore « à l'étape suivante » enverrait vers un écran que
+          // cette personne ne reverra jamais.
         ] as const
       ) {
         expect(pack[key].toLowerCase(), key).not.toMatch(/étape|next step|step three/);

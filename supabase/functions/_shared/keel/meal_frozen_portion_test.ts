@@ -110,6 +110,7 @@ function parse(
     weighedMemberIds: [],
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [],
     boxMemberExclusions: [],
   });
@@ -246,6 +247,7 @@ Deno.test("un jeton inconnu retombe sur `fridge` SANS jeter le plat", () => {
     weighedMemberIds: [],
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [],
     boxMemberExclusions: [],
   });
@@ -258,12 +260,14 @@ Deno.test("PROMPT — la consigne du congélateur TOUCHE la clé qu'elle décrit
   // cicatrice qui explique ce lot entier: la sortie « congèle le surplus »
   // existait depuis toujours, en prose, à distance de tout champ — taux de
   // captation mesuré, zéro. Ce test tient l'adjacence.
-  const { systemPrompt } = buildMealPrompt({
+  const { systemPrompt } = buildMealPrompt({ budgetFloor: null,
     firstDayCookable: true,
     hasFreezer: false,
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     contentLocale: "en-US",
     budgetAmount: null,
     dietBlock: "",
@@ -274,7 +278,7 @@ Deno.test("PROMPT — la consigne du congélateur TOUCHE la clé qu'elle décrit
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -324,7 +328,10 @@ Deno.test("PROMPT — la consigne du congélateur TOUCHE la clé qu'elle décrit
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -332,12 +339,14 @@ Deno.test("PROMPT — la consigne du congélateur TOUCHE la clé qu'elle décrit
 // ═══════════════════════════════════════════════════════════════════════════
 
 function promptFor(over: Record<string, unknown>) {
-  return buildMealPrompt({
+  return buildMealPrompt({ budgetFloor: null,
     firstDayCookable: true,
     hasFreezer: false,
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     contentLocale: "en-US",
     budgetAmount: null,
     dietBlock: "",
@@ -348,7 +357,7 @@ function promptFor(over: Record<string, unknown>) {
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -480,6 +489,7 @@ Deno.test("une session qui déborde est RENDUE, pas seulement comptée", () => {
     weighedMemberIds: [],
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [],
     boxMemberExclusions: [],
   });
@@ -540,6 +550,7 @@ Deno.test("⚠️ LE CAS QUI PASSE — une session dans les clous ne remonte rie
     weighedMemberIds: [],
     cookOnlyDay: null,
     soloBoxes: false,
+    standardRecipe: false,
     boxMemberDiets: [],
     boxMemberExclusions: [],
   });

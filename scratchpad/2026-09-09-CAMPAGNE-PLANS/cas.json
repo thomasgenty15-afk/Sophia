@@ -1,0 +1,952 @@
+{
+ "S1": {
+  "lane": "solo",
+  "titre": "socle — homme sedentaire, entretien, zero contrainte",
+  "email": "camp0909.s1@keeltest.dev",
+  "nom": "Evan Socle",
+  "profile": {
+   "birth_date": "1990-05-12",
+   "gender": "male",
+   "height_cm": 178,
+   "activity_level": "sedentary",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 82.0,
+  "goal": "maintenance",
+  "pace": null,
+  "diet": null,
+  "allergies": [],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "medium"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ]
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 3
+  },
+  "one_cooking_session": false
+ },
+ "S2": {
+  "lane": "solo",
+  "titre": "deficit contraint — perte 0,5 kg/sem, 30 min, budget 60, sans four",
+  "email": "camp0909.s2@keeltest.dev",
+  "nom": "Nora Deficit",
+  "profile": {
+   "birth_date": "1985-02-03",
+   "gender": "female",
+   "height_cm": 165,
+   "activity_level": "on_feet",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 78.0,
+  "goal": "fat_loss",
+  "pace": 0.5,
+  "diet": null,
+  "allergies": [],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "stovetop",
+    "microwave",
+    "freezer"
+   ],
+   "cook_days": [
+    "tue",
+    "sat"
+   ],
+   "cooking_time_min": 30,
+   "recipe_difficulty": "simple",
+   "variety": "some",
+   "budget_amount": 60,
+   "cooking_style": "minimal",
+   "grocery_runs": 2
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 4
+  },
+  "one_cooking_session": false
+ },
+ "S3": {
+  "lane": "solo",
+  "titre": "surplus extreme — 72 kg, trains_hard + metier physique, prise de muscle",
+  "email": "camp0909.s3@keeltest.dev",
+  "nom": "Ilan Surplus",
+  "profile": {
+   "birth_date": "1999-07-20",
+   "gender": "male",
+   "height_cm": 186,
+   "activity_level": "trains_hard",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 72.0,
+  "goal": "muscle_gain",
+  "pace": 0.25,
+  "diet": null,
+  "allergies": [],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "large"
+    },
+    {
+     "slot": "snack_am",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "snack_pm",
+     "size": "medium"
+    },
+    {
+     "slot": "dinner",
+     "size": "large"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ],
+   "cooking_time_min": 60,
+   "recipe_difficulty": "normal",
+   "variety": "varied"
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 3
+  },
+  "one_cooking_session": false
+ },
+ "S4": {
+  "lane": "solo",
+  "titre": "vegane + allergie fruits a coque + arachide, sans four, perte",
+  "email": "camp0909.s4@keeltest.dev",
+  "nom": "Alba Vegane",
+  "profile": {
+   "birth_date": "1997-03-11",
+   "gender": "female",
+   "height_cm": 170,
+   "activity_level": "trains_some",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 62.0,
+  "goal": "fat_loss",
+  "pace": 0.25,
+  "diet": "vegan",
+  "allergies": [
+   [
+    "tree_nut",
+    "medical"
+   ],
+   [
+    "peanut",
+    "medical"
+   ]
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "medium"
+    },
+    {
+     "slot": "snack_pm",
+     "size": "small"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "stovetop",
+    "microwave",
+    "freezer"
+   ],
+   "cook_days": [
+    "mon",
+    "thu"
+   ],
+   "cooking_time_min": 40,
+   "recipe_difficulty": "normal",
+   "variety": "varied",
+   "budget_amount": 70,
+   "cooking_style": "balanced",
+   "grocery_runs": 2
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 4
+  },
+  "one_cooking_session": false
+ },
+ "S5": {
+  "lane": "solo",
+  "titre": "une seule session, six jours, sans gluten, perte 0,75 kg/sem",
+  "email": "camp0909.s5@keeltest.dev",
+  "nom": "Bruno Batch",
+  "profile": {
+   "birth_date": "1981-09-05",
+   "gender": "male",
+   "height_cm": 175,
+   "activity_level": "sedentary",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 95.0,
+  "goal": "fat_loss",
+  "pace": 0.75,
+  "diet": "gluten_free",
+  "allergies": [],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer"
+   ],
+   "cook_days": [
+    "sun"
+   ],
+   "cooking_time_min": 120,
+   "recipe_difficulty": "normal",
+   "variety": "some",
+   "budget_amount": 90,
+   "cooking_style": "balanced",
+   "grocery_runs": 1
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-13",
+   "duration_days": 6
+  },
+  "one_cooking_session": true
+ },
+ "F1": {
+  "lane": "household",
+  "titre": "foyer socle — quatre adultes proches, tous en entretien",
+  "email": "camp0909.f1@keeltest.dev",
+  "nom": "Paul Socle",
+  "maison": "Socle (campagne 2026-09-09)",
+  "profile": {
+   "birth_date": "1986-04-14",
+   "gender": "male",
+   "height_cm": 177,
+   "activity_level": "on_feet",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 78.0,
+  "membres": [
+   {
+    "prenom": "Paul",
+    "owner": true,
+    "birth_date": "1986-04-14",
+    "goal": "maintenance",
+    "body": [
+     177,
+     78,
+     "male",
+     "on_feet",
+     "seated",
+     "1_2",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Claire",
+    "birth_date": "1988-08-22",
+    "goal": "maintenance",
+    "body": [
+     166,
+     63,
+     "female",
+     "on_feet",
+     "seated",
+     "1_2",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Hugo",
+    "birth_date": "1992-01-30",
+    "goal": "maintenance",
+    "body": [
+     180,
+     75,
+     "male",
+     "sedentary",
+     "seated",
+     "none",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Nina",
+    "birth_date": "1994-11-09",
+    "goal": "maintenance",
+    "body": [
+     170,
+     61,
+     "female",
+     "trains_some",
+     "seated",
+     "3_4",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   }
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "medium"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ]
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 2
+  },
+  "one_cooking_session": false,
+  "cooking_shape": null,
+  "pace": null
+ },
+ "F2": {
+  "lane": "household",
+  "titre": "foyer avec deux mineurs — 7 ans et 14 ans",
+  "email": "camp0909.f2@keeltest.dev",
+  "nom": "Yann Parent",
+  "maison": "Enfants (campagne 2026-09-09)",
+  "profile": {
+   "birth_date": "1987-06-18",
+   "gender": "male",
+   "height_cm": 179,
+   "activity_level": "sedentary",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 84.0,
+  "membres": [
+   {
+    "prenom": "Yann",
+    "owner": true,
+    "birth_date": "1987-06-18",
+    "goal": "fat_loss",
+    "body": [
+     179,
+     84,
+     "male",
+     "sedentary",
+     "seated",
+     "none",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Sarah",
+    "birth_date": "1989-02-02",
+    "goal": "maintenance",
+    "body": [
+     163,
+     58,
+     "female",
+     "on_feet",
+     "on_feet",
+     "1_2",
+     "small"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Lise",
+    "birth_date": "2019-05-04",
+    "goal": null,
+    "body": [
+     124,
+     24,
+     "female",
+     "trains_some",
+     null,
+     "3_4",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Tom",
+    "birth_date": "2012-03-17",
+    "goal": null,
+    "body": [
+     166,
+     52,
+     "male",
+     "trains_hard",
+     null,
+     "5_plus",
+     "large"
+    ],
+    "diet": null,
+    "allergies": []
+   }
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "medium"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer"
+   ],
+   "cook_days": [
+    "wed",
+    "sun"
+   ],
+   "cooking_time_min": 45,
+   "recipe_difficulty": "simple",
+   "variety": "some",
+   "budget_amount": 120,
+   "cooking_style": "balanced",
+   "grocery_runs": 2
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 2
+  },
+  "one_cooking_session": false,
+  "cooking_shape": null,
+  "pace": 0.5
+ },
+ "F3": {
+  "lane": "household",
+  "titre": "foyer des extremes — prise de muscle, perte, entretien, un ado",
+  "email": "camp0909.f3@keeltest.dev",
+  "nom": "Theo Extreme",
+  "maison": "Extremes (campagne 2026-09-09)",
+  "profile": {
+   "birth_date": "1993-09-12",
+   "gender": "male",
+   "height_cm": 185,
+   "activity_level": "trains_hard",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 88.0,
+  "membres": [
+   {
+    "prenom": "Theo",
+    "owner": true,
+    "birth_date": "1993-09-12",
+    "goal": "muscle_gain",
+    "body": [
+     185,
+     88,
+     "male",
+     "trains_hard",
+     "physical_job",
+     "5_plus",
+     "large"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Maya",
+    "birth_date": "1990-12-01",
+    "goal": "fat_loss",
+    "body": [
+     168,
+     74,
+     "female",
+     "sedentary",
+     "seated",
+     "1_2",
+     "small"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Georges",
+    "birth_date": "1958-07-25",
+    "goal": "maintenance",
+    "body": [
+     172,
+     70,
+     "male",
+     "on_feet",
+     "on_feet",
+     "1_2",
+     "small"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Jules",
+    "birth_date": "2010-10-08",
+    "goal": null,
+    "body": [
+     170,
+     55,
+     "male",
+     "trains_some",
+     null,
+     "3_4",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   }
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ],
+   "cook_days": [
+    "tue",
+    "sat"
+   ],
+   "cooking_time_min": 60,
+   "recipe_difficulty": "normal",
+   "variety": "varied",
+   "budget_amount": 150,
+   "cooking_style": "balanced",
+   "grocery_runs": 2
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 2
+  },
+  "one_cooking_session": false,
+  "cooking_shape": null,
+  "pace": 0.25
+ },
+ "F4": {
+  "lane": "household",
+  "titre": "extremes + une bouche vegetarienne + une allergie fruits a coque",
+  "email": "camp0909.f4@keeltest.dev",
+  "nom": "Theo Regime",
+  "maison": "Regime (campagne 2026-09-09)",
+  "profile": {
+   "birth_date": "1993-09-12",
+   "gender": "male",
+   "height_cm": 185,
+   "activity_level": "trains_hard",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 88.0,
+  "membres": [
+   {
+    "prenom": "Theo",
+    "owner": true,
+    "birth_date": "1993-09-12",
+    "goal": "muscle_gain",
+    "body": [
+     185,
+     88,
+     "male",
+     "trains_hard",
+     "physical_job",
+     "5_plus",
+     "large"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Maya",
+    "birth_date": "1990-12-01",
+    "goal": "fat_loss",
+    "body": [
+     168,
+     74,
+     "female",
+     "sedentary",
+     "seated",
+     "1_2",
+     "small"
+    ],
+    "diet": "vegetarian",
+    "allergies": []
+   },
+   {
+    "prenom": "Georges",
+    "birth_date": "1958-07-25",
+    "goal": "maintenance",
+    "body": [
+     172,
+     70,
+     "male",
+     "on_feet",
+     "on_feet",
+     "1_2",
+     "small"
+    ],
+    "diet": null,
+    "allergies": [
+     "tree nuts"
+    ]
+   },
+   {
+    "prenom": "Jules",
+    "birth_date": "2010-10-08",
+    "goal": null,
+    "body": [
+     170,
+     55,
+     "male",
+     "trains_some",
+     null,
+     "3_4",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   }
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ],
+   "cook_days": [
+    "tue",
+    "sat"
+   ],
+   "cooking_time_min": 60,
+   "recipe_difficulty": "normal",
+   "variety": "varied",
+   "budget_amount": 150,
+   "cooking_style": "balanced",
+   "grocery_runs": 2
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-10",
+   "duration_days": 2
+  },
+  "one_cooking_session": false,
+  "cooking_shape": null,
+  "pace": 0.25
+ },
+ "F5": {
+  "lane": "household",
+  "titre": "le cas maximal — extremes + vegetarienne + allergie + UNE seule session sur cinq jours",
+  "email": "camp0909.f5@keeltest.dev",
+  "nom": "Theo Batch",
+  "maison": "Batch (campagne 2026-09-09)",
+  "profile": {
+   "birth_date": "1993-09-12",
+   "gender": "male",
+   "height_cm": 185,
+   "activity_level": "trains_hard",
+   "locale": "en-GB",
+   "country": "GB"
+  },
+  "weight_kg": 88.0,
+  "membres": [
+   {
+    "prenom": "Theo",
+    "owner": true,
+    "birth_date": "1993-09-12",
+    "goal": "muscle_gain",
+    "body": [
+     185,
+     88,
+     "male",
+     "trains_hard",
+     "physical_job",
+     "5_plus",
+     "large"
+    ],
+    "diet": null,
+    "allergies": []
+   },
+   {
+    "prenom": "Maya",
+    "birth_date": "1990-12-01",
+    "goal": "fat_loss",
+    "body": [
+     168,
+     74,
+     "female",
+     "sedentary",
+     "seated",
+     "1_2",
+     "small"
+    ],
+    "diet": "vegetarian",
+    "allergies": []
+   },
+   {
+    "prenom": "Georges",
+    "birth_date": "1958-07-25",
+    "goal": "maintenance",
+    "body": [
+     172,
+     70,
+     "male",
+     "on_feet",
+     "on_feet",
+     "1_2",
+     "small"
+    ],
+    "diet": null,
+    "allergies": [
+     "tree nuts"
+    ]
+   },
+   {
+    "prenom": "Jules",
+    "birth_date": "2010-10-08",
+    "goal": null,
+    "body": [
+     170,
+     55,
+     "male",
+     "trains_some",
+     null,
+     "3_4",
+     "average"
+    ],
+    "diet": null,
+    "allergies": []
+   }
+  ],
+  "pc": {
+   "diet_asked": true,
+   "allergy_check": {
+    "self": true,
+    "members": []
+   },
+   "eating_rhythm": [
+    {
+     "slot": "breakfast",
+     "size": "medium"
+    },
+    {
+     "slot": "lunch",
+     "size": "large"
+    },
+    {
+     "slot": "dinner",
+     "size": "medium"
+    }
+   ],
+   "kitchen_equipment": [
+    "oven",
+    "stovetop",
+    "microwave",
+    "freezer",
+    "blender"
+   ],
+   "cook_days": [
+    "sun"
+   ],
+   "cooking_time_min": 150,
+   "recipe_difficulty": "normal",
+   "variety": "some",
+   "budget_amount": 180,
+   "cooking_style": "keen",
+   "grocery_runs": 1
+  },
+  "window": {
+   "kind": "exact",
+   "starts_on": "2026-09-13",
+   "duration_days": 2
+  },
+  "one_cooking_session": true,
+  "cooking_shape": null,
+  "pace": 0.25
+ }
+}

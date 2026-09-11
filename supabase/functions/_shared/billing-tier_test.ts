@@ -1,9 +1,13 @@
 import { assert, assertEquals, assertFalse } from "jsr:@std/assert@1";
+import { toStripeFormBody } from "./stripe.ts";
 import {
   ACTIVE_STUDENT_MIN_INTERACTIONS,
   COACH_TRIAL_DAYS,
   COACH_TRIAL_SEAT_LIMIT,
   coachTrialState,
+  householdStripeTrialEnd,
+  STRIPE_TRIAL_END_FALLBACK_SECONDS,
+  STRIPE_TRIAL_END_MIN_LEAD_SECONDS,
   countSeats,
   isActiveStudent,
   isKeelPlatformPriceId,
@@ -366,4 +370,73 @@ Deno.test("coachTrialState: a missing seat limit falls back to the contract", ()
     now: NOW,
   });
   assertEquals(st.kind === "trialing" ? st.seatLimit : -1, COACH_TRIAL_SEAT_LIMIT);
+});
+
+// ---------------------------------------------------------------------------
+// FF-064 — `householdStripeTrialEnd`: la semaine offerte survit au paiement
+// anticipé, et le repli ne peut que la DÉPASSER.
+// ---------------------------------------------------------------------------
+
+/** Minuit UTC du jour donné, en secondes. */
+function utcMidnight(iso: string): number {
+  return Math.floor(Date.parse(`${iso}T00:00:00Z`) / 1000);
+}
+
+Deno.test("householdStripeTrialEnd: le prélèvement tombe le LENDEMAIN du dernier jour couvert", () => {
+  // On est le 9, l'essai couvre jusqu'au 15 inclus: la bascule est le 16 à 00:00 UTC.
+  const now = new Date("2026-09-09T10:00:00Z");
+  assertEquals(
+    householdStripeTrialEnd("2026-09-15", now),
+    utcMidnight("2026-09-16"),
+  );
+});
+
+Deno.test("householdStripeTrialEnd: à moins de 48 h, le repli REPOUSSE — jamais l'inverse", () => {
+  // L'essai finit demain: `free_until + 1 j` est à ~38 h, donc sous la limite
+  // Stripe. Le repli doit rendre une date STRICTEMENT PLUS TARDIVE que la
+  // promesse — c'est toute la réponse à l'objection qui avait créé le 409.
+  const now = new Date("2026-09-09T10:00:00Z");
+  const promised = utcMidnight("2026-09-11");
+  const got = householdStripeTrialEnd("2026-09-10", now);
+  assertEquals(got, Math.floor(now.getTime() / 1000) + STRIPE_TRIAL_END_FALLBACK_SECONDS);
+  assert(
+    got !== undefined && got > promised,
+    "le repli doit DÉPASSER la promesse, jamais la raccourcir",
+  );
+  assert(
+    got !== undefined &&
+      got - Math.floor(now.getTime() / 1000) >= STRIPE_TRIAL_END_MIN_LEAD_SECONDS,
+    "Stripe refuse un trial_end à moins de 48 h",
+  );
+});
+
+Deno.test("householdStripeTrialEnd: un foyer DÉJÀ GELÉ n'a plus d'essai à tenir", () => {
+  const now = new Date("2026-09-09T10:00:00Z");
+  assertEquals(householdStripeTrialEnd("2026-09-08", now), undefined);
+  // Le jour même est encore couvert (dernier jour INCLUS): ce n'est pas gelé.
+  assert(householdStripeTrialEnd("2026-09-09", now) !== undefined);
+});
+
+Deno.test("householdStripeTrialEnd: aucune date, ou une date illisible, ne pose aucun essai", () => {
+  const now = new Date("2026-09-09T10:00:00Z");
+  assertEquals(householdStripeTrialEnd(null, now), undefined);
+  assertEquals(householdStripeTrialEnd(undefined, now), undefined);
+  assertEquals(householdStripeTrialEnd("", now), undefined);
+  assertEquals(householdStripeTrialEnd("pas une date", now), undefined);
+});
+
+Deno.test("householdStripeTrialEnd: `undefined` disparaît du corps envoyé à Stripe", () => {
+  // La preuve que « pas d'essai » et « clé absente » sont le même octet: c'est
+  // ce qui permet d'écrire `trial_end: householdStripeTrialEnd(...)` sans
+  // condition au site d'appel.
+  const body = toStripeFormBody({
+    subscription_data: { trial_end: undefined, metadata: { a: "b" } },
+  });
+  assertFalse(body.has("subscription_data[trial_end]"));
+  assertEquals(body.get("subscription_data[metadata][a]"), "b");
+});
+
+Deno.test("householdStripeTrialEnd: un nombre part bien en `subscription_data[trial_end]`", () => {
+  const body = toStripeFormBody({ subscription_data: { trial_end: 1_767_225_600 } });
+  assertEquals(body.get("subscription_data[trial_end]"), "1767225600");
 });

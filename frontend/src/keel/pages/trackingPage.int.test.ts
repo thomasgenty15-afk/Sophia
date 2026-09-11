@@ -176,16 +176,15 @@ describe("A7 — `/app/progress` s'appelle « Suivi », et l'écran mort est par
     expect(frKeys.has("student_progress.title")).toBe(true);
   });
 
-  it("les libellés de nav disent « Suivi » et « Sécurité » dans les deux langues", () => {
+  it("le libellé de nav dit « Suivi » dans les deux langues", () => {
     expect(en["app.nav.progress"]).toBe("Tracking");
     expect(fr["app.nav.progress"]).toBe("Suivi");
-    expect(en["app.nav.health"]).toBe("Safety");
-    expect(fr["app.nav.health"]).toBe("Sécurité");
-    expect(en["health.title"]).toBe("Safety");
-    expect(fr["health.title"]).toBe("Sécurité");
   });
 
-  it("aucun CHEMIN n'a bougé: quatre onglets, et `/app/health` toujours dans la nav", () => {
+  // ⟳ 2026-09-09 — LA SECTION « SÉCURITÉ » EST PARTIE DE L'APP. Ce qui reste
+  // gardé ici est la conséquence: aucune entrée de nav ne doit la faire
+  // revenir, et les quatre onglets du bas n'ont pas bougé.
+  it("quatre onglets, et plus aucune entrée « Sécurité » dans la nav", () => {
     const nav = studentNav();
     expect(bottomTabs(nav)).toEqual([
       "/app/today",
@@ -193,7 +192,7 @@ describe("A7 — `/app/progress` s'appelle « Suivi », et l'écran mort est par
       "/app/plan",
       "/app/progress",
     ]);
-    expect(nav).toContain('"/app/health"');
+    expect(nav).not.toContain('"/app/health"');
   });
 });
 
@@ -209,10 +208,10 @@ describe("A7 — la ceinture TCA a changé de côté, et la courbe a remplacé l
     expect(page).not.toContain("weekly_reviews");
   });
 
-  it("la page demande la porte au serveur, et le plancher vient de LÀ", () => {
+  it("la page demande le journal versionné au serveur, et le plancher vient de LÀ", () => {
     // LE CAS QUI PASSE: sans ces deux lignes, le test du dessus resterait vert
     // sur une page qui ne garde plus rien du tout.
-    expect(page).toContain("loadTracking(");
+    expect(page).toContain("loadJournalTracking(");
     expect(page).toContain("report.floor");
   });
 
@@ -228,14 +227,24 @@ describe("A7 — la ceinture TCA a changé de côté, et la courbe a remplacé l
     ).toBe(true);
   });
 
-  it("les quatre surfaces neuves sont montées par la page", () => {
-    for (const mounted of [
-      "<TrackingSummaryCard",
-      "<TrackingObjectiveCard",
-      "<WeightCurveCard",
-      "<TrackingDescribeDialog",
-    ]) {
+  it("la page monte le journal, son éditeur et la courbe de poids", () => {
+    for (const mounted of ["<DayPanel", "<MealEditor", "<WeightCurveCard"]) {
       expect(page, `${mounted} n'est pas monté`).toContain(mounted);
+    }
+  });
+
+  it("les compteurs, le rythme, les points du soir et les séances ont quitté l'écran", () => {
+    for (const removed of [
+      "TrackingSummaryCard",
+      "TrackingObjectiveCard",
+      "TrackingDescribeDialog",
+      "ActivitySessionsCard",
+      "aggregateRhythm",
+      "aggregateWeekInFood",
+      "student_daily_checkins",
+      "daily_pulses",
+    ]) {
+      expect(page, `${removed} est encore câblé`).not.toContain(removed);
     }
   });
 });
@@ -326,18 +335,37 @@ describe("A7 — une clé du suivi qui n'est pas rendue est une clé qui peut me
     expect(orphans).toEqual([]);
   });
 
-  it("l'accusé de « Décrire » est rendu, et ne prétend pas que le chiffre a bougé", () => {
+  it("les DEUX accusés de « Décrire » sont rendus, et chacun dit ce qui a été écrit", () => {
+    // ⟳ 2026-09-09 — LE TROU EST BOUCHÉ, DONC CE TEST CHANGE DE CIBLE. Il
+    // gardait la phrase « le chiffre du jour ne bouge pas encore », qui NOMMAIT
+    // une non-livraison: `describeMissedSlot` n'écrivait aucune énergie. Il
+    // délègue maintenant à l'écrivain du journal, qui lit la description et en
+    // tire un `text_estimate`.
+    //
+    // ⛔ DEUX ISSUES, DONC DEUX PHRASES, ET LES DEUX DOIVENT ÊTRE RENDUES. Une
+    // seule clé câblée sur deux ferait retomber le cas non rendu sur un texte
+    // qui ment — c'est exactement le défaut que la version d'avant portait.
     const dialog = readFileSync(
       resolve(__dirname, "../components/TrackingDescribeDialog.tsx"),
       "utf8",
     );
     expect(dialog).toContain('t("tracking.describe.done")');
+    expect(dialog).toContain('t("tracking.describe.done.estimated"');
     for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
       const done = (pack as Record<string, string>)["tracking.describe.done"];
-      // Elle DIT que le repas cesse d'être oublié — c'est vrai.
+      const estimated =
+        (pack as Record<string, string>)["tracking.describe.done.estimated"];
+      // Les deux DISENT que le repas cesse d'être oublié — c'est vrai des deux.
       expect(done, name).toMatch(/no longer counts as missed|plus compté comme oublié/);
-      // Et elle DIT que le chiffre ne bouge pas — c'est le trou, nommé.
-      expect(done, name).toMatch(/does not move yet|ne bouge pas encore/);
+      expect(estimated, name).toMatch(
+        /no longer counts as missed|plus compté comme oublié/,
+      );
+      // ⛔ CELLE QUI PORTE LE CHIFFRE LE DIT ESTIMÉ. « about {kcal} » /
+      // « environ {kcal} »: un point sec annoncerait comme mesuré ce qui est lu
+      // dans une phrase. La base est DANS la clé, le mot est dans le texte.
+      expect(estimated, name).toMatch(/about \{kcal\}|environ \{kcal\}/);
+      // ⛔ ET CELLE QUI N'EN PORTE PAS N'EN INVENTE AUCUN.
+      expect(done, name).not.toContain("{kcal}");
     }
   });
 

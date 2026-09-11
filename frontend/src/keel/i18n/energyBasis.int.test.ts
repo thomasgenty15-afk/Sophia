@@ -110,8 +110,8 @@ describe("un kcal affiché porte sa base", () => {
     // ⚠️ `mealprep.energy.moved_down` était dans cette liste et en est SORTIE
     // le 2026-09-01: elle citait « 500 kcal » (le plafond de déficit) dans une
     // clé qui ne porte pas de base. Le plafond y est maintenant dit en mots.
-    "mealprep.energy.range_directed",
-    "mealprep.energy.range_weight",
+    // ⚠️ `mealprep.energy.range_*` ont QUITTÉ cette liste le 2026-09-08 avec la
+    // page `/meal-prep`: la seule landing ne montre plus de fourchette.
     "meals.energy.day",
     "meals.energy.day_partial",
     "meals.energy.day_with_addon",
@@ -140,6 +140,13 @@ describe("un kcal affiché porte sa base", () => {
     "tracking.total.photo_estimate",
     "tracking.total.plan_quantities",
     "tracking.total.slot_estimate",
+    // ⟳ 2026-09-09 — « DÉCRIRE » REND UN CHIFFRE, DONC IL ENTRE ICI. La base
+    // est `text_estimate` (le modèle a lu une description écrite), et elle est
+    // DANS la clé: `tracking.describe.done.estimated` ne peut pas s'afficher
+    // sans dire que c'est une estimation. Sa voisine sans chiffre
+    // (`tracking.describe.done`) reste hors inventaire — elle n'écrit aucun
+    // nombre.
+    "tracking.describe.done.estimated",
     ...BASES.map((b) => `photo.energy.${b}`),
     ...ENERGY_KEYS_THAT_REFUSE,
   ].sort();

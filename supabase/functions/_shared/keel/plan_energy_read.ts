@@ -74,6 +74,31 @@ export function readIngredient(raw: unknown): CompositionInput | null {
     // Sans cette ligne, 3 833 lignes de plans existants continueraient d'être
     // comptées « sans quantité » alors que leur masse est écrite en clair.
     quantity: typeof i.quantity === "string" ? i.quantity : null,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT A · L'IDENTIFIANT DE RÉFÉRENCE, ENFIN TRANSMIS — 2026-09-11
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ C'EST LA LIGNE QUI MANQUAIT, ET ELLE COÛTAIT DES REPAS. Ce lecteur
+    // construisait un `CompositionInput` avec `term`, `amount`, `unit`,
+    // `state`, `quantity` — et rien d'autre. Toute la mesure repartait donc du
+    // libellé en clair, pendant que le parseur, lui, pesait par l'identifiant.
+    // Mesuré sur les deux plans de la campagne du 2026-09-11: le modèle écrit
+    // `ref` sur 49 lignes sur 49 (GAIN), et DEUX ingrédients restent non
+    // mesurables. `pita_wholemeal` porte `unit_grams = 60` au référentiel; le
+    // libellé « pita complète » n'a aucun alias (la table porte « pita
+    // complet » et « pitas completes »). Résultat: `1 unit` non pesé, plat
+    // incomplet, **aucune boîte** — PERTE samedi déjeuner et GAIN vendredi
+    // dîner, deux cases livrées sans portion.
+    //
+    // ⚠️ LE JSON DU PLAN EST EN snake_case (R1): `ref` et `ref_refused`. Le
+    // second n'existe pas sur les plans écrits avant ce lot, et son absence
+    // vaut `false` — c'est-à-dire le chemin historique par le terme, conservé
+    // à l'identique.
+    ref: typeof i.ref === "string" && i.ref.trim() !== "" ? i.ref.trim() : null,
+    // ⛔ `=== true` ET PAS UNE COERCITION: une valeur absente, `null` ou un
+    // `"false"` textuel d'une archive ne doivent pas refuser une ligne. Le seul
+    // refus reconnu est celui que le parseur a écrit.
+    refRefused: i.ref_refused === true,
   };
 }
 
@@ -87,6 +112,21 @@ export function readIngredients(raw: unknown): CompositionInput[] {
   return out;
 }
 
+/**
+ * ⚠️ ⟳ 2026-09-11 · LOT B — CE LECTEUR NE PORTE **AUCUN GRAMME DE BOÎTE**.
+ *
+ * ⛔ LE DÉFAUT QU'IL A DÉJÀ CAUSÉ, MESURÉ. `scripts/2026-09-11-mesure-grille.ts`
+ * appelait `planEnergy(readDishes(...))` pour les kcal et lisait les GRAMMES
+ * ailleurs — sur les boîtes personnalisées. Les deux ne décrivent pas la même
+ * portion: `readDishes` ne connaît que `uses.servings / servingsMade`, une part
+ * CONVENTIONNELLE. Le rapport divisait donc les calories d'une part par la masse
+ * d'une autre, et rendait 757 kcal là où le contenant en portait 857,9
+ * (`ENQUETE-DEUX-DIRECTIONS-2026-09-11.md` § 1, trois assiettes sur trois).
+ *
+ * Pour « combien y a-t-il dans CE contenant », le lecteur est
+ * `readEnergyBoxDishes` juste en dessous, servi à `boxNutrition`
+ * (`mouth_energy.ts`).
+ */
 export function readDishes(raw: unknown): EnergyDish[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {

@@ -4,6 +4,19 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
+// FF-064 — les deux e-mails d'annulation. Le webhook est le SEUL endroit qui
+// voit la transition: le cron ne balaie que des états, jamais des changements.
+import {
+  cancelSegmentFor,
+  renderCancelEmail,
+} from "../_shared/keel/lifecycle_cancel.ts";
+import {
+  decideLifecycleSend,
+  loadLifecycleCadenceFacts,
+  sendLifecycleEmail,
+  unsubscribeUrl,
+} from "../_shared/keel/lifecycle_email.ts";
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import {
   intervalFromStripePriceId,
@@ -358,7 +371,11 @@ Deno.serve(async (req) => {
         // activation apart from a tier/interval change on an existing one.
         const { data: prevSub } = await admin
           .from("subscriptions")
-          .select("status,tier,interval,current_period_end")
+          // FF-064 — `cancel_at_period_end` ENTRE ICI. Sans lui, la bascule
+          // `false -> true` — c'est-à-dire le moment où quelqu'un décide de
+          // partir — est invisible: la colonne était écrite mais jamais
+          // comparée, donc aucune branche du dépôt ne pouvait la voir bouger.
+          .select("status,tier,interval,current_period_end,cancel_at_period_end")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -392,6 +409,125 @@ Deno.serve(async (req) => {
           }).eq("id", userId);
         }
 
+        // ── FF-064 — LES DEUX MOMENTS DE L'ANNULATION ─────────────────────
+        //
+        // Le webhook est le SEUL endroit qui voit une TRANSITION: le cron
+        // balaie des états, jamais des changements. C'est pour ça que ces deux
+        // e-mails ne sont pas dans `keel-lifecycle-email-v1`.
+        //
+        // ⚠️ LA RÉCLAMATION EST ATOMIQUE, ET C'EST OBLIGATOIRE ICI. Un seul
+        // changement Stripe émet PLUSIEURS `customer.subscription.updated`;
+        // une dédup en lecture-puis-écriture les laisserait tous passer, et
+        // c'est un doublon déjà observé en production sur les confirmations
+        // (motif de la table `subscription_notifications`, 20260707120000).
+        const cancelSegment = cancelSegmentFor(
+          prevSub
+            ? {
+              status: (prevSub as { status?: string | null }).status ?? null,
+              cancelAtPeriodEnd: Boolean(
+                (prevSub as { cancel_at_period_end?: boolean | null })
+                  .cancel_at_period_end,
+              ),
+            }
+            : null,
+          { status: status ?? null, cancelAtPeriodEnd },
+        );
+        if (cancelSegment) {
+          const dedupKey = `${stripeSubscriptionId}:${cancelSegment}`;
+          try {
+            const { data: claim } = await admin
+              .from("subscription_notifications")
+              .upsert({
+                dedup_key: dedupKey,
+                user_id: userId,
+                stripe_subscription_id: stripeSubscriptionId,
+                kind: cancelSegment,
+              }, { onConflict: "dedup_key", ignoreDuplicates: true })
+              .select("dedup_key")
+              .maybeSingle();
+
+            if (claim) {
+              const { data: prof } = await admin
+                .from("profiles")
+                .select(
+                  "email, full_name, locale, account_status, lifecycle_emails_opted_out_at, unsubscribe_token",
+                )
+                .eq("id", userId)
+                .maybeSingle();
+              const profile = prof as {
+                email?: string | null;
+                full_name?: string | null;
+                locale?: string | null;
+                account_status?: string | null;
+                lifecycle_emails_opted_out_at?: string | null;
+                unsubscribe_token?: string | null;
+              } | null;
+
+              const now = new Date();
+              const facts = await loadLifecycleCadenceFacts(admin, {
+                userId,
+                type: cancelSegment,
+                dedupKey,
+                // `null`: la garde inter-canaux ne s'applique pas à une
+                // transition. Elle protège une CADENCE quotidienne, et il n'y
+                // en a pas ici — l'événement décide du moment.
+                localDate: null,
+                now,
+                profile,
+              });
+              const verdict = decideLifecycleSend(facts, now);
+              const token = String(profile?.unsubscribe_token ?? "").trim();
+
+              if (verdict.ok && token) {
+                const locale = resolveArtifactLocale({
+                  studentProfile: profile?.locale ?? null,
+                  tenantDefault: null,
+                });
+                const firstName =
+                  String(profile?.full_name ?? "").trim().split(/\s+/)[0] || null;
+                const rendered = renderCancelEmail(cancelSegment, {
+                  firstName,
+                  unsubscribeUrl: unsubscribeUrl(token, locale),
+                  locale,
+                });
+                const sendState = await sendLifecycleEmail(admin, {
+                  userId,
+                  email: String(facts.email),
+                  type: cancelSegment,
+                  subject: rendered.subject,
+                  html: rendered.html,
+                  dedupKey,
+                  metadata: {
+                    segment: cancelSegment,
+                    stripe_subscription_id: stripeSubscriptionId,
+                    request_id: requestId,
+                  },
+                });
+                if (sendState === "failed") {
+                  // On RELÂCHE la réclamation: l'échec est transitoire, et un
+                  // re-delivery Stripe doit pouvoir retenter. C'est le patron
+                  // déjà en place pour les confirmations d'abonnement.
+                  await admin.from("subscription_notifications")
+                    .delete().eq("dedup_key", dedupKey);
+                }
+              }
+              // ⛔ ON NE RELÂCHE PAS SUR UN REFUS DE CADENCE. Un refus
+              // (désinscription, compte en suppression, adresse éphémère) est
+              // STABLE: relâcher ferait retenter à chaque re-delivery, pour
+              // être refusé à chaque fois. La réclamation consommée est la
+              // trace correcte de « on a décidé de ne pas écrire ».
+            }
+          } catch (error) {
+            // Best-effort, comme les autres avis de ce fichier: un e-mail qui
+            // ne part pas ne doit jamais faire échouer un webhook Stripe — un
+            // 500 ici ferait rejouer l'événement, donc réécrire l'abonnement.
+            console.error(
+              `[stripe-webhook] request_id=${requestId} cancel notice failed`,
+              error,
+            );
+          }
+        }
+
         // PIVOT — le parrainage B2C est supprimé (tables `referral_codes`,
         // `referrals`, `referral_rewards`). Le bloc qui créditait ici les mois
         // « bankés » d'un parrain devenu payant part avec elles.
@@ -422,8 +558,16 @@ Deno.serve(async (req) => {
         // bought. A coach subscription is deliberately excluded from it rather
         // than mapped onto a label that would be a lie. The subscription mirror
         // above is unaffected: what is skipped is a message, not a write.
-        const isCoachSubscription = tier === "coach";
-        const notifKind: NotificationKind = isCoachSubscription
+        //
+        // ⟳ 2026-09-09 (FF-064) — LE FOYER REJOINT L'EXCLUSION, et il aurait dû
+        // y être depuis le chantier 1. Le raisonnement du dessus vaut mot pour
+        // mot pour lui: un maître de foyer n'a jamais acheté « Alliance » non
+        // plus, et le canal est démonté. Ce qui a changé, c'est la FRÉQUENCE:
+        // le paiement anticipé fait naître l'abonnement en `trialing` puis
+        // basculer en `active` à la fin de la semaine offerte — donc une
+        // transition de plus, sur laquelle ce message se déclenchait.
+        const skipsLegacyNotification = tier === "coach" || tier === "household";
+        const notifKind: NotificationKind = skipsLegacyNotification
           ? null
           : decideSubscriptionNotification(
             prevSnapshot,

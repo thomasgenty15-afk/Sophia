@@ -244,16 +244,19 @@ describe("un mineur ne voit qu'une direction: « Eat normally » (2026-09-03)", 
     const markup = html({ birthDate: MINOR_BIRTH, goal: "fat_loss" });
     expect(offered(markup)).toEqual(["maintenance"]);
     expect(checkedValues(markup)).toEqual(["maintenance"]);
-    // ⟳ A5, 2026-09-03 — LE LIBELLÉ DE LA DIRECTION EST CELUI DU FOYER.
-    // La fiche d'ajout montait ses propres libellés (`setup.goal.*`); elle
-    // monte `MouthCoreFields` depuis ce lot, et `MouthCoreFields` nomme les
-    // directions avec `household.goal.*`. Deux vocabulaires pour les trois
-    // mêmes jetons, c'était l'écart que le lot referme — la phrase de bascule
-    // suit celui de la fiche qui la rend.
+    // ⟳ 2026-09-06 — ET LE VOCABULAIRE EST REDEVENU `setup.goal.*`.
+    // A5 (2026-09-03) avait fait basculer cette fiche sur `household.goal.*`
+    // pour aligner les DEUX fiches d'ajout entre elles; l'alignement était bon,
+    // le vocabulaire choisi ne l'était pas — il refermait un écart entre deux
+    // pages en en ouvrant un DANS l'étape 2, où la carte du titulaire disait
+    // « Lose weight » un cadre au-dessus de « Losing fat ». La fiche ne porte
+    // plus qu'un jeu de mots, et c'est celui de l'entonnoir; la justification
+    // de l'autre (« des étiquettes dans une liste déroulante ») est morte avec
+    // la liste déroulante, remplacée par des tuiles au chantier P3.
     expect(decode(markup)).toContain(
       en["household.goal.minor_switched"].replace(
         "{from}",
-        en["household.goal.fat_loss"],
+        en["setup.goal.fat_loss"],
       ),
     );
     // Et rien ne se déplie sous une direction repliée.
@@ -633,7 +636,11 @@ describe("A5 · un seul formulaire de personne — l'entonnoir et le Foyer", () 
     for (
       const key of [
         "household.mouth.body",
-        "household.mouth.activity",
+        // ⟳ 2026-09-06 — `household.mouth.activity` est parti avec les quatre
+        // crans. `day_activity` le remplace ici, et il est MEILLEUR pour ce
+        // cas: il porte un `{who}`, donc il prouve à la fois la voix et le fait
+        // que la fiche NOMME la personne au lieu de dire « elle ou lui ».
+        "household.mouth.day_activity",
         "household.mouth.identity_hint",
       ] as const
     ) {

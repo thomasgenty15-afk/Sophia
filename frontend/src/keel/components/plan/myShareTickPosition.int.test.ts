@@ -96,6 +96,8 @@ const DISHES: HouseholdDishView[] = [
     slot: "breakfast",
     uses: [],
     memberId: OTHER,
+    // ⟳ 2026-09-11 — REQUIS par `HouseholdDishView`.
+    complementsShared: false,
   },
   {
     dishIndex: 1,
@@ -104,6 +106,9 @@ const DISHES: HouseholdDishView[] = [
     slot: "dinner",
     uses: [],
     memberId: null,
+    // ⟳ 2026-09-11 — REQUIS par `HouseholdDishView`. `false` = ce plat
+    // n'est pas un complément partagé, ce que ces décors décrivent.
+    complementsShared: false,
   },
   {
     dishIndex: 2,
@@ -112,6 +117,8 @@ const DISHES: HouseholdDishView[] = [
     slot: "lunch",
     uses: [],
     memberId: OTHER,
+    // ⟳ 2026-09-11 — REQUIS par `HouseholdDishView`.
+    complementsShared: false,
   },
   {
     dishIndex: 3,
@@ -120,6 +127,9 @@ const DISHES: HouseholdDishView[] = [
     slot: "breakfast",
     uses: [],
     memberId: null,
+    // ⟳ 2026-09-11 — REQUIS par `HouseholdDishView`. `false` = ce plat
+    // n'est pas un complément partagé, ce que ces décors décrivent.
+    complementsShared: false,
   },
 ];
 
@@ -158,7 +168,6 @@ function render(): string {
     householdMealId: "11111111-2222-3333-4444-555555555555",
     planStartsOn: pastMonday(),
     onApprove: async () => {},
-    onRequestChange: async () => {},
     busy: false,
   }));
 }
@@ -225,8 +234,7 @@ describe("D1 — la coche d'un membre tombe sur la POSITION STOCKÉE", () => {
       householdMealId: null,
       planStartsOn: null,
       onApprove: async () => {},
-      onRequestChange: async () => {},
-      busy: false,
+        busy: false,
     }));
     expect(asked).toEqual([]);
   });

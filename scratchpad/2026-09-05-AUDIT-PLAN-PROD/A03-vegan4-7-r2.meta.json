@@ -1,0 +1,14 @@
+{
+  "id": "A03-vegan4-7-r2",
+  "uid": "2b252884-e267-4d2f-8394-9edaaef85ee2",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T19:03:30.661Z",
+  "end": "2026-09-05T19:07:19.687Z",
+  "http": 200,
+  "seconds": 228.953505,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "fresh_runtime": true,
+  "request_id": "52945b90-6fbd-4aff-87ae-d71f07c127a6",
+  "ok": true
+}

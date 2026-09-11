@@ -1,11 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { ArrowUpRight, LogIn } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { stripLocalePrefix } from "../i18n/catalog";
 import { localeHref } from "../i18n/links";
 import { t, type MessageKey } from "../i18n/t";
 import { ButtonLink } from "./ui/Button";
 import { LocaleSwitch } from "./LocaleSwitch";
+import { BrandMark } from "./BrandMark";
 import { isProSurfaceHidden } from "../../security/proSurface";
 
 // KEEL — la chrome publique. L'en-tête est la porte d'entrée du produit:
@@ -88,11 +90,13 @@ const ALL_WORLDS = [
     cta: { to: "/start", label: "public.header.start_household" as MessageKey },
     /** La connexion, en disant d'où l'on vient. Voir la note ci-dessus. */
     signIn: "/auth?w=household",
-    doors: [
-      { to: "/meal-prep", label: "public.nav.mealprep" },
-      { to: "/couples", label: "public.nav.couples" },
-      { to: "/families", label: "public.nav.families" },
-    ] as Door[],
+    /**
+     * ⚠️ AUCUNE PORTE DEPUIS LE 2026-09-08: `/meal-prep`, `/couples` et
+     * `/families` sont retirées, le hall est la seule page de vente du foyer.
+     * La seconde rangée et le plan du site en pied se taisent quand un monde
+     * n'a pas de porte — voir `world.doors.length` plus bas.
+     */
+    doors: [] as Door[],
   },
   {
     hub: "/pro",
@@ -118,6 +122,24 @@ const ALL_WORLDS = [
 //
 // `worldOf()` ne résout plus `/pro` ni ses trois portes: leurs routes sont
 // démontées dans `App.tsx`, elles n'atteignent plus cet en-tête.
+/**
+ * LES TROIS SECTIONS DU HALL, dans l'ordre de la page.
+ *
+ * ⚠️ LES LIBELLÉS SONT SOUS `public.*`, PAS `home.*`. Ce fichier est le chrome
+ * de toute page publique, et `pageSeams.int.test.ts` n'y tolère que `public` et
+ * `brand`: une clé `home.*` lue ici ferait atteindre le namespace du hall à
+ * `/legal`, `/start` et `/join`, qui ne le déclarent pas.
+ *
+ * ⚠️ LES ANCRES DOIVENT EXISTER DANS `HomePage`: `#experience` (section 01),
+ * `#a-table` (le foyer) et `#offre` (l'abonnement). Renommer un `id` là-bas
+ * sans toucher ici donne trois liens qui ne font rien, en silence.
+ */
+const HALL_SECTIONS: ReadonlyArray<{ hash: string; label: MessageKey }> = [
+  { hash: "#experience", label: "public.nav.experience" },
+  { hash: "#a-table", label: "public.nav.household" },
+  { hash: "#offre", label: "public.nav.offer" },
+];
+
 const WORLDS = isProSurfaceHidden()
   ? ALL_WORLDS.filter((world) => world.hub !== "/pro")
   : [...ALL_WORLDS];
@@ -199,15 +221,34 @@ export function PublicHeader({
   // une route ajoutée sans entrée ci-dessus le produirait), on retombe sur le
   // foyer: c'est le défaut du site depuis que `/` est B2C.
   const world = current ?? WORLDS[0];
+  // ⚠️ LES ANCRES DU HALL NE SE RENDENT QUE SUR LE HALL. `/legal` monte le
+  // MÊME en-tête sous l'audience par défaut; y afficher « L'abonnement »
+  // proposerait un lien vers une section que la page n'a pas — il ne se
+  // passerait rien au clic. Comparé sur le chemin CANONIQUE, pour que `/en`
+  // les porte aussi.
+  const onHall = stripLocalePrefix(pathname).path.replace(/\/$/, "") === "";
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center">
+          {/* ── LE SYMBOLE, ET NON PLUS L'ÉQUERRE ────────────────────────
+              Le logo de la marque (`BrandMark`) prend la place que tenait la
+              classe `.eq`. Ce n'est pas un ajout: l'équerre « ne flotte jamais
+              seule, il y a toujours un mot à sa droite » (charte §4) — c'est
+              exactement le rôle qu'un symbole de marque occupe, et deux
+              signatures collées au même mot en feraient une de trop.
+              ⚠️ LA LARGEUR EST COMPTÉE. `.eq` réservait 18px (1.125rem de
+              retrait); le symbole en prend 24 plus 6 d'espace, soit +12px dans
+              un bloc de gauche qui, à 320px, ne dispose pas d'un pixel de rab
+              (voir le relevé en tête de fichier). D'où `h-6 w-6` et `gap-1.5`
+              et pas la taille confortable: mesuré à 320px après coup, la page
+              ne défile pas en largeur. */}
           <Link
             to={localeHref(world.hub)}
-            className="eq shrink-0 font-display text-lg leading-none text-ink"
+            className="flex shrink-0 items-center gap-1.5 font-display text-lg leading-none text-ink"
           >
+            <BrandMark className="h-6 w-6 shrink-0 text-fig-700" />
             {t("brand.wordmark")}
           </Link>
           {/* LE MONDE EST AU-DESSUS DE SES PORTES — voir la note de hiérarchie
@@ -222,6 +263,12 @@ export function PublicHeader({
               la page n'ira pas chercher un sélecteur après le bouton d'essai.
               Il tient dans ~52px, donc il reste visible sous `sm` là où
               « Legal » a dû être masqué. */}
+          {/* ⚠️ VISIBLE À TOUTES LES TAILLES, ET IL A FAILLI PARTIR. Masqué sous
+              `sm` le 2026-09-09 pour ne laisser que le nom de la marque, il a
+              été REMIS le jour même: « pourquoi je ne vois plus EN/FR en
+              haut ? ». Un sélecteur de langue relégué au pied de page n'est
+              pas trouvé — c'est la première chose que cherche quelqu'un qui ne
+              lit pas la langue servie. Il tient dans ~52px. */}
           <LocaleSwitch />
           {/* La seule exception à « rien d'autre », et ce n'est pas une entrée
               de navigation — c'est une CRÉDENTIAL. Les mentions légales sont où
@@ -291,6 +338,7 @@ export function PublicHeader({
                     to={showWorlds ? world.signIn : "/auth"}
                     variant={audience === "student" ? "secondary" : "ghost"}
                   >
+                    <LogIn size={15} aria-hidden="true" />
                     {t("public.header.sign_in")}
                   </ButtonLink>
                 </span>
@@ -299,10 +347,19 @@ export function PublicHeader({
                     invitation qu'un coach a déjà payée, et lui proposer un
                     second compte payant au moment où elle accepte le sien est
                     la définition d'une porte qui trompe. */}
+                {/* ⚠️ MASQUÉ SOUS `sm`, ET C'EST UNE MESURE. À 320px: marque
+                    81px + langue 72 + « Commencer » 111 + marges 32 + espaces
+                    16 = 312 pour 320 — ça ne tient qu'en écrasant le nom de la
+                    marque. Ce que ça coûte est couvert: sur `/`, le héros pose
+                    « Découvrir mon programme » en pleine largeur juste sous le
+                    titre, et la section 05 le repose. */}
                 {showWorlds && (
-                  <ButtonLink to={world.cta.to} variant="brand">
-                    {t(world.cta.label)}
-                  </ButtonLink>
+                  <span className="hidden sm:contents">
+                    <ButtonLink to={world.cta.to} variant="brand">
+                      {t(world.cta.label)}
+                      <ArrowUpRight size={15} aria-hidden="true" />
+                    </ButtonLink>
+                  </span>
                 )}
               </>
             )}
@@ -323,6 +380,35 @@ export function PublicHeader({
           {showWorldTabs && (
             <WorldTabs world={world} className="mx-auto max-w-6xl px-4 pb-1.5 md:hidden" />
           )}
+          {/* ── LES SECTIONS DU HALL ─────────────────────────────────────
+              Trois ancres de la page courante, à la place qu'occupaient les
+              portes avant le 2026-09-08. Elles vivaient dans le héros, posées
+              au-dessus du titre de la page: une navigation à l'intérieur de ce
+              qu'elle navigue.
+              ⚠️ `<a href="#…">` ET PAS UN `<Link>`: une ancre de la MÊME page,
+              qui doit marcher à l'identique sur `/` et sur `/en` sans que le
+              routeur ait à composer une URL. Un `Link to="/#offre"` renverrait
+              un lecteur anglais sur la page française.
+              ⚠️ LE RANG DÉFILE AU LIEU DE DÉBORDER. Les trois libellés français
+              demandent ~290px et un écran de 320 en offre 288: sans
+              `overflow-x-auto`, c'est la PAGE qui part de travers. */}
+          {onHall && (
+            <nav
+              aria-label={t("public.nav.sections_label")}
+              className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4 pb-1.5"
+            >
+              {HALL_SECTIONS.map((section) => (
+                <a
+                  key={section.hash}
+                  href={section.hash}
+                  className="shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink"
+                >
+                  {t(section.label)}
+                </a>
+              ))}
+            </nav>
+          )}
+          {world.doors.length > 0 && (
           <nav
             aria-label={t("public.nav.doors_label")}
             className="mx-auto hidden max-w-6xl items-center gap-1 px-4 pb-1.5 md:flex"
@@ -353,6 +439,7 @@ export function PublicHeader({
               );
             })}
           </nav>
+          )}
         </>
       )}
     </header>
@@ -407,7 +494,11 @@ export function PublicFooter() {
     <footer className="border-t border-line bg-paper">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="eq font-display text-sm text-ink">
+          {/* Le même lockup qu'en tête, au cran du pied de page: symbole à la
+              taille du texte, jamais l'équerre en plus (voir la note de
+              l'en-tête). */}
+          <div className="flex items-center gap-1.5 font-display text-sm text-ink">
+            <BrandMark className="h-5 w-5 shrink-0 text-fig-700" />
             {t("brand.wordmark")}
           </div>
         </div>

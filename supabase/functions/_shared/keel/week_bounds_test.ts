@@ -59,9 +59,11 @@ Deno.test("le plafond suit le nombre de jours RÉELLEMENT demandés", () => {
 
 Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours", () => {
   const days = daysUntilSunday("thu");
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -75,7 +77,7 @@ Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours"
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -99,9 +101,11 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
   // plan généré un jeudi; le modèle a posé une session le MERCREDI — un jour
   // déjà passé. Ses jours de cuisine décrivent sa semaine type, la fenêtre est
   // ce qu'il en reste, et seule l'intersection est exécutable.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -115,7 +119,7 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -138,9 +142,11 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
   // Quelqu'un qui ne cuisine que le lundi, un vendredi, doit quand même manger.
   // Mieux vaut une session posée un jour non déclaré — qu'il déplacera — qu'un
   // plan sans aucun jour de cuisine.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -154,7 +160,7 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -224,6 +230,7 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     },
@@ -279,6 +286,7 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     },
@@ -352,6 +360,7 @@ function planWith(args: {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     },
@@ -471,9 +480,11 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
   // samedi sur un lot cuisiné le dimanche. Quatre `issues` sur un vrai plan.
   //
   // Une contrainte qui rend le plan inexécutable n'est plus une contrainte.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -487,7 +498,7 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -513,9 +524,11 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
   // Vendredi déclaré, fenêtre jeudi→dimanche: vendredi ne nourrit pas jeudi,
   // mais jeudi est le premier jour et il se cuisine frais. Rien à ajouter —
   // ouvrir un jour ici piétinerait une contrainte parfaitement tenable.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -529,7 +542,7 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",

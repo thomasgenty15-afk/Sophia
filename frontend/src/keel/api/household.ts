@@ -634,49 +634,15 @@ export async function addHouseholdMember(
   return asResult(data);
 }
 
-/**
- * MON FOYER EST-IL EN PAUSE ? (chantier 3, D4)
- *
- * ── POURQUOI L'ÉCRAN DEMANDE, AU LIEU D'ATTENDRE LE REFUS ─────────────────
- * `supabase.functions.invoke` ne rend PAS le corps d'une réponse non-2xx: il
- * rend « Edge Function returned a non-2xx status code ». Le refus nommé de
- * `generate-household-meal-v1` (`household_frozen`, 402) arriverait donc à
- * l'écran comme une panne générique — et « un refus muet se lit comme une
- * panne » est exactement ce que ce chantier existe pour éviter. L'écran
- * demande donc son état, et le serveur refuse quand même: la garde est en
- * base, ceci n'est que la phrase.
- *
- * ── AUCUNE RÈGLE ICI ──────────────────────────────────────────────────────
- * `keel_household_my_coverage` est une dérivation de
- * `keel_household_is_covered`, la définition unique du dépôt. L'écran ne lit
- * NI `free_until` NI `subscriptions`: une seconde définition côté navigateur
- * afficherait « en pause » à quelqu'un qui compose très bien, ou l'inverse.
- *
- * En cas d'échec de lecture on rend `frozen: false` — ne pas savoir n'est pas
- * une raison d'annoncer une pause à quelqu'un qui paie.
- */
-export interface HouseholdCoverage {
-  inHousehold: boolean;
-  frozen: boolean;
-  /** Le dernier jour couvert par l'essai, ou `null` (aucun essai posé). */
-  freeUntil: string | null;
-}
-
-export async function loadMyHouseholdCoverage(): Promise<HouseholdCoverage> {
-  const open: HouseholdCoverage = {
-    inHousehold: false,
-    frozen: false,
-    freeUntil: null,
-  };
-  const { data, error } = await supabase.rpc("keel_household_my_coverage");
-  if (error) return open;
-  const row = (data ?? {}) as Record<string, unknown>;
-  return {
-    inHousehold: row.in_household === true,
-    frozen: row.frozen === true,
-    freeUntil: typeof row.free_until === "string" ? row.free_until : null,
-  };
-}
+// ⟳ 2026-09-09 (FF-064) — `HouseholdCoverage` et `loadMyHouseholdCoverage` ont
+// déménagé dans `api/householdCoverage.ts`, et sont réexportées ci-dessous.
+// La raison est écrite là-bas: le mur de paiement les lit depuis les sept
+// routes `/app/*`, et l'arête d'import faisait atteindre tout `household.*` à
+// quatre écrans qui n'en affichent rien.
+export {
+  type HouseholdCoverage,
+  loadMyHouseholdCoverage,
+} from "./householdCoverage";
 
 /**
  * LE GESTE POUR REPRENDRE — le tunnel de paiement du foyer.
@@ -694,7 +660,23 @@ export async function loadMyHouseholdCoverage(): Promise<HouseholdCoverage> {
 export async function openHouseholdCheckout(): Promise<string> {
   const { data, error } = await supabase.functions.invoke(
     "stripe-create-checkout-session",
-    { body: { plan: "keel_household", interval: "monthly" } },
+    {
+      body: {
+        plan: "keel_household",
+        interval: "monthly",
+        // ⚠️ UN SEUL APPEL POUR DEUX GESTES, ET C'EST LE SERVEUR QUI TRANCHE.
+        // Si un abonnement Stripe est déjà vivant, la fonction edge rend une
+        // session de PORTAIL au lieu d'un tunnel — même forme de réponse, même
+        // `url`. Ajouter ici un second appelant « gérer mon abonnement »
+        // dupliquerait la décision « payer ou gérer » côté navigateur, où elle
+        // serait fausse la première seconde qui suit un paiement.
+        //
+        // `return_path` n'existe QUE pour la branche portail (le tunnel a ses
+        // propres `success_url`/`cancel_url`). Sans lui, Stripe ramenait sur
+        // `/app/household`, qui ne lit aucun paramètre de retour.
+        return_path: "/app/billing?billing=portal",
+      },
+    },
   );
   if (error) throw error;
   const url = String((data as { url?: unknown } | null)?.url ?? "").trim();
@@ -941,16 +923,6 @@ export interface MemberBodyView {
   sportFrequency: SportFrequency | null;
   activityAxesAsked: boolean;
   /**
-   * ── LES TROIS CASES DU REPAS (2026-08-20) ─────────────────────────────
-   * ⛔ TRI-ÉTAT. `false` = « non, je n'en prends pas », une réponse qui fait
-   * MONTER la part du plat; `null` = pas répondu, et la moyenne 0,42 reprend
-   * la main. Une case décochée ne peut pas dire les deux.
-   */
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
-  mealStructureAsked: boolean;
-  /**
    * ⑤ L'APPÉTIT (2026-08-20) — ±10 % sur l'ESTIMATION. `null` = pas répondu.
    *
    * ⛔ TRANSITOIRE: le lot ⑦ (boucle de poids) le remplace pour toute bouche
@@ -1034,10 +1006,6 @@ export async function loadMemberBodies(): Promise<Map<string, MemberBodyView>> {
         ? (String(r.sport_frequency).trim() as SportFrequency)
         : null,
       activityAxesAsked: r.activity_axes_asked === true,
-      takesDessert: typeof r.takes_dessert === "boolean" ? r.takes_dessert : null,
-      takesCheese: typeof r.takes_cheese === "boolean" ? r.takes_cheese : null,
-      takesBread: typeof r.takes_bread === "boolean" ? r.takes_bread : null,
-      mealStructureAsked: r.meal_structure_asked === true,
       // Même lecture fail-soft que les crans: hors vocabulaire ⇒ `null`.
       appetite: (APPETITE_LEVELS as readonly string[])
           .includes(String(r.appetite ?? "").trim())
@@ -1084,26 +1052,33 @@ export async function setMemberBody(
   gender: MemberGender,
   activityLevel: ActivityLevel | null,
   /**
-   * ── LES DEUX AXES ET LES TROIS CASES (2026-08-20), EN UN SEUL OBJET ────
+   * ── LES DEUX AXES ET L'APPÉTIT (2026-08-20), EN UN SEUL OBJET ─────────
    *
    * ⚠️ REQUIS, comme `activityLevel` au-dessus et pour la MÊME cicatrice: deux
    * écrans appellent cette porte, et un paramètre facultatif aurait laissé le
    * second enregistrer un corps complet en effaçant — ou en n'écrivant jamais —
    * ce que le premier avait collecté.
    *
-   * ⛔ `axesAsked` / `structureAsked` NE SONT PAS DÉCORATIFS: c'est EUX que la
+   * ⛔ `axesAsked` / `appetiteAsked` NE SONT PAS DÉCORATIFS: c'est EUX que la
    * base lit pour décider d'écrire. Un écran qui ne porte pas les questions
    * passe `false` et ne touche à rien; un écran qui les porte passe `true` et
    * écrit ce qu'il a, `null` compris — c'est la seule façon de dé-répondre.
+   *
+   * ⟳ 2026-09-10 — `takesDessert / takesCheese / takesBread` ET
+   * `structureAsked` ONT DISPARU D'ICI. Ils portaient la réservation d'énergie
+   * pour ce qui était pris à côté du plat; le plan ne réserve plus rien hors de
+   * ce qu'il compose.
+   *
+   * ⚠️ LES ARGUMENTS RPC NE SONT PAS SUPPRIMÉS EN BASE, ILS NE SONT PLUS
+   * PASSÉS. `p_takes_*` et `p_meal_structure_asked` ont un `default` dans la
+   * fonction SQL; ne pas les envoyer laisse les colonnes EXACTEMENT comme
+   * elles sont (`p_meal_structure_asked` à `false` = « ne touche à rien »).
+   * Aucune donnée n'est effacée.
    */
   extras: {
     dayActivity: DayActivityLevel | null;
     sportFrequency: SportFrequency | null;
     axesAsked: boolean;
-    takesDessert: boolean | null;
-    takesCheese: boolean | null;
-    takesBread: boolean | null;
-    structureAsked: boolean;
     /** ⑤ (2026-08-20). `null` = pas répondu ⇒ ×1,00, un neutre vrai. */
     appetite: AppetiteLevel | null;
     appetiteAsked: boolean;
@@ -1118,10 +1093,6 @@ export async function setMemberBody(
     p_day_activity: extras.dayActivity,
     p_sport_frequency: extras.sportFrequency,
     p_activity_axes_asked: extras.axesAsked,
-    p_takes_dessert: extras.takesDessert,
-    p_takes_cheese: extras.takesCheese,
-    p_takes_bread: extras.takesBread,
-    p_meal_structure_asked: extras.structureAsked,
     p_appetite: extras.appetite,
     p_appetite_asked: extras.appetiteAsked,
   });
@@ -1418,11 +1389,33 @@ export async function loadLiveInvitations(
   return out;
 }
 
+/**
+ * ⟳ 2026-09-09 — L'APPEL PASSE PAR LA FONCTION, ET PLUS PAR LA RPC.
+ *
+ * ── POURQUOI CE DÉTOUR ────────────────────────────────────────────────────
+ * `keel-household-invite-v1` appelle la MÊME RPC, sous le MÊME jeton, et rend
+ * les MÊMES champs (`ok`, `reason`, `token`, `first_name`, `email`,
+ * `member_id`): les deux appelants de cette fonction n'ont pas bougé d'une
+ * ligne. Ce qu'elle ajoute, c'est l'e-mail — qui n'existait pas (FF-060 R7,
+ * « AUCUN E-MAIL N'EST ENVOYÉ »), et qui ne peut pas partir d'un navigateur.
+ *
+ * ⛔ ET AUCUN REPLI VERS LA RPC. Un `catch` qui retomberait sur
+ * `supabase.rpc("keel_household_invite")` rendrait un `ok: true` parfaitement
+ * normal pendant que l'e-mail ne part plus — le mode d'échec exact que ce lot
+ * existe pour retirer. Une fonction non déployée doit se voir, pas se
+ * contourner.
+ *
+ * ⚠️ `send_state` REMONTE, ET L'ÉCRAN DOIT POUVOIR LE LIRE. Quatre valeurs:
+ * `sent`, `skipped_ephemeral` (adresse de test), `skipped_delivery_disabled`
+ * (toute session locale) et `failed`. « Le lien est créé » et « l'e-mail est
+ * parti » sont deux faits différents, et les fondre ferait attendre le maître
+ * devant une boîte qui ne recevra rien.
+ */
 export async function inviteToHousehold(email: string, memberId: string) {
-  const { data, error } = await supabase.rpc("keel_household_invite", {
-    p_email: email,
-    p_member: memberId,
-  });
+  const { data, error } = await supabase.functions.invoke(
+    "keel-household-invite-v1",
+    { body: { email, member_id: memberId } },
+  );
   if (error) throw new Error(error.message);
   return asResult(data);
 }
@@ -1895,6 +1888,14 @@ export interface HouseholdDishView {
    * tout le monde.
    */
   memberId: string | null;
+  /**
+   * ⟳ 2026-09-09 — LE PLAT À SON NOM QUI S'AJOUTE À LA TABLE au lieu de la
+   * remplacer : l'entrée de dernier recours du moteur (`complements_shared`).
+   * La personne mange le plat de la table ET celui-ci ; la vue par personne
+   * garde donc les deux dans sa case au lieu de cacher la table derrière son
+   * plat. Absent ⇒ `false` ⇒ le plat dédié d'avant, qui remplace.
+   */
+  complementsShared: boolean;
 }
 
 export interface HouseholdMealView {
@@ -2022,6 +2023,8 @@ export function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
       memberId: typeof d.member_id === "string" && d.member_id.trim()
         ? d.member_id.trim()
         : null,
+      // ⟳ 2026-09-09 — même lecture défensive : absent ⇒ `false`.
+      complementsShared: d.complements_shared === true,
     };
   }).filter((d) => d.title !== "");
 }

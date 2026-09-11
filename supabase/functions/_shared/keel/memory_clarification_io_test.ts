@@ -388,7 +388,7 @@ Deno.test("panne: tous les motifs rendus sont dans le vocabulaire déclaré", as
 
 Deno.test("notification: une ligne écrite, une bulle, un bouton « Voir »", async () => {
   const { admin, trace } = fake();
-  const out = await notifyMemoryWrite(admin, { safety: [],
+  const out = await notifyMemoryWrite(admin, {
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: "Léa" }],
     language: "fr",
@@ -423,7 +423,7 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
     ] as const
   ) {
     const { admin, trace } = fake();
-    await notifyMemoryWrite(admin, { safety: [],
+    await notifyMemoryWrite(admin, {
       userId: USER,
       kept: [{ text: "quelque chose", until: null, kind, who: null }],
       language: "fr",
@@ -449,12 +449,12 @@ Deno.test("notification: la destination du bouton suit le genre de la ligne", as
 Deno.test("notification: rien à dire — aucune bulle, aucun motif inventé", async () => {
   const { admin } = fake({ explodes: true });
   assertEquals(
-    await notifyMemoryWrite(admin, { safety: [], userId: USER, kept: [], language: "fr" }),
+    await notifyMemoryWrite(admin, { userId: USER, kept: [], language: "fr" }),
     { delivered: false, reason: "nothing_written" },
   );
   // Une ligne au texte vide n'est pas une ligne.
   assertEquals(
-    (await notifyMemoryWrite(admin, { safety: [],
+    (await notifyMemoryWrite(admin, {
       userId: USER,
       kept: [{ text: "   ", until: null, kind: "preference", who: null }],
       language: "fr",
@@ -468,7 +468,7 @@ Deno.test("notification: le canal tombe — elle ne lève pas", async () => {
   // panne du canal ferait alors échouer une requête dont tout le travail est
   // fait, et la personne lirait « ça n'a pas marché » sur un plan qui existe.
   const { admin } = fake({ explodes: true });
-  const out = await notifyMemoryWrite(admin, { safety: [],
+  const out = await notifyMemoryWrite(admin, {
     userId: USER,
     kept: [{ text: "pas de poisson", until: null, kind: "preference", who: null }],
     language: "fr",
@@ -477,50 +477,3 @@ Deno.test("notification: le canal tombe — elle ne lève pas", async () => {
   assert(out.reason.length > 0, "un refus muet ne se compte pas");
 });
 
-
-// ===========================================================================
-// ⟳ 2026-09-05 — LA PORTÉE: deux mots et une échappatoire, la déclaration en attente
-// ===========================================================================
-
-Deno.test("portée: trois boutons — « toujours », « parfois », « passer » — et la déclaration voyage dans `pending`", async () => {
-  const { admin, trace } = fake();
-  const entry: DraftNoteClarifyEntry = {
-    about: "scope",
-    gate: "notes",
-    kind: null,
-    text: "on mange végétarien",
-    subject: "household",
-    when: null,
-    options: ["always", "sometimes"],
-    safety: { kind: "diet", ref: "vegetarian", memberId: null, text: "On mange végétarien." },
-  };
-  const out = await askClarification(admin, { ...ASK, entry, note: "On mange végétarien." });
-  assert(out.asked, out.reason);
-
-  const bubble = trace.find((op) => op.table === "chat_messages" && op.ops.includes("insert"));
-  assert(bubble, "aucune bulle écrite");
-  const payload = bubble!.args[0]?.[0] as Record<string, unknown>;
-  const metadata = payload.metadata as Record<string, unknown>;
-  const buttons = metadata.buttons as { payload: string; label: string }[];
-  assertEquals(buttons.map((b) => b.label), ["Oui, tous mes repas", "Non, pas toujours", "Passer"]);
-  assert(/tous tes repas/.test(String(payload.content)), String(payload.content));
-
-  const row = trace.find((op) => op.table === MEMORY_CLARIFICATION_TABLE && op.ops.includes("insert"));
-  assert(row, "aucune ligne écrite");
-  const inserted = row!.args[0]?.[0] as Record<string, unknown>;
-  assertEquals(inserted.about, "scope");
-  assertEquals(inserted.options, ["always", "sometimes"]);
-  const pending = inserted.pending as Record<string, unknown>;
-  assertEquals((pending.safety as Record<string, unknown>).ref, "vegetarian");
-});
-
-Deno.test("⛔ portée: un jeton sans mot fait renoncer — jamais un bouton muet", async () => {
-  const { admin, trace } = fake();
-  const out = await askClarification(admin, {
-    ...ASK,
-    entry: { ...ASK.entry, about: "scope", gate: "notes", kind: null, subject: "household", options: ["always", "never"] },
-  });
-  assertEquals(out.asked, false);
-  assertEquals(out.reason, "no_labels");
-  assert(!trace.some((op) => op.table === MEMORY_CLARIFICATION_TABLE && op.ops.includes("insert")));
-});

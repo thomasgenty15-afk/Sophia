@@ -1,0 +1,57 @@
+{
+ "cas": "S1",
+ "wall_s": 66.9,
+ "http_line": "http=200 \u00b7 57.4s \u00b7 essais=1 \u00b7 empreinte apr\u00e8s 8097d2125f41 (inchang\u00e9e)",
+ "appels": [
+  {
+   "created_at": "2026-09-10T04:47:56.213958+00:00",
+   "source": "generate-meal-v1",
+   "model": "gpt-5.6-luna",
+   "status": "success",
+   "latency_ms": 32709,
+   "prompt_tokens": 7810,
+   "output_tokens": 8010,
+   "total_tokens": 15820,
+   "cost_usd": 0.00976874,
+   "effort": null,
+   "tier_sent": "fast",
+   "tier_echoed": "priority",
+   "tier_source": "call",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  },
+  {
+   "created_at": "2026-09-10T04:48:13.067237+00:00",
+   "source": "generate-meal-v1.empty_slots_retry",
+   "model": "gpt-5.6-luna",
+   "status": "success",
+   "latency_ms": 16337,
+   "prompt_tokens": 7938,
+   "output_tokens": 2306,
+   "total_tokens": 10244,
+   "cost_usd": 0.0043548,
+   "effort": null,
+   "tier_sent": "fast",
+   "tier_echoed": "priority",
+   "tier_source": "call",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  }
+ ],
+ "refus_budget": [],
+ "shutdown": [
+  "CPU time soft limit reached: isolate: a955583d-73a7-4b96-999c-35cad0135df3",
+  "CPU time hard limit reached: isolate: a955583d-73a7-4b96-999c-35cad0135df3",
+  "CPU time soft limit reached: isolate: 45f41e23-2435-45a7-a9df-4d00d40b2e11",
+  "wall clock duration warning: isolate: 18761e38-51ce-4b15-81a2-def501130b59",
+  "CPU time soft limit reached: isolate: 18761e38-51ce-4b15-81a2-def501130b59",
+  "CPU time soft limit reached: isolate: 98614353-ac3e-400e-9b30-3e6a0a1e4f98",
+  "CPU time soft limit reached: isolate: 52d5d730-7428-4fba-ad9d-24810c4873d0",
+  "CPU time soft limit reached: isolate: 9ce8bc90-a74b-4ab9-a348-b05038ae8012"
+ ],
+ "since": "2026-09-10T04:47:10"
+}

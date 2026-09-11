@@ -315,6 +315,7 @@ export default function KitchenToday(
         sessions={sessions}
         preparations={meals.preparations ?? []}
         dishes={meals.dishes ?? []}
+        shoppingList={meals.shoppingList ?? []}
         // ── LOT 4 · LES PRÉNOMS DES BOÎTES, SUR CET ÉCRAN AUSSI ─────────────
         // Sans cette ligne, la table de pesée de `/app/today` rendait « Une
         // boîte — 120 g » autant de fois qu'il y a de bouches: trois grammages

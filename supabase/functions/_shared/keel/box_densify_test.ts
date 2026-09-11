@@ -224,6 +224,7 @@ function ref(over: Partial<CompositionRef> & { slug: string; energyKcal: number 
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     ...over,
@@ -270,11 +271,29 @@ Deno.test("CÂBLAGE — le générateur densifie APRÈS unmetDemand, sur les seu
   assert(/row\.cause === "factor_clamped" \|\| row\.cause === "both"/.test(src), "la densification ne se limite plus aux écarts plafonnés");
   // ⛔ SEULES LES BOÎTES À UNE BOUCHE.
   assert(/\.filter\(\(box\) => box\.memberIds\.length === 1\)/.test(src), "une boîte partagée pourrait être densifiée");
-  // Les grammes rendus sont ÉCRITS sur le plan.
-  assert(/const next = densify\.grams\.get\(box\.id\);/.test(src), "les grammes densifiés ne sont pas écrits sur les boîtes");
+  // ⟳ 2026-09-07 — LES GRAMMES RENDUS NE SONT PLUS ÉCRITS SUR LE PLAN, ET
+  // C'EST LA DÉCISION: « le moteur mesure et rapporte, il ne redimensionne
+  // pas ». Déplacer des grammes entre les items d'une boîte, même à masse
+  // constante, c'est recomposer l'assiette à la place de qui l'a composée.
+  // Ce qui reste est la MESURE (`densify.counts`, `remaining`), sur le journal.
+  assert(!/const next = densify\.grams\.get\(box\.id\);/.test(src), "les grammes densifiés sont de nouveau écrits sur les boîtes");
   // Compté sur les deux surfaces, même à zéro.
   assertEquals((src.match(/densify: densifyCounts,/g) || []).length, 2, "le compteur ne sort pas sur le journal ET l'archive");
-  assert(/skipped: "no_composition"/.test(src), "« pas de référentiel » ne se distingue plus de « rien à faire »");
+  // ⟳ 2026-09-07 (lot 8) — DEUX MOTIFS DE SAUT, ET L'ÉPINGLE LES LIT TOUS LES
+  // DEUX. `no_composition` est une PANNE (le référentiel n'a pas pu être lu);
+  // `standard_recipe` est une DÉCISION (la boîte est déjà la conséquence d'un
+  // facteur calculé et d'une borne appliquée, la retoucher défait le calcul).
+  //
+  // ⚠️ CETTE ÉPINGLE LISAIT UN LITTÉRAL, et le ternaire qui porte le second
+  // motif l'a rendue orpheline en silence — cicatrice
+  // `refusal-token-guard-reads-only-literals`. On lit maintenant les DEUX
+  // jetons, chacun nommément.
+  assert(/"no_composition"/.test(src), "« pas de référentiel » ne se distingue plus de « rien à faire »");
+  assert(/"standard_recipe"/.test(src), "le saut du chemin armé ne se distingue plus d'une panne");
+  assert(
+    /const densify = composition && !portionSizing\.applied/.test(src),
+    "la densification tourne encore sur le chemin où le moteur autore les boîtes",
+  );
   // ⛔ ET LA CASSEROLE EST BORNÉE PAR CE QU'IL EN RESTE, toutes boîtes servies:
   // `sum_over` a rendu son verdict avant, sur les grammes du modèle.
   const potAt = src.indexOf("potRoom: (() => {");

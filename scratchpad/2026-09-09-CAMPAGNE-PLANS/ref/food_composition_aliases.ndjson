@@ -1,0 +1,2715 @@
+{"alias":"abat cuit","slug":"offal"}
+{"alias":"abricot","slug":"apricot_pitted"}
+{"alias":"abricot denoyaute cru","slug":"apricot_pitted"}
+{"alias":"abricot denoyaute sec","slug":"apricot_pitted"}
+{"alias":"abricot denoyaute sec moelleux","slug":"apricot_pitted_rehydrated_35"}
+{"alias":"abricots","slug":"apricot_pitted"}
+{"alias":"abricots secs","slug":"dried_apricot"}
+{"alias":"agneau","slug":"lamb"}
+{"alias":"agneau collier braise ou bouilli","slug":"lamb_neck"}
+{"alias":"agneau collier cru","slug":"lamb_neck"}
+{"alias":"agneau cote decouverte crue","slug":"lamb_chop_decouverte"}
+{"alias":"agneau cote filet crue","slug":"lamb_chop_fillet"}
+{"alias":"agneau cote filet grillee poelee","slug":"lamb_chop_fillet_pan"}
+{"alias":"agneau cote ou cotelette crue","slug":"lamb_chop"}
+{"alias":"agneau cote ou cotelette cuite","slug":"lamb_chop"}
+{"alias":"agneau cote ou cotelette grillee poelee","slug":"lamb_chop"}
+{"alias":"agneau cote premiere crue","slug":"lamb_rib_chop"}
+{"alias":"agneau cote premiere grillee poelee","slug":"lamb_rib_chop_pan"}
+{"alias":"agneau cotelette crue","slug":"lamb_cutlet"}
+{"alias":"agneau cotelette grillee","slug":"lamb_cutlet"}
+{"alias":"agneau epaule crue","slug":"lamb_shoulder"}
+{"alias":"agneau epaule maigre crue","slug":"lamb_shoulder_lean"}
+{"alias":"agneau epaule maigre rotie cuite au four","slug":"lamb_shoulder_lean"}
+{"alias":"agneau epaule rotie cuite au four","slug":"lamb_shoulder"}
+{"alias":"agneau gigot braise","slug":"lamb_leg"}
+{"alias":"agneau gigot cru","slug":"lamb_leg"}
+{"alias":"agneau gigot grille poele","slug":"lamb_leg_pan"}
+{"alias":"agneau gigot roti cuit au four","slug":"lamb_leg"}
+{"alias":"agneau selle crue","slug":"lamb_saddle"}
+{"alias":"agneau selle partie maigre grillee poelee","slug":"lamb_saddle_pan"}
+{"alias":"agneau selle partie maigre rotie cuite au four","slug":"lamb_saddle_lean"}
+{"alias":"agneau viande cuite","slug":"lamb_meat"}
+{"alias":"ail","slug":"garlic"}
+{"alias":"almond","slug":"almonds"}
+{"alias":"almonds","slug":"almonds"}
+{"alias":"amandes","slug":"almonds"}
+{"alias":"ananas","slug":"pineapple"}
+{"alias":"ananas pulpe cru","slug":"pineapple_pulp"}
+{"alias":"ananas victoria ou ananas queen victoria pulpe crue preleve a la reunion ananas comosus merr var queen","slug":"queen_vicoria_ananas_flesh"}
+{"alias":"anchois","slug":"anchovy"}
+{"alias":"anchovies","slug":"anchovy"}
+{"alias":"anchovy","slug":"anchovy"}
+{"alias":"andouille","slug":"chitterling_sausage"}
+{"alias":"andouille de guemene","slug":"chitterling_sausage_guemene"}
+{"alias":"andouille de vire","slug":"chitterling_sausage_vire"}
+{"alias":"andouille rechauffee a la poele","slug":"chitterling_sausage_pan"}
+{"alias":"andouillette a cuire","slug":"chitterling_sausage"}
+{"alias":"andouillette de troyes a cuire","slug":"chitterling_sausage_troyes"}
+{"alias":"andouillette sautee poelee","slug":"chitterling_sausage_sauteed_pan"}
+{"alias":"aneth","slug":"herbs_dill"}
+{"alias":"apple","slug":"apple"}
+{"alias":"apple sauce","slug":"apple_compote"}
+{"alias":"apple var chanteclerc pulp raw","slug":"apple_var_chanteclerc_pulp"}
+{"alias":"apple var gala pulp raw","slug":"apple_var_gala_pulp"}
+{"alias":"apple var golden pulp and skin raw","slug":"apple_var_golden_pulp"}
+{"alias":"apple var golden pulp raw","slug":"apple_var_golden_pulp"}
+{"alias":"apple var granny smith pulp and skin raw","slug":"apple_var_granny_smith"}
+{"alias":"apple var granny smith pulp raw","slug":"apple_var_granny_smith"}
+{"alias":"apple var pink lady pulp raw","slug":"apple_var_pink_lady"}
+{"alias":"apples","slug":"apple"}
+{"alias":"applesauce","slug":"apple_compote"}
+{"alias":"apricot","slug":"apricot_pitted"}
+{"alias":"apricot pitted dried","slug":"apricot_pitted"}
+{"alias":"apricot pitted dried rehydrated to 35 45 water","slug":"apricot_pitted_rehydrated_35"}
+{"alias":"apricot pitted raw","slug":"apricot_pitted"}
+{"alias":"apricots","slug":"apricot_pitted"}
+{"alias":"arborio rice","slug":"white_rice"}
+{"alias":"artichaut coeur appertise egoutte","slug":"artichoke_heart"}
+{"alias":"artichaut cuit a la vapeur sous pression","slug":"artichoke"}
+{"alias":"artichaut fond appertise egoutte","slug":"artichoke_base"}
+{"alias":"artichoke base canned drained","slug":"artichoke_base"}
+{"alias":"artichoke heart canned drained","slug":"artichoke_heart"}
+{"alias":"artichoke steamed","slug":"artichoke"}
+{"alias":"arugula","slug":"rocket"}
+{"alias":"asparagus","slug":"asparagus"}
+{"alias":"asparagus green boiled cooked in water","slug":"asparagus_green_water"}
+{"alias":"asparagus white boiled cooked in water","slug":"asparagus_white_water"}
+{"alias":"asperge","slug":"asparagus"}
+{"alias":"asperge blanche bouillie cuite a l eau","slug":"asparagus_white_water"}
+{"alias":"asperge verte bouillie cuite a l eau","slug":"asparagus_green_water"}
+{"alias":"asperges","slug":"asparagus"}
+{"alias":"aubergine","slug":"aubergine"}
+{"alias":"aubergine pulpe et peau rotie cuite au four","slug":"eggplant_pulp"}
+{"alias":"aubergines","slug":"aubergine"}
+{"alias":"autruche viande crue","slug":"ostrich_meat"}
+{"alias":"autruche viande cuite","slug":"ostrich_meat"}
+{"alias":"avocado","slug":"avocado"}
+{"alias":"avocado pulp raw","slug":"avocado_pulp"}
+{"alias":"avocados","slug":"avocado"}
+{"alias":"avocat","slug":"avocado"}
+{"alias":"avocat pulpe cru","slug":"avocado_pulp"}
+{"alias":"avoine","slug":"oats"}
+{"alias":"baby carrots","slug":"carrot"}
+{"alias":"baby potatoes","slug":"potato"}
+{"alias":"baby spinach","slug":"spinach"}
+{"alias":"bacon","slug":"bacon"}
+{"alias":"bagged salad","slug":"mixed_leaves"}
+{"alias":"baguette","slug":"bread_french_bread_baguette"}
+{"alias":"baked beans","slug":"baked_beans"}
+{"alias":"balsamic vinegar","slug":"vinegar"}
+{"alias":"bamboo shoots raw","slug":"bamboo_shoots"}
+{"alias":"bambou pousse crue","slug":"bamboo_shoots"}
+{"alias":"banana","slug":"banana"}
+{"alias":"banana pulp raw","slug":"banana_pulp"}
+{"alias":"bananas","slug":"banana"}
+{"alias":"banane","slug":"banana"}
+{"alias":"banane plantain cuite","slug":"plantain_banana"}
+{"alias":"banane pulpe crue","slug":"banana_pulp"}
+{"alias":"bananes","slug":"banana"}
+{"alias":"bar","slug":"sea_bass"}
+{"alias":"barley","slug":"barley"}
+{"alias":"basil","slug":"herbs_basil"}
+{"alias":"basilic","slug":"herbs_basil"}
+{"alias":"basmati rice","slug":"white_rice"}
+{"alias":"batavia crue","slug":"lettuce_var_batavia"}
+{"alias":"bay leaf","slug":"herbs_bay_leaf"}
+{"alias":"bay leaves","slug":"herbs_bay_leaf"}
+{"alias":"bayonne cured ham raw smoked","slug":"bayonne_cured_ham_smoked"}
+{"alias":"beef bolar blade grilled pan fried","slug":"beef_bolar_blade_pan"}
+{"alias":"beef bolar blade raw","slug":"beef_bolar_blade"}
+{"alias":"beef bolar blade roasted baked","slug":"beef_bolar_blade"}
+{"alias":"beef braised","slug":"beef"}
+{"alias":"beef cheek braised or boiled","slug":"beef_cheek"}
+{"alias":"beef cheek raw","slug":"beef_cheek"}
+{"alias":"beef chuck braised or boiled","slug":"beef_chuck"}
+{"alias":"beef chuck raw","slug":"beef_chuck"}
+{"alias":"beef chuck steak raw","slug":"beef_chuck_steak"}
+{"alias":"beef eye of round raw","slug":"beef_eye_round"}
+{"alias":"beef flank steak grilled pan fried","slug":"beef_flank_steak_pan"}
+{"alias":"beef flank steak raw","slug":"beef_flank_steak"}
+{"alias":"beef ground cooked","slug":"beef_ground"}
+{"alias":"beef hanger steak grilled","slug":"beef_hanger_steak"}
+{"alias":"beef hanger steak raw","slug":"beef_hanger_steak"}
+{"alias":"beef knuckle boiled cooked in water","slug":"beef_knuckle_water"}
+{"alias":"beef knuckle raw","slug":"beef_knuckle"}
+{"alias":"beef meat balls cooked","slug":"beef_meat_balls"}
+{"alias":"beef mince","slug":"beef_mince"}
+{"alias":"beef minced steak 10 fat cooked","slug":"beef_steak_10_fat"}
+{"alias":"beef minced steak 10 fat raw","slug":"beef_steak_10_fat"}
+{"alias":"beef minced steak 15 fat cooked","slug":"beef_steak_15_fat"}
+{"alias":"beef minced steak 15 fat raw","slug":"beef_steak_15_fat"}
+{"alias":"beef minced steak 20 fat cooked","slug":"beef_steak_20_fat"}
+{"alias":"beef minced steak 20 fat raw","slug":"beef_steak_20_fat"}
+{"alias":"beef minced steak 5 fat cooked","slug":"beef_steak_5_fat"}
+{"alias":"beef minced steak 5 fat raw","slug":"beef_steak_5_fat"}
+{"alias":"beef neck braised","slug":"beef_neck"}
+{"alias":"beef neck raw","slug":"beef_neck"}
+{"alias":"beef oxtail boiled cooked in water","slug":"beef_oxtail_water"}
+{"alias":"beef oxtail raw","slug":"beef_oxtail"}
+{"alias":"beef rib raw","slug":"beef_rib"}
+{"alias":"beef rib steak lean grilled pan fried","slug":"beef_rib_steak_lean"}
+{"alias":"beef rib steak raw","slug":"beef_rib_steak"}
+{"alias":"beef roast beef roasted baked","slug":"beef_roast_beef"}
+{"alias":"beef round cooked","slug":"beef_round"}
+{"alias":"beef round raw","slug":"beef_round"}
+{"alias":"beef rump steak grilled","slug":"beef_rump_steak"}
+{"alias":"beef rump steak raw","slug":"beef_rump_steak"}
+{"alias":"beef short ribs braised","slug":"beef_short_ribs"}
+{"alias":"beef short ribs raw","slug":"beef_short_ribs"}
+{"alias":"beef shoulder raw","slug":"beef_shoulder"}
+{"alias":"beef sirloin steak grilled pan fried","slug":"beef_sirloin_steak_pan"}
+{"alias":"beef sirloin steak raw","slug":"beef_sirloin_steak"}
+{"alias":"beef sirloin steak roasted baked","slug":"beef_sirloin_steak"}
+{"alias":"beef steak","slug":"beef_steak"}
+{"alias":"beef steak or beef steak grilled","slug":"beef_steak_beef_steak"}
+{"alias":"beef steak or beef steak raw","slug":"beef_steak_beef_steak"}
+{"alias":"beef stewing meat cooked","slug":"beef_stewing_meat"}
+{"alias":"beef stewing meat raw","slug":"beef_stewing_meat"}
+{"alias":"beef stock","slug":"stock_cube"}
+{"alias":"beef tenderloin raw","slug":"beef_tenderloin"}
+{"alias":"beef thin flank grilled pan fried","slug":"beef_thin_flank_pan"}
+{"alias":"beef thin flank raw","slug":"beef_thin_flank"}
+{"alias":"beef topside grilled pan fried","slug":"beef_topside_pan"}
+{"alias":"beef topside raw","slug":"beef_topside"}
+{"alias":"beef topside roasted baked","slug":"beef_topside"}
+{"alias":"beer","slug":"beer"}
+{"alias":"beetroot","slug":"beetroot"}
+{"alias":"beetroot cooked","slug":"beetroot"}
+{"alias":"beets","slug":"beetroot"}
+{"alias":"bell pepper","slug":"bell_pepper"}
+{"alias":"bell peppers","slug":"bell_pepper"}
+{"alias":"berries","slug":"mixed_berries"}
+{"alias":"bette ou blette cote et feuille bouillie cuite a l eau","slug":"swiss_chard_leaf_stalk"}
+{"alias":"bette ou blette crue","slug":"swiss_chard"}
+{"alias":"bette ou blette cuite","slug":"swiss_chard"}
+{"alias":"betterave","slug":"beetroot"}
+{"alias":"betterave rouge cuite","slug":"beetroot"}
+{"alias":"beurre","slug":"butter"}
+{"alias":"beurre a 39 41 mg leger doux","slug":"butter_light_39_41"}
+{"alias":"beurre a 60 62 mg a teneur reduite en matiere grasse demi sel","slug":"butter_60_62_fat"}
+{"alias":"beurre a 60 62 mg a teneur reduite en matiere grasse doux","slug":"butter_60_62_fat"}
+{"alias":"beurre a 80 mg demi sel","slug":"butter_80_fat_lightly"}
+{"alias":"beurre a 80 mg sale","slug":"butter_80_fat"}
+{"alias":"beurre a 82 mg doux","slug":"butter_82_fat"}
+{"alias":"beurre a 82 mg doux tendre","slug":"butter_82_fat_easy"}
+{"alias":"beurre a teneur en matiere grasse inconnue demi sel","slug":"butter_unknown_fat_content"}
+{"alias":"beurre clarifie","slug":"ghee"}
+{"alias":"beurre de cacahuete","slug":"peanut_butter"}
+{"alias":"beurre de graines de tournesol","slug":"sunflower_seed_butter"}
+{"alias":"beurre ou assimile a teneur en matiere grasse inconnue doux","slug":"butter_unknown_fat_content"}
+{"alias":"beurre ou assimile allege doux","slug":"butter_spread_low_fat"}
+{"alias":"biere","slug":"beer"}
+{"alias":"bifteck","slug":"beef_steak"}
+{"alias":"biscotte briochee","slug":"rusk_w_eggs"}
+{"alias":"biscotte classique","slug":"rusk"}
+{"alias":"biscotte complete ou riche en fibres","slug":"rusk_wholemeal_rich_fibre"}
+{"alias":"biscotte multicereale","slug":"rusk_multigrain"}
+{"alias":"biscotte sans adjonction de sel","slug":"rusk"}
+{"alias":"biscuit","slug":"biscuits"}
+{"alias":"biscuits","slug":"biscuits"}
+{"alias":"biscuits secs","slug":"biscuits"}
+{"alias":"black beans","slug":"black_beans"}
+{"alias":"black coffee","slug":"coffee"}
+{"alias":"black olives","slug":"olives"}
+{"alias":"black or white pudding sauteed","slug":"black_white_pudding_sauteed"}
+{"alias":"black pepper","slug":"black_pepper"}
+{"alias":"black pudding sauteed pan fried","slug":"black_pudding_sauteed_pan"}
+{"alias":"black tea","slug":"tea"}
+{"alias":"blackberries","slug":"blackberry"}
+{"alias":"blackberry raw","slug":"blackberry"}
+{"alias":"blackcurrant jam","slug":"jam"}
+{"alias":"blanc d'oeuf","slug":"egg_white"}
+{"alias":"blanc de dinde","slug":"turkey_breast"}
+{"alias":"blanc de poulet","slug":"chicken_breast"}
+{"alias":"blancs d'oeufs","slug":"egg_white"}
+{"alias":"ble noir","slug":"buckwheat"}
+{"alias":"blended fat 50 63 fat","slug":"blended_fat_50_63"}
+{"alias":"blended fat 50 63 fat lightly salted","slug":"blended_fat_50_63"}
+{"alias":"blended fat spreadable 30 40 fat","slug":"blended_fat_spreadable_30"}
+{"alias":"blended fat spreadable 30 40 fat lightly salted","slug":"blended_fat_spreadable_30"}
+{"alias":"blette","slug":"swiss_chard"}
+{"alias":"blettes","slug":"swiss_chard"}
+{"alias":"blood beef raw","slug":"blood_beef"}
+{"alias":"blueberries","slug":"blueberries"}
+{"alias":"blueberry raw","slug":"blueberry"}
+{"alias":"boeuf","slug":"beef_braising"}
+{"alias":"boeuf a bourguignon ou pot au feu cru","slug":"beef_stewing_meat"}
+{"alias":"boeuf a bourguignon ou pot au feu cuit","slug":"beef_stewing_meat"}
+{"alias":"boeuf a braiser","slug":"beef_braising"}
+{"alias":"boeuf a griller emince","slug":"beef_rump_steak"}
+{"alias":"boeuf a rotir","slug":"beef_topside"}
+{"alias":"boeuf basse cote crue","slug":"beef_chuck_steak"}
+{"alias":"boeuf bavette d aloyau crue","slug":"beef_flank_steak"}
+{"alias":"boeuf bavette d aloyau grillee poelee","slug":"beef_flank_steak_pan"}
+{"alias":"boeuf boule de macreuse crue","slug":"beef_bolar_blade"}
+{"alias":"boeuf boule de macreuse grillee poelee","slug":"beef_bolar_blade_pan"}
+{"alias":"boeuf boule de macreuse rotie cuite au four","slug":"beef_bolar_blade"}
+{"alias":"boeuf boulettes cuites","slug":"beef_meat_balls"}
+{"alias":"boeuf braise","slug":"beef"}
+{"alias":"boeuf collier braise","slug":"beef_neck"}
+{"alias":"boeuf collier cru","slug":"beef_neck"}
+{"alias":"boeuf cote crue","slug":"beef_rib"}
+{"alias":"boeuf emince","slug":"beef_rump_steak"}
+{"alias":"boeuf entrecote crue","slug":"beef_rib_steak"}
+{"alias":"boeuf entrecote partie maigre grillee poelee","slug":"beef_rib_steak_lean"}
+{"alias":"boeuf epaule crue","slug":"beef_shoulder"}
+{"alias":"boeuf faux filet cru","slug":"beef_sirloin_steak"}
+{"alias":"boeuf faux filet grille poele","slug":"beef_sirloin_steak_pan"}
+{"alias":"boeuf faux filet roti cuit au four","slug":"beef_sirloin_steak"}
+{"alias":"boeuf filet cru","slug":"beef_tenderloin"}
+{"alias":"boeuf gite a la noix cru","slug":"beef_round"}
+{"alias":"boeuf gite a la noix cuit","slug":"beef_round"}
+{"alias":"boeuf hache","slug":"beef_mince"}
+{"alias":"boeuf hampe crue","slug":"beef_thin_flank"}
+{"alias":"boeuf hampe grillee poelee","slug":"beef_thin_flank_pan"}
+{"alias":"boeuf jarret bouilli cuit a l eau","slug":"beef_knuckle_water"}
+{"alias":"boeuf jarret cru","slug":"beef_knuckle"}
+{"alias":"boeuf joue braisee ou bouillie","slug":"beef_cheek"}
+{"alias":"boeuf joue crue","slug":"beef_cheek"}
+{"alias":"boeuf mijote","slug":"beef"}
+{"alias":"boeuf onglet cru","slug":"beef_hanger_steak"}
+{"alias":"boeuf onglet grille","slug":"beef_hanger_steak"}
+{"alias":"boeuf paleron braise ou bouilli","slug":"beef_chuck"}
+{"alias":"boeuf paleron cru","slug":"beef_chuck"}
+{"alias":"boeuf plat de cotes braise","slug":"beef_short_ribs"}
+{"alias":"boeuf plat de cotes cru","slug":"beef_short_ribs"}
+{"alias":"boeuf queue bouillie cuite a l eau","slug":"beef_oxtail_water"}
+{"alias":"boeuf queue crue","slug":"beef_oxtail"}
+{"alias":"boeuf rond de gite cru","slug":"beef_eye_round"}
+{"alias":"boeuf rosbif roti cuit au four","slug":"beef_roast_beef"}
+{"alias":"boeuf roti","slug":"beef_roast_beef"}
+{"alias":"boeuf rumsteck cru","slug":"beef_rump_steak"}
+{"alias":"boeuf rumsteck grille","slug":"beef_rump_steak"}
+{"alias":"boeuf steak hache 10 mg cru","slug":"beef_steak_10_fat"}
+{"alias":"boeuf steak hache 10 mg cuit","slug":"beef_steak_10_fat"}
+{"alias":"boeuf steak hache 15 mg cru","slug":"beef_steak_15_fat"}
+{"alias":"boeuf steak hache 15 mg cuit","slug":"beef_steak_15_fat"}
+{"alias":"boeuf steak hache 20 mg cru","slug":"beef_steak_20_fat"}
+{"alias":"boeuf steak hache 20 mg cuit","slug":"beef_steak_20_fat"}
+{"alias":"boeuf steak hache 5 mg cru","slug":"beef_steak_5_fat"}
+{"alias":"boeuf steak hache 5 mg cuit","slug":"beef_steak_5_fat"}
+{"alias":"boeuf steak hache cuit","slug":"beef_ground"}
+{"alias":"boeuf steak ou bifteck cru","slug":"beef_steak_beef_steak"}
+{"alias":"boeuf steak ou bifteck grille","slug":"beef_steak_beef_steak"}
+{"alias":"boeuf tende de tranche crue","slug":"beef_topside"}
+{"alias":"boeuf tende de tranche grillee poelee","slug":"beef_topside_pan"}
+{"alias":"boeuf tende de tranche rotie cuite au four","slug":"beef_topside"}
+{"alias":"boiling water","slug":"water"}
+{"alias":"boisson au soja","slug":"soy_milk"}
+{"alias":"boisson lactee lait fermente ou yaourt a boire aromatise sucre","slug":"dairy_drink_fermented_milk"}
+{"alias":"boisson lactee lait fermente ou yaourt a boire aux fruits sucre","slug":"dairy_drink_fermented_milk"}
+{"alias":"bok choy","slug":"pak_choi"}
+{"alias":"boudin blanc truffe a cuire","slug":"white_pudding_truffled"}
+{"alias":"boudin noir a cuire","slug":"black_pudding_refrigerated"}
+{"alias":"boudin noir saute poele","slug":"black_pudding_sauteed_pan"}
+{"alias":"boudin saute poele","slug":"black_white_pudding_sauteed"}
+{"alias":"bouillon","slug":"stock_cube"}
+{"alias":"bouillon de legumes","slug":"vegetable_stock"}
+{"alias":"boulettes au boeuf et a l agneau preemballees crues","slug":"meat_balls_beef_lamb"}
+{"alias":"boulettes au porc et au boeuf preemballees crues","slug":"meat_balls_pork_beef"}
+{"alias":"boulgour","slug":"bulgur"}
+{"alias":"brain calf cooked","slug":"brain_calf"}
+{"alias":"brain calf raw","slug":"brain_calf"}
+{"alias":"brain lamb cooked","slug":"brain_lamb"}
+{"alias":"brain lamb raw","slug":"brain_lamb"}
+{"alias":"brain pork braised","slug":"brain_pork"}
+{"alias":"brain pork raw","slug":"brain_pork"}
+{"alias":"braised beef","slug":"beef_braising"}
+{"alias":"braised ham on the bone","slug":"ham_on_bone"}
+{"alias":"braising beef","slug":"beef_braising"}
+{"alias":"bread french bread baguette unsalted","slug":"bread_french_bread_baguette"}
+{"alias":"bread french bread ball 400g","slug":"bread_french_bread_ball"}
+{"alias":"bread french bread multigrain from bakery","slug":"bread_french_bread_multigrain"}
+{"alias":"bread french bread with yeast","slug":"bread_french_bread_yeast"}
+{"alias":"bread french bread without salt","slug":"bread_french_bread_salt"}
+{"alias":"bread home made with flour for home made bread preparation","slug":"bread_flour_bread_preparation"}
+{"alias":"bread loaf","slug":"bread"}
+{"alias":"bread wholemeal or integral bread","slug":"bread_wholemeal_integral_bread"}
+{"alias":"breadfruit raw","slug":"breadfruit"}
+{"alias":"breakfast cereal","slug":"breakfast_cereal"}
+{"alias":"brear made with type t55 t110 flour","slug":"brear_t55_t110_flour"}
+{"alias":"bredes chou de chine ou bok choy ou pak choi tiges et feuilles cuites a la vapeur prelevees a la reunion","slug":"chinese_cabbageor_bok_choi"}
+{"alias":"bretzel pain frais","slug":"bretzel"}
+{"alias":"brioche sandwich bread prepacked","slug":"brioche_sandwich_bread"}
+{"alias":"british berries","slug":"mixed_berries"}
+{"alias":"british raspberries","slug":"raspberries"}
+{"alias":"british strawberries","slug":"strawberries"}
+{"alias":"broad beans","slug":"broad_beans"}
+{"alias":"broccoli","slug":"broccoli"}
+{"alias":"broccoli boiled cooked in water crunchy","slug":"broccoli_water_crunchy"}
+{"alias":"broccoli boiled cooked in water tender","slug":"broccoli_water_tender"}
+{"alias":"broccoli floret","slug":"broccoli"}
+{"alias":"broccoli florets","slug":"broccoli"}
+{"alias":"broccoli head","slug":"broccoli"}
+{"alias":"broccoli steamed","slug":"broccoli"}
+{"alias":"brochette d agneau","slug":"lamb_on_skewer"}
+{"alias":"brochette de boeuf","slug":"beef_on_skewer"}
+{"alias":"brochette de porc crue","slug":"pork_on_skewer"}
+{"alias":"brochette de volaille","slug":"poultry_on_skewer"}
+{"alias":"brochette mixte de viande","slug":"mixed_meat_on_skewer"}
+{"alias":"brocoli","slug":"broccoli"}
+{"alias":"brocoli bouilli cuit a l eau croquant","slug":"broccoli_water_crunchy"}
+{"alias":"brocoli bouilli cuit a l eau fondant","slug":"broccoli_water_tender"}
+{"alias":"brocoli cuit a la vapeur","slug":"broccoli"}
+{"alias":"brocolis","slug":"broccoli"}
+{"alias":"broth","slug":"stock_cube"}
+{"alias":"brown bread","slug":"wholemeal_bread"}
+{"alias":"brown bread french bread with flour type 80 or 110","slug":"brown_bread_french_bread"}
+{"alias":"brown lentils","slug":"lentils_dry"}
+{"alias":"brown rice","slug":"brown_rice"}
+{"alias":"brown sugar","slug":"sugar"}
+{"alias":"brussels sprout boiled cooked in water","slug":"brussels_sprout_water"}
+{"alias":"brussels sprouts","slug":"brussels_sprouts"}
+{"alias":"buckwheat","slug":"buckwheat"}
+{"alias":"buckwheat flakes","slug":"buckwheat"}
+{"alias":"bulghur","slug":"bulgur"}
+{"alias":"bulgur","slug":"bulgur"}
+{"alias":"butter","slug":"butter"}
+{"alias":"butter 60 62 fat light lightly salted","slug":"butter_60_62_fat"}
+{"alias":"butter 60 62 fat light unsalted","slug":"butter_60_62_fat"}
+{"alias":"butter 80 fat lightly salted","slug":"butter_80_fat_lightly"}
+{"alias":"butter 80 fat salted","slug":"butter_80_fat"}
+{"alias":"butter 82 fat unsalted","slug":"butter_82_fat"}
+{"alias":"butter 82 fat unsalted easy to spread","slug":"butter_82_fat_easy"}
+{"alias":"butter bean or yellow bean boiled cooked in water","slug":"butter_bean_yellow_bean"}
+{"alias":"butter beans","slug":"white_beans"}
+{"alias":"butter light 39 41 fat unsalted","slug":"butter_light_39_41"}
+{"alias":"butter unknown fat content half salted","slug":"butter_unknown_fat_content"}
+{"alias":"butter unknown fat content unsalted","slug":"butter_unknown_fat_content"}
+{"alias":"butternut squash","slug":"butternut_squash"}
+{"alias":"button mushroom or cultivated mushroom boiled cooked in water","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"button mushroom or cultivated mushroom canned drained","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"button mushroom or cultivated mushroom frozen raw","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"button mushroom or cultivated mushroom raw","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"button mushroom or cultivated mushroom sauteed pan fried without fat","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"button mushrooms","slug":"mushroom"}
+{"alias":"cabbage","slug":"cabbage"}
+{"alias":"cabbage and carrot slaw mix","slug":"coleslaw_mix"}
+{"alias":"cabillaud","slug":"cod"}
+{"alias":"cacahuete","slug":"peanuts"}
+{"alias":"cacahuetes","slug":"peanuts"}
+{"alias":"caesar s mushroom or royal agaric raw","slug":"caesar_s_mushroom_royal"}
+{"alias":"cafe","slug":"coffee"}
+{"alias":"cafe noir","slug":"coffee"}
+{"alias":"caille viande crue","slug":"quail_meat"}
+{"alias":"caille viande et peau crue","slug":"quail_meat"}
+{"alias":"caille viande et peau cuite","slug":"quail_meat"}
+{"alias":"calamari","slug":"squid"}
+{"alias":"calf foot raw","slug":"calf_foot"}
+{"alias":"calf head boiled cooked in water","slug":"calf_head_water"}
+{"alias":"calmar","slug":"squid"}
+{"alias":"canard cuisse avec peau sans os crue","slug":"duck_leg_meat"}
+{"alias":"canard magret cru","slug":"duck_breast_fillet"}
+{"alias":"canard magret fume","slug":"duck_breast_fillet_smoked"}
+{"alias":"canard magret grille poele","slug":"duck_magret_pan"}
+{"alias":"canard viande crue","slug":"duck_meat"}
+{"alias":"canard viande et peau cru","slug":"duck_meat"}
+{"alias":"canard viande et peau roti cuit au four","slug":"duck_meat"}
+{"alias":"canard viande rotie cuite au four","slug":"duck_meat"}
+{"alias":"canneberge ou cranberry sechee sucree","slug":"cranberry_sugar"}
+{"alias":"canned chickpeas","slug":"chickpeas_tinned"}
+{"alias":"canned plum tomatoes","slug":"tinned_tomatoes"}
+{"alias":"canned tomatoes","slug":"tinned_tomatoes"}
+{"alias":"canned tuna","slug":"tuna_tinned"}
+{"alias":"cannelle","slug":"cinnamon"}
+{"alias":"cannellini beans","slug":"white_beans"}
+{"alias":"canola oil","slug":"rapeseed_oil"}
+{"alias":"cantaloupe","slug":"melon"}
+{"alias":"capon meat and skin raw","slug":"capon_meat"}
+{"alias":"capon meat and skin roasted baked","slug":"capon_meat"}
+{"alias":"capsicum","slug":"bell_pepper"}
+{"alias":"carotte","slug":"carrot"}
+{"alias":"carotte appertisee egouttee","slug":"carrot"}
+{"alias":"carotte bouillie cuite a l eau croquante","slug":"carrot_water_crunchy"}
+{"alias":"carotte bouillie cuite a l eau fondante","slug":"carrot_water_tender"}
+{"alias":"carotte crue","slug":"carrot"}
+{"alias":"carotte cuite","slug":"carrot"}
+{"alias":"carotte cuite a la vapeur","slug":"carrot"}
+{"alias":"carotte puree","slug":"carrots_puree"}
+{"alias":"carotte puree cuisinee a la creme preemballee","slug":"carrots_puree_cream"}
+{"alias":"carotte surgelee cuite","slug":"carrot"}
+{"alias":"carottes","slug":"carrot"}
+{"alias":"carrelet","slug":"plaice"}
+{"alias":"carrot","slug":"carrot"}
+{"alias":"carrot boiled cooked in water crunchy","slug":"carrot_water_crunchy"}
+{"alias":"carrot boiled cooked in water tender","slug":"carrot_water_tender"}
+{"alias":"carrot canned drained","slug":"carrot"}
+{"alias":"carrot cooked","slug":"carrot"}
+{"alias":"carrot frozen cooked","slug":"carrot"}
+{"alias":"carrot raw","slug":"carrot"}
+{"alias":"carrot steamed","slug":"carrot"}
+{"alias":"carrots","slug":"carrot"}
+{"alias":"carrots puree with cream","slug":"carrots_puree_cream"}
+{"alias":"cashew nuts","slug":"cashews"}
+{"alias":"cashews","slug":"cashews"}
+{"alias":"cassava or manioc roots cooked","slug":"cassava_manioc_roots"}
+{"alias":"cassava or manioc roots raw","slug":"cassava_manioc_roots"}
+{"alias":"caster sugar","slug":"sugar"}
+{"alias":"cauliflower","slug":"cauliflower"}
+{"alias":"cauliflower cooked","slug":"cauliflower"}
+{"alias":"cauliflower frozen cooked","slug":"cauliflower"}
+{"alias":"cauliflower raw","slug":"cauliflower"}
+{"alias":"cauliflower steamed","slug":"cauliflower"}
+{"alias":"cebette","slug":"spring_onion"}
+{"alias":"celeri","slug":"celery"}
+{"alias":"celeri branche","slug":"celery"}
+{"alias":"celeri branche appertise egoutte","slug":"celery_stalk"}
+{"alias":"celeri branche cru","slug":"celery_stalk"}
+{"alias":"celeri branche cuit a l etouffee","slug":"celery_stalk"}
+{"alias":"celeri rave bouilli cuit a l eau","slug":"celeriac_water"}
+{"alias":"celeri rave cru","slug":"celeriac"}
+{"alias":"celeriac boiled cooked in water","slug":"celeriac_water"}
+{"alias":"celeriac raw","slug":"celeriac"}
+{"alias":"celery","slug":"celery"}
+{"alias":"celery stalk braised","slug":"celery_stalk"}
+{"alias":"celery stalk canned drained","slug":"celery_stalk"}
+{"alias":"celery stalk raw","slug":"celery_stalk"}
+{"alias":"celery sticks","slug":"celery_stalk"}
+{"alias":"cep or boletus mushroom raw","slug":"cep_boletus_mushroom"}
+{"alias":"cereales","slug":"breakfast_cereal"}
+{"alias":"cerf cru","slug":"venison"}
+{"alias":"cerf roti cuit au four","slug":"venison"}
+{"alias":"cerise denoyautee crue","slug":"cherry_pitted"}
+{"alias":"cerneaux de noix","slug":"walnuts"}
+{"alias":"cervelas","slug":"saveloy_cervelat"}
+{"alias":"cervelas a l ail pur porc","slug":"saveloy_cervelat_pure_pork"}
+{"alias":"cervelas obernois","slug":"saveloy_cervelat"}
+{"alias":"cervelle agneau crue","slug":"brain_lamb"}
+{"alias":"cervelle agneau cuite","slug":"brain_lamb"}
+{"alias":"cervelle porc braisee","slug":"brain_pork"}
+{"alias":"cervelle porc crue","slug":"brain_pork"}
+{"alias":"cervelle veau crue","slug":"brain_calf"}
+{"alias":"cervelle veau cuite","slug":"brain_calf"}
+{"alias":"chair a saucisse crue","slug":"sausage_meat"}
+{"alias":"chair a saucisse pur porc crue","slug":"sausage_meat_pure_pork"}
+{"alias":"champignon","slug":"mushroom"}
+{"alias":"champignon cepe cru","slug":"cep_boletus_mushroom"}
+{"alias":"champignon chanterelle ou girolle crue","slug":"chanterelle_girolle_mushroom"}
+{"alias":"champignon de paris ou champignon de couche appertise egoutte","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"champignon de paris ou champignon de couche bouilli cuit a l eau","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"champignon de paris ou champignon de couche cru","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"champignon de paris ou champignon de couche saute poele sans matiere grasse","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"champignon de paris ou champignon de couche surgele cru","slug":"button_mushroom_cultivated_mushroom"}
+{"alias":"champignon lentin comestible ou shiitake cuit","slug":"shiitake_mushroom"}
+{"alias":"champignon lentin comestible ou shiitake seche","slug":"shiitake_mushroom"}
+{"alias":"champignon morille crue","slug":"morel"}
+{"alias":"champignon oronge vraie crue","slug":"caesar_s_mushroom_royal"}
+{"alias":"champignon pleurote crue","slug":"oyster_mushroom"}
+{"alias":"champignon rose des pres cru","slug":"field_mushroom"}
+{"alias":"champignon tout type appertise egoutte","slug":"mushroom_all_types"}
+{"alias":"champignon tout type cru","slug":"mushroom_all_types"}
+{"alias":"champignons","slug":"mushroom"}
+{"alias":"chanterelle or girolle mushroom raw","slug":"chanterelle_girolle_mushroom"}
+{"alias":"chapelure","slug":"breadcrumbs"}
+{"alias":"chapon viande et peau cru","slug":"capon_meat"}
+{"alias":"chapon viande et peau roti cuit au four","slug":"capon_meat"}
+{"alias":"charcuterie","slug":"cured_meat_sausages"}
+{"alias":"chard","slug":"swiss_chard"}
+{"alias":"chayote ou christophine ou chouchou pulpe avec pepins cuite a la vapeur prelevee a la reunion","slug":"chayote_island_la_reunion"}
+{"alias":"chayote without skin steamed from the island la reunion","slug":"chayote_island_la_reunion"}
+{"alias":"cheddar","slug":"cheddar"}
+{"alias":"cheddar cheese","slug":"cheddar"}
+{"alias":"cheesecake ou gateau au fromage frais preemballe","slug":"cheesecake"}
+{"alias":"cheesecake prepacked","slug":"cheesecake"}
+{"alias":"cherries","slug":"cherry_pitted"}
+{"alias":"cherry pitted raw","slug":"cherry_pitted"}
+{"alias":"cherry tomatoes","slug":"tomato"}
+{"alias":"cherry vine tomatoes","slug":"tomato_cherry"}
+{"alias":"chestnut mousse prepacked","slug":"chestnut_mousse"}
+{"alias":"chestnut mushrooms","slug":"mushroom"}
+{"alias":"cheval entrecote crue","slug":"horse_rib_steak"}
+{"alias":"cheval entrecote grillee poelee","slug":"horse_rib_steak_pan"}
+{"alias":"cheval faux filet cru","slug":"horse_sirloin_steak"}
+{"alias":"cheval faux filet grille poele","slug":"horse_sirloin_steak_pan"}
+{"alias":"cheval faux filet roti cuit au four","slug":"horse_sirloin_steak"}
+{"alias":"cheval steak cru","slug":"horse_steak"}
+{"alias":"cheval tende de tranche crue","slug":"horse_topside"}
+{"alias":"cheval tende de tranche grillee poelee","slug":"horse_topside_pan"}
+{"alias":"cheval tende de tranche rotie cuite au four","slug":"horse_topside"}
+{"alias":"cheval viande crue","slug":"horse_meat"}
+{"alias":"cheval viande rotie cuite au four","slug":"horse_meat"}
+{"alias":"chevre","slug":"goat_cheese"}
+{"alias":"chevreau cru","slug":"young_goat"}
+{"alias":"chevreau cuit","slug":"young_goat"}
+{"alias":"chevreuil cru","slug":"venison"}
+{"alias":"chevreuil roti cuit au four","slug":"venison"}
+{"alias":"chia","slug":"chia_seeds"}
+{"alias":"chia seeds","slug":"chia_seeds"}
+{"alias":"chick peas","slug":"chickpeas_tinned"}
+{"alias":"chicken","slug":"chicken_breast"}
+{"alias":"chicken breast","slug":"chicken_breast"}
+{"alias":"chicken breast meat and skin raw","slug":"chicken_breast_meat"}
+{"alias":"chicken breast meat and skin roasted baked","slug":"chicken_breast_meat"}
+{"alias":"chicken breast without skin cooked","slug":"chicken_breast"}
+{"alias":"chicken breast without skin cooked organic","slug":"chicken_breast_organic"}
+{"alias":"chicken breast without skin raw","slug":"chicken_breast"}
+{"alias":"chicken breast without skin raw label rouge","slug":"chicken_breast_label_rouge"}
+{"alias":"chicken breast without skin raw organic","slug":"chicken_breast_organic"}
+{"alias":"chicken breasts","slug":"chicken_breast"}
+{"alias":"chicken cooked ham in slices","slug":"chicken_ham_slices"}
+{"alias":"chicken drumstick raw","slug":"chicken_drumstick"}
+{"alias":"chicken eviscerated without offal raw","slug":"chicken_eviscerated_offal"}
+{"alias":"chicken fillet","slug":"chicken_breast"}
+{"alias":"chicken free range meat and skin raw","slug":"chicken_free_range_meat"}
+{"alias":"chicken high leg meat raw","slug":"chicken_high_leg_meat"}
+{"alias":"chicken leg meat and skin boiled cooked in water","slug":"chicken_leg_meat_water"}
+{"alias":"chicken leg meat and skin raw","slug":"chicken_leg_meat"}
+{"alias":"chicken leg meat and skin raw label rouge","slug":"chicken_leg_meat_label"}
+{"alias":"chicken leg meat and skin raw organic","slug":"chicken_leg_meat_organic"}
+{"alias":"chicken leg meat and skin roasted baked","slug":"chicken_leg_meat"}
+{"alias":"chicken leg meat boiled cooked in water","slug":"chicken_leg_meat_water"}
+{"alias":"chicken leg meat raw","slug":"chicken_leg_meat"}
+{"alias":"chicken leg meat roasted baked","slug":"chicken_leg_meat"}
+{"alias":"chicken legs","slug":"chicken_thigh"}
+{"alias":"chicken marinated wing roasted baked","slug":"chicken_marinated_wing"}
+{"alias":"chicken meat and skin raw","slug":"chicken_meat"}
+{"alias":"chicken meat and skin roasted baked","slug":"chicken_meat"}
+{"alias":"chicken meat raw","slug":"chicken_meat"}
+{"alias":"chicken mini fillet","slug":"chicken_breast"}
+{"alias":"chicken mini fillets","slug":"chicken_breast"}
+{"alias":"chicken stewing leg raw","slug":"chicken_stewing_leg"}
+{"alias":"chicken stock","slug":"stock_cube"}
+{"alias":"chicken thigh","slug":"chicken_thigh"}
+{"alias":"chicken thigh fillets","slug":"chicken_thigh"}
+{"alias":"chicken thigh meat","slug":"chicken_thigh"}
+{"alias":"chicken thighs","slug":"chicken_thigh"}
+{"alias":"chicken thighs bone in","slug":"chicken_thigh"}
+{"alias":"chicken thighs bone out","slug":"chicken_thigh"}
+{"alias":"chicken thighs boneless/skinless","slug":"chicken_thigh"}
+{"alias":"chicken white race meat and skin raw","slug":"chicken_white_race_meat"}
+{"alias":"chicken wing meat and skin raw","slug":"chicken_wing_meat"}
+{"alias":"chicken wing meat and skin roasted baked","slug":"chicken_wing_meat"}
+{"alias":"chickpea","slug":"chickpeas_tinned"}
+{"alias":"chickpeas","slug":"chickpeas_tinned"}
+{"alias":"chicory raw","slug":"chicory"}
+{"alias":"chicory roasted baked","slug":"chicory"}
+{"alias":"chili","slug":"chilli"}
+{"alias":"chili oil","slug":"olive_oil"}
+{"alias":"chili powder","slug":"chilli_powder"}
+{"alias":"chilli","slug":"chilli"}
+{"alias":"chilli flakes","slug":"chilli_powder"}
+{"alias":"chilli oil","slug":"olive_oil"}
+{"alias":"chilli powder","slug":"chilli_powder"}
+{"alias":"chilli sauce","slug":"hot_sauce"}
+{"alias":"chillies","slug":"chilli"}
+{"alias":"chinese cabbageor bok choi bredes rods and leafs steamed from the island la reunion","slug":"chinese_cabbageor_bok_choi"}
+{"alias":"chinese or japanese artichokes cooked","slug":"chinese_japanese_artichokes"}
+{"alias":"chipolata crue","slug":"chipolata_slim_sausage"}
+{"alias":"chipolata cuite","slug":"chipolata_sausage"}
+{"alias":"chipolata sausage cooked","slug":"chipolata_sausage"}
+{"alias":"chipolata slim sausage raw","slug":"chipolata_slim_sausage"}
+{"alias":"chips","slug":"chips_fries"}
+{"alias":"chips de pommes de terre et assimiles nature ou aromatisees allegees en matiere grasse","slug":"potato_crisps_related_reduced"}
+{"alias":"chips de pommes de terre nature ou aromatisees a l ancienne","slug":"potato_crisps_l_ancienne"}
+{"alias":"chips de pommes de terre nature ou aromatisees standard","slug":"potato_crisps_flavoured"}
+{"alias":"chitterling sausage from guemene","slug":"chitterling_sausage_guemene"}
+{"alias":"chitterling sausage from troyes raw","slug":"chitterling_sausage_troyes"}
+{"alias":"chitterling sausage from vire","slug":"chitterling_sausage_vire"}
+{"alias":"chitterling sausage pan reheated","slug":"chitterling_sausage_pan"}
+{"alias":"chitterling sausage raw","slug":"chitterling_sausage"}
+{"alias":"chitterling sausage sauteed pan fried","slug":"chitterling_sausage_sauteed_pan"}
+{"alias":"chives","slug":"herbs_chives"}
+{"alias":"chocolat noir","slug":"dark_chocolate"}
+{"alias":"chocolate cake w melting centre prepacked","slug":"chocolate_cake_w_melting"}
+{"alias":"chopped tomatoes","slug":"tinned_tomatoes"}
+{"alias":"chorizo","slug":"chorizo"}
+{"alias":"chorizo superieur doux ou fort type charcuterie en tranches","slug":"spicy_pork_sausage_red"}
+{"alias":"chorizo superieur doux ou fort type saucisse seche","slug":"dry_spicy_pork_sausage"}
+{"alias":"chou","slug":"cabbage"}
+{"alias":"chou blanc bouilli cuit a l eau","slug":"white_cabbage_water"}
+{"alias":"chou blanc cru","slug":"white_cabbage"}
+{"alias":"chou chinois","slug":"pak_choi"}
+{"alias":"chou de bruxelles bouilli cuit a l eau","slug":"brussels_sprout_water"}
+{"alias":"chou fleur","slug":"cauliflower"}
+{"alias":"chou fleur cru","slug":"cauliflower"}
+{"alias":"chou fleur cuit","slug":"cauliflower"}
+{"alias":"chou fleur cuit a la vapeur","slug":"cauliflower"}
+{"alias":"chou fleur surgele cuit","slug":"cauliflower"}
+{"alias":"chou frise","slug":"kale"}
+{"alias":"chou kale","slug":"kale"}
+{"alias":"chou romanesco ou brocoli a pomme cuit","slug":"romanesco_cauliflower_romanesco_broccoli"}
+{"alias":"chou rouge","slug":"red_cabbage"}
+{"alias":"chou rouge cru","slug":"red_cabbage"}
+{"alias":"chou rouge cuit a l etouffee","slug":"red_cabbage"}
+{"alias":"chou vert","slug":"cabbage"}
+{"alias":"chou vert bouilli cuit a l eau","slug":"green_cabbage_water"}
+{"alias":"chou-fleur","slug":"cauliflower"}
+{"alias":"choux de bruxelles","slug":"brussels_sprouts"}
+{"alias":"ciboulette","slug":"herbs_chives"}
+{"alias":"cider vinegar","slug":"vinegar"}
+{"alias":"cilantro","slug":"herbs_coriander"}
+{"alias":"cinnamon","slug":"cinnamon"}
+{"alias":"citron","slug":"lemon"}
+{"alias":"citron pulpe cru","slug":"lemon_pulp"}
+{"alias":"citron vert","slug":"lime"}
+{"alias":"citron vert ou lime pulpe cru","slug":"lime_pulp"}
+{"alias":"clafoutis aux fruits preemballe","slug":"fruits_batter_pudding"}
+{"alias":"clementine","slug":"clementine"}
+{"alias":"clementine or mandarin orange pulp raw archive","slug":"clementine_mandarin_orange_pulp"}
+{"alias":"clementine ou mandarine pulpe crue","slug":"clementine_mandarin_orange_pulp"}
+{"alias":"clementines","slug":"clementine"}
+{"alias":"coconut milk","slug":"coconut_milk"}
+{"alias":"coconut oil","slug":"coconut_oil"}
+{"alias":"coconut yoghurt","slug":"coconut_yogurt"}
+{"alias":"cod","slug":"cod"}
+{"alias":"cod fillet","slug":"cod"}
+{"alias":"coeur agneau cru","slug":"heart_lamb"}
+{"alias":"coeur agneau cuit","slug":"heart_lamb"}
+{"alias":"coeur boeuf cru","slug":"heart_beef"}
+{"alias":"coeur boeuf cuit","slug":"heart_beef"}
+{"alias":"coeur dinde cru","slug":"heart_turkey"}
+{"alias":"coeur dinde cuit","slug":"heart_turkey"}
+{"alias":"coeur porc cru","slug":"heart_pork"}
+{"alias":"coeur poulet cru","slug":"heart_chicken"}
+{"alias":"coeur poulet cuit","slug":"heart_chicken"}
+{"alias":"coeur veau cru","slug":"heart_veal"}
+{"alias":"coffee","slug":"coffee"}
+{"alias":"cola","slug":"cola"}
+{"alias":"cold water","slug":"water"}
+{"alias":"coleslaw mix","slug":"coleslaw_mix"}
+{"alias":"coley","slug":"pollock"}
+{"alias":"colin","slug":"hake"}
+{"alias":"colombo papaya mature seeds and peel removed raw from the island la reunion","slug":"colombo_papaya_mature_seeds"}
+{"alias":"compote de pomme","slug":"apple_compote"}
+{"alias":"compote de pomme allegee en sucres","slug":"apple_compote_reduced_sugar"}
+{"alias":"compote de pommes sans sucre","slug":"apple_compote_reduced_sugar"}
+{"alias":"compote ou assimile tout type de fruits teneur en sucre inconnue","slug":"fruit_compote_reduced_sugar"}
+{"alias":"compote tout type de fruits","slug":"fruits_compote_miscellaneous"}
+{"alias":"compote tout type de fruits allegee en sucres","slug":"fruits_compote_miscellaneous_reduced"}
+{"alias":"concentre de tomate","slug":"tomato_puree"}
+{"alias":"concombre","slug":"cucumber"}
+{"alias":"concombre pulpe cru","slug":"cucumber_pulp"}
+{"alias":"concombre pulpe et peau cru","slug":"cucumber_pulp_peel"}
+{"alias":"confit de canard","slug":"preserved_duck"}
+{"alias":"confit de canard viande sans peau rechauffe","slug":"duck_confit_meat"}
+{"alias":"confit de foie de porc","slug":"preserved_pork_liver"}
+{"alias":"confit de foie de volaille","slug":"preserved_poultry_liver"}
+{"alias":"confiture","slug":"jam"}
+{"alias":"confiture de cassis","slug":"jam"}
+{"alias":"cooked ham","slug":"ham"}
+{"alias":"cooked ham choice","slug":"ham_choice"}
+{"alias":"cooked ham choice rind less and fatless","slug":"ham_choice_rind_less"}
+{"alias":"cooked ham choice w rind","slug":"ham_choice_w_rind"}
+{"alias":"cooked ham parisian style rind less and fatless","slug":"ham_parisian_style_rind"}
+{"alias":"cooked ham smoked","slug":"ham_smoked"}
+{"alias":"cooked ham superior quality","slug":"ham_superior_quality"}
+{"alias":"cooked ham superior quality reduced salt","slug":"ham_superior_quality_reduced"}
+{"alias":"cooked ham superior quality rind less","slug":"ham_superior_quality_rind"}
+{"alias":"cooked ham superior quality rind less and fatless","slug":"ham_superior_quality_rind"}
+{"alias":"cooked ham superior quality with rind","slug":"ham_superior_quality_rind"}
+{"alias":"cooked lentils","slug":"lentils_cooked"}
+{"alias":"cooked pork shoulder choice","slug":"pork_shoulder_choice"}
+{"alias":"cooked pork shoulder standard rind less and fatless","slug":"pork_shoulder_standard_rind"}
+{"alias":"cooked rice","slug":"cooked_rice"}
+{"alias":"cooked sausage pure pork","slug":"sausage_pure_pork"}
+{"alias":"cookies","slug":"biscuits"}
+{"alias":"cordon bleu de volaille preemballe","slug":"veal_escalope_cordon_bleu"}
+{"alias":"coriander","slug":"herbs_coriander"}
+{"alias":"coriandre","slug":"herbs_coriander"}
+{"alias":"corn","slug":"sweetcorn"}
+{"alias":"corn cakes","slug":"corn_cake"}
+{"alias":"corn tortilla","slug":"corn_tortilla_wrap_be"}
+{"alias":"corn tortilla wrap to be filled","slug":"corn_tortilla_wrap_be"}
+{"alias":"corn tortillas","slug":"corn_tortilla_wrap_be"}
+{"alias":"corned beef appertise","slug":"corned_beef"}
+{"alias":"corned beef canned","slug":"corned_beef"}
+{"alias":"cornflakes","slug":"breakfast_cereal"}
+{"alias":"cos lettuce","slug":"lettuce"}
+{"alias":"cote de porc","slug":"pork_chop"}
+{"alias":"cotes de porc","slug":"pork_chop"}
+{"alias":"cottage cheese","slug":"cottage_cheese"}
+{"alias":"coulis de tomate","slug":"passata"}
+{"alias":"coulis de tomates","slug":"passata"}
+{"alias":"country style bread french bread","slug":"country_style_bread_french"}
+{"alias":"country style bread home made","slug":"country_style_bread"}
+{"alias":"country style pate or terrine","slug":"country_style_pate_terrine"}
+{"alias":"country style pate with mushrooms","slug":"country_style_pate_mushrooms"}
+{"alias":"courge butternut","slug":"butternut_squash"}
+{"alias":"courge musquee pulpe cuite","slug":"pumpkin_pulp"}
+{"alias":"courgette","slug":"courgette"}
+{"alias":"courgette or zucchini pulp and peel cooked","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgette or zucchini pulp and peel raw","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgette or zucchini pulp and peel roasted baked","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgette pulpe et peau crue","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgette pulpe et peau cuite","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgette pulpe et peau rotie cuite au four","slug":"courgette_zucchini_pulp_peel"}
+{"alias":"courgettes","slug":"courgette"}
+{"alias":"courgettes sliced into rounds","slug":"courgette"}
+{"alias":"couscous","slug":"couscous"}
+{"alias":"couscous complet","slug":"couscous_wholemeal"}
+{"alias":"crab","slug":"crab"}
+{"alias":"crab meat","slug":"crab"}
+{"alias":"crabe","slug":"crab"}
+{"alias":"crackers","slug":"wheat_crackers"}
+{"alias":"crackers de table au froment","slug":"wheat_crackers"}
+{"alias":"cranberry dried with sugar","slug":"cranberry_sugar"}
+{"alias":"cream","slug":"single_cream"}
+{"alias":"cream cheese","slug":"cream_cheese"}
+{"alias":"creme aux oeufs rayon frais","slug":"custard_cream_eggs_refrigerated"}
+{"alias":"creme brulee rayon frais","slug":"caramelized_custard_cream_refrigerated"}
+{"alias":"creme caramel rayon frais","slug":"custard_cream_caramel_sauce"}
+{"alias":"creme dessert a la vanille appertisee","slug":"custard_dessert_vanilla"}
+{"alias":"creme dessert a la vanille rayon frais","slug":"custard_dessert_vanilla_refrigerated"}
+{"alias":"creme dessert allegee en mg rayon frais","slug":"custard_dessert_reduced_fat"}
+{"alias":"creme dessert appertisee","slug":"custard_dessert"}
+{"alias":"creme dessert au cafe rayon frais","slug":"custard_dessert_coffee_refrigerated"}
+{"alias":"creme dessert au caramel rayon frais","slug":"custard_dessert_caramel_refrigerated"}
+{"alias":"creme dessert au chocolat appertisee","slug":"custard_dessert_chocolate"}
+{"alias":"creme dessert au chocolat rayon frais","slug":"custard_dessert_chocolate_refrigerated"}
+{"alias":"creme dessert rayon frais","slug":"custard_dessert_refrigerated"}
+{"alias":"creme dessert rayon frais ou appertisee","slug":"custard_dessert_refrigerated"}
+{"alias":"creme fraiche","slug":"creme_fraiche"}
+{"alias":"creme glacee","slug":"ice_cream"}
+{"alias":"creme liquide","slug":"single_cream"}
+{"alias":"creme patissiere","slug":"pastry_cream_custard"}
+{"alias":"cresson","slug":"watercress"}
+{"alias":"crevette","slug":"prawns"}
+{"alias":"crevettes","slug":"prawns"}
+{"alias":"crispbread","slug":"crispbread_rye"}
+{"alias":"crispbread extruded and grilled","slug":"crispbread_extruded"}
+{"alias":"crispbreads","slug":"crispbread_rye"}
+{"alias":"crisps","slug":"crisps"}
+{"alias":"crosne cuit","slug":"chinese_japanese_artichokes"}
+{"alias":"crouton a l ail aux fines herbes ou aux oignons preemballe","slug":"crouton_garlic_herbs_onions"}
+{"alias":"crouton a tartiner","slug":"croutons_spreads"}
+{"alias":"crouton with garlic herbs or onions prepacked","slug":"crouton_garlic_herbs_onions"}
+{"alias":"croutons for spreads","slug":"croutons_spreads"}
+{"alias":"croutons nature preemballes","slug":"croutons"}
+{"alias":"croutons plain prepacked","slug":"croutons"}
+{"alias":"crunchy oat cereal","slug":"granola"}
+{"alias":"crunchy slaw","slug":"coleslaw_mix"}
+{"alias":"crusty baguette","slug":"bread_french_bread_baguette"}
+{"alias":"cube de bouillon","slug":"stock_cube"}
+{"alias":"cucumber","slug":"cucumber"}
+{"alias":"cucumber pulp and peel raw","slug":"cucumber_pulp_peel"}
+{"alias":"cucumber pulp raw","slug":"cucumber_pulp"}
+{"alias":"cuisse de poulet","slug":"chicken_thigh"}
+{"alias":"cuisses de poulet","slug":"chicken_thigh"}
+{"alias":"cuisses de poulet desossees","slug":"chicken_thigh"}
+{"alias":"cumin","slug":"cumin"}
+{"alias":"curcuma","slug":"turmeric"}
+{"alias":"curcuma moulu","slug":"turmeric"}
+{"alias":"cured ham raw","slug":"cured_ham"}
+{"alias":"cured ham raw smoked","slug":"cured_ham_smoked"}
+{"alias":"cured ham raw smoked reduced fat","slug":"cured_ham_smoked_reduced"}
+{"alias":"cured meat and sausages","slug":"cured_meat_sausages"}
+{"alias":"curry","slug":"curry_paste"}
+{"alias":"curry en poudre","slug":"curry_paste"}
+{"alias":"curry paste","slug":"curry_paste"}
+{"alias":"curry powder","slug":"curry_paste"}
+{"alias":"custard cream with caramel sauce refrigerated","slug":"custard_cream_caramel_sauce"}
+{"alias":"custard cream with eggs refrigerated","slug":"custard_cream_eggs_refrigerated"}
+{"alias":"custard dessert canned","slug":"custard_dessert"}
+{"alias":"custard dessert chocolate canned","slug":"custard_dessert_chocolate"}
+{"alias":"custard dessert reduced fat refrigerated","slug":"custard_dessert_reduced_fat"}
+{"alias":"custard dessert refrigerated or canned","slug":"custard_dessert_refrigerated"}
+{"alias":"custard dessert vanilla canned","slug":"custard_dessert_vanilla"}
+{"alias":"dairy drink or fermented milk or yogurt flavoured with sugar","slug":"dairy_drink_fermented_milk"}
+{"alias":"dairy drink or fermented milk or yogurt with fruits with sugar","slug":"dairy_drink_fermented_milk"}
+{"alias":"dairy fat 20 fat light spreadable unsalted","slug":"dairy_fat_20_fat"}
+{"alias":"dairy fat 25 fat light spreadable unsalted","slug":"dairy_fat_25_fat"}
+{"alias":"dark chocolate","slug":"dark_chocolate"}
+{"alias":"dates","slug":"dates"}
+{"alias":"dattes","slug":"dates"}
+{"alias":"dauphine potato frozen cooked","slug":"dauphine_potato"}
+{"alias":"dauphine potato frozen raw","slug":"dauphine_potato"}
+{"alias":"des allumettes rape ou hache de jambon","slug":"ham_cube"}
+{"alias":"des allumettes rape ou hache de jambon de volaille","slug":"poultry_ham_cube"}
+{"alias":"dessert au soja aromatise sucre enrichi en calcium preemballe","slug":"soy_dessert_flavoured_sweet"}
+{"alias":"dessert au soja aromatise sucre non enrichi preemballe","slug":"soy_dessert_flavoured_sweet"}
+{"alias":"dessert au soja aux amandes fermente preemballe","slug":"soy_dessert_w_almonds"}
+{"alias":"dessert au soja aux fruits sucre enrichi en calcium fermente preemballe","slug":"soy_dessert_w_fruits"}
+{"alias":"dessert au soja aux fruits sucre non enrichi fermente preemballe","slug":"soy_dessert_w_fruits"}
+{"alias":"dessert au soja nature non sucre enrichi en calcium fermente preemballe","slug":"soy_dessert_fortified_calcium"}
+{"alias":"dessert au soja nature non sucre non enrichi fermente preemballe","slug":"soy_dessert_not_fortified"}
+{"alias":"dessert vegetal sans soja aromatise sucre non enrichi preemballe","slug":"plant_based_dessert_flavoured"}
+{"alias":"dessert vegetal sans soja aux fruits sucre enrichi en calcium fermente preemballe","slug":"plant_based_dessert_soybean"}
+{"alias":"diced mixed vegetables canned drained","slug":"mixed_vegetables"}
+{"alias":"dijon mustard","slug":"mustard"}
+{"alias":"dill","slug":"herbs_dill"}
+{"alias":"dinde","slug":"turkey_breast"}
+{"alias":"dinde aile crue","slug":"turkey_wing"}
+{"alias":"dinde cuisse viande et peau crue","slug":"turkey_leg_meat"}
+{"alias":"dinde cuisse viande sans peau crue","slug":"turkey_leg_meat_only"}
+{"alias":"dinde escalope crue","slug":"turkey_escalope"}
+{"alias":"dinde escalope rotie cuite au four","slug":"turkey_escalope"}
+{"alias":"dinde escalope sautee poelee","slug":"turkey_escalope_sauteed_pan"}
+{"alias":"dinde escalope viennoise ou milanaise ou escalope panee","slug":"milanese_style_turkey_escalope"}
+{"alias":"dinde hachee","slug":"turkey_mince"}
+{"alias":"dinde viande crue","slug":"turkey_meat"}
+{"alias":"dinde viande et peau crue","slug":"turkey_meat"}
+{"alias":"dinde viande rotie cuite au four","slug":"turkey_meat"}
+{"alias":"double cream","slug":"single_cream"}
+{"alias":"drained soft fresh cheese around 6 fat","slug":"soft_cheese_around_6"}
+{"alias":"dried apricots","slug":"dried_apricot"}
+{"alias":"dried chickpeas","slug":"chickpeas_dry"}
+{"alias":"dried lentils","slug":"lentils_dry"}
+{"alias":"dried mixed herbs","slug":"dried_herbs"}
+{"alias":"dried oregano","slug":"dried_herbs"}
+{"alias":"dry cured ham fat and rind removed","slug":"dry_cured_ham_fat"}
+{"alias":"dry lentils","slug":"lentils_dry"}
+{"alias":"dry pasta","slug":"white_pasta"}
+{"alias":"dry sausage pure pork superior quality","slug":"dry_sausage_pure_pork"}
+{"alias":"dry sausage w walnuts and or hazelnuts","slug":"dry_sausage_w_walnuts"}
+{"alias":"dry spicy pork sausage with red pepper","slug":"dry_spicy_pork_sausage"}
+{"alias":"duchesse potato frozen cooked","slug":"duchesse_potato"}
+{"alias":"duchesse potato frozen raw","slug":"duchesse_potato"}
+{"alias":"duck","slug":"duck_breast"}
+{"alias":"duck breast","slug":"duck_breast"}
+{"alias":"duck confit meat without skin reheated","slug":"duck_confit_meat"}
+{"alias":"duck egg raw","slug":"duck_egg"}
+{"alias":"duck leg meat and skin raw","slug":"duck_leg_meat"}
+{"alias":"duck magret cooked in pan","slug":"duck_magret_pan"}
+{"alias":"duck meat and skin raw","slug":"duck_meat"}
+{"alias":"duck meat and skin roasted baked","slug":"duck_meat"}
+{"alias":"duck meat raw","slug":"duck_meat"}
+{"alias":"duck meat roasted baked","slug":"duck_meat"}
+{"alias":"early potato boiled cooked in water peeled","slug":"early_potato_water"}
+{"alias":"eau","slug":"water"}
+{"alias":"echalote crue","slug":"shallot"}
+{"alias":"echalote sautee poelee sans matiere grasse","slug":"shallot_pan_fat"}
+{"alias":"edamame","slug":"edamame"}
+{"alias":"egg fried salted","slug":"egg"}
+{"alias":"egg fried without added fat","slug":"egg_added_fat"}
+{"alias":"egg hard boiled","slug":"egg_hard"}
+{"alias":"egg poached","slug":"egg"}
+{"alias":"egg raw","slug":"egg"}
+{"alias":"egg scrambled with added fat","slug":"egg_scrambled_added_fat"}
+{"alias":"egg soft boiled","slug":"egg_soft"}
+{"alias":"egg white","slug":"egg_white"}
+{"alias":"egg white cooked","slug":"egg_white"}
+{"alias":"egg white raw","slug":"egg_white"}
+{"alias":"egg whites","slug":"egg_white"}
+{"alias":"egg yolk","slug":"egg_yolk"}
+{"alias":"egg yolk cooked","slug":"egg_yolk"}
+{"alias":"egg yolk raw","slug":"egg_yolk"}
+{"alias":"egg yolks","slug":"egg_yolk"}
+{"alias":"eggnog without alcohol","slug":"eggnog_alcohol"}
+{"alias":"eggplant","slug":"aubergine"}
+{"alias":"eggplant pulp and skin roasted baked","slug":"eggplant_pulp"}
+{"alias":"eggs","slug":"whole_eggs"}
+{"alias":"eglefin","slug":"haddock"}
+{"alias":"emince de boeuf","slug":"beef_rump_steak"}
+{"alias":"encornet","slug":"squid"}
+{"alias":"endive crue","slug":"chicory"}
+{"alias":"endive rotie cuite au four","slug":"chicory"}
+{"alias":"english muffin prepacked","slug":"english_muffin"}
+{"alias":"english muffin wholewheat flour prepacked","slug":"english_muffin_wholewheat_flour"}
+{"alias":"epaule de porc cuite choix decouennee degraissee","slug":"pork_shoulder_choice"}
+{"alias":"epaule de porc cuite standard decouennee degraissee","slug":"pork_shoulder_standard_rind"}
+{"alias":"epinard","slug":"spinach"}
+{"alias":"epinard bouilli cuit a l eau","slug":"spinach_water"}
+{"alias":"epinard jeunes pousses pour salades cru","slug":"spinach_young_leaves"}
+{"alias":"epinards","slug":"spinach"}
+{"alias":"escalope de dinde","slug":"turkey_breast"}
+{"alias":"escalope de poulet","slug":"chicken_breast"}
+{"alias":"extra virgin olive oil","slug":"olive_oil"}
+{"alias":"faisan viande cru","slug":"pheasant_meat"}
+{"alias":"faisan viande et peau cru","slug":"pheasant_meat"}
+{"alias":"faisan viande rotie cuite au four","slug":"pheasant_meat"}
+{"alias":"faisselle","slug":"fromage_blanc"}
+{"alias":"faisselle 6 mg environ","slug":"soft_cheese_around_6"}
+{"alias":"farce porc et boeuf crue","slug":"sausage_meat_pork_beef"}
+{"alias":"fat spreadfat content unknown unsalted","slug":"fat_spreadfat_content_unknown"}
+{"alias":"fava beans","slug":"broad_beans"}
+{"alias":"feathered game meat cooked","slug":"feathered_game_meat"}
+{"alias":"fennel","slug":"fennel"}
+{"alias":"fennel braised","slug":"fennel"}
+{"alias":"fennel raw","slug":"fennel"}
+{"alias":"fenouil","slug":"fennel"}
+{"alias":"fenouil cru","slug":"fennel"}
+{"alias":"fenouil cuit a l etouffee","slug":"fennel"}
+{"alias":"fermented milk drink plain skimmed milk","slug":"fermented_milk_drink_skimmed"}
+{"alias":"fermented milk drink plain whole milk","slug":"fermented_milk_drink_milk"}
+{"alias":"fermented milk or dairy specialty yogurt type flavoured with sugar with bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"fermented milk or dairy specialty yogurt type plain with bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"fermented milk or dairy specialty yogurt type with fruits with sugar with bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"feta","slug":"feta"}
+{"alias":"feta cheese","slug":"feta"}
+{"alias":"feuille de laurier","slug":"herbs_bay_leaf"}
+{"alias":"feuilles de laurier","slug":"herbs_bay_leaf"}
+{"alias":"feves","slug":"broad_beans"}
+{"alias":"feves de soja","slug":"edamame"}
+{"alias":"field mushroom raw","slug":"field_mushroom"}
+{"alias":"fig raw","slug":"fig"}
+{"alias":"figue","slug":"fig"}
+{"alias":"figue crue","slug":"fig"}
+{"alias":"figues","slug":"fig"}
+{"alias":"filet de bacon","slug":"bacon_back"}
+{"alias":"filet de cabillaud","slug":"cod"}
+{"alias":"filet de poulet","slug":"chicken_breast"}
+{"alias":"filet de saumon","slug":"salmon"}
+{"alias":"filet mignon de porc","slug":"pork_loin"}
+{"alias":"filets de cabillaud","slug":"cod"}
+{"alias":"filets de poisson blanc","slug":"cod"}
+{"alias":"fine beans","slug":"green_beans"}
+{"alias":"firm tofu","slug":"tofu"}
+{"alias":"fish quenelle in sauce","slug":"fish_quenelle_sauce"}
+{"alias":"fish quenelle raw","slug":"fish_quenelle"}
+{"alias":"flageolets","slug":"white_beans"}
+{"alias":"flaked almonds","slug":"almonds"}
+{"alias":"flan aux oeufs rayon frais","slug":"flan_eggs_refrigerated"}
+{"alias":"flan with eggs refrigerated","slug":"flan_eggs_refrigerated"}
+{"alias":"flat-leaf parsley","slug":"herbs_parsley"}
+{"alias":"flatbread","slug":"pita_bread"}
+{"alias":"flatbreads","slug":"pita_bread"}
+{"alias":"flaxseed","slug":"flaxseed"}
+{"alias":"flocons d avoine","slug":"oats"}
+{"alias":"flocons d'avoine","slug":"oats"}
+{"alias":"flour tortilla","slug":"tortilla_wrap"}
+{"alias":"foie agneau cru","slug":"liver_lamb"}
+{"alias":"foie agneau cuit","slug":"liver_lamb"}
+{"alias":"foie canard cru","slug":"liver_duck"}
+{"alias":"foie dinde cru","slug":"liver_turkey"}
+{"alias":"foie dinde cuit","slug":"liver_turkey"}
+{"alias":"foie genisse cru","slug":"liver_young_cow"}
+{"alias":"foie genisse cuit","slug":"liver_young_cow"}
+{"alias":"foie gras canard bloc","slug":"foie_gras_block"}
+{"alias":"foie gras canard bloc 30 de morceaux","slug":"foie_gras_duck_s"}
+{"alias":"foie gras canard bloc 50 de morceaux","slug":"foie_gras_duck_s"}
+{"alias":"foie gras canard bloc sans morceaux","slug":"foie_gras_duck_s"}
+{"alias":"foie gras canard entier cuit","slug":"foie_gras_duck_s"}
+{"alias":"foie gras de canard cru","slug":"foie_gras_duck"}
+{"alias":"foie gras duck raw","slug":"foie_gras_duck"}
+{"alias":"foie gras duck s liver 30 pieces","slug":"foie_gras_duck_s"}
+{"alias":"foie gras duck s liver 50 pieces","slug":"foie_gras_duck_s"}
+{"alias":"foie gras duck s liver whole cooked","slug":"foie_gras_duck_s"}
+{"alias":"foie gras duck s liver without pieces","slug":"foie_gras_duck_s"}
+{"alias":"foie lapin cru","slug":"liver_rabbit"}
+{"alias":"foie oie cru","slug":"liver_goose"}
+{"alias":"foie porc cru","slug":"liver_pork"}
+{"alias":"foie porc cuit","slug":"liver_pork"}
+{"alias":"foie poulet cru","slug":"liver_chicken"}
+{"alias":"foie poulet cuit","slug":"liver_chicken"}
+{"alias":"foie veau cru","slug":"liver_calf"}
+{"alias":"foie veau cuit","slug":"liver_calf"}
+{"alias":"foie volaille cru","slug":"liver_poultry"}
+{"alias":"foie volaille cuit","slug":"liver_poultry"}
+{"alias":"fraise crue","slug":"strawberry"}
+{"alias":"fraises","slug":"strawberries"}
+{"alias":"framboise crue","slug":"raspberry"}
+{"alias":"framboises","slug":"raspberries"}
+{"alias":"french bean boiled cooked in water","slug":"french_bean_water"}
+{"alias":"french bean canned drained","slug":"french_bean"}
+{"alias":"french bean cooked","slug":"french_bean"}
+{"alias":"french bean frozen cooked","slug":"french_bean"}
+{"alias":"french bean frozen raw","slug":"french_bean"}
+{"alias":"french beans","slug":"green_beans"}
+{"alias":"french dressing","slug":"vinaigrette"}
+{"alias":"french fries","slug":"chips_fries"}
+{"alias":"french fries or chips frozen deep fried","slug":"french_fries_chips_deep"}
+{"alias":"french fries or chips frozen pre fried aw intended to be microwaved","slug":"french_fries_chips_aw"}
+{"alias":"french fries or chips frozen pre fried raw intended to be deep fried","slug":"french_fries_chips_intended"}
+{"alias":"french fries or chips frozen pre fried raw intended to be roasted baked","slug":"french_fries_chips_intended"}
+{"alias":"french fries or chips frozen roasted baked","slug":"french_fries_chips"}
+{"alias":"fresh cream cheese plain around 3 fat","slug":"cream_cheese_around_3"}
+{"alias":"fresh cream cheese plain creamy around 8 fat","slug":"cream_cheese_creamy_around"}
+{"alias":"fresh cream cheese plain fat free","slug":"cream_cheese_fat_free"}
+{"alias":"fresh ginger","slug":"ginger"}
+{"alias":"fresh tuna","slug":"tuna_fresh"}
+{"alias":"fries","slug":"chips_fries"}
+{"alias":"frites","slug":"chips_fries"}
+{"alias":"frites de pommes de terre surgelees cuites en friteuse","slug":"french_fries_chips_deep"}
+{"alias":"frites de pommes de terre surgelees prefrites pour cuisson en friteuse","slug":"french_fries_chips_intended"}
+{"alias":"frites de pommes de terre surgelees prefrites pour cuisson micro ondes","slug":"french_fries_chips_aw"}
+{"alias":"frites de pommes de terre surgelees prefrites pour cuisson rotie au four","slug":"french_fries_chips_intended"}
+{"alias":"frites de pommes de terre surgelees roties cuites au four","slug":"french_fries_chips"}
+{"alias":"fromage a tartiner","slug":"cream_cheese"}
+{"alias":"fromage blanc","slug":"fromage_blanc"}
+{"alias":"fromage blanc nature 0 mg","slug":"cream_cheese_fat_free"}
+{"alias":"fromage blanc nature 3 mg environ","slug":"cream_cheese_around_3"}
+{"alias":"fromage blanc nature gourmand 8 mg environ","slug":"cream_cheese_creamy_around"}
+{"alias":"fromage blanc nature ou aux fruits","slug":"quark_fruit"}
+{"alias":"fromage de chevre","slug":"goat_cheese"}
+{"alias":"fromage de tete","slug":"head_cheese_pate_brawn"}
+{"alias":"fromage frais","slug":"soft_cheese_around_6"}
+{"alias":"fromage frais type petit suisse aromatise ou aux fruits 2 3 mg enrichi en calcium et vitamine d","slug":"petit_suisse_cream_cheese"}
+{"alias":"fromage frais type petit suisse aux fruits 2 3 mg","slug":"petit_suisse_cream_cheese"}
+{"alias":"fromage frais type petit suisse nature 10 mg environ","slug":"petit_suisse_like_cream"}
+{"alias":"fromage frais type petit suisse nature 4 mg environ","slug":"petit_suisse_cream_cheese"}
+{"alias":"frozen berries","slug":"mixed_berries"}
+{"alias":"frozen mixed berries","slug":"mixed_berries"}
+{"alias":"frozen peas","slug":"green_peas"}
+{"alias":"frozen vegetables","slug":"peas_frozen"}
+{"alias":"fruit a pain cru","slug":"breadfruit"}
+{"alias":"fruit compote reduced sugar or not","slug":"fruit_compote_reduced_sugar"}
+{"alias":"fruit cru","slug":"fruit"}
+{"alias":"fruit de la passion ou maracudja pulpe et pepins cru","slug":"passion_fruit_pulp_pips"}
+{"alias":"fruit juice","slug":"orange_juice"}
+{"alias":"fruit liegeois prepacked","slug":"fruit_liegeois"}
+{"alias":"fruits a coque","slug":"mixed_nuts"}
+{"alias":"fruits batter pudding prepacked","slug":"fruits_batter_pudding"}
+{"alias":"fruits compote miscellaneous reduced sugar","slug":"fruits_compote_miscellaneous_reduced"}
+{"alias":"fruits puree apple without sugar added","slug":"fruits_puree_apple_sugar"}
+{"alias":"fruits puree without sugar added","slug":"fruits_puree_sugar_added"}
+{"alias":"fruits rouges","slug":"mixed_berries"}
+{"alias":"fruits rouges surgeles","slug":"mixed_berries"}
+{"alias":"fruits secs melanges","slug":"mixed_nuts"}
+{"alias":"fusilli","slug":"white_pasta"}
+{"alias":"galette complete","slug":"tortilla_wholemeal"}
+{"alias":"galette complete de ble","slug":"tortilla_wholemeal"}
+{"alias":"galette de ble","slug":"tortilla_wrap"}
+{"alias":"galette de ble complet","slug":"tortilla_wholemeal"}
+{"alias":"galette de mais","slug":"corn_cake"}
+{"alias":"galette de riz souffle complet","slug":"puffed_rice_textured_bread"}
+{"alias":"galette multicereales soufflee","slug":"puffed_cereals_textured_bread"}
+{"alias":"galettes completes","slug":"tortilla_wholemeal"}
+{"alias":"galettes de ble","slug":"tortilla_wrap"}
+{"alias":"galettes de ble complet","slug":"tortilla_wholemeal"}
+{"alias":"galettes de mais","slug":"corn_cake"}
+{"alias":"game cooked","slug":"game"}
+{"alias":"gammon","slug":"ham"}
+{"alias":"garam masala","slug":"curry_paste"}
+{"alias":"garbanzo beans","slug":"chickpeas_tinned"}
+{"alias":"garden peas and carrots canned drained","slug":"garden_peas_carrots"}
+{"alias":"garden peas boiled cooked in water","slug":"garden_peas_water"}
+{"alias":"garden peas canned drained","slug":"garden_peas"}
+{"alias":"garlic","slug":"garlic"}
+{"alias":"garlic clove","slug":"garlic"}
+{"alias":"garlic cloves","slug":"garlic"}
+{"alias":"garlic granules","slug":"garlic"}
+{"alias":"garlic powder","slug":"garlic"}
+{"alias":"gateau au chocolat coeur fondant preemballe","slug":"chocolate_cake_w_melting"}
+{"alias":"gateau de riz appertise","slug":"rice_pudding_cake"}
+{"alias":"gateau de riz au caramel rayon frais","slug":"rice_pudding_w_caramel"}
+{"alias":"gateau de semoule appertise","slug":"semolina_pudding"}
+{"alias":"gateau de semoule aux raisins et caramel rayon frais","slug":"semolina_pudding_raisins_caramel"}
+{"alias":"gem lettuce","slug":"lettuce"}
+{"alias":"gesier canard confit appertise","slug":"preserved_gizzards_duck"}
+{"alias":"gesier poulet cru","slug":"gizzard_chicken"}
+{"alias":"ghee","slug":"ghee"}
+{"alias":"giant couscous","slug":"couscous"}
+{"alias":"gibier a plumes viande cuit","slug":"feathered_game_meat"}
+{"alias":"gibier a poil cuit","slug":"game"}
+{"alias":"gigot d'agneau","slug":"lamb"}
+{"alias":"gingembre","slug":"ginger"}
+{"alias":"ginger","slug":"ginger"}
+{"alias":"gizzard chicken raw","slug":"gizzard_chicken"}
+{"alias":"glace","slug":"ice_cream"}
+{"alias":"goat cheese","slug":"goat_cheese"}
+{"alias":"goats cheese","slug":"goat_cheese"}
+{"alias":"goose egg raw","slug":"goose_egg"}
+{"alias":"goose meat and skin raw","slug":"goose_meat"}
+{"alias":"goose meat and skin roasted baked","slug":"goose_meat"}
+{"alias":"goose meat raw","slug":"goose_meat"}
+{"alias":"goose meat roasted baked","slug":"goose_meat"}
+{"alias":"gousse d'ail","slug":"garlic"}
+{"alias":"gousses d'ail","slug":"garlic"}
+{"alias":"graine de couscous","slug":"couscous"}
+{"alias":"graines de chia","slug":"chia_seeds"}
+{"alias":"graines de courge","slug":"pumpkin_seeds"}
+{"alias":"graines de lin","slug":"flaxseed"}
+{"alias":"graines de pavot","slug":"poppy_seeds"}
+{"alias":"graines de sesame","slug":"sesame_seeds"}
+{"alias":"graines de tournesol","slug":"sunflower_seeds"}
+{"alias":"graines melangees","slug":"mixed_seeds"}
+{"alias":"graisse d oie","slug":"goose_fat"}
+{"alias":"graisse de canard","slug":"duck_fat"}
+{"alias":"graisse de dinde","slug":"turkey_fat"}
+{"alias":"graisse de poulet","slug":"chicken_fat"}
+{"alias":"granola","slug":"granola"}
+{"alias":"grape chasselas raw","slug":"grape_chasselas"}
+{"alias":"grape red muscat raw","slug":"grape_red_muscat"}
+{"alias":"grape white raw","slug":"grape_white"}
+{"alias":"grapefruit","slug":"grapefruit"}
+{"alias":"grapefruit pulp raw","slug":"grapefruit_pulp"}
+{"alias":"grapes","slug":"grapes"}
+{"alias":"grated cheddar","slug":"cheddar"}
+{"alias":"grated parmesan","slug":"parmesan"}
+{"alias":"greek yoghurt","slug":"greek_yogurt"}
+{"alias":"greek yogurt","slug":"greek_yogurt"}
+{"alias":"green beans","slug":"green_beans"}
+{"alias":"green bell pepper","slug":"bell_pepper"}
+{"alias":"green cabbage boiled cooked in water","slug":"green_cabbage_water"}
+{"alias":"green lentils","slug":"lentils_dry"}
+{"alias":"green olives","slug":"olives"}
+{"alias":"green or brown lentils","slug":"lentils_dry"}
+{"alias":"green peppers","slug":"sweet_pepper_green"}
+{"alias":"green salad","slug":"lettuce"}
+{"alias":"green tea","slug":"tea"}
+{"alias":"greengage plum raw","slug":"greengage_plum"}
+{"alias":"grenade pulpe et pepins crue","slug":"pomegranate_pulp_pips"}
+{"alias":"gressin","slug":"grissini_bread_stick"}
+{"alias":"grissini or bread stick","slug":"grissini_bread_stick"}
+{"alias":"groseille crue","slug":"red_currant"}
+{"alias":"ground almonds","slug":"almonds"}
+{"alias":"ground beef","slug":"beef_mince"}
+{"alias":"ground chilli","slug":"chilli_powder"}
+{"alias":"ground cumin","slug":"cumin"}
+{"alias":"ground turkey","slug":"turkey_mince"}
+{"alias":"guinea fowl breast raw","slug":"guinea_fowl_breast"}
+{"alias":"guinea fowl leg raw","slug":"guinea_fowl_leg"}
+{"alias":"guinea fowl raw","slug":"guinea_fowl"}
+{"alias":"hache de volaille","slug":"poultry_meat"}
+{"alias":"haddock","slug":"haddock"}
+{"alias":"hake","slug":"hake"}
+{"alias":"halloumi","slug":"halloumi"}
+{"alias":"ham","slug":"ham"}
+{"alias":"ham in a pastry crusty","slug":"ham_pastry_crusty"}
+{"alias":"ham in cube grated or minced","slug":"ham_cube"}
+{"alias":"hare meat raw","slug":"hare_meat"}
+{"alias":"hareng","slug":"herring"}
+{"alias":"haricot beurre bouilli cuit a l eau","slug":"butter_bean_yellow_bean"}
+{"alias":"haricot blanc","slug":"white_beans"}
+{"alias":"haricot de lima cru","slug":"lima_bean"}
+{"alias":"haricot rouge","slug":"kidney_beans"}
+{"alias":"haricot vert","slug":"green_beans"}
+{"alias":"haricot vert appertise egoutte","slug":"french_bean"}
+{"alias":"haricot vert bouilli cuit a l eau","slug":"french_bean_water"}
+{"alias":"haricot vert cuit","slug":"french_bean"}
+{"alias":"haricot vert surgele cru","slug":"french_bean"}
+{"alias":"haricot vert surgele cuit","slug":"french_bean"}
+{"alias":"haricots a la sauce tomate","slug":"baked_beans"}
+{"alias":"haricots blancs","slug":"white_beans"}
+{"alias":"haricots noirs","slug":"black_beans"}
+{"alias":"haricots rouges","slug":"kidney_beans"}
+{"alias":"haricots verts","slug":"green_beans"}
+{"alias":"hauts de cuisse de poulet","slug":"chicken_thigh"}
+{"alias":"hazelnuts","slug":"hazelnuts"}
+{"alias":"head cheese pate or brawn","slug":"head_cheese_pate_brawn"}
+{"alias":"heart beef cooked","slug":"heart_beef"}
+{"alias":"heart beef raw","slug":"heart_beef"}
+{"alias":"heart chicken cooked","slug":"heart_chicken"}
+{"alias":"heart chicken raw","slug":"heart_chicken"}
+{"alias":"heart lamb cooked","slug":"heart_lamb"}
+{"alias":"heart lamb raw","slug":"heart_lamb"}
+{"alias":"heart pork raw","slug":"heart_pork"}
+{"alias":"heart turkey cooked","slug":"heart_turkey"}
+{"alias":"heart turkey raw","slug":"heart_turkey"}
+{"alias":"heart veal raw","slug":"heart_veal"}
+{"alias":"hen meat and skin raw","slug":"hen_meat"}
+{"alias":"hen meat only raw","slug":"hen_meat_only"}
+{"alias":"herbes de provence","slug":"dried_herbs"}
+{"alias":"herbes sechees","slug":"dried_herbs"}
+{"alias":"herbes seches","slug":"dried_herbs"}
+{"alias":"herring","slug":"herring"}
+{"alias":"honey","slug":"honey"}
+{"alias":"horse meat raw","slug":"horse_meat"}
+{"alias":"horse meat roasted baked","slug":"horse_meat"}
+{"alias":"horse rib steak grilled pan fried","slug":"horse_rib_steak_pan"}
+{"alias":"horse rib steak raw","slug":"horse_rib_steak"}
+{"alias":"horse sirloin steak grilled pan fried","slug":"horse_sirloin_steak_pan"}
+{"alias":"horse sirloin steak raw","slug":"horse_sirloin_steak"}
+{"alias":"horse sirloin steak roasted baked","slug":"horse_sirloin_steak"}
+{"alias":"horse steak raw","slug":"horse_steak"}
+{"alias":"horse topside grilled pan fried","slug":"horse_topside_pan"}
+{"alias":"horse topside raw","slug":"horse_topside"}
+{"alias":"horse topside roasted baked","slug":"horse_topside"}
+{"alias":"hoummous","slug":"hummus"}
+{"alias":"houmous","slug":"hummus"}
+{"alias":"huile d'olive","slug":"olive_oil"}
+{"alias":"huile d’olive","slug":"olive_oil"}
+{"alias":"huile de coco","slug":"coconut_oil"}
+{"alias":"huile de colza","slug":"rapeseed_oil"}
+{"alias":"huile de foie de morue","slug":"cod_liver_oil"}
+{"alias":"huile de hareng","slug":"herring_oil"}
+{"alias":"huile de paraffine","slug":"paraffin_oil"}
+{"alias":"huile de sardine","slug":"sardine_oil"}
+{"alias":"huile de saumon","slug":"salmon_oil"}
+{"alias":"huile de sesame","slug":"sesame_oil"}
+{"alias":"huile de tournesol","slug":"sunflower_oil"}
+{"alias":"huile vegetale","slug":"rapeseed_oil"}
+{"alias":"hummus","slug":"hummus"}
+{"alias":"ice cream","slug":"ice_cream"}
+{"alias":"igname epluchee bouillie cuite a l eau","slug":"yam_indian_potato_water"}
+{"alias":"igname epluchee crue","slug":"yam_indian_potato"}
+{"alias":"ile flottante rayon frais","slug":"floating_island_refrigerated"}
+{"alias":"italian herbs","slug":"dried_herbs"}
+{"alias":"jam","slug":"jam"}
+{"alias":"jambon","slug":"ham"}
+{"alias":"jambon a l os braise","slug":"ham_on_bone"}
+{"alias":"jambon blanc","slug":"ham"}
+{"alias":"jambon cru","slug":"cured_ham"}
+{"alias":"jambon cru fume","slug":"cured_ham_smoked"}
+{"alias":"jambon cru fume allege en matiere grasse","slug":"cured_ham_smoked_reduced"}
+{"alias":"jambon cuit choix","slug":"ham_choice"}
+{"alias":"jambon cuit choix avec couenne","slug":"ham_choice_w_rind"}
+{"alias":"jambon cuit choix decouenne degraisse","slug":"ham_choice_rind_less"}
+{"alias":"jambon cuit de paris decouenne degraisse","slug":"ham_parisian_style_rind"}
+{"alias":"jambon cuit fume","slug":"ham_smoked"}
+{"alias":"jambon cuit superieur","slug":"ham_superior_quality"}
+{"alias":"jambon cuit superieur a teneur reduite en sel","slug":"ham_superior_quality_reduced"}
+{"alias":"jambon cuit superieur avec couenne","slug":"ham_superior_quality_rind"}
+{"alias":"jambon cuit superieur decouenne","slug":"ham_superior_quality_rind"}
+{"alias":"jambon cuit superieur decouenne degraisse","slug":"ham_superior_quality_rind"}
+{"alias":"jambon de bayonne","slug":"bayonne_cured_ham_smoked"}
+{"alias":"jambon de dinde ou blanc de dinde en tranche","slug":"turkey_ham_slices"}
+{"alias":"jambon de porc a cuire ou jambon a rotir cuire au four","slug":"pork_ham_intended_be"}
+{"alias":"jambon de poulet ou blanc de poulet en tranche","slug":"chicken_ham_slices"}
+{"alias":"jambon en croute","slug":"ham_pastry_crusty"}
+{"alias":"jambon persille en gelee","slug":"pork_ham_w_parsley"}
+{"alias":"jambon sec","slug":"dry_cured_ham"}
+{"alias":"jambon sec de parme","slug":"parma_dry_cured_ham"}
+{"alias":"jambon sec decouenne degraisse","slug":"dry_cured_ham_fat"}
+{"alias":"jambon sec serrano","slug":"serrano_dry_cured_ham"}
+{"alias":"jambonneau cuit","slug":"knuckle_ham"}
+{"alias":"jasmine rice","slug":"white_rice"}
+{"alias":"jaune d'oeuf","slug":"egg_yolk"}
+{"alias":"jerusalem artichoke cooked","slug":"jerusalem_artichoke"}
+{"alias":"jerusalem artichoke raw","slug":"jerusalem_artichoke"}
+{"alias":"jumbo oats","slug":"oats"}
+{"alias":"jus d'orange","slug":"orange_juice"}
+{"alias":"jus de citron","slug":"lemon"}
+{"alias":"jus de citron vert","slug":"lime"}
+{"alias":"jus de fruit","slug":"orange_juice"}
+{"alias":"kaki pulpe cru","slug":"persimmon_pulp"}
+{"alias":"kale","slug":"kale"}
+{"alias":"kefir","slug":"kefir"}
+{"alias":"ketchup","slug":"ketchup"}
+{"alias":"kidney all types cooked","slug":"kidney_all_types"}
+{"alias":"kidney beans","slug":"kidney_beans"}
+{"alias":"kidney beef cooked","slug":"kidney_beef"}
+{"alias":"kidney beef raw","slug":"kidney_beef"}
+{"alias":"kidney calf raw","slug":"kidney_calf"}
+{"alias":"kidney lamb braised","slug":"kidney_lamb"}
+{"alias":"kidney lamb raw","slug":"kidney_lamb"}
+{"alias":"kidney pork cooked","slug":"kidney_pork"}
+{"alias":"kidney pork raw","slug":"kidney_pork"}
+{"alias":"kidney veal sauteed pan fried","slug":"kidney_veal_sauteed_pan"}
+{"alias":"king prawns","slug":"prawns"}
+{"alias":"kiwi","slug":"kiwi"}
+{"alias":"kiwi fruit pulp and seeds raw","slug":"kiwi_fruit_pulp_seeds"}
+{"alias":"kiwi pulpe et graines cru","slug":"kiwi_fruit_pulp_seeds"}
+{"alias":"kiwis","slug":"kiwi"}
+{"alias":"knuckle of ham cooked","slug":"knuckle_ham"}
+{"alias":"lait","slug":"milk_semi"}
+{"alias":"lait de coco","slug":"coconut_milk"}
+{"alias":"lait de poule sans alcool","slug":"eggnog_alcohol"}
+{"alias":"lait de soja","slug":"soy_milk"}
+{"alias":"lait demi-ecreme","slug":"milk_semi"}
+{"alias":"lait fermente a boire nature au lait entier","slug":"fermented_milk_drink_milk"}
+{"alias":"lait fermente a boire nature maigre","slug":"fermented_milk_drink_skimmed"}
+{"alias":"lait fermente ou specialite laitiere type yaourt aromatise sucre au bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"lait fermente ou specialite laitiere type yaourt aux fruits sucre au bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"lait fermente ou specialite laitiere type yaourt nature au bifidus","slug":"fermented_milk_dairy_specialty"}
+{"alias":"lait gelifie aromatise nappe caramel rayon frais","slug":"milk_jelly_flavoured_covered"}
+{"alias":"laitue","slug":"lettuce"}
+{"alias":"laitue romaine","slug":"lettuce"}
+{"alias":"lamb","slug":"lamb"}
+{"alias":"lamb chop cooked","slug":"lamb_chop"}
+{"alias":"lamb chop decouverte raw","slug":"lamb_chop_decouverte"}
+{"alias":"lamb chop fillet grilled pan fried","slug":"lamb_chop_fillet_pan"}
+{"alias":"lamb chop fillet raw","slug":"lamb_chop_fillet"}
+{"alias":"lamb chop grilled","slug":"lamb_chop"}
+{"alias":"lamb chop raw","slug":"lamb_chop"}
+{"alias":"lamb chops","slug":"lamb"}
+{"alias":"lamb cutlet grilled","slug":"lamb_cutlet"}
+{"alias":"lamb cutlet raw","slug":"lamb_cutlet"}
+{"alias":"lamb leg braised","slug":"lamb_leg"}
+{"alias":"lamb leg grilled pan fried","slug":"lamb_leg_pan"}
+{"alias":"lamb leg raw","slug":"lamb_leg"}
+{"alias":"lamb leg roasted baked","slug":"lamb_leg"}
+{"alias":"lamb meat cooked","slug":"lamb_meat"}
+{"alias":"lamb mince","slug":"lamb"}
+{"alias":"lamb neck braised or boiled","slug":"lamb_neck"}
+{"alias":"lamb neck raw","slug":"lamb_neck"}
+{"alias":"lamb rib chop grilled pan fried","slug":"lamb_rib_chop_pan"}
+{"alias":"lamb rib chop raw","slug":"lamb_rib_chop"}
+{"alias":"lamb s lettuce raw","slug":"lamb_s_lettuce"}
+{"alias":"lamb saddle grilled pan fried","slug":"lamb_saddle_pan"}
+{"alias":"lamb saddle lean roasted baked","slug":"lamb_saddle_lean"}
+{"alias":"lamb saddle raw","slug":"lamb_saddle"}
+{"alias":"lamb shoulder lean raw","slug":"lamb_shoulder_lean"}
+{"alias":"lamb shoulder lean roasted baked","slug":"lamb_shoulder_lean"}
+{"alias":"lamb shoulder raw","slug":"lamb_shoulder"}
+{"alias":"lamb shoulder roasted baked","slug":"lamb_shoulder"}
+{"alias":"langue agneau crue","slug":"tongue_lamb"}
+{"alias":"langue boeuf crue","slug":"tongue_beef"}
+{"alias":"langue boeuf cuite","slug":"tongue_beef"}
+{"alias":"langue porc crue","slug":"tongue_pork"}
+{"alias":"langue veau crue","slug":"tongue_calf"}
+{"alias":"langue veau cuite","slug":"tongue_calf"}
+{"alias":"lapin de garenne viande crue","slug":"rabbit_wild_meat"}
+{"alias":"lapin de garenne viande cuite","slug":"rabbit_wild_meat"}
+{"alias":"lapin viande braisee","slug":"rabbit_meat"}
+{"alias":"lapin viande crue","slug":"rabbit_meat"}
+{"alias":"lapin viande cuite","slug":"rabbit_meat"}
+{"alias":"lard gras cru","slug":"pork_fat"}
+{"alias":"lard or pork fat","slug":"lard_pork_fat"}
+{"alias":"lardon fume cru","slug":"smoked_lardoons"}
+{"alias":"lardon fume cuit","slug":"smoked_lardoons"}
+{"alias":"lardon nature cru","slug":"lardoons"}
+{"alias":"lardon nature cuit","slug":"lardoons"}
+{"alias":"lardons","slug":"bacon"}
+{"alias":"lardoons cooked","slug":"lardoons"}
+{"alias":"lardoons raw","slug":"lardoons"}
+{"alias":"large egg","slug":"whole_eggs"}
+{"alias":"large eggs","slug":"whole_eggs"}
+{"alias":"large potato","slug":"potato"}
+{"alias":"laurier","slug":"herbs_bay_leaf"}
+{"alias":"lean beef mince","slug":"beef_mince"}
+{"alias":"lean turkey mince","slug":"turkey_mince"}
+{"alias":"leek","slug":"leek"}
+{"alias":"leek boiled cooked in water","slug":"leek_water"}
+{"alias":"leek frozen raw","slug":"leek"}
+{"alias":"leek raw","slug":"leek"}
+{"alias":"leeks","slug":"leek"}
+{"alias":"leftover rice","slug":"cooked_rice"}
+{"alias":"legume cuit","slug":"vegetable"}
+{"alias":"legumes melange surgele crus","slug":"mixed_vegetables"}
+{"alias":"legumes pour couscous surgeles crus","slug":"mixed_vegetables_couscous"}
+{"alias":"legumes pour potages surgeles crus","slug":"mixed_vegetables_soups"}
+{"alias":"legumes puree","slug":"vegetables_mashed"}
+{"alias":"legumes surgeles","slug":"peas_frozen"}
+{"alias":"lemon","slug":"lemon"}
+{"alias":"lemon juice","slug":"lemon"}
+{"alias":"lemon pulp raw","slug":"lemon_pulp"}
+{"alias":"lemon wedges","slug":"lemon_wedge"}
+{"alias":"lemon zest","slug":"lemon"}
+{"alias":"lemons","slug":"lemon"}
+{"alias":"lentil","slug":"lentils_dry"}
+{"alias":"lentille","slug":"lentils_dry"}
+{"alias":"lentilles","slug":"lentils_dry"}
+{"alias":"lentilles corail","slug":"lentils_dry"}
+{"alias":"lentilles cuites","slug":"lentils_cooked"}
+{"alias":"lentilles vertes","slug":"lentils_dry"}
+{"alias":"lentils","slug":"lentils_dry"}
+{"alias":"lettuce","slug":"lettuce"}
+{"alias":"lettuce leaves","slug":"lettuce"}
+{"alias":"lettuce oak leaf raw","slug":"lettuce_oak_leaf"}
+{"alias":"lettuce sucrine raw","slug":"lettuce_sucrine"}
+{"alias":"lettuce var batavia raw","slug":"lettuce_var_batavia"}
+{"alias":"liegeois aux fruits preemballe","slug":"fruit_liegeois"}
+{"alias":"lieu noir","slug":"pollock"}
+{"alias":"lievre viande crue","slug":"hare_meat"}
+{"alias":"light mayonnaise","slug":"mayonnaise"}
+{"alias":"lima bean raw","slug":"lima_bean"}
+{"alias":"lime","slug":"lime"}
+{"alias":"lime juice","slug":"lime"}
+{"alias":"lime pulp raw","slug":"lime_pulp"}
+{"alias":"limes","slug":"lime"}
+{"alias":"linseed","slug":"flaxseed"}
+{"alias":"litchi pulpe cru","slug":"lychee_pulp"}
+{"alias":"liver calf cooked","slug":"liver_calf"}
+{"alias":"liver calf raw","slug":"liver_calf"}
+{"alias":"liver chicken cooked","slug":"liver_chicken"}
+{"alias":"liver chicken raw","slug":"liver_chicken"}
+{"alias":"liver duck raw","slug":"liver_duck"}
+{"alias":"liver goose raw","slug":"liver_goose"}
+{"alias":"liver lamb cooked","slug":"liver_lamb"}
+{"alias":"liver lamb raw","slug":"liver_lamb"}
+{"alias":"liver pate","slug":"pate"}
+{"alias":"liver pork cooked","slug":"liver_pork"}
+{"alias":"liver pork raw","slug":"liver_pork"}
+{"alias":"liver poultry cooked","slug":"liver_poultry"}
+{"alias":"liver poultry raw","slug":"liver_poultry"}
+{"alias":"liver rabbit raw","slug":"liver_rabbit"}
+{"alias":"liver turkey cooked","slug":"liver_turkey"}
+{"alias":"liver turkey raw","slug":"liver_turkey"}
+{"alias":"liver young cow cooked","slug":"liver_young_cow"}
+{"alias":"liver young cow raw","slug":"liver_young_cow"}
+{"alias":"loaf of bread","slug":"bread"}
+{"alias":"long grain rice","slug":"white_rice"}
+{"alias":"loup de mer","slug":"sea_bass"}
+{"alias":"low salt vegetable stock","slug":"vegetable_stock"}
+{"alias":"lychee pulp raw","slug":"lychee_pulp"}
+{"alias":"macaroni","slug":"white_pasta"}
+{"alias":"macedoine de legumes appertisee egouttee","slug":"mixed_vegetables"}
+{"alias":"macedoine de legumes surgelee pre cuite","slug":"mixed_vegetables"}
+{"alias":"mache crue","slug":"lamb_s_lettuce"}
+{"alias":"mackerel","slug":"mackerel"}
+{"alias":"magret de canard","slug":"duck_breast"}
+{"alias":"mais","slug":"sweetcorn"}
+{"alias":"mais doux","slug":"sweetcorn"}
+{"alias":"mais doux appertise egoutte","slug":"sweet_corn"}
+{"alias":"mandarin","slug":"clementine"}
+{"alias":"mango","slug":"mango"}
+{"alias":"mango jose flesh raw from the island la reunion","slug":"mango_jose_flesh_island"}
+{"alias":"mango pulp raw","slug":"mango_pulp"}
+{"alias":"mangue","slug":"mango"}
+{"alias":"mangue jose pulpe crue prelevee a la reunion","slug":"mango_jose_flesh_island"}
+{"alias":"mangue pulpe crue","slug":"mango_pulp"}
+{"alias":"manioc racine crue","slug":"cassava_manioc_roots"}
+{"alias":"manioc racine cuite","slug":"cassava_manioc_roots"}
+{"alias":"maple syrup","slug":"maple_syrup"}
+{"alias":"maquereau","slug":"mackerel"}
+{"alias":"mashed potato balls pre fried frozen cooked","slug":"mashed_potato_balls"}
+{"alias":"mashed potato balls pre fried frozen raw","slug":"mashed_potato_balls"}
+{"alias":"matiere grasse laitiere a 20 mg legere a tartiner doux","slug":"dairy_fat_20_fat"}
+{"alias":"matiere grasse laitiere a 25 mg legere a tartiner doux","slug":"dairy_fat_25_fat"}
+{"alias":"matiere grasse melangee a 50 63 mg","slug":"blended_fat_50_63"}
+{"alias":"matiere grasse melangee a 50 63 mg demi sel","slug":"blended_fat_50_63"}
+{"alias":"matiere grasse melangee a tartiner a 30 40 mg","slug":"blended_fat_spreadable_30"}
+{"alias":"matiere grasse melangee a tartiner a 30 40 mg demi sel","slug":"blended_fat_spreadable_30"}
+{"alias":"matiere grasse vegetale a 30 40 mg legere demi sel aux esters de sterol vegetal","slug":"vegetable_fat_spreadable_30"}
+{"alias":"matiere grasse vegetale a 50 63 mg allegee demi sel","slug":"vegetable_fat_50_63"}
+{"alias":"matiere grasse vegetale a 50 63 mg allegee demi sel riche en omega 3","slug":"vegetable_fat_spreadable_50"}
+{"alias":"matiere grasse vegetale a 50 63 mg allegee doux","slug":"vegetable_fat_spreadable_50"}
+{"alias":"matiere grasse vegetale a 50 63 mg allegee doux aux esters de sterol vegetal","slug":"vegetable_fat_spreadable_50"}
+{"alias":"matiere grasse vegetale a 50 63 mg allegee doux riche en omega 3","slug":"vegetable_fat_spreadable_50"}
+{"alias":"matiere grasse vegetale a 60 de mg allegee au tournesol doux","slug":"vegetable_fat_60_fat"}
+{"alias":"matiere grasse vegetale a 70 mg doux","slug":"vegetable_fat_70_fat"}
+{"alias":"matiere grasse vegetale a 80 mg salee","slug":"vegetable_fat_80_fat"}
+{"alias":"matiere grasse vegetale a tartiner a 30 40 mg legere demi sel","slug":"vegetable_fat_spreadable_30"}
+{"alias":"matiere grasse vegetale a tartiner a 30 40 mg legere doux","slug":"vegetable_fat_spreadable_30"}
+{"alias":"matiere grasse vegetale a tartiner a 30 40 mg legere doux riche en omega 3","slug":"vegetable_fat_spreadable_30"}
+{"alias":"matiere grasse vegetale ou margarine 80 mg doux","slug":"vegetable_fat_80_fat"}
+{"alias":"matiere grasse vegetale teneur en matiere grasse inconue doux","slug":"vegetable_fat_spreadable_fat"}
+{"alias":"matiere grasse vegetale teneur reduite en matiere grasse inconnue doux","slug":"fat_spreadfat_content_unknown"}
+{"alias":"mayo","slug":"mayonnaise"}
+{"alias":"mayonnaise","slug":"mayonnaise"}
+{"alias":"meat balls beef and lamb prepacked raw","slug":"meat_balls_beef_lamb"}
+{"alias":"meat balls pork and beef prepacked","slug":"meat_balls_pork_beef"}
+{"alias":"meat cooked","slug":"meat"}
+{"alias":"medium egg","slug":"whole_eggs"}
+{"alias":"medjool dates","slug":"dates"}
+{"alias":"melange aperitif de fruits exotiques sec","slug":"tropical_fruit_mix_snack"}
+{"alias":"melange de fruits rouges","slug":"mixed_berries"}
+{"alias":"melange de fruits secs","slug":"mixed_nuts"}
+{"alias":"melange de graines","slug":"mixed_seeds"}
+{"alias":"melange de legumes","slug":"mixed_vegetables"}
+{"alias":"melon","slug":"melon"}
+{"alias":"melon cantaloup pulpe cru","slug":"melon_cantaloupe_pulp"}
+{"alias":"melon cantaloupe pulp raw","slug":"melon_cantaloupe_pulp"}
+{"alias":"menthe","slug":"herbs_mint"}
+{"alias":"merguez boeuf et mouton crue","slug":"merguez_sausage_beef_mutton"}
+{"alias":"merguez boeuf et mouton cuite","slug":"merguez_sausage_beef_mutton"}
+{"alias":"merguez crue","slug":"merguez_sausage"}
+{"alias":"merguez sausage beef and mutton cooked","slug":"merguez_sausage_beef_mutton"}
+{"alias":"merguez sausage beef and mutton raw","slug":"merguez_sausage_beef_mutton"}
+{"alias":"merguez sausage raw","slug":"merguez_sausage"}
+{"alias":"merlu","slug":"hake"}
+{"alias":"mesclun","slug":"lettuce"}
+{"alias":"miel","slug":"honey"}
+{"alias":"milanese style turkey escalope or breaded veal escalope","slug":"milanese_style_turkey_escalope"}
+{"alias":"mild curry powder","slug":"curry_paste"}
+{"alias":"milk","slug":"milk_semi"}
+{"alias":"milk jelly flavoured covered with caramel refrigerated","slug":"milk_jelly_flavoured_covered"}
+{"alias":"milk shake provenant de fast food","slug":"milkshake_fast_foods_restaurant"}
+{"alias":"milkshake from fast foods restaurant","slug":"milkshake_fast_foods_restaurant"}
+{"alias":"minced beef","slug":"beef_mince"}
+{"alias":"minced turkey","slug":"turkey_mince"}
+{"alias":"mint","slug":"herbs_mint"}
+{"alias":"mirabelle crue","slug":"mirabelle_plum"}
+{"alias":"mirabelle plum raw","slug":"mirabelle_plum"}
+{"alias":"mixed berries","slug":"mixed_berries"}
+{"alias":"mixed diced vegetables raw frozen","slug":"mixed_vegetables"}
+{"alias":"mixed frozen berries","slug":"mixed_berries"}
+{"alias":"mixed greens","slug":"lettuce"}
+{"alias":"mixed herbs","slug":"dried_herbs"}
+{"alias":"mixed nuts","slug":"mixed_nuts"}
+{"alias":"mixed salad greens","slug":"lettuce"}
+{"alias":"mixed salad leaves","slug":"lettuce"}
+{"alias":"mixed vegetables for couscous frozen raw","slug":"mixed_vegetables_couscous"}
+{"alias":"mixed vegetables for soups frozen raw","slug":"mixed_vegetables_soups"}
+{"alias":"mixed vegetables frozen raw","slug":"mixed_vegetables"}
+{"alias":"morel raw","slug":"morel"}
+{"alias":"mortadella with pistachios pure pork","slug":"mortadella_pistachios_pure_pork"}
+{"alias":"mortadelle","slug":"mortadella"}
+{"alias":"mortadelle pistachee pur porc","slug":"mortadella_pistachios_pure_pork"}
+{"alias":"mortadelle porc et boeuf","slug":"pork_beef_mortadella"}
+{"alias":"mortadelle pur porc","slug":"mortadella_pure_pork"}
+{"alias":"morteaux sausage boiled cooked in water","slug":"morteaux_sausage_water"}
+{"alias":"morue","slug":"cod"}
+{"alias":"moule","slug":"mussels"}
+{"alias":"moules","slug":"mussels"}
+{"alias":"mousse a la creme de marrons preemballee","slug":"chestnut_mousse"}
+{"alias":"mousse au chocolat rayon frais","slug":"chocolate_mousse_refrigerated"}
+{"alias":"mousse au chocolat traditionnelle preemballee","slug":"mousse_chocolate"}
+{"alias":"mousse au chocolat vegetale preemballee","slug":"mousse_chocolate_plant_based"}
+{"alias":"mousse aux fruits rayon frais","slug":"fruit_mousse_refrigerated"}
+{"alias":"mousse chocolate plant based prepacked","slug":"mousse_chocolate_plant_based"}
+{"alias":"mousse chocolate prepacked","slug":"mousse_chocolate"}
+{"alias":"mousse de canard","slug":"duck_mousse"}
+{"alias":"mousse de foie de porc","slug":"pork_liver_mousse"}
+{"alias":"mousse de foie de porc superieure ou creme de foie","slug":"pork_liver_mousse_superior"}
+{"alias":"mousse liegeoise rayon frais","slug":"mousse_topped_whipped_cream"}
+{"alias":"mousse topped with whipped cream refrigerated","slug":"mousse_topped_whipped_cream"}
+{"alias":"moutarde","slug":"mustard"}
+{"alias":"moutarde de dijon","slug":"mustard"}
+{"alias":"mouton epaule crue","slug":"mutton_shoulder"}
+{"alias":"mouton gigot cru","slug":"mutton_leg"}
+{"alias":"mouton pied cru","slug":"sheep_foot"}
+{"alias":"mouton tete crue","slug":"sheep_head"}
+{"alias":"mouton viande crue","slug":"mutton_meat"}
+{"alias":"mozzarella","slug":"mozzarella"}
+{"alias":"mozzarella light","slug":"mozzarella"}
+{"alias":"muesli","slug":"granola"}
+{"alias":"muffin anglais complet petit pain special preemballe","slug":"english_muffin_wholewheat_flour"}
+{"alias":"muffin anglais petit pain special preemballe","slug":"english_muffin"}
+{"alias":"mure crue","slug":"blackberry"}
+{"alias":"museau de boeuf","slug":"ox_muzzle"}
+{"alias":"museau de boeuf en vinaigrette","slug":"ox_muzzle_salad_dressing"}
+{"alias":"museau de porc vinaigrette","slug":"pork_snout_salad_dressing"}
+{"alias":"mushroom","slug":"mushroom"}
+{"alias":"mushroom all types canned drained","slug":"mushroom_all_types"}
+{"alias":"mushroom all types raw","slug":"mushroom_all_types"}
+{"alias":"mushrooms","slug":"mushroom"}
+{"alias":"mussel","slug":"mussels"}
+{"alias":"mussels","slug":"mussels"}
+{"alias":"mustard","slug":"mustard"}
+{"alias":"mutton leg raw","slug":"mutton_leg"}
+{"alias":"mutton meat raw","slug":"mutton_meat"}
+{"alias":"mutton shoulder raw","slug":"mutton_shoulder"}
+{"alias":"myrtille crue","slug":"blueberry"}
+{"alias":"myrtilles","slug":"blueberries"}
+{"alias":"naan","slug":"naan_bread"}
+{"alias":"natural yogurt","slug":"plain_yogurt"}
+{"alias":"navet bouilli cuit a l eau","slug":"turnip_water"}
+{"alias":"nectarine","slug":"peach"}
+{"alias":"nectarine ou brugnon blanche pulpe et peau crue","slug":"nectarine_white_flesh"}
+{"alias":"nectarine ou brugnon jaune pulpe et peau crue","slug":"nectarine_yellow_flesh"}
+{"alias":"nectarine white flesh and skin raw","slug":"nectarine_white_flesh"}
+{"alias":"nectarine yellow flesh and skin raw","slug":"nectarine_yellow_flesh"}
+{"alias":"nectarines","slug":"peach"}
+{"alias":"new potato raw","slug":"new_potato"}
+{"alias":"new potatoes","slug":"potato"}
+{"alias":"noisettes","slug":"hazelnuts"}
+{"alias":"noix","slug":"walnuts"}
+{"alias":"noix de cajou","slug":"cashews"}
+{"alias":"noix de saint jacques","slug":"scallops"}
+{"alias":"noodles","slug":"noodles"}
+{"alias":"nouilles","slug":"noodles"}
+{"alias":"nuts","slug":"mixed_nuts"}
+{"alias":"oat flakes","slug":"oats"}
+{"alias":"oat flour","slug":"oats"}
+{"alias":"oatmeal","slug":"oats"}
+{"alias":"oats","slug":"oats"}
+{"alias":"oeuf","slug":"whole_eggs"}
+{"alias":"oeuf a la coque","slug":"egg_soft"}
+{"alias":"oeuf au plat frit sale","slug":"egg"}
+{"alias":"oeuf au plat sans matiere grasse","slug":"egg_added_fat"}
+{"alias":"oeuf blanc cru","slug":"egg_white"}
+{"alias":"oeuf blanc cuit","slug":"egg_white"}
+{"alias":"oeuf blanc en poudre","slug":"egg_white_powder"}
+{"alias":"oeuf brouille avec matiere grasse","slug":"egg_scrambled_added_fat"}
+{"alias":"oeuf cru","slug":"egg"}
+{"alias":"oeuf d oie cru","slug":"goose_egg"}
+{"alias":"oeuf de caille cru","slug":"quail_egg"}
+{"alias":"oeuf de cane cru","slug":"duck_egg"}
+{"alias":"oeuf de dinde cru","slug":"turkey_egg"}
+{"alias":"oeuf dur","slug":"egg_hard"}
+{"alias":"oeuf en poudre","slug":"egg_powder"}
+{"alias":"oeuf jaune cru","slug":"egg_yolk"}
+{"alias":"oeuf jaune cuit","slug":"egg_yolk"}
+{"alias":"oeuf jaune en poudre","slug":"egg_yolk_powder"}
+{"alias":"oeuf poche","slug":"egg"}
+{"alias":"oeufs","slug":"whole_eggs"}
+{"alias":"offal cooked","slug":"offal"}
+{"alias":"oie viande crue","slug":"goose_meat"}
+{"alias":"oie viande et peau crue","slug":"goose_meat"}
+{"alias":"oie viande et peau rotie cuite au four","slug":"goose_meat"}
+{"alias":"oie viande rotie cuite au four","slug":"goose_meat"}
+{"alias":"oignon","slug":"onion"}
+{"alias":"oignon blanc","slug":"onion"}
+{"alias":"oignon blanc ou jaune saute poele sans matiere grasse","slug":"onion_white_yellow_sauteed"}
+{"alias":"oignon jaune","slug":"onion"}
+{"alias":"oignon jaune cru","slug":"yellow_onion"}
+{"alias":"oignon nouveau","slug":"spring_onion"}
+{"alias":"oignon nouveau ou oignon frais ou cebette saute poele sans matiere grasse","slug":"spring_onion_sauteed_pan"}
+{"alias":"oignon rouge","slug":"red_onion"}
+{"alias":"oignon rouge cru","slug":"red_onion"}
+{"alias":"oignon rouge saute poele sans matiere grasse","slug":"onion_red_sauteed_pan"}
+{"alias":"oignons","slug":"onion"}
+{"alias":"oignons blancs","slug":"onion"}
+{"alias":"oignons jaunes","slug":"onion"}
+{"alias":"oignons rouges","slug":"red_onion"}
+{"alias":"oil","slug":"olive_oil"}
+{"alias":"olive","slug":"olives"}
+{"alias":"olive oil","slug":"olive_oil"}
+{"alias":"olives","slug":"olives"}
+{"alias":"omelette au fromage","slug":"omelette_cheese"}
+{"alias":"omelette aux champignons","slug":"omelette_mushrooms"}
+{"alias":"omelette aux fines herbes","slug":"omelette_herbs"}
+{"alias":"omelette aux lardons","slug":"omelette_lardoons"}
+{"alias":"omelette garnitures diverses legumes fromages viandes","slug":"omelette_vegetables_cheese_meat"}
+{"alias":"omelette with cheese","slug":"omelette_cheese"}
+{"alias":"omelette with herbs","slug":"omelette_herbs"}
+{"alias":"omelette with lardoons","slug":"omelette_lardoons"}
+{"alias":"omelette with mushrooms","slug":"omelette_mushrooms"}
+{"alias":"omelette with vegetables cheese meat","slug":"omelette_vegetables_cheese_meat"}
+{"alias":"onion","slug":"onion"}
+{"alias":"onion finely chopped","slug":"onion"}
+{"alias":"onion finely diced","slug":"onion"}
+{"alias":"onion red sauteed pan fried without fat","slug":"onion_red_sauteed_pan"}
+{"alias":"onion white or yellow sauteed pan fried without fat","slug":"onion_white_yellow_sauteed"}
+{"alias":"onions","slug":"onion"}
+{"alias":"orange","slug":"orange"}
+{"alias":"orange juice","slug":"orange_juice"}
+{"alias":"orange pulp raw","slug":"orange_pulp"}
+{"alias":"orange pulpe crue","slug":"orange_pulp"}
+{"alias":"oranges","slug":"orange"}
+{"alias":"oregano","slug":"dried_herbs"}
+{"alias":"oreille de porc demi sel","slug":"pork_ear_sat_cured"}
+{"alias":"orge","slug":"barley"}
+{"alias":"orge perle","slug":"barley"}
+{"alias":"orge perlee","slug":"barley"}
+{"alias":"orge perlee seche","slug":"barley"}
+{"alias":"ostrich meat cooked","slug":"ostrich_meat"}
+{"alias":"ostrich meat raw","slug":"ostrich_meat"}
+{"alias":"ox muzzle in salad dressing sauce","slug":"ox_muzzle_salad_dressing"}
+{"alias":"oyster mushroom raw","slug":"oyster_mushroom"}
+{"alias":"pain","slug":"bread"}
+{"alias":"pain au son","slug":"bran_grain_bread"}
+{"alias":"pain baguette courante","slug":"bread_french_bread_baguette"}
+{"alias":"pain baguette de tradition francaise","slug":"bread_french_bread_baguette"}
+{"alias":"pain baguette ou boule au levain","slug":"bread_french_bread_yeast"}
+{"alias":"pain baguette ou boule aux cereales et graines artisanal","slug":"bread_french_bread_multigrain"}
+{"alias":"pain baguette ou boule bio","slug":"brear_t55_t110_flour"}
+{"alias":"pain baguette ou boule bis","slug":"brown_bread_french_bread"}
+{"alias":"pain baguette ou boule de campagne","slug":"country_style_bread_french"}
+{"alias":"pain baguette sans sel","slug":"bread_french_bread_salt"}
+{"alias":"pain blanc","slug":"white_bread"}
+{"alias":"pain blanc maison","slug":"bread_flour_bread_preparation"}
+{"alias":"pain complet","slug":"wholemeal_bread"}
+{"alias":"pain complet ou integral","slug":"bread_wholemeal_integral_bread"}
+{"alias":"pain courant 400g ou boule","slug":"bread_french_bread_ball"}
+{"alias":"pain croustillant","slug":"crispbread_rye"}
+{"alias":"pain de ble complet","slug":"wholemeal_bread"}
+{"alias":"pain de campagne maison","slug":"country_style_bread"}
+{"alias":"pain de mie","slug":"white_bread"}
+{"alias":"pain de mie au son","slug":"sandwich_loaf_bran_grain"}
+{"alias":"pain de mie brioche preemballe","slug":"brioche_sandwich_bread"}
+{"alias":"pain de mie complet","slug":"sandwich_loaf_wholemeal"}
+{"alias":"pain de mie courant","slug":"sandwich_loaf"}
+{"alias":"pain de mie multicereale","slug":"sandwich_loaf_multigrain"}
+{"alias":"pain de mie sans croute preemballe","slug":"sandwich_loaf_crust_less"}
+{"alias":"pain de seigle","slug":"rye_bread"}
+{"alias":"pain de seigle et froment","slug":"rye_bread_wheat"}
+{"alias":"pain grille brioche tranche preemballe","slug":"rusk_eggs"}
+{"alias":"pain grille domestique","slug":"toasted_bread"}
+{"alias":"pain grille suedois au ble complet","slug":"wheat_swedish_toast_wholemeal"}
+{"alias":"pain grille suedois au froment","slug":"wheat_swedish_toast"}
+{"alias":"pain grille suedois aux fruits","slug":"swedish_toast_fruits"}
+{"alias":"pain grille suedois aux graines de lin","slug":"swedish_toast_linseeds"}
+{"alias":"pain grille tranches au froment","slug":"rusk_slice_wheat"}
+{"alias":"pain grille tranches multicereale","slug":"rusk_slice_multigrain"}
+{"alias":"pain naan","slug":"naan_bread"}
+{"alias":"pain panini","slug":"panini_bread"}
+{"alias":"pain perdu","slug":"french_toast"}
+{"alias":"pain pita","slug":"pita_bread"}
+{"alias":"pain pita complet","slug":"pita_wholemeal"}
+{"alias":"pain pour hamburger ou hot dog complet preemballe","slug":"rolls_hamburger_hotdog_wholemeal"}
+{"alias":"pain pour hamburger ou hot dog preemballe","slug":"rolls_hamburger_hotdog"}
+{"alias":"pain sans gluten","slug":"bread_gluten_free"}
+{"alias":"pak choi","slug":"pak_choi"}
+{"alias":"paleron","slug":"beef_braising"}
+{"alias":"paleron de boeuf","slug":"beef_chuck"}
+{"alias":"pamplemousse","slug":"grapefruit"}
+{"alias":"panais","slug":"parsnip"}
+{"alias":"panais cru","slug":"parsnip"}
+{"alias":"panais cuit","slug":"parsnip"}
+{"alias":"panais cuit a l etouffee","slug":"parsnip"}
+{"alias":"pancetta dried","slug":"pancetta"}
+{"alias":"pancetta ou poitrine roulee seche","slug":"pancetta"}
+{"alias":"panko breadcrumbs","slug":"breadcrumbs"}
+{"alias":"panna cotta avec preparations de fruits ou caramel rayon frais","slug":"panna_cotta_refrigerated"}
+{"alias":"papaya pulp raw","slug":"papaya_pulp"}
+{"alias":"papaye colombo pulpe sans pepin crue prelevee a la reunion","slug":"colombo_papaya_mature_seeds"}
+{"alias":"papaye pulpe crue","slug":"papaya_pulp"}
+{"alias":"paprika","slug":"paprika"}
+{"alias":"paprika doux","slug":"paprika"}
+{"alias":"paprika fume","slug":"paprika"}
+{"alias":"parmesan","slug":"parmesan"}
+{"alias":"parmigiano","slug":"parmesan"}
+{"alias":"parsley","slug":"herbs_parsley"}
+{"alias":"parsnip","slug":"parsnip"}
+{"alias":"parsnip braised","slug":"parsnip"}
+{"alias":"parsnip cooked","slug":"parsnip"}
+{"alias":"parsnip raw","slug":"parsnip"}
+{"alias":"parsnips","slug":"parsnip"}
+{"alias":"passata","slug":"passata"}
+{"alias":"passata de tomate","slug":"tomato_pulp"}
+{"alias":"passata de tomates","slug":"tomato_pulp"}
+{"alias":"passion fruit pulp and pips raw","slug":"passion_fruit_pulp_pips"}
+{"alias":"pasta","slug":"white_pasta"}
+{"alias":"pasteque","slug":"melon"}
+{"alias":"pasteque pulpe crue","slug":"watermelon_pulp"}
+{"alias":"pastry cream or custard","slug":"pastry_cream_custard"}
+{"alias":"patate douce","slug":"sweet_potato"}
+{"alias":"patate douce crue","slug":"sweet_potato"}
+{"alias":"patate douce cuite","slug":"sweet_potato"}
+{"alias":"patate douce puree cuisinee a la creme","slug":"sweet_potato_puree_cream"}
+{"alias":"pate au poivre vert","slug":"pate_w_green_pepper"}
+{"alias":"pate breton","slug":"breton_pate"}
+{"alias":"pate de campagne","slug":"pate"}
+{"alias":"pate de curry","slug":"curry_paste"}
+{"alias":"pate de foie","slug":"pate"}
+{"alias":"pate de foie d oie","slug":"goose_liver_pate"}
+{"alias":"pate de foie de porc","slug":"pork_liver_pate"}
+{"alias":"pate de foie de porc superieur","slug":"pork_liver_pate_superior"}
+{"alias":"pate de foie de volaille","slug":"poultry_liver_pate"}
+{"alias":"pate de gibier","slug":"game_pate"}
+{"alias":"pate de lapin","slug":"rabbit_pate"}
+{"alias":"pate en croute","slug":"pate_crust"}
+{"alias":"pate in crust","slug":"pate_crust"}
+{"alias":"pate ou terrine aux champignons","slug":"country_style_pate_mushrooms"}
+{"alias":"pate ou terrine de campagne","slug":"country_style_pate_terrine"}
+{"alias":"pates","slug":"white_pasta"}
+{"alias":"pates au ble complet","slug":"wholewheat_pasta"}
+{"alias":"pates completes","slug":"wholewheat_pasta"}
+{"alias":"pave de saumon","slug":"salmon"}
+{"alias":"peach","slug":"peach"}
+{"alias":"peach white flesh variety pulp and skin raw","slug":"peach_white_flesh_variety"}
+{"alias":"peach white flesh variety pulp raw","slug":"peach_white_flesh_variety"}
+{"alias":"peach yellow flesh variety pulp raw","slug":"peach_yellow_flesh_variety"}
+{"alias":"peaches","slug":"peach"}
+{"alias":"peanut","slug":"peanuts"}
+{"alias":"peanut butter","slug":"peanut_butter"}
+{"alias":"peanuts","slug":"peanuts"}
+{"alias":"pear","slug":"pear"}
+{"alias":"pear canned in light syrup drained","slug":"pear_light_syrup"}
+{"alias":"pear var conference pulp raw","slug":"pear_var_conference_pulp"}
+{"alias":"pear var williams pulp raw","slug":"pear_var_williams_pulp"}
+{"alias":"pearl barley","slug":"barley"}
+{"alias":"pears","slug":"pear"}
+{"alias":"peas","slug":"green_peas"}
+{"alias":"peche","slug":"peach"}
+{"alias":"peche blanche pulpe crue","slug":"peach_white_flesh_variety"}
+{"alias":"peche blanche pulpe et peau crue","slug":"peach_white_flesh_variety"}
+{"alias":"peche jaune pulpe crue","slug":"peach_yellow_flesh_variety"}
+{"alias":"peches","slug":"peach"}
+{"alias":"penne","slug":"white_pasta"}
+{"alias":"pepitas","slug":"pumpkin_seeds"}
+{"alias":"pepper sweet green sauteed pan fried without fat","slug":"pepper_sweet_green_sauteed"}
+{"alias":"pepper sweet red sauteed pan fried without fat","slug":"pepper_sweet_red_sauteed"}
+{"alias":"pepper sweet yellow sauteed pan fried without fat","slug":"pepper_sweet_yellow_sauteed"}
+{"alias":"peppers","slug":"bell_pepper"}
+{"alias":"persil","slug":"herbs_parsley"}
+{"alias":"persil plat","slug":"herbs_parsley"}
+{"alias":"persimmon pulp raw","slug":"persimmon_pulp"}
+{"alias":"pesto","slug":"pesto"}
+{"alias":"petit pois","slug":"green_peas"}
+{"alias":"petit suisse fresh cream cheese type flavoured or with fruits 2 3 fat fortified with calcium and vitamin d","slug":"petit_suisse_cream_cheese"}
+{"alias":"petit suisse fresh cream cheese type plain around 4 fat","slug":"petit_suisse_cream_cheese"}
+{"alias":"petit suisse fresh cream cheese type with fruits 2 3 fat","slug":"petit_suisse_cream_cheese"}
+{"alias":"petit suisse like fresh cream cheese plain around 9 fat","slug":"petit_suisse_like_cream"}
+{"alias":"petits pois","slug":"green_peas"}
+{"alias":"petits pois appertises egouttes","slug":"garden_peas"}
+{"alias":"petits pois bouillis cuits a l eau","slug":"garden_peas_water"}
+{"alias":"petits pois et carottes appertises egouttes","slug":"garden_peas_carrots"}
+{"alias":"pheasant meat and skin raw","slug":"pheasant_meat"}
+{"alias":"pheasant meat raw","slug":"pheasant_meat"}
+{"alias":"pheasant meat roasted baked","slug":"pheasant_meat"}
+{"alias":"pied de porc demi sel","slug":"pork_trotters_salt_cured"}
+{"alias":"pigeon cru","slug":"pigeon"}
+{"alias":"pigeon meat roasted baked","slug":"pigeon_meat"}
+{"alias":"pigeon raw","slug":"pigeon"}
+{"alias":"pigeon viande rotie cuite au four","slug":"pigeon_meat"}
+{"alias":"piment","slug":"chilli"}
+{"alias":"piment en poudre","slug":"chilli_powder"}
+{"alias":"piment moulu","slug":"chilli_powder"}
+{"alias":"pineapple","slug":"pineapple"}
+{"alias":"pineapple pulp raw","slug":"pineapple_pulp"}
+{"alias":"pintade crue","slug":"guinea_fowl"}
+{"alias":"pintade cuisse crue","slug":"guinea_fowl_leg"}
+{"alias":"pintade poitrine crue","slug":"guinea_fowl_breast"}
+{"alias":"pita","slug":"pita_bread"}
+{"alias":"pita complet","slug":"pita_wholemeal"}
+{"alias":"pita pocket","slug":"pita_bread"}
+{"alias":"pitas completes","slug":"pita_wholemeal"}
+{"alias":"pitta","slug":"pita_bread"}
+{"alias":"pitta bread","slug":"pita_bread"}
+{"alias":"pitta breads","slug":"pita_bread"}
+{"alias":"plaice","slug":"plaice"}
+{"alias":"plain yoghurt","slug":"plain_yogurt"}
+{"alias":"plain yogurt","slug":"plain_yogurt"}
+{"alias":"plant based dessert flavoured sweet not fortified prepacked","slug":"plant_based_dessert_flavoured"}
+{"alias":"plant based dessert without soybean with fruits sweet fortified with calcium prepacked","slug":"plant_based_dessert_soybean"}
+{"alias":"plant based ham prepacked","slug":"plant_based_ham"}
+{"alias":"plant based pate prepacked","slug":"plant_based_pate"}
+{"alias":"plant based sausage with tofu","slug":"plant_based_sausage_tofu"}
+{"alias":"plant based sausage with wheat or seitan","slug":"plant_based_sausage_wheat"}
+{"alias":"plantain banana cooked","slug":"plantain_banana"}
+{"alias":"plie","slug":"plaice"}
+{"alias":"plum tomatoes","slug":"tomato"}
+{"alias":"poire","slug":"pear"}
+{"alias":"poire au sirop leger appertisee egouttee","slug":"pear_light_syrup"}
+{"alias":"poire conference pulpe crue","slug":"pear_var_conference_pulp"}
+{"alias":"poire williams pulpe crue","slug":"pear_var_williams_pulp"}
+{"alias":"poireau","slug":"leek"}
+{"alias":"poireau bouilli cuit a l eau","slug":"leek_water"}
+{"alias":"poireau cru","slug":"leek"}
+{"alias":"poireau surgele cru","slug":"leek"}
+{"alias":"poireaux","slug":"leek"}
+{"alias":"pois chiche","slug":"chickpeas_tinned"}
+{"alias":"pois chiches","slug":"chickpeas_tinned"}
+{"alias":"pois chiches secs","slug":"chickpeas_dry"}
+{"alias":"pois mange tout ou pois gourmand bouilli cuit a l eau","slug":"snow_pea_water"}
+{"alias":"poisson blanc","slug":"cod"}
+{"alias":"poitrine de porc demi sel","slug":"pork_belly_salt_cured"}
+{"alias":"poitrine de porc fumee crue","slug":"pork_belly_smoked"}
+{"alias":"poivre","slug":"black_pepper"}
+{"alias":"poivre noir","slug":"black_pepper"}
+{"alias":"poivron","slug":"bell_pepper"}
+{"alias":"poivron jaune","slug":"bell_pepper"}
+{"alias":"poivron jaune cru","slug":"sweet_pepper_yellow"}
+{"alias":"poivron jaune saute poele sans matiere grasse","slug":"pepper_sweet_yellow_sauteed"}
+{"alias":"poivron rouge","slug":"bell_pepper"}
+{"alias":"poivron rouge cru","slug":"sweet_pepper_red"}
+{"alias":"poivron rouge saute poele sans matiere grasse","slug":"pepper_sweet_red_sauteed"}
+{"alias":"poivron vert","slug":"bell_pepper"}
+{"alias":"poivron vert cru","slug":"sweet_pepper_green"}
+{"alias":"poivron vert saute poele sans matiere grasse","slug":"pepper_sweet_green_sauteed"}
+{"alias":"poivrons","slug":"bell_pepper"}
+{"alias":"polenta","slug":"polenta"}
+{"alias":"pollock","slug":"pollock"}
+{"alias":"pomegranate pulp and pips raw","slug":"pomegranate_pulp_pips"}
+{"alias":"pomelo pulpe cru","slug":"grapefruit_pulp"}
+{"alias":"pomme","slug":"apple"}
+{"alias":"pomme chantecler pulpe crue","slug":"apple_var_chanteclerc_pulp"}
+{"alias":"pomme de terre","slug":"potato"}
+{"alias":"pomme de terre appertisee egouttee","slug":"potato"}
+{"alias":"pomme de terre bouillie cuite a l eau","slug":"potato_water"}
+{"alias":"pomme de terre cuite","slug":"potato"}
+{"alias":"pomme de terre dauphine surgelee crue","slug":"dauphine_potato"}
+{"alias":"pomme de terre dauphine surgelee cuite","slug":"dauphine_potato"}
+{"alias":"pomme de terre de conservation sans peau bouillie cuite a l eau","slug":"ware_potato_water"}
+{"alias":"pomme de terre duchesse surgelee crue","slug":"duchesse_potato"}
+{"alias":"pomme de terre duchesse surgelee cuite","slug":"duchesse_potato"}
+{"alias":"pomme de terre flocons deshydrates au lait ou a la creme","slug":"potato_flakes_milk_cream"}
+{"alias":"pomme de terre flocons deshydrates nature","slug":"potato_flakes"}
+{"alias":"pomme de terre noisette surgelee crue","slug":"mashed_potato_balls"}
+{"alias":"pomme de terre noisette surgelee cuite","slug":"mashed_potato_balls"}
+{"alias":"pomme de terre nouvelle crue","slug":"new_potato"}
+{"alias":"pomme de terre poelee avec matiere grasse","slug":"potato_sauteed_pan"}
+{"alias":"pomme de terre primeur sans peau bouillie cuite a l eau","slug":"early_potato_water"}
+{"alias":"pomme de terre puree","slug":"mashed_potatoes"}
+{"alias":"pomme de terre puree a base de flocons reconstituee avec lait demi ecreme et eau non salee","slug":"potato_puree_flakes_reconstituted"}
+{"alias":"pomme de terre puree a base de flocons reconstituee avec lait entier matiere grasse","slug":"potato_puree_flakes_reconstituted"}
+{"alias":"pomme de terre puree avec lait et beurre non salee","slug":"potato_puree_milk_butter"}
+{"alias":"pomme de terre rotie cuite au four","slug":"potato"}
+{"alias":"pomme de terre sans peau crue","slug":"potato"}
+{"alias":"pomme de terre sans peau rotie cuite au four","slug":"potato"}
+{"alias":"pomme de terre sautee poelee a la graisse de canard","slug":"potato_sauteed_pan_goose"}
+{"alias":"pomme de terre sautee rissolee pre frite surgelee cuite","slug":"potato_into_cubes"}
+{"alias":"pomme de terre sautee rissolee pre frites surgelee crue","slug":"potato_into_cubes"}
+{"alias":"pomme de terre vapeur sous vide","slug":"potato_vacuum"}
+{"alias":"pomme gala pulpe crue","slug":"apple_var_gala_pulp"}
+{"alias":"pomme golden pulpe crue","slug":"apple_var_golden_pulp"}
+{"alias":"pomme golden pulpe et peau crue","slug":"apple_var_golden_pulp"}
+{"alias":"pomme granny smith pulpe crue","slug":"apple_var_granny_smith"}
+{"alias":"pomme granny smith pulpe et peau crue","slug":"apple_var_granny_smith"}
+{"alias":"pomme pink lady pulpe crue","slug":"apple_var_pink_lady"}
+{"alias":"pommes","slug":"apple"}
+{"alias":"pommes de terre","slug":"potato"}
+{"alias":"pommes de terre nouvelles","slug":"potato"}
+{"alias":"porc bardiere decouennee crue","slug":"pork_back_fat_rindless"}
+{"alias":"porc carre cru","slug":"pork_rack"}
+{"alias":"porc carre cuit","slug":"pork_rack"}
+{"alias":"porc cote crue","slug":"pork_chop"}
+{"alias":"porc cote grillee","slug":"pork_chop"}
+{"alias":"porc echine crue","slug":"pork_loin"}
+{"alias":"porc echine rotie cuite au four","slug":"pork_loin"}
+{"alias":"porc epaule crue","slug":"pork_shoulder"}
+{"alias":"porc epaule cuite","slug":"pork_shoulder"}
+{"alias":"porc escalope de jambon crue","slug":"pork_ham_escalope"}
+{"alias":"porc escalope de jambon cuite","slug":"pork_ham_escalope"}
+{"alias":"porc filet maigre cru","slug":"pork_tenderloin_lean"}
+{"alias":"porc filet maigre en roti cuit","slug":"pork_tenderloin_roast"}
+{"alias":"porc filet mignon cru","slug":"pork_filet_mignon"}
+{"alias":"porc filet mignon cuit","slug":"pork_filet_mignon"}
+{"alias":"porc gorge decouennee crue","slug":"pork_jowl_rindless"}
+{"alias":"porc hachage sans jarret sans bateau decouenne degraisse desosse cru","slug":"pork_shoulder_lower_rind"}
+{"alias":"porc jambon sans jarret sans bateau decouenne degraisse desosse cru","slug":"pork_way_leg_rind"}
+{"alias":"porc jambonneau arriere decouenne degraissse desosse cru","slug":"pork_knuckle_oh_ham"}
+{"alias":"porc jarret cru","slug":"pork_knuckle_shank"}
+{"alias":"porc longe crue","slug":"pork_loin"}
+{"alias":"porc longe cuite","slug":"pork_loin"}
+{"alias":"porc maigre 80 20 cru","slug":"pork_80_20_trimming"}
+{"alias":"porc maigre 90 10 cru","slug":"pork_90_10_trimming"}
+{"alias":"porc palette crue","slug":"pork_shoulder"}
+{"alias":"porc palette decouennee degraissee desossee crue","slug":"pork_shoulder_upper_rind"}
+{"alias":"porc poitrine crue","slug":"pork_belly"}
+{"alias":"porc poitrine cutter sans mouille crue","slug":"pork_belly_flank_removed"}
+{"alias":"porc roti cru","slug":"pork_roast"}
+{"alias":"porc roti cuit","slug":"pork_roast"}
+{"alias":"porc roti filet avec chainette cru","slug":"prok_eye_shortloin"}
+{"alias":"porc rouelle de jambon crue","slug":"pork_round_steak"}
+{"alias":"porc rouelle de jambon cuite","slug":"pork_round_steak"}
+{"alias":"porc travers braise","slug":"pork_spare_ribs"}
+{"alias":"porc travers cru","slug":"pork_spare_ribs"}
+{"alias":"porc viande cuite","slug":"pork_meat"}
+{"alias":"pork 80 20 trimming raw","slug":"pork_80_20_trimming"}
+{"alias":"pork 90 10 trimming raw","slug":"pork_90_10_trimming"}
+{"alias":"pork and beef mortadella","slug":"pork_beef_mortadella"}
+{"alias":"pork back fat rindless raw","slug":"pork_back_fat_rindless"}
+{"alias":"pork belly flank removed raw","slug":"pork_belly_flank_removed"}
+{"alias":"pork belly raw","slug":"pork_belly"}
+{"alias":"pork belly smoked raw","slug":"pork_belly_smoked"}
+{"alias":"pork chop","slug":"pork_chop"}
+{"alias":"pork chop grilled","slug":"pork_chop"}
+{"alias":"pork chop raw","slug":"pork_chop"}
+{"alias":"pork chops","slug":"pork_chop"}
+{"alias":"pork fat raw","slug":"pork_fat"}
+{"alias":"pork filet mignon cooked","slug":"pork_filet_mignon"}
+{"alias":"pork filet mignon raw","slug":"pork_filet_mignon"}
+{"alias":"pork fillet","slug":"pork_loin"}
+{"alias":"pork ham escalope cooked","slug":"pork_ham_escalope"}
+{"alias":"pork ham escalope raw","slug":"pork_ham_escalope"}
+{"alias":"pork ham intended to be cooked or pork ham intended to be roast bake","slug":"pork_ham_intended_be"}
+{"alias":"pork ham w parsley and jelly","slug":"pork_ham_w_parsley"}
+{"alias":"pork jowl rindless raw","slug":"pork_jowl_rindless"}
+{"alias":"pork knuckle oh ham without rind fat and bone raw","slug":"pork_knuckle_oh_ham"}
+{"alias":"pork knuckle or shank raw","slug":"pork_knuckle_shank"}
+{"alias":"pork liver mousse superior quality","slug":"pork_liver_mousse_superior"}
+{"alias":"pork liver pate superior quality","slug":"pork_liver_pate_superior"}
+{"alias":"pork loin","slug":"pork_loin"}
+{"alias":"pork loin cooked","slug":"pork_loin"}
+{"alias":"pork loin raw","slug":"pork_loin"}
+{"alias":"pork loin roasted baked","slug":"pork_loin"}
+{"alias":"pork meat cooked","slug":"pork_meat"}
+{"alias":"pork medallions","slug":"pork_filet_mignon"}
+{"alias":"pork on skewer raw","slug":"pork_on_skewer"}
+{"alias":"pork rack cooked","slug":"pork_rack"}
+{"alias":"pork rack raw","slug":"pork_rack"}
+{"alias":"pork roast cooked","slug":"pork_roast"}
+{"alias":"pork roast raw","slug":"pork_roast"}
+{"alias":"pork round steak cooked","slug":"pork_round_steak"}
+{"alias":"pork round steak raw","slug":"pork_round_steak"}
+{"alias":"pork sausage","slug":"sausage"}
+{"alias":"pork shoulder cooked","slug":"pork_shoulder"}
+{"alias":"pork shoulder lower half without rind fat and bone raw","slug":"pork_shoulder_lower_rind"}
+{"alias":"pork shoulder raw","slug":"pork_shoulder"}
+{"alias":"pork shoulder upper half without rind fat and bone raw","slug":"pork_shoulder_upper_rind"}
+{"alias":"pork snout in salad dressing sauce","slug":"pork_snout_salad_dressing"}
+{"alias":"pork spare ribs braised","slug":"pork_spare_ribs"}
+{"alias":"pork spare ribs raw","slug":"pork_spare_ribs"}
+{"alias":"pork tenderloin","slug":"pork_loin"}
+{"alias":"pork tenderloin lean raw","slug":"pork_tenderloin_lean"}
+{"alias":"pork tenderloin roast cooked","slug":"pork_tenderloin_roast"}
+{"alias":"pork way leg without rind fat and bone raw","slug":"pork_way_leg_rind"}
+{"alias":"porridge oats","slug":"oats"}
+{"alias":"potato","slug":"potato"}
+{"alias":"potato boiled cooked in water","slug":"potato_water"}
+{"alias":"potato canned drained","slug":"potato"}
+{"alias":"potato chip quarter spiced frozen cooked","slug":"potato_chip_quarter_spiced"}
+{"alias":"potato chips","slug":"crisps"}
+{"alias":"potato cooked","slug":"potato"}
+{"alias":"potato crisps a l ancienne","slug":"potato_crisps_l_ancienne"}
+{"alias":"potato crisps and related reduced fat","slug":"potato_crisps_related_reduced"}
+{"alias":"potato crisps plain or flavoured","slug":"potato_crisps_flavoured"}
+{"alias":"potato flakes dehydrated plain","slug":"potato_flakes"}
+{"alias":"potato flakes dehydrated with milk or cream","slug":"potato_flakes_milk_cream"}
+{"alias":"potato peeled raw","slug":"potato"}
+{"alias":"potato peeled roasted baked","slug":"potato"}
+{"alias":"potato pre fried into cubes frozen cooked","slug":"potato_into_cubes"}
+{"alias":"potato pre fried into cubes frozen raw","slug":"potato_into_cubes"}
+{"alias":"potato puree made from flakes reconstituted with semi skimmed milk and water unsalted","slug":"potato_puree_flakes_reconstituted"}
+{"alias":"potato puree made from flakes reconstituted with whole milk with added fat","slug":"potato_puree_flakes_reconstituted"}
+{"alias":"potato puree with milk and butter unsalted","slug":"potato_puree_milk_butter"}
+{"alias":"potato roasted baked","slug":"potato"}
+{"alias":"potato sauteed pan fried","slug":"potato_sauteed_pan"}
+{"alias":"potato sauteed pan fried with goose fat","slug":"potato_sauteed_pan_goose"}
+{"alias":"potato steamed vacuum packed","slug":"potato_vacuum"}
+{"alias":"potatoes","slug":"potato"}
+{"alias":"potatoes ou wedges ou quartiers de pommes de terre epices surgelees cuites","slug":"potato_chip_quarter_spiced"}
+{"alias":"potimarron pulpe bouilli cuit a l eau","slug":"red_kuri_squash_pulp"}
+{"alias":"potimarron pulpe cuit a l etouffee","slug":"red_kuri_squash_pulp"}
+{"alias":"potiron","slug":"butternut_squash"}
+{"alias":"potiron roti cuit au four","slug":"pumpkin"}
+{"alias":"poule cuisse crue","slug":"chicken_stewing_leg"}
+{"alias":"poule viande crue","slug":"hen_meat_only"}
+{"alias":"poule viande et peau crue","slug":"hen_meat"}
+{"alias":"poulet","slug":"chicken_free_range_meat"}
+{"alias":"poulet aile viande et peau cru","slug":"chicken_wing_meat"}
+{"alias":"poulet aile viande et peau roti cuit au four","slug":"chicken_wing_meat"}
+{"alias":"poulet croquette panee ou nuggets","slug":"chicken_nugget_breaded_croquette"}
+{"alias":"poulet cuisse viande bouilli cuit a l eau","slug":"chicken_leg_meat_water"}
+{"alias":"poulet cuisse viande cru","slug":"chicken_leg_meat"}
+{"alias":"poulet cuisse viande et peau bouilli cuit a l eau","slug":"chicken_leg_meat_water"}
+{"alias":"poulet cuisse viande et peau cru","slug":"chicken_leg_meat"}
+{"alias":"poulet cuisse viande et peau cru bio","slug":"chicken_leg_meat_organic"}
+{"alias":"poulet cuisse viande et peau cru label rouge","slug":"chicken_leg_meat_label"}
+{"alias":"poulet cuisse viande et peau rotie cuite au four","slug":"chicken_leg_meat"}
+{"alias":"poulet cuisse viande roti cuit au four","slug":"chicken_leg_meat"}
+{"alias":"poulet escalope panee","slug":"turkey_breaded_escalope"}
+{"alias":"poulet eviscere sans abats cru","slug":"chicken_eviscerated_offal"}
+{"alias":"poulet fermier viande et peau cru","slug":"chicken_free_range_meat"}
+{"alias":"poulet filet sans peau cru","slug":"chicken_breast"}
+{"alias":"poulet filet sans peau cru bio","slug":"chicken_breast_organic"}
+{"alias":"poulet filet sans peau cru label rouge","slug":"chicken_breast_label_rouge"}
+{"alias":"poulet filet sans peau saute poele","slug":"chicken_breast"}
+{"alias":"poulet filet sans peau saute poele bio","slug":"chicken_breast_organic"}
+{"alias":"poulet haut de cuisse viande cru","slug":"chicken_high_leg_meat"}
+{"alias":"poulet manchons marines rotis cuits au four","slug":"chicken_marinated_wing"}
+{"alias":"poulet pilon cru","slug":"chicken_drumstick"}
+{"alias":"poulet poitrine viande et peau cru","slug":"chicken_breast_meat"}
+{"alias":"poulet poitrine viande et peau roti cuit au four","slug":"chicken_breast_meat"}
+{"alias":"poulet roti","slug":"chicken_free_range_meat"}
+{"alias":"poulet viande crue","slug":"chicken_meat"}
+{"alias":"poulet viande et peau cru","slug":"chicken_white_race_meat"}
+{"alias":"poulet viande et peau roti cuit au four","slug":"chicken_meat"}
+{"alias":"poultry cooked","slug":"poultry"}
+{"alias":"poultry ham in cube grated or minced","slug":"poultry_ham_cube"}
+{"alias":"poultry minced meat","slug":"poultry_meat"}
+{"alias":"poultry quenelle in sauce","slug":"poultry_quenelle_sauce"}
+{"alias":"poultry quenelle raw","slug":"poultry_quenelle"}
+{"alias":"pousses d'epinard","slug":"spinach"}
+{"alias":"prawn","slug":"prawns"}
+{"alias":"prawns","slug":"prawns"}
+{"alias":"preserved gizzards duck canned","slug":"preserved_gizzards_duck"}
+{"alias":"profiteroles preemballees","slug":"profiteroles_custard_chocolate_sauce"}
+{"alias":"profiteroles with custard and chocolate sauce prepacked","slug":"profiteroles_custard_chocolate_sauce"}
+{"alias":"prok eye of shortloin raw","slug":"prok_eye_shortloin"}
+{"alias":"prune reine claude crue","slug":"greengage_plum"}
+{"alias":"pruneau sec","slug":"prune"}
+{"alias":"puffed rice textured bread wholemeal","slug":"puffed_rice_textured_bread"}
+{"alias":"pumpkin pulp cooked","slug":"pumpkin_pulp"}
+{"alias":"pumpkin roasted baked","slug":"pumpkin"}
+{"alias":"pumpkin seeds","slug":"pumpkin_seeds"}
+{"alias":"puree de cacahuete","slug":"peanut_butter"}
+{"alias":"puree de fruits tout type de fruits type compote sans sucres ajoutes","slug":"fruits_puree_sugar_added"}
+{"alias":"puree de graines de tournesol","slug":"sunflower_seed_butter"}
+{"alias":"puree de pommes type compote sans sucres ajoutes","slug":"fruits_puree_apple_sugar"}
+{"alias":"puree de sesame","slug":"tahini"}
+{"alias":"puy lentils","slug":"lentils_dry"}
+{"alias":"quail egg raw","slug":"quail_egg"}
+{"alias":"quail meat and skin cooked","slug":"quail_meat"}
+{"alias":"quail meat and skin raw","slug":"quail_meat"}
+{"alias":"quail meat raw","slug":"quail_meat"}
+{"alias":"quark","slug":"fromage_blanc"}
+{"alias":"quark plain or fruit","slug":"quark_fruit"}
+{"alias":"quartier de citron","slug":"lemon_wedge"}
+{"alias":"quartiers de citron","slug":"lemon_wedge"}
+{"alias":"queen vicoria ananas flesh raw from the island la reunion merr var queen","slug":"queen_vicoria_ananas_flesh"}
+{"alias":"quenelle au tofu preemballee","slug":"plant_based_sausage_tofu"}
+{"alias":"quenelle de poisson crue","slug":"fish_quenelle"}
+{"alias":"quenelle de poisson en sauce","slug":"fish_quenelle_sauce"}
+{"alias":"quenelle de veau en sauce","slug":"veal_quenelle_sauce"}
+{"alias":"quenelle de volaille crue","slug":"poultry_quenelle"}
+{"alias":"quenelle de volaille en sauce","slug":"poultry_quenelle_sauce"}
+{"alias":"quenelle nature crue","slug":"quenelle"}
+{"alias":"quenelle plain raw","slug":"quenelle"}
+{"alias":"quinoa","slug":"quinoa"}
+{"alias":"rabbit meat braised","slug":"rabbit_meat"}
+{"alias":"rabbit meat cooked","slug":"rabbit_meat"}
+{"alias":"rabbit meat raw","slug":"rabbit_meat"}
+{"alias":"rabbit wild meat cooked","slug":"rabbit_wild_meat"}
+{"alias":"rabbit wild meat raw","slug":"rabbit_wild_meat"}
+{"alias":"radis","slug":"radish"}
+{"alias":"radis noir cru","slug":"radish_black"}
+{"alias":"radis rouge cru","slug":"radish"}
+{"alias":"radish","slug":"radish"}
+{"alias":"radish black raw","slug":"radish_black"}
+{"alias":"radish raw","slug":"radish"}
+{"alias":"radishes","slug":"radish"}
+{"alias":"rainbow trout","slug":"trout"}
+{"alias":"raisin blanc a gros grain cru","slug":"grape_white"}
+{"alias":"raisin chasselas cru","slug":"grape_chasselas"}
+{"alias":"raisin frais","slug":"grapes"}
+{"alias":"raisin noir muscat cru","slug":"grape_red_muscat"}
+{"alias":"raisin sec","slug":"raisin"}
+{"alias":"raisins","slug":"raisins"}
+{"alias":"raisins secs","slug":"raisins"}
+{"alias":"rapeseed oil","slug":"rapeseed_oil"}
+{"alias":"raspberries","slug":"raspberries"}
+{"alias":"raspberry raw","slug":"raspberry"}
+{"alias":"ready to eat smoked tofu","slug":"tofu"}
+{"alias":"red bell pepper","slug":"bell_pepper"}
+{"alias":"red cabbage","slug":"red_cabbage"}
+{"alias":"red cabbage braised","slug":"red_cabbage"}
+{"alias":"red cabbage raw","slug":"red_cabbage"}
+{"alias":"red chilli","slug":"chilli"}
+{"alias":"red currant raw","slug":"red_currant"}
+{"alias":"red kidney beans","slug":"kidney_beans"}
+{"alias":"red kuri squash pulp boiled cooked in water","slug":"red_kuri_squash_pulp"}
+{"alias":"red kuri squash pulp braised","slug":"red_kuri_squash_pulp"}
+{"alias":"red lentils","slug":"lentils_dry"}
+{"alias":"red meat cooked","slug":"red_meat"}
+{"alias":"red onion raw","slug":"red_onion"}
+{"alias":"red pepper","slug":"bell_pepper"}
+{"alias":"red peppers","slug":"bell_pepper"}
+{"alias":"red wine","slug":"wine"}
+{"alias":"red wine vinegar","slug":"vinegar"}
+{"alias":"rice","slug":"white_rice"}
+{"alias":"rice noodles","slug":"noodles"}
+{"alias":"rice pudding cake canned","slug":"rice_pudding_cake"}
+{"alias":"rice pudding w caramel sauce refrigerated","slug":"rice_pudding_w_caramel"}
+{"alias":"rillettes d oie","slug":"rillettes_goose"}
+{"alias":"rillettes de canard","slug":"rillettes_duck"}
+{"alias":"rillettes de poulet","slug":"rillettes_poultry"}
+{"alias":"rillettes de tours","slug":"rillettes_tours"}
+{"alias":"rillettes du mans","slug":"rillettes_mans"}
+{"alias":"rillettes from mans","slug":"rillettes_mans"}
+{"alias":"rillettes from tours","slug":"rillettes_tours"}
+{"alias":"rillettes pur oie","slug":"rillettes_pure_goose"}
+{"alias":"rillettes pur porc","slug":"rillettes_pure_pork"}
+{"alias":"rillettes traditionnelles de porc","slug":"rillettes_pork"}
+{"alias":"ripe tomato","slug":"tomato"}
+{"alias":"ris agneau cru","slug":"sweetbread_lamb"}
+{"alias":"ris agneau cuit","slug":"sweetbread_lamb"}
+{"alias":"ris veau braise ou saute poele","slug":"sweetbread_calf_sauteed_pan"}
+{"alias":"ris veau cru","slug":"sweetbread_calf"}
+{"alias":"riz","slug":"white_rice"}
+{"alias":"riz au lait rayon frais","slug":"rice_pudding_refrigerated"}
+{"alias":"riz basmati","slug":"white_rice"}
+{"alias":"riz blanc","slug":"white_rice"}
+{"alias":"riz brun","slug":"brown_rice"}
+{"alias":"riz complet","slug":"brown_rice"}
+{"alias":"riz cuit","slug":"cooked_rice"}
+{"alias":"rocket","slug":"rocket"}
+{"alias":"rognon agneau braise","slug":"kidney_lamb"}
+{"alias":"rognon agneau cru","slug":"kidney_lamb"}
+{"alias":"rognon boeuf cru","slug":"kidney_beef"}
+{"alias":"rognon boeuf cuit","slug":"kidney_beef"}
+{"alias":"rognon cuit","slug":"kidney_all_types"}
+{"alias":"rognon porc cru","slug":"kidney_pork"}
+{"alias":"rognon porc cuit","slug":"kidney_pork"}
+{"alias":"rognon veau braise ou saute poele","slug":"kidney_veal_sauteed_pan"}
+{"alias":"rognon veau cru","slug":"kidney_calf"}
+{"alias":"rolled escalope of pork with pistachios","slug":"rolled_escalope_pork_pistachios"}
+{"alias":"rolled oats","slug":"oats"}
+{"alias":"rolls for hamburger hotdog prepacked","slug":"rolls_hamburger_hotdog"}
+{"alias":"rolls for hamburger hotdog wholemeal prepacked","slug":"rolls_hamburger_hotdog_wholemeal"}
+{"alias":"romaine","slug":"lettuce"}
+{"alias":"romaine lettuce","slug":"lettuce"}
+{"alias":"romanesco cauliflower or romanesco broccoli cooked","slug":"romanesco_cauliflower_romanesco_broccoli"}
+{"alias":"romarin","slug":"herbs_thyme"}
+{"alias":"rond de jambon cuit","slug":"round_ham"}
+{"alias":"roquette","slug":"rocket"}
+{"alias":"rosemary","slug":"herbs_thyme"}
+{"alias":"rosette ou fuseau","slug":"rosette_dry_sausage"}
+{"alias":"rostis or potatoes cake","slug":"rostis_potatoes_cake"}
+{"alias":"rostis ou galette de pomme de terre","slug":"rostis_potatoes_cake"}
+{"alias":"roti de boeuf","slug":"beef_topside"}
+{"alias":"roti de volaille en salaison cuit","slug":"salt_curing_roast_poultry"}
+{"alias":"roulade de porc pistachee","slug":"rolled_escalope_pork_pistachios"}
+{"alias":"round of ham cooked","slug":"round_ham"}
+{"alias":"rump steak","slug":"beef_steak"}
+{"alias":"rusk unsalted","slug":"rusk"}
+{"alias":"rusk wholemeal or rich in fibre","slug":"rusk_wholemeal_rich_fibre"}
+{"alias":"rusk with eggs sliced prepacked","slug":"rusk_eggs"}
+{"alias":"rye bread","slug":"rye_bread"}
+{"alias":"rye bread and wheat","slug":"rye_bread_wheat"}
+{"alias":"rye crispbread","slug":"crispbread_rye"}
+{"alias":"rye toast","slug":"rye_bread"}
+{"alias":"saindoux","slug":"lard_pork_fat"}
+{"alias":"saint jacques","slug":"scallops"}
+{"alias":"salad dressing","slug":"vinaigrette"}
+{"alias":"salad greens","slug":"lettuce"}
+{"alias":"salad leaves","slug":"lettuce"}
+{"alias":"salade","slug":"lettuce"}
+{"alias":"salade feuille de chene crue","slug":"lettuce_oak_leaf"}
+{"alias":"salade sucrine crue","slug":"lettuce_sucrine"}
+{"alias":"salade verte","slug":"lettuce"}
+{"alias":"salami porc et boeuf","slug":"salami_pork_beef"}
+{"alias":"salami pork and beef","slug":"salami_pork_beef"}
+{"alias":"salami pur porc","slug":"salami_pure_pork"}
+{"alias":"salami type danois","slug":"salami_danish_style"}
+{"alias":"salmon","slug":"salmon"}
+{"alias":"salmon fillet","slug":"salmon"}
+{"alias":"salmon fillets","slug":"salmon"}
+{"alias":"salsa","slug":"salsa"}
+{"alias":"salsifis bouilli cuit a l eau","slug":"salsify_water"}
+{"alias":"salsify boiled cooked in water","slug":"salsify_water"}
+{"alias":"salt","slug":"salt"}
+{"alias":"salt and pepper","slug":"salt"}
+{"alias":"salt curing roast poultry cooked","slug":"salt_curing_roast_poultry"}
+{"alias":"sandwich loaf crust less prepacked","slug":"sandwich_loaf_crust_less"}
+{"alias":"sang boeuf cru","slug":"blood_beef"}
+{"alias":"sanglier cru","slug":"wild_boar"}
+{"alias":"sanglier roti cuit au four","slug":"wild_boar"}
+{"alias":"sardine","slug":"sardines"}
+{"alias":"sardines","slug":"sardines"}
+{"alias":"sardines a l'huile","slug":"sardines"}
+{"alias":"sarrasin","slug":"buckwheat"}
+{"alias":"satsuma","slug":"clementine"}
+{"alias":"sauce de soja","slug":"soy_sauce"}
+{"alias":"sauce pimentee","slug":"hot_sauce"}
+{"alias":"sauce piquante","slug":"hot_sauce"}
+{"alias":"sauce soja","slug":"soy_sauce"}
+{"alias":"saucisse","slug":"sausage"}
+{"alias":"saucisse cocktail","slug":"cocktail_sausage"}
+{"alias":"saucisse de foie","slug":"liver_sausage"}
+{"alias":"saucisse de francfort","slug":"frankfurter_sausage"}
+{"alias":"saucisse de jambon pur porc","slug":"ham_sausage"}
+{"alias":"saucisse de montbeliard","slug":"montbeliard_sausage"}
+{"alias":"saucisse de morteau","slug":"morteaux_sausage"}
+{"alias":"saucisse de morteau bouillie cuite a l eau","slug":"morteaux_sausage_water"}
+{"alias":"saucisse de strasbourg ou knack","slug":"strasbourg_sausage"}
+{"alias":"saucisse de toulouse crue","slug":"toulouse_sausage"}
+{"alias":"saucisse de toulouse cuite","slug":"toulouse_sausage"}
+{"alias":"saucisse de volaille facon charcutiere","slug":"poultry_sausage_delicatessen_style"}
+{"alias":"saucisse de volaille type knack","slug":"poultry_sausage"}
+{"alias":"saucisse seche","slug":"sausage"}
+{"alias":"saucisse vegetale au ble ou seitan preemballe","slug":"plant_based_sausage_wheat"}
+{"alias":"saucisse vegetale au tofu preemballee","slug":"plant_based_sausage_tofu"}
+{"alias":"saucisses","slug":"sausage"}
+{"alias":"saucisson a l ail","slug":"garlic_sausage"}
+{"alias":"saucisson brioche cuit","slug":"sausage_brioche_crust"}
+{"alias":"saucisson cuit pur porc","slug":"sausage_pure_pork"}
+{"alias":"saucisson de paris","slug":"sausage_paris"}
+{"alias":"saucisson de paris fume","slug":"sausage_paris_smoked"}
+{"alias":"saucisson sec","slug":"dry_sausage"}
+{"alias":"saucisson sec aux noix et ou noisettes","slug":"dry_sausage_w_walnuts"}
+{"alias":"saucisson sec pur porc","slug":"dry_sausage_pure_pork"}
+{"alias":"saucisson sec pur porc qualite superieure","slug":"dry_sausage_pure_pork"}
+{"alias":"saumon","slug":"salmon"}
+{"alias":"saumon fume","slug":"smoked_salmon"}
+{"alias":"sausage","slug":"sausage"}
+{"alias":"sausage dried","slug":"sausage"}
+{"alias":"sausage from paris","slug":"sausage_paris"}
+{"alias":"sausage from paris smoked","slug":"sausage_paris_smoked"}
+{"alias":"sausage in a brioche crust cooked","slug":"sausage_brioche_crust"}
+{"alias":"sausage meat pork and beef raw","slug":"sausage_meat_pork_beef"}
+{"alias":"sausage meat pure pork raw","slug":"sausage_meat_pure_pork"}
+{"alias":"sausage meat raw","slug":"sausage_meat"}
+{"alias":"sausages","slug":"sausage"}
+{"alias":"saveloy or cervelat","slug":"saveloy_cervelat"}
+{"alias":"saveloy or cervelat pure pork with garlic","slug":"saveloy_cervelat_pure_pork"}
+{"alias":"savoy cabbage","slug":"cabbage"}
+{"alias":"scallions","slug":"spring_onion"}
+{"alias":"scallop","slug":"scallops"}
+{"alias":"scallops","slug":"scallops"}
+{"alias":"sea bass","slug":"sea_bass"}
+{"alias":"sea salt","slug":"salt"}
+{"alias":"seabass","slug":"sea_bass"}
+{"alias":"seasonal berries","slug":"mixed_berries"}
+{"alias":"seed mix","slug":"mixed_seeds"}
+{"alias":"sel","slug":"salt"}
+{"alias":"sel fin","slug":"salt"}
+{"alias":"semi-skimmed milk","slug":"milk_semi"}
+{"alias":"semolina pudding canned","slug":"semolina_pudding"}
+{"alias":"semolina pudding with raisins and caramel sauce refrigerated","slug":"semolina_pudding_raisins_caramel"}
+{"alias":"semoule","slug":"couscous"}
+{"alias":"semoule au lait rayon frais","slug":"semolina_pudding_refrigerated"}
+{"alias":"semoule complete","slug":"couscous_wholemeal"}
+{"alias":"semoule de ble","slug":"couscous"}
+{"alias":"semoule de couscous","slug":"couscous"}
+{"alias":"semoule de couscous seche","slug":"couscous"}
+{"alias":"sesame oil","slug":"sesame_oil"}
+{"alias":"sesame seeds","slug":"sesame_seeds"}
+{"alias":"shallot grilled pan fried without fat","slug":"shallot_pan_fat"}
+{"alias":"shallot raw","slug":"shallot"}
+{"alias":"sheep foot raw","slug":"sheep_foot"}
+{"alias":"sheep head raw","slug":"sheep_head"}
+{"alias":"shiitake mushroom cooked","slug":"shiitake_mushroom"}
+{"alias":"shiitake mushroom dried","slug":"shiitake_mushroom"}
+{"alias":"short pasta","slug":"white_pasta"}
+{"alias":"shrimp","slug":"prawns"}
+{"alias":"shrimps","slug":"prawns"}
+{"alias":"sieved tomatoes","slug":"passata"}
+{"alias":"silken tofu","slug":"tofu"}
+{"alias":"single cream","slug":"single_cream"}
+{"alias":"sirloin","slug":"beef_steak"}
+{"alias":"sirloin steak","slug":"beef_sirloin_steak"}
+{"alias":"sirop d'erable","slug":"maple_syrup"}
+{"alias":"skyr","slug":"skyr"}
+{"alias":"slaw mix","slug":"coleslaw_mix"}
+{"alias":"smoked lardoons cooked","slug":"smoked_lardoons"}
+{"alias":"smoked lardoons raw","slug":"smoked_lardoons"}
+{"alias":"smoked paprika","slug":"paprika"}
+{"alias":"smoked salmon","slug":"smoked_salmon"}
+{"alias":"smoked tofu","slug":"tofu"}
+{"alias":"snow pea boiled cooked in water","slug":"snow_pea_water"}
+{"alias":"soft drink","slug":"cola"}
+{"alias":"soft goat cheese","slug":"goat_cheese"}
+{"alias":"sour cream","slug":"creme_fraiche"}
+{"alias":"sourdough bread","slug":"bread"}
+{"alias":"soured cream","slug":"creme_fraiche"}
+{"alias":"soy beans","slug":"edamame"}
+{"alias":"soy dessert flavoured sweet fortified with calcium prepacked","slug":"soy_dessert_flavoured_sweet"}
+{"alias":"soy dessert flavoured sweet not fortified prepacked","slug":"soy_dessert_flavoured_sweet"}
+{"alias":"soy dessert plain fortified with calcium prepacked","slug":"soy_dessert_fortified_calcium"}
+{"alias":"soy dessert plain not fortified prepacked","slug":"soy_dessert_not_fortified"}
+{"alias":"soy dessert w almonds prepacked","slug":"soy_dessert_w_almonds"}
+{"alias":"soy dessert w fruits sweet fortified with calcium prepacked","slug":"soy_dessert_w_fruits"}
+{"alias":"soy dessert w fruits sweet not fortified prepacked","slug":"soy_dessert_w_fruits"}
+{"alias":"soy drink","slug":"soy_milk"}
+{"alias":"soy milk","slug":"soy_milk"}
+{"alias":"soy sauce","slug":"soy_sauce"}
+{"alias":"soy yoghurt","slug":"soy_yogurt"}
+{"alias":"soya beans","slug":"edamame"}
+{"alias":"soya milk","slug":"soy_milk"}
+{"alias":"soya sauce","slug":"soy_sauce"}
+{"alias":"spaghetti","slug":"white_pasta"}
+{"alias":"spanish style tortilla with onions prepacked","slug":"spanish_style_tortilla_onions"}
+{"alias":"specialite laitiere type encas riche en proteines sur lit de fruits sucree","slug":"yoghurt_high_protein_on"}
+{"alias":"specialite vegetale type jambon cuit preemballee","slug":"plant_based_ham"}
+{"alias":"specialite vegetale type pate preemballee","slug":"plant_based_pate"}
+{"alias":"spicy pork sausage with red pepper in large slices","slug":"spicy_pork_sausage_red"}
+{"alias":"spicy pork sausage with red pepper no precision","slug":"spicy_pork_sausage_red"}
+{"alias":"spinach","slug":"spinach"}
+{"alias":"spinach boiled cooked in water","slug":"spinach_water"}
+{"alias":"spinach young leaves raw","slug":"spinach_young_leaves"}
+{"alias":"spring onion","slug":"spring_onion"}
+{"alias":"spring onion sauteed pan fried without fat","slug":"spring_onion_sauteed_pan"}
+{"alias":"spring onions","slug":"spring_onion"}
+{"alias":"sprouts","slug":"brussels_sprouts"}
+{"alias":"squash","slug":"butternut_squash"}
+{"alias":"squid","slug":"squid"}
+{"alias":"steak","slug":"beef_steak"}
+{"alias":"steak de boeuf","slug":"beef_steak"}
+{"alias":"steak hache","slug":"beef_mince"}
+{"alias":"stewing beef","slug":"beef_braising"}
+{"alias":"stir-fry vegetables","slug":"peas_frozen"}
+{"alias":"stock","slug":"stock_cube"}
+{"alias":"stock cube","slug":"stock_cube"}
+{"alias":"strawberries","slug":"strawberries"}
+{"alias":"strawberry raw","slug":"strawberry"}
+{"alias":"streaky bacon","slug":"bacon"}
+{"alias":"sucre","slug":"sugar"}
+{"alias":"sugar","slug":"sugar"}
+{"alias":"sultanas","slug":"raisins"}
+{"alias":"summer fruits","slug":"mixed_berries"}
+{"alias":"sunflower oil","slug":"sunflower_oil"}
+{"alias":"sunflower seeds","slug":"sunflower_seeds"}
+{"alias":"swedish toast with fruits","slug":"swedish_toast_fruits"}
+{"alias":"swedish toast with linseeds","slug":"swedish_toast_linseeds"}
+{"alias":"sweet corn canned drained","slug":"sweet_corn"}
+{"alias":"sweet paprika","slug":"paprika"}
+{"alias":"sweet pepper green raw","slug":"sweet_pepper_green"}
+{"alias":"sweet pepper red raw","slug":"sweet_pepper_red"}
+{"alias":"sweet pepper yellow raw","slug":"sweet_pepper_yellow"}
+{"alias":"sweet potato","slug":"sweet_potato"}
+{"alias":"sweet potato cooked","slug":"sweet_potato"}
+{"alias":"sweet potato puree cooked with cream","slug":"sweet_potato_puree_cream"}
+{"alias":"sweet potato raw","slug":"sweet_potato"}
+{"alias":"sweet potatoes","slug":"sweet_potato"}
+{"alias":"sweet potatoes cubed","slug":"sweet_potato"}
+{"alias":"sweetbread calf raw","slug":"sweetbread_calf"}
+{"alias":"sweetbread calf sauteed pan fried","slug":"sweetbread_calf_sauteed_pan"}
+{"alias":"sweetbread lamb cooked","slug":"sweetbread_lamb"}
+{"alias":"sweetbread lamb raw","slug":"sweetbread_lamb"}
+{"alias":"sweetcorn","slug":"sweetcorn"}
+{"alias":"swiss chard","slug":"swiss_chard"}
+{"alias":"swiss chard cooked","slug":"swiss_chard"}
+{"alias":"swiss chard leaf and stalk boiled cooked in water","slug":"swiss_chard_leaf_stalk"}
+{"alias":"swiss chard raw","slug":"swiss_chard"}
+{"alias":"tagliatelle","slug":"white_pasta"}
+{"alias":"tahin","slug":"tahini"}
+{"alias":"tahini","slug":"tahini"}
+{"alias":"tamari","slug":"soy_sauce"}
+{"alias":"tapioca ou perles du japon cru","slug":"tapioca"}
+{"alias":"tapioca raw","slug":"tapioca"}
+{"alias":"taro tuber cooked","slug":"taro_tuber"}
+{"alias":"taro tuber raw","slug":"taro_tuber"}
+{"alias":"taro tubercule cru","slug":"taro_tuber"}
+{"alias":"taro tubercule cuit","slug":"taro_tuber"}
+{"alias":"tartine craquante extrudee et grillee","slug":"crispbread_extruded"}
+{"alias":"tea","slug":"tea"}
+{"alias":"tempeh","slug":"tempeh"}
+{"alias":"tenderstem broccoli","slug":"broccoli"}
+{"alias":"terrine de canard","slug":"duck_terrine"}
+{"alias":"terrine de lapin","slug":"rabbit_terrine"}
+{"alias":"the","slug":"tea"}
+{"alias":"the vert","slug":"tea"}
+{"alias":"thon","slug":"tuna_tinned"}
+{"alias":"thon au naturel","slug":"tuna_tinned"}
+{"alias":"thon en boite","slug":"tuna_tinned"}
+{"alias":"thon frais","slug":"tuna_fresh"}
+{"alias":"thym","slug":"herbs_thyme"}
+{"alias":"thyme","slug":"herbs_thyme"}
+{"alias":"tinned chickpeas","slug":"chickpeas_tinned"}
+{"alias":"tinned lentils","slug":"lentils_cooked"}
+{"alias":"tinned mackerel","slug":"mackerel"}
+{"alias":"tinned sardines","slug":"sardines"}
+{"alias":"tinned sweetcorn","slug":"sweetcorn"}
+{"alias":"tinned tomatoes","slug":"tinned_tomatoes"}
+{"alias":"tinned tuna","slug":"tuna_tinned"}
+{"alias":"tiramisu preemballe","slug":"tiramisu"}
+{"alias":"tiramisu prepacked","slug":"tiramisu"}
+{"alias":"toast","slug":"toasted_bread"}
+{"alias":"toasted almonds","slug":"almonds"}
+{"alias":"toasted bread home made","slug":"toasted_bread"}
+{"alias":"toasted sesame oil","slug":"sesame_oil"}
+{"alias":"tofu","slug":"tofu"}
+{"alias":"tofu ferme","slug":"tofu"}
+{"alias":"tofu fume","slug":"tofu"}
+{"alias":"tomate","slug":"tomato"}
+{"alias":"tomate cerise crue","slug":"tomato_cherry"}
+{"alias":"tomate concassee","slug":"tomato_pulp"}
+{"alias":"tomate concentre appertise","slug":"tomato_paste_concentrated"}
+{"alias":"tomate cotelee ou coeur de boeuf crue","slug":"tomato_beef_heart"}
+{"alias":"tomate crue","slug":"tomato"}
+{"alias":"tomate double concentre appertise","slug":"tomato_paste_double_concentrate"}
+{"alias":"tomate grappe crue","slug":"tomato_bunch"}
+{"alias":"tomate pelee appertisee egouttee","slug":"tomato"}
+{"alias":"tomate pulpe appertisee","slug":"tomato_pulp"}
+{"alias":"tomate pulpe et peau rotie cuite au four","slug":"tomato"}
+{"alias":"tomate puree appertisee","slug":"tomato_puree"}
+{"alias":"tomate ronde crue","slug":"tomato_round"}
+{"alias":"tomate rotie cuite au four","slug":"tomato"}
+{"alias":"tomate sechee a l huile","slug":"tomato_oil"}
+{"alias":"tomates","slug":"tomato"}
+{"alias":"tomates cerises","slug":"tomato"}
+{"alias":"tomates concassees","slug":"tinned_tomatoes"}
+{"alias":"tomates en conserve","slug":"tinned_tomatoes"}
+{"alias":"tomates pelees","slug":"tinned_tomatoes"}
+{"alias":"tomato","slug":"tomato"}
+{"alias":"tomato beef heart raw","slug":"tomato_beef_heart"}
+{"alias":"tomato bunch raw","slug":"tomato_bunch"}
+{"alias":"tomato cherry raw","slug":"tomato_cherry"}
+{"alias":"tomato dried in oil","slug":"tomato_oil"}
+{"alias":"tomato passata","slug":"passata"}
+{"alias":"tomato paste","slug":"tomato_puree"}
+{"alias":"tomato paste concentrated canned","slug":"tomato_paste_concentrated"}
+{"alias":"tomato paste double concentrate canned","slug":"tomato_paste_double_concentrate"}
+{"alias":"tomato peeled canned drained","slug":"tomato"}
+{"alias":"tomato pulp canned","slug":"tomato_pulp"}
+{"alias":"tomato puree","slug":"tomato_puree"}
+{"alias":"tomato puree canned","slug":"tomato_puree"}
+{"alias":"tomato raw","slug":"tomato"}
+{"alias":"tomato roasted baked","slug":"tomato"}
+{"alias":"tomato roasted baked with skin","slug":"tomato"}
+{"alias":"tomato round raw","slug":"tomato_round"}
+{"alias":"tomato salsa","slug":"salsa"}
+{"alias":"tomatoes","slug":"tomato"}
+{"alias":"tongue beef cooked","slug":"tongue_beef"}
+{"alias":"tongue beef raw","slug":"tongue_beef"}
+{"alias":"tongue calf cooked","slug":"tongue_calf"}
+{"alias":"tongue calf raw","slug":"tongue_calf"}
+{"alias":"tongue lamb raw","slug":"tongue_lamb"}
+{"alias":"tongue pork raw","slug":"tongue_pork"}
+{"alias":"topinambour cru","slug":"jerusalem_artichoke"}
+{"alias":"topinambour cuit","slug":"jerusalem_artichoke"}
+{"alias":"tortilla","slug":"tortilla_wrap"}
+{"alias":"tortilla complete","slug":"tortilla_wholemeal"}
+{"alias":"tortilla de ble","slug":"tortilla_wrap"}
+{"alias":"tortilla de mais","slug":"corn_tortilla_wrap_be"}
+{"alias":"tortilla espagnole aux oignons preemballee","slug":"spanish_style_tortilla_onions"}
+{"alias":"tortilla souple a base de ble","slug":"wheat_tortilla_wrap_be"}
+{"alias":"tortilla souple a base de mais","slug":"corn_tortilla_wrap_be"}
+{"alias":"tortillas","slug":"tortilla_wrap"}
+{"alias":"tortillas completes","slug":"tortilla_wholemeal"}
+{"alias":"tortillas de ble","slug":"tortilla_wrap"}
+{"alias":"tortillas de ble complet","slug":"tortilla_wrap"}
+{"alias":"tortillas de mais","slug":"corn_tortilla_wrap_be"}
+{"alias":"toulouse sausage cooked","slug":"toulouse_sausage"}
+{"alias":"toulouse sausage raw","slug":"toulouse_sausage"}
+{"alias":"tripe beef raw","slug":"tripe_beef"}
+{"alias":"tripes boeuf crues","slug":"tripe_beef"}
+{"alias":"tropical fruit mix sweetened for snack dried","slug":"tropical_fruit_mix_snack"}
+{"alias":"trout","slug":"trout"}
+{"alias":"truite","slug":"trout"}
+{"alias":"tuna","slug":"tuna_tinned"}
+{"alias":"tuna cans","slug":"tuna_tinned"}
+{"alias":"tuna steak","slug":"tuna_fresh"}
+{"alias":"tuna tins","slug":"tuna_tinned"}
+{"alias":"turkey","slug":"turkey_breast"}
+{"alias":"turkey breast","slug":"turkey_breast"}
+{"alias":"turkey cooked ham in slices","slug":"turkey_ham_slices"}
+{"alias":"turkey egg raw","slug":"turkey_egg"}
+{"alias":"turkey escalope raw","slug":"turkey_escalope"}
+{"alias":"turkey escalope roasted baked","slug":"turkey_escalope"}
+{"alias":"turkey escalope sauteed pan fried with salt","slug":"turkey_escalope_sauteed_pan"}
+{"alias":"turkey leg meat and skin raw","slug":"turkey_leg_meat"}
+{"alias":"turkey leg meat only raw","slug":"turkey_leg_meat_only"}
+{"alias":"turkey meat and skin raw","slug":"turkey_meat"}
+{"alias":"turkey meat raw","slug":"turkey_meat"}
+{"alias":"turkey meat roasted baked","slug":"turkey_meat"}
+{"alias":"turkey mince","slug":"turkey_mince"}
+{"alias":"turkey slices","slug":"turkey_ham_slices"}
+{"alias":"turkey wing raw","slug":"turkey_wing"}
+{"alias":"turnip boiled cooked in water","slug":"turnip_water"}
+{"alias":"udon","slug":"noodles"}
+{"alias":"unsalted butter","slug":"butter"}
+{"alias":"unsweetened soy yoghurt","slug":"soy_yogurt"}
+{"alias":"veal bread escalope cooked","slug":"veal_bread_escalope"}
+{"alias":"veal breast raw","slug":"veal_breast"}
+{"alias":"veal chop grilled pan fried","slug":"veal_chop_pan"}
+{"alias":"veal chop raw","slug":"veal_chop"}
+{"alias":"veal escalope cooked","slug":"veal_escalope"}
+{"alias":"veal escalope cordon bleu prepacked","slug":"veal_escalope_cordon_bleu"}
+{"alias":"veal escalope raw","slug":"veal_escalope"}
+{"alias":"veal fillet raw","slug":"veal_fillet"}
+{"alias":"veal fillet roasted baked","slug":"veal_fillet"}
+{"alias":"veal knuckle or shank braised or boiled","slug":"veal_knuckle_shank"}
+{"alias":"veal knuckle or shank raw","slug":"veal_knuckle_shank"}
+{"alias":"veal loin raw","slug":"veal_loin"}
+{"alias":"veal loin sauteed pan fried","slug":"veal_loin_sauteed_pan"}
+{"alias":"veal meat cooked","slug":"veal_meat"}
+{"alias":"veal minced steak 15 fat raw","slug":"veal_steak_15_fat"}
+{"alias":"veal minced steak 20 fat raw","slug":"veal_steak_20_fat"}
+{"alias":"veal neck braised or boiled","slug":"veal_neck"}
+{"alias":"veal neck raw","slug":"veal_neck"}
+{"alias":"veal quenelle in sauce","slug":"veal_quenelle_sauce"}
+{"alias":"veal roast cooked","slug":"veal_roast"}
+{"alias":"veal roast raw","slug":"veal_roast"}
+{"alias":"veal shoulder braised boiled","slug":"veal_shoulder"}
+{"alias":"veal shoulder grilled pan fried","slug":"veal_shoulder_pan"}
+{"alias":"veal shoulder raw","slug":"veal_shoulder"}
+{"alias":"veal tenderloin grilled pan fried","slug":"veal_tenderloin_pan"}
+{"alias":"veal tenderloin raw","slug":"veal_tenderloin"}
+{"alias":"veal tenderloin roasted","slug":"veal_tenderloin"}
+{"alias":"veau carre cru","slug":"veal_loin"}
+{"alias":"veau carre saute poele","slug":"veal_loin_sauteed_pan"}
+{"alias":"veau collier braise ou bouilli","slug":"veal_neck"}
+{"alias":"veau collier cru","slug":"veal_neck"}
+{"alias":"veau cote crue","slug":"veal_chop"}
+{"alias":"veau cote grillee poelee","slug":"veal_chop_pan"}
+{"alias":"veau epaule braisee ou bouillie","slug":"veal_shoulder"}
+{"alias":"veau epaule crue","slug":"veal_shoulder"}
+{"alias":"veau epaule grillee poelee","slug":"veal_shoulder_pan"}
+{"alias":"veau escalope crue","slug":"veal_escalope"}
+{"alias":"veau escalope cuite","slug":"veal_escalope"}
+{"alias":"veau escalope panee cuite","slug":"veal_bread_escalope"}
+{"alias":"veau filet cru","slug":"veal_fillet"}
+{"alias":"veau filet roti cuit au four","slug":"veal_fillet"}
+{"alias":"veau jarret braise ou bouilli","slug":"veal_knuckle_shank"}
+{"alias":"veau jarret cru","slug":"veal_knuckle_shank"}
+{"alias":"veau noix crue","slug":"veal_tenderloin"}
+{"alias":"veau noix grillee poelee","slug":"veal_tenderloin_pan"}
+{"alias":"veau noix rotie","slug":"veal_tenderloin"}
+{"alias":"veau pied cru","slug":"calf_foot"}
+{"alias":"veau poitrine crue","slug":"veal_breast"}
+{"alias":"veau roti cru","slug":"veal_roast"}
+{"alias":"veau roti cuit","slug":"veal_roast"}
+{"alias":"veau steak hache 15 mg cru","slug":"veal_steak_15_fat"}
+{"alias":"veau steak hache 20 mg cru","slug":"veal_steak_20_fat"}
+{"alias":"veau tete bouillie cuite a l eau","slug":"calf_head_water"}
+{"alias":"veau viande cuite","slug":"veal_meat"}
+{"alias":"vegetable cooked","slug":"vegetable"}
+{"alias":"vegetable fat 50 63 fat light lightly salted","slug":"vegetable_fat_50_63"}
+{"alias":"vegetable fat 60 fat unsalted sunflowerseed","slug":"vegetable_fat_60_fat"}
+{"alias":"vegetable fat 70 fat unsalted","slug":"vegetable_fat_70_fat"}
+{"alias":"vegetable fat 80 fat salted","slug":"vegetable_fat_80_fat"}
+{"alias":"vegetable fat 80 fat unsalted","slug":"vegetable_fat_80_fat"}
+{"alias":"vegetable fat spreadable 30 40 fat light lightly salted","slug":"vegetable_fat_spreadable_30"}
+{"alias":"vegetable fat spreadable 30 40 fat light lightly salted with plant sterols esters","slug":"vegetable_fat_spreadable_30"}
+{"alias":"vegetable fat spreadable 30 40 fat light unsalted","slug":"vegetable_fat_spreadable_30"}
+{"alias":"vegetable fat spreadable 30 40 fat light unsalted rich in omega 3","slug":"vegetable_fat_spreadable_30"}
+{"alias":"vegetable fat spreadable 50 63 fat light lightly salted rich in omega 3","slug":"vegetable_fat_spreadable_50"}
+{"alias":"vegetable fat spreadable 50 63 fat light unsalted","slug":"vegetable_fat_spreadable_50"}
+{"alias":"vegetable fat spreadable 50 63 fat light unsalted rich in omega 3","slug":"vegetable_fat_spreadable_50"}
+{"alias":"vegetable fat spreadable 50 63 fat light unsalted with plant sterols esters","slug":"vegetable_fat_spreadable_50"}
+{"alias":"vegetable fat spreadable fat content unknown light unsalted","slug":"vegetable_fat_spreadable_fat"}
+{"alias":"vegetable oil","slug":"rapeseed_oil"}
+{"alias":"venison raw","slug":"venison"}
+{"alias":"venison roasted baked","slug":"venison"}
+{"alias":"viande blanche cuite","slug":"white_meat"}
+{"alias":"viande cuite","slug":"meat"}
+{"alias":"viande des grisons","slug":"viande_des_grisons_bundnerfleisch"}
+{"alias":"viande des grisons or bundnerfleisch or dried beef meat","slug":"viande_des_grisons_bundnerfleisch"}
+{"alias":"viande hachee","slug":"beef_mince"}
+{"alias":"viande hachee de boeuf","slug":"beef_mince"}
+{"alias":"viande hachee de dinde","slug":"turkey_mince"}
+{"alias":"viande rouge cuite","slug":"red_meat"}
+{"alias":"vin","slug":"wine"}
+{"alias":"vinaigre","slug":"vinegar"}
+{"alias":"vinaigre balsamique","slug":"vinegar"}
+{"alias":"vinaigre de cidre","slug":"vinegar"}
+{"alias":"vinaigre de vin","slug":"vinegar"}
+{"alias":"vinaigrette","slug":"vinaigrette"}
+{"alias":"vine tomatoes","slug":"tomato"}
+{"alias":"vinegar","slug":"vinegar"}
+{"alias":"volaille croquette panee ou nuggets","slug":"poultry_nuggets"}
+{"alias":"volaille cuite","slug":"poultry"}
+{"alias":"walnut","slug":"walnuts"}
+{"alias":"walnuts","slug":"walnuts"}
+{"alias":"ware potato boiled cooked in water peeled","slug":"ware_potato_water"}
+{"alias":"water","slug":"water"}
+{"alias":"watercress","slug":"watercress"}
+{"alias":"watermelon","slug":"melon"}
+{"alias":"watermelon pulp raw","slug":"watermelon_pulp"}
+{"alias":"wheat tortilla","slug":"tortilla_wrap"}
+{"alias":"wheat tortilla wrap to be filled","slug":"wheat_tortilla_wrap_be"}
+{"alias":"white beans","slug":"white_beans"}
+{"alias":"white bread","slug":"white_bread"}
+{"alias":"white cabbage boiled cooked in water","slug":"white_cabbage_water"}
+{"alias":"white cabbage raw","slug":"white_cabbage"}
+{"alias":"white fish fillet","slug":"cod"}
+{"alias":"white fish fillets","slug":"cod"}
+{"alias":"white meat cooked","slug":"white_meat"}
+{"alias":"white onion","slug":"onion"}
+{"alias":"white potato","slug":"potato"}
+{"alias":"white potatoes","slug":"potato"}
+{"alias":"white pudding truffled raw","slug":"white_pudding_truffled"}
+{"alias":"white rice","slug":"white_rice"}
+{"alias":"white wine","slug":"wine"}
+{"alias":"whole eggs","slug":"whole_eggs"}
+{"alias":"whole grain bread","slug":"wholemeal_bread"}
+{"alias":"whole milk","slug":"milk_semi"}
+{"alias":"whole wheat couscous","slug":"couscous_wholemeal"}
+{"alias":"whole wheat noodles","slug":"noodles_wholewheat"}
+{"alias":"whole wheat wrap","slug":"tortilla_wholemeal"}
+{"alias":"whole wheat wraps","slug":"tortilla_wholemeal"}
+{"alias":"wholegrain baguette","slug":"wholemeal_bread"}
+{"alias":"wholegrain baguettes","slug":"wholemeal_bread"}
+{"alias":"wholegrain bread","slug":"wholemeal_bread"}
+{"alias":"wholegrain couscous","slug":"couscous_wholemeal"}
+{"alias":"wholegrain crispbread","slug":"crispbread_rye"}
+{"alias":"wholegrain crispbreads","slug":"crispbread_rye"}
+{"alias":"wholegrain mustard","slug":"mustard"}
+{"alias":"wholegrain pita","slug":"pita_wholemeal"}
+{"alias":"wholegrain rice","slug":"brown_rice"}
+{"alias":"wholegrain tortilla","slug":"tortilla_wholemeal"}
+{"alias":"wholegrain wrap","slug":"wholemeal_bread"}
+{"alias":"wholemeal bread","slug":"wholemeal_bread"}
+{"alias":"wholemeal couscous","slug":"couscous_wholemeal"}
+{"alias":"wholemeal flatbread","slug":"pita_wholemeal"}
+{"alias":"wholemeal pasta","slug":"wholewheat_pasta"}
+{"alias":"wholemeal pita","slug":"pita_wholemeal"}
+{"alias":"wholemeal pitta","slug":"pita_wholemeal"}
+{"alias":"wholemeal pitta bread","slug":"pita_wholemeal"}
+{"alias":"wholemeal pitta breads","slug":"pita_wholemeal"}
+{"alias":"wholemeal toast","slug":"wholemeal_bread"}
+{"alias":"wholemeal tortilla","slug":"tortilla_wholemeal"}
+{"alias":"wholemeal tortilla wraps","slug":"tortilla_wholemeal"}
+{"alias":"wholemeal wrap","slug":"wholemeal_bread"}
+{"alias":"wholewheat couscous","slug":"couscous_wholemeal"}
+{"alias":"wholewheat fusilli","slug":"wholewheat_pasta"}
+{"alias":"wholewheat noodles","slug":"noodles_wholewheat"}
+{"alias":"wholewheat pasta","slug":"wholewheat_pasta"}
+{"alias":"wholewheat pita","slug":"pita_wholemeal"}
+{"alias":"wholewheat pitas","slug":"pita_wholemeal"}
+{"alias":"wholewheat tortilla","slug":"tortilla_wholemeal"}
+{"alias":"wholewheat wrap","slug":"tortilla_wholemeal"}
+{"alias":"wholewheat wraps","slug":"tortilla_wholemeal"}
+{"alias":"wild boar raw","slug":"wild_boar"}
+{"alias":"wild boar roasted baked","slug":"wild_boar"}
+{"alias":"wine","slug":"wine"}
+{"alias":"wrap","slug":"tortilla_wrap"}
+{"alias":"yam or indian potato peeled boiled cooked in water","slug":"yam_indian_potato_water"}
+{"alias":"yam or indian potato peeled raw","slug":"yam_indian_potato"}
+{"alias":"yaourt","slug":"plain_yogurt"}
+{"alias":"yaourt a la grecque","slug":"greek_yogurt"}
+{"alias":"yaourt a la grecque au lait de brebis","slug":"yogurt_greek_style_ewe"}
+{"alias":"yaourt au lait de brebis aromatise sucre","slug":"yogurt_ewe_s_milk"}
+{"alias":"yaourt au lait de chevre nature 5 mg environ","slug":"yogurt_goat_s_milk"}
+{"alias":"yaourt au lait de coco","slug":"coconut_yogurt"}
+{"alias":"yaourt de coco","slug":"coconut_yogurt"}
+{"alias":"yaourt de soja","slug":"soy_yogurt"}
+{"alias":"yaourt de soja nature","slug":"soy_yogurt"}
+{"alias":"yaourt grec","slug":"greek_yogurt"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise avec edulcorants 0 mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits 0 mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits avec edulcorants","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits non allege en mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits sucre","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise ou aux fruits sucre non allege en mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aromatise sucre","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aux copeaux de chocolat a la creme sucre","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aux fruits avec edulcorants 0 mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aux fruits sucre","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere aux fruits sucre a la creme","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere nature","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere nature 0 mg","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere nature a la creme","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt lait fermente ou specialite laitiere nature sucre","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yaourt nature","slug":"plain_yogurt"}
+{"alias":"yaourt ou specialite laitiere aux fruits","slug":"yoghurt_fruit"}
+{"alias":"yaourt ou specialite laitiere nature","slug":"yoghurt"}
+{"alias":"yaourt ou specialite laitiere nature ou aux fruits","slug":"yoghurt_fruit"}
+{"alias":"yellow bell pepper","slug":"bell_pepper"}
+{"alias":"yellow onion raw","slug":"yellow_onion"}
+{"alias":"yellow pepper","slug":"bell_pepper"}
+{"alias":"yoghurt high in protein on a fruit layer","slug":"yoghurt_high_protein_on"}
+{"alias":"yoghurt plain","slug":"yoghurt"}
+{"alias":"yoghurt plain or fruit","slug":"yoghurt_fruit"}
+{"alias":"yogurt","slug":"plain_yogurt"}
+{"alias":"yogurt ewe s milk flavoured w sugar","slug":"yogurt_ewe_s_milk"}
+{"alias":"yogurt fermented milk or dairy specialty flavoured with sugar","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty flavoured with sweetener fat free","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty plain","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty plain fat free","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty plain w cream","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty plain w sugar","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured 0 fat","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured no 0 fat","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured w sugar","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured w sugar no 0 fat","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits or flavoured w sweetener","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits with sugar","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty w fruits with sugar with cream","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty with chocolate shavings with cream with sugar","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt fermented milk or dairy specialty with fruits with sweetener fat free","slug":"yogurt_fermented_milk_dairy"}
+{"alias":"yogurt goat s milk plain around 5 fat","slug":"yogurt_goat_s_milk"}
+{"alias":"yogurt greek style ewe s milk","slug":"yogurt_greek_style_ewe"}
+{"alias":"young goat cooked","slug":"young_goat"}
+{"alias":"young goat raw","slug":"young_goat"}
+{"alias":"zucchini","slug":"courgette"}

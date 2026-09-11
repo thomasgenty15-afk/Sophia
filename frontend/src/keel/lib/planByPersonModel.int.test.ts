@@ -45,6 +45,7 @@ const DISHES: HouseholdDishView[] = [
     slot: "dinner",
     uses: ["prep_chicken_bowls"],
     memberId: null,
+    complementsShared: false,
   },
   {
     dishIndex: 1,
@@ -53,6 +54,7 @@ const DISHES: HouseholdDishView[] = [
     slot: "dinner",
     uses: ["prep_chicken_bowls"],
     memberId: null,
+    complementsShared: false,
   },
   // ⚠️ UN PLAT SANS LOT. C'est le cas qui décide s'il faut fabriquer une phrase
   // de repli, et la réponse est non.
@@ -63,6 +65,7 @@ const DISHES: HouseholdDishView[] = [
     slot: "snack_pm",
     uses: [],
     memberId: null,
+    complementsShared: false,
   },
 ];
 
@@ -165,6 +168,7 @@ describe("la vue parallèle", () => {
           slot: "snack",
           uses: [],
           memberId: null,
+          complementsShared: false,
         },
       ],
       portions: PORTIONS,
@@ -191,6 +195,7 @@ describe("la vue parallèle", () => {
           slot: "lunch",
           uses: [],
           memberId: null,
+          complementsShared: false,
         },
       ],
       portions: PORTIONS,
@@ -365,6 +370,7 @@ const DEDICATED: HouseholdDishView[] = [
     slot: "breakfast",
     uses: [],
     memberId: null,
+    complementsShared: false,
   },
   {
     dishIndex: 1,
@@ -373,6 +379,7 @@ const DEDICATED: HouseholdDishView[] = [
     slot: "breakfast",
     uses: [],
     memberId: "m-chris",
+    complementsShared: false,
   },
 ];
 
@@ -423,6 +430,7 @@ describe("LOT C — un plat dédié appartient à une bouche", () => {
           slot: "dinner",
           uses: [],
           memberId: null,
+          complementsShared: false,
         },
       ],
       person: PORTIONS[1], // Christèle
@@ -480,5 +488,48 @@ describe("LOT C — un plat dédié appartient à une bouche", () => {
     // L'attribution passe par l'IDENTIFIANT, et par lui seul.
     expect(model).toContain("dish.memberId !== null");
     expect(model).toContain("d.memberId === args.person.memberId");
+  });
+});
+
+// ⟳ 2026-09-09 — L'ENTRÉE QUI S'AJOUTE À LA TABLE (`complements_shared`).
+describe("le complément — un plat à son nom qui ne cache pas le plat de la table", () => {
+  const TABLE: HouseholdDishView = {
+    dishIndex: 0,
+    title: "Chicken rice bowls with roasted vegetables",
+    day: "fri",
+    slot: "dinner",
+    uses: ["prep_chicken_bowls"],
+    memberId: null,
+    complementsShared: false,
+  };
+  const ENTREE: HouseholdDishView = {
+    dishIndex: 1,
+    title: "Bread and cheese",
+    day: "fri",
+    slot: "dinner",
+    uses: [],
+    memberId: "m-chris",
+    complementsShared: true,
+  };
+
+  it("la case de la personne garde la PART du plat de la table, et l'entrée en plus", () => {
+    const model = buildPlanByPerson({ days: ["fri"], dishes: [ENTREE, TABLE], portions: PORTIONS });
+    const dinner = model.groups.find((g) => g.slot === "dinner");
+    expect(dinner?.dishes).toEqual([TABLE.title]);
+    const chris = dinner?.people.find((p) => p.memberId === "m-chris");
+    const ili = dinner?.people.find((p) => p.memberId === "m-ili");
+    expect(chris?.cells[0].ownDish).toBe("Bread and cheese");
+    expect(chris?.cells[0].ownDishComplements).toBe(true);
+    // ⛔ LA PART LUE EST CELLE DU PLAT DE LA TABLE, pas celle de l'entrée (qui n'a pas de lot).
+    expect(chris?.cells[0].note).toBe(shareFor(PORTIONS[1], TABLE));
+    expect(ili?.cells[0].ownDish).toBeNull();
+    expect(ili?.cells[0].ownDishComplements).toBe(false);
+  });
+
+  it("dans SA semaine, le plat de la table reste à côté de l'entrée ; un plat qui REMPLACE le retire encore", () => {
+    const week = buildPersonWeek({ days: ["fri"], dishes: [TABLE, ENTREE], person: PORTIONS[1] });
+    expect(week[0].dishes.map((d) => d.title)).toEqual([TABLE.title, ENTREE.title]);
+    const remplace = buildPersonWeek({ days: ["fri"], dishes: [TABLE, { ...ENTREE, complementsShared: false }], person: PORTIONS[1] });
+    expect(remplace[0].dishes.map((d) => d.title)).toEqual([ENTREE.title]);
   });
 });

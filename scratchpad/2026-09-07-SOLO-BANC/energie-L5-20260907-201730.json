@@ -1,0 +1,71 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 6,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Frittata aux pommes de terre et pain",
+      "member_id": null,
+      "pots": [
+        "Frittata aux pommes de terre et épinards ÷1"
+      ],
+      "standard_kcal": 638,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 500,
+      "density_kcal_per_100g": 127.7,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet, pommes de terre, courgette et poivron",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux légumes ÷1"
+      ],
+      "standard_kcal": 695,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 700,
+      "density_kcal_per_100g": 99.3,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Yaourt grec, pêche et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 149,
+      "density_kcal_per_100g": 90.6,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Saumon, couscous et haricots verts",
+      "member_id": null,
+      "pots": [
+        "Saumon, couscous et haricots verts ÷1"
+      ],
+      "standard_kcal": 414,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 297,
+      "density_kcal_per_100g": 139.4,
+      "boxes": 1
+    }
+  ]
+}

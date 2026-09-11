@@ -111,7 +111,17 @@ export function lastDayReachedFromFirstShop(
  * silence: un plan qui fait acheter lundi ce qui se cuisine samedi sans le
  * dire.
  */
-export function rawReachLines(window: readonly string[]): string[] {
+export function rawReachLines(
+  window: readonly string[],
+  cadence: RawReachCadence | null,
+): string[] {
+  if (cadence !== null && typeof cadence?.usesFreezer !== "boolean") {
+    throw new Error(
+      "[keel/raw_keeping] rawReachLines: `cadence` est `null` (cadence jamais " +
+        "déclarée) ou un objet dont `usesFreezer` est booléen — un `?` en ferait " +
+        "une garde désarmée",
+    );
+  }
   const rows: string[] = [];
   for (const family of RAW_FAMILIES) {
     const last = lastDayReachedFromFirstShop(window, RAW_WINDOW_DAYS[family.ref]);
@@ -119,16 +129,112 @@ export function rawReachLines(window: readonly string[]): string[] {
     rows.push(`- ${family.said}: fresh until ${last}, no later.`);
   }
   if (rows.length === 0) return [];
+  const firstShop = window[0];
+  // ⟳ 2026-09-09 (option A du point 3) — LES FEUILLES NE SE CONGÈLENT PAS.
+  // Avec UNE course, une herbe fraîche posée dans une session au-delà de sa
+  // ligne ne peut ni attendre au frais ni passer au congélateur: le moteur lui
+  // ouvre alors une vague à elle seule (mesuré: une course le jeudi pour un
+  // bouquet de persil). La sortie est en amont, dans la composition.
+  const leafyLast = lastDayReachedFromFirstShop(window, RAW_WINDOW_DAYS.leafy_greens);
+  const leafyLine = cadence?.usesFreezer === true && cadence.runs === 1 && leafyLast !== null
+    ? [
+      `Salad leaves and fresh herbs do NOT freeze, and there is no trip to buy ` +
+      `them later: never put them into a session after ${leafyLast}. Past that ` +
+      `day, use dried or frozen herbs, or serve the leaves on a day up to ` +
+      `${leafyLast}.`,
+    ]
+    : [];
   return [
     "what a FIRST-DAY shop can still be cooked from -- fresh food does not " +
     "wait for the session that needs it:",
     ...rows,
-    "This does NOT forbid cooking them later. It means the shopping for that " +
-    "session happens closer to it: if you put fresh fish or chicken on a day " +
-    "past its line above, say in that session's `run_through` that its fresh " +
-    "items are bought that day or the day before. Never plan a session that " +
-    "quietly assumes week-old fresh meat.",
+    ...leafyLine,
+    // ── LA SORTIE DÉPEND DE LA CADENCE, ET C'EST TOUT LE LOT DU 2026-09-09 ──
+    // Deux sorties honnêtes existent quand une chair tombe au-delà de sa
+    // ligne: une course plus proche de la session, ou un passage par le
+    // congélateur le jour de la seule course. Le moteur choisit la seconde dès
+    // que la cadence l'exige (`usesFreezer`); la consigne doit dire la MÊME,
+    // sinon le déroulé promet un magasin que la liste n'ouvre pas.
+    cadence?.usesFreezer === true
+      ? (cadence.runs === 1
+        ? `They shop ONCE, on ${firstShop}, and there is no later trip. `
+        : `They go to the shop ${cadence.runs} times for ${cadence.sessions} ` +
+          `cooking sessions, so some sessions have no trip of their own. `) +
+        "This does NOT forbid cooking fresh fish or chicken on a day past its " +
+        "line above -- but that food is bought at the shop that exists and goes " +
+        "STRAIGHT INTO THE FREEZER on the day it is bought. Say in that " +
+        "session's `run_through` that it comes out of the freezer the night " +
+        "before. Never write \"buy it fresh that day\": there is no shop that day."
+      : "This does NOT forbid cooking them later. It means the shopping for that " +
+        "session happens closer to it: if you put fresh fish or chicken on a day " +
+        "past its line above, say in that session's `run_through` that its fresh " +
+        "items are bought that day or the day before. Never plan a session that " +
+        "quietly assumes week-old fresh meat.",
   ];
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA CADENCE DE COURSES, TELLE QUE LA CONSIGNE DOIT LA DIRE — 2026-09-09.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL (poul, brouillon du 2026-09-08) ──
+ * Profil « une course », congélateur déclaré, six jours. Le moteur a daté la
+ * dinde hachée du mercredi et l'a marquée « à congeler à l'achat » — c'est le
+ * repli du lot C, et il est juste. Le déroulé de la session de dimanche, écrit
+ * par le modèle, disait « Acheter la dinde fraîche le jour même ou la veille ».
+ * Le modèle obéissait à la phrase d'`rawReachLines` d'alors, qui supposait une
+ * course supplémentaire — et personne ne lui avait dit qu'il n'y en aurait
+ * pas. Deux consignes contraires pour la même dinde, dans le même plan.
+ *
+ * ── CE QUE PORTE CET OBJET, ET CE QU'IL NE DÉCIDE PAS ─────────────────────
+ * Il est la LECTURE de `CookingPlan` (`cooking_plan.ts`): `runs`, `sessions`,
+ * `usesFreezer`. Il ne recalcule rien — `usesFreezer` y est déjà « ce plan
+ * s'appuie sur le congélateur », c'est-à-dire exactement la condition sous
+ * laquelle `grocery_waves.ts` replie les vagues et congèle à l'achat. Un seul
+ * calcul, trois lecteurs (les vagues, la consigne, l'explication).
+ *
+ * `null` = la cadence n'a jamais été déclarée (`capacity.plan === null`): la
+ * consigne est alors celle d'avant ce lot, au caractère près.
+ */
+export interface RawReachCadence {
+  readonly runs: number;
+  readonly sessions: number;
+  readonly usesFreezer: boolean;
+}
+
+/**
+ * LES SESSIONS NOURRIES PAR UN ARTICLE CONGELÉ À L'ACHAT, ET CELLES QUI LE DISENT.
+ *
+ * ⛔ C'EST UN COMPTEUR, PAS UNE GARDE. Il ne refuse rien: il dit, plan par
+ * plan, si la consigne du congélateur a mordu. Sans lui, un déroulé qui promet
+ * « acheter frais le jour même » sous une ligne congelée ressemble trait pour
+ * trait à un déroulé qui dit « sors-la du congélateur la veille » — les deux
+ * rendent un plan qui parse.
+ *
+ * ⚠️ IL LIT DE LA PROSE, ET C'EST ASSUMÉ COMME UNE OBSERVATION. Le test de
+ * présence cherche le mot « congélateur » dans les deux langues du produit
+ * (`fr`, `en`); il ne prétend pas juger la phrase. Le jour où la clé de schéma
+ * existe (« la promesse et la clé de schéma doivent se toucher »), ce compteur
+ * la lira à sa place.
+ */
+const FREEZER_NAMED = /cong[ée]l|freez|frozen|surgel|thaw/i;
+
+export function sessionsFedFromFreezer(input: {
+  sessions: readonly { readonly day: string; readonly preparationIds: readonly string[]; readonly runThrough: string }[];
+  /** Les préparations nourries par au moins une ligne congelée à l'achat. */
+  frozenPreparationIds: ReadonlySet<string>;
+}): { fed: number; named: number; silentDays: string[] } {
+  let fed = 0;
+  let named = 0;
+  const silentDays: string[] = [];
+  for (const session of input.sessions ?? []) {
+    if (!session.preparationIds.some((id) => input.frozenPreparationIds.has(id))) continue;
+    fed += 1;
+    if (FREEZER_NAMED.test(String(session.runThrough ?? ""))) named += 1;
+    else silentDays.push(session.day);
+  }
+  return { fed, named, silentDays };
 }
 
 /**
@@ -168,13 +274,32 @@ export function rawKeepingBreaches(input: {
   preparations: readonly {
     readonly id: string;
     readonly cookOn: string | null;
-    /** Les groupes d'aliments de ses ingrédients. `null` = non résolu. */
-    readonly groups: readonly (string | null)[];
+    /**
+     * Ses ingrédients, tels que la LISTE DE COURSES les porte: le groupe
+     * (`null` = non résolu) et le rayon réduit à « périssable ou pas ».
+     *
+     * ⟳ 2026-09-09 — LE RAYON ENTRE ICI, ET C'EST LE MIROIR DE `grocery_waves`.
+     * Le moteur des dates ne regarde la fenêtre crue QUE sur les rayons
+     * périssables (`PERISHABLE_AISLES`); ce compteur, lui, la regardait sur
+     * TOUT. Mesuré: « romarin, 1 petit pot » en épicerie, groupe feuilles
+     * fraîches par son alias, comptait une brèche et faisait dire « ce qui se
+     * cuisine dimanche s'achète au plus près » de pommes de terre au romarin.
+     * Deux lecteurs d'une même règle sur deux populations différentes, c'est
+     * l'explication qui a tort.
+     */
+    readonly ingredients: readonly { readonly group: string | null; readonly perishable: boolean }[];
   }[];
-}): { breaches: RawKeepingBreach[]; unknownGroups: number; checked: number } {
+}): {
+  breaches: RawKeepingBreach[];
+  unknownGroups: number;
+  /** Ingrédients écartés parce que leur rayon ne périt pas — COMPTÉS, pas tus. */
+  nonPerishable: number;
+  checked: number;
+} {
   const window = input?.window ?? [];
   const breaches: RawKeepingBreach[] = [];
   let unknownGroups = 0;
+  let nonPerishable = 0;
   let checked = 0;
   for (const prep of input?.preparations ?? []) {
     const cookAt = prep.cookOn ? window.indexOf(prep.cookOn) : -1;
@@ -184,13 +309,17 @@ export function rawKeepingBreaches(input: {
     // cuit.
     if (cookAt < 0) continue;
     let worst: { group: string; days: number } | null = null;
-    for (const group of prep.groups ?? []) {
-      const days = rawWindowDaysFor(group);
+    for (const ing of prep.ingredients ?? []) {
+      if (ing.perishable !== true) {
+        nonPerishable += 1;
+        continue;
+      }
+      const days = rawWindowDaysFor(ing.group);
       if (days === null) {
         unknownGroups += 1;
         continue;
       }
-      if (worst === null || days < worst.days) worst = { group: String(group), days };
+      if (worst === null || days < worst.days) worst = { group: String(ing.group), days };
     }
     if (worst === null) continue;
     checked += 1;
@@ -204,7 +333,7 @@ export function rawKeepingBreaches(input: {
       });
     }
   }
-  return { breaches, unknownGroups, checked };
+  return { breaches, unknownGroups, nonPerishable, checked };
 }
 
 /**

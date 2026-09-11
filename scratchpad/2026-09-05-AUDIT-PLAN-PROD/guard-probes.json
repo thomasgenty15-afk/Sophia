@@ -1,0 +1,83 @@
+[
+  {
+    "id": "invalid-jwt",
+    "expected_status": 401,
+    "status": 401,
+    "data": {
+      "msg": "Invalid JWT"
+    },
+    "ms": 4,
+    "verdict": "PASS"
+  },
+  {
+    "id": "secondary-cannot-compose",
+    "expected_status": 403,
+    "status": 403,
+    "data": {
+      "error": "not_owner",
+      "request_id": "228ba00d-d237-44c7-8e4c-8c3490cfdbbf"
+    },
+    "ms": 53,
+    "verdict": "PASS"
+  },
+  {
+    "id": "zero-days",
+    "expected_status": 400,
+    "status": 400,
+    "data": {
+      "error": "bad_window",
+      "detail": "[keel/meal_window] bad day count 0",
+      "request_id": "5d26cf84-8585-4a0a-ab46-39241d59b09d"
+    },
+    "ms": 53,
+    "verdict": "PASS"
+  },
+  {
+    "id": "eight-days",
+    "expected_status": 400,
+    "status": 400,
+    "data": {
+      "error": "bad_window",
+      "detail": "[keel/meal_window] bad day count 8",
+      "request_id": "0f1e2450-98ff-496a-b4b7-628d2c3d1335"
+    },
+    "ms": 46,
+    "verdict": "PASS"
+  },
+  {
+    "id": "unreadable-window",
+    "expected_status": 400,
+    "status": 400,
+    "data": {
+      "error": "window_required",
+      "detail": "window must be {kind:'until_sunday'} | {kind:'days',count} | {kind:'exact',starts_on,duration_days}",
+      "request_id": "055987a2-31ce-427c-a792-c196b73414c8"
+    },
+    "ms": 45,
+    "verdict": "PASS"
+  },
+  {
+    "id": "draft-cannot-replace",
+    "expected_status": 400,
+    "status": 400,
+    "data": {
+      "error": "unknown_intent",
+      "detail": "intent=draft writes nothing, so it cannot name a `replaces`.",
+      "request_id": "acde0e34-e80a-4cab-aeb6-53327653bb3f"
+    },
+    "ms": 33,
+    "verdict": "PASS"
+  },
+  {
+    "id": "unknown-intent",
+    "expected_status": 400,
+    "status": 400,
+    "data": {
+      "error": "unknown_intent",
+      "detail": "intent must be replace_current, prepare_next or draft",
+      "request_id": "b47086c0-39dc-44c2-9f2e-b443fc0f42ed"
+    },
+    "ms": 36,
+    "verdict": "PASS"
+  }
+]

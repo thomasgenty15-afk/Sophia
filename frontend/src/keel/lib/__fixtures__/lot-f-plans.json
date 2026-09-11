@@ -1,0 +1,4372 @@
+{
+ "_note": "Trois lignes student_generated_meals ECRITES par le vrai handler le 2026-09-11 au soir, sous l'adaptateur fournisseur controle du lot F (aucun appel modele reel). Copiees telles quelles depuis scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/. Ne pas les editer a la main : ce sont des PREUVES.",
+ "_gele_le": "2026-09-11",
+ "plans": {
+  "perte": {
+   "id": "db87f15f-ce1a-48d9-bb8b-ba23c588c75a",
+   "starts_on": "2026-09-12",
+   "ends_on": "2026-09-13",
+   "servings": 1,
+   "content_locale": "fr-FR",
+   "dishes": [
+    {
+     "day": "sat",
+     "why": "Le même poulet devient un wrap frais, ce qui garde le repas du matin simple et différent.",
+     "name": "Wrap matinal au poulet",
+     "slot": "breakfast",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_chicken"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_breakfast_0",
+       "items": [
+        {
+         "ref": null,
+         "term": "Poulet rôti aux poivres",
+         "grams": 215,
+         "ref_refused": false,
+         "preparation_id": "prep_chicken"
+        },
+        {
+         "ref": "tortilla_wholemeal",
+         "term": "tortilla complète",
+         "grams": 50,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 83,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 83,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "plain_yogurt",
+         "term": "yaourt nature",
+         "grams": 41,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Poulet, tortilla complète, tomate, laitue et yaourt",
+     "method": "Garnir la tortilla avec la laitue, la tomate, le poulet froid et le yaourt, puis la rouler.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tortilla_wholemeal",
+       "part": null,
+       "term": "tortilla complète",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 49.74324324324324,
+       "quantity": "49,74 g de tortilla complète",
+       "grams_raw": 49.74324324324324,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 82.9054054054054,
+       "quantity": "82,91 g de tomate",
+       "grams_raw": 82.9054054054054,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 82.9054054054054,
+       "quantity": "82,91 g de laitue",
+       "grams_raw": 82.9054054054054,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "plain_yogurt",
+       "part": null,
+       "term": "yaourt nature",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 41.4527027027027,
+       "quantity": "41,45 g de yaourt nature",
+       "grams_raw": 41.4527027027027,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Le bœuf est servi en pita citronnée pour changer de texture tout en gardant une assiette complète.",
+     "name": "Pita de bœuf citronné",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_beef"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_lunch_1",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 280,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "pita_wholemeal",
+         "term": "pita complète",
+         "grams": 84,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 21,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 139,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 70,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 42,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 14,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Bœuf à l'oignon, pita complète, tomate, laitue, tahini et citron",
+     "method": "Ouvrir la pita et la garnir de tomate, de laitue et de bœuf froid à l'oignon. Ajouter le tahini, l'huile d'olive et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "pita_wholemeal",
+       "part": null,
+       "term": "pita complète",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 83.6590909090909,
+       "quantity": "83,66 g de pita complète",
+       "grams_raw": 83.6590909090909,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 20.914772727272727,
+       "quantity": "20,91 g de tahini",
+       "grams_raw": 20.914772727272727,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 139.4318181818182,
+       "quantity": "139,43 g de tomate",
+       "grams_raw": 139.4318181818182,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 69.7159090909091,
+       "quantity": "69,72 g de laitue",
+       "grams_raw": 69.7159090909091,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.6971590909090909,
+       "quantity": "0,7",
+       "grams_raw": 41.82954545454545,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 13.943181818181818,
+       "quantity": "13,94 g d'huile d'olive",
+       "grams_raw": 13.943181818181818,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Le saumon et le couscous prennent une forme crémeuse au tahini pour un dîner estival.",
+     "name": "Saumon couscous au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon_couscous"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_dinner_2",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 267,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 37,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 12,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 25,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, couscous complet, tomate, tahini et huile d'olive",
+     "method": "Assembler le saumon et le couscous froids avec la tomate, le tahini et l'huile d'olive.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 37.19971126082772,
+       "quantity": "37,2 g de tahini",
+       "grams_raw": 37.19971126082772,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 12.39990375360924,
+       "quantity": "12,4 g d'huile d'olive",
+       "grams_raw": 12.39990375360924,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 24.79980750721848,
+       "quantity": "24,8 g de tomate",
+       "grams_raw": 24.79980750721848,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le bol de yaourt, fruits et avoine utilise des aliments simples pour un matin sans cuisson.",
+     "name": "Bol pêche, avoine et framboises",
+     "slot": "breakfast",
+     "uses": [],
+     "boxes": [
+      {
+       "id": "box_sun_breakfast_3",
+       "items": [
+        {
+         "ref": "greek_yogurt",
+         "term": "yaourt grec",
+         "grams": 264,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "oats",
+         "term": "flocons d'avoine",
+         "grams": 40,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "peach",
+         "term": "pêche",
+         "grams": 172,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "raspberries",
+         "term": "framboises",
+         "grams": 66,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "almonds",
+         "term": "amandes",
+         "grams": 13,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Yaourt grec, avoine, pêche, framboises et amandes",
+     "method": "Verser le yaourt dans un bol, ajouter l'avoine, la pêche, les framboises et les amandes.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 3
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "greek_yogurt",
+       "part": null,
+       "term": "yaourt grec",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 264.4396551724138,
+       "quantity": "264,44 g de yaourt grec",
+       "grams_raw": 264.4396551724138,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "oats",
+       "part": null,
+       "term": "flocons d'avoine",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 39.66594827586207,
+       "quantity": "39,67 g de flocons d'avoine",
+       "grams_raw": 39.66594827586207,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "peach",
+       "part": null,
+       "term": "pêche",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 171.88577586206895,
+       "quantity": "171,89 g de pêche",
+       "grams_raw": 171.88577586206895,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "raspberries",
+       "part": null,
+       "term": "framboises",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 66.10991379310344,
+       "quantity": "66,11 g de framboises",
+       "grams_raw": 66.10991379310344,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "almonds",
+       "part": null,
+       "term": "amandes",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 13.22198275862069,
+       "quantity": "13,22 g d'amandes",
+       "grams_raw": 13.22198275862069,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le saumon revient en salade fraîche avec feta et citron, plutôt que dans la même assiette.",
+     "name": "Saumon couscous façon salade",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon_couscous"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_lunch_4",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 404,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "feta",
+         "term": "feta",
+         "grams": 38,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 125,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 63,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 6,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 38,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, couscous complet, tomate, laitue, feta et citron",
+     "method": "Assembler le saumon et le couscous froids avec la laitue, la tomate, la feta, l'huile d'olive et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "feta",
+       "part": null,
+       "term": "feta",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 37.56122448979592,
+       "quantity": "37,56 g de feta",
+       "grams_raw": 37.56122448979592,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 125.20408163265306,
+       "quantity": "125,2 g de tomate",
+       "grams_raw": 125.20408163265306,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 62.60204081632653,
+       "quantity": "62,6 g de laitue",
+       "grams_raw": 62.60204081632653,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 6.260204081632653,
+       "quantity": "6,26 g d'huile d'olive",
+       "grams_raw": 6.260204081632653,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.6260204081632653,
+       "quantity": "0,63",
+       "grams_raw": 37.56122448979592,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le bœuf devient une assiette ouverte au pain et au tahini, distincte de la pita.",
+     "name": "Bœuf grillé au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_beef"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_dinner_5",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 151,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "wholemeal_bread",
+         "term": "pain complet",
+         "grams": 45,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "goat_cheese",
+         "term": "fromage de chèvre",
+         "grams": 30,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 46,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 19,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 30,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 22,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "b0723b60-c76e-4879-9e9c-21c76719b35b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Bœuf à l'oignon, pain complet, tomate, laitue, fromage de chèvre et tahini",
+     "method": "Dresser la laitue et la tomate, puis ajouter le bœuf froid à l'oignon, le pain, le fromage de chèvre, le tahini et l'huile d'olive.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "wholemeal_bread",
+       "part": null,
+       "term": "pain complet",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 44.92938099389712,
+       "quantity": "44,93 g de pain complet",
+       "grams_raw": 44.92938099389712,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "goat_cheese",
+       "part": null,
+       "term": "fromage de chèvre",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 29.95292066259808,
+       "quantity": "29,95 g de fromage de chèvre",
+       "grams_raw": 29.95292066259808,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 46.42702702702702,
+       "quantity": "46,43 g de tahini",
+       "grams_raw": 46.42702702702702,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 18.7205754141238,
+       "quantity": "18,72 g d'huile d'olive",
+       "grams_raw": 18.7205754141238,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 29.95292066259808,
+       "quantity": "29,95 g de tomate",
+       "grams_raw": 29.95292066259808,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 22.46469049694856,
+       "quantity": "22,46 g de laitue",
+       "grams_raw": 22.46469049694856,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    }
+   ],
+   "preparations": [
+    {
+     "id": "prep_chicken",
+     "title": "Poulet rôti aux poivres",
+     "method": "Chauffer le four. Assaisonner le poulet de sel et de poivre, l'arroser d'huile d'olive et le rôtir jusqu'à cuisson complète. Refroidir rapidement, puis répartir en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "chicken_thigh",
+       "part": null,
+       "term": "cuisses de poulet désossées",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 298.4594594594595,
+       "quantity": "298,46 g de cuisses de poulet désossées",
+       "grams_raw": 298.4594594594595,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 8.29054054054054,
+       "quantity": "8,29 g d'huile d'olive",
+       "grams_raw": 8.29054054054054,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 1,
+     "total_minutes": 45,
+     "active_minutes": 10
+    },
+    {
+     "id": "prep_beef",
+     "title": "Bœuf haché à l'oignon",
+     "method": "Émincer l'oignon et le faire revenir dans l'huile d'olive. Ajouter le bœuf, assaisonner de sel et de poivre, puis cuire en l'émiettant. Refroidir rapidement et répartir en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "beef_mince",
+       "part": null,
+       "term": "bœuf haché",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 428.6282396766268,
+       "quantity": "428,63 g de bœuf haché",
+       "grams_raw": 428.6282396766268,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "onion",
+       "part": null,
+       "term": "oignon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 117.87276591107236,
+       "quantity": "117,87 g d'oignon",
+       "grams_raw": 117.87276591107236,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 10.71570599191567,
+       "quantity": "10,72 g d'huile d'olive",
+       "grams_raw": 10.71570599191567,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 35,
+     "active_minutes": 15
+    },
+    {
+     "id": "prep_salmon_couscous",
+     "title": "Saumon rôti et couscous complet",
+     "method": "Rôtir le saumon assaisonné avec une partie de l'huile d'olive. Préparer le couscous complet avec de l'eau chaude et le reste de l'huile, puis laisser gonfler. Refroidir rapidement et répartir le saumon et le couscous en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "salmon",
+       "part": null,
+       "term": "saumon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 270.23113865372903,
+       "quantity": "270,23 g de saumon",
+       "grams_raw": 270.23113865372903,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "couscous_wholemeal",
+       "part": null,
+       "term": "couscous complet",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 166.29608532537173,
+       "quantity": "166,3 g de couscous complet",
+       "grams_raw": 166.29608532537173,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 20.787010665671467,
+       "quantity": "20,79 g d'huile d'olive",
+       "grams_raw": 20.787010665671467,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 35,
+     "active_minutes": 15
+    }
+   ],
+   "shopping_list": [
+    {
+     "term": "cuisses de poulet désossées",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "300 g",
+     "food_group": "poultry",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "bœuf haché",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "430 g",
+     "food_group": "red_meat",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "saumon",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "270 g",
+     "food_group": "fatty_fish",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "couscous complet",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "165 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pain complet",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "90 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tortilla complète",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "50 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pita complète",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "85 g",
+     "food_group": null,
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "flocons d'avoine",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "40 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "huile d'olive",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "90 g",
+     "food_group": "olive_oil",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tahini",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "145 g",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "sel",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "1 paquet",
+     "food_group": "sauce_dressing",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "poivre noir",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "1 paquet",
+     "food_group": "sauce_dressing",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "oignon",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "120 g",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tomates",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "400 g",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "laitue",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "270 g",
+     "food_group": "leafy_greens",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "citrons",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "1 unité",
+     "food_group": "citrus",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "yaourt nature",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "40 g",
+     "food_group": "dairy_yogurt",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "yaourt grec",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "265 g",
+     "food_group": "dairy_yogurt",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "feta",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "40 g",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "fromage de chèvre",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "30 g",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pêche",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "170 g",
+     "food_group": "other_fruit",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "framboises",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "65 g",
+     "food_group": "berries",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "amandes",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "13 g",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    }
+   ],
+   "cooking_sessions": [
+    {
+     "day": "sat",
+     "run_through": "Mettre le four à chauffer, assaisonner et enfourner le poulet, puis le laisser rôtir. Refroidir rapidement et ranger les portions au réfrigérateur.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_chicken"
+     ]
+    },
+    {
+     "day": "sat",
+     "run_through": "Acheter le saumon et le bœuf frais le samedi ou la veille. Mettre le saumon au four, faire revenir l'oignon et le bœuf pendant la cuisson, puis préparer le couscous complet. Refroidir rapidement, répartir les trois préparations et les ranger au réfrigérateur.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_beef",
+      "prep_salmon_couscous"
+     ]
+    }
+   ],
+   "member_portions": [
+    {
+     "member_id": "b0723b60-c76e-4879-9e9c-21c76719b35b",
+     "display_name": "Paul",
+     "eating_slots": null,
+     "portion_note": null,
+     "preparation_shares": []
+    }
+   ]
+  },
+  "gain": {
+   "id": "c5098537-6336-4195-a5db-affa46568562",
+   "starts_on": "2026-09-12",
+   "ends_on": "2026-09-13",
+   "servings": 1,
+   "content_locale": "fr-FR",
+   "dishes": [
+    {
+     "day": "sat",
+     "why": "Les petits-suisses donnent à ce petit-déjeuner frais un ancrage protéiné avec des aliments simples.",
+     "name": "Petits-suisses aux fraises",
+     "slot": "breakfast",
+     "uses": [],
+     "boxes": [
+      {
+       "id": "box_sat_breakfast_0",
+       "items": [
+        {
+         "ref": "petit_suisse_cream_cheese",
+         "term": "petits-suisses nature",
+         "grams": 344,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "oats",
+         "term": "flocons d’avoine",
+         "grams": 69,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "strawberries",
+         "term": "fraises",
+         "grams": 258,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "walnuts",
+         "term": "noix",
+         "grams": 26,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Petits-suisses, avoine, fraises et noix",
+     "method": "Mettre les petits-suisses dans un bol, ajouter les flocons d’avoine, les fraises et les noix.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 3
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "petit_suisse_cream_cheese",
+       "part": null,
+       "term": "petits-suisses nature",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 344.20803782505914,
+       "quantity": "344,21 g de petits-suisses nature",
+       "grams_raw": 344.20803782505914,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "oats",
+       "part": null,
+       "term": "flocons d’avoine",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 68.84160756501183,
+       "quantity": "68,84 g de flocons d’avoine",
+       "grams_raw": 68.84160756501183,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "strawberries",
+       "part": null,
+       "term": "fraises",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 258.15602836879435,
+       "quantity": "258,16 g de fraises",
+       "grams_raw": 258.15602836879435,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "walnuts",
+       "part": null,
+       "term": "noix",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 25.81560283687943,
+       "quantity": "25,82 g de noix",
+       "grams_raw": 25.81560283687943,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Ce bol change la préparation d’agneau en déjeuner complet avec céréale, légumes et matières grasses.",
+     "name": "Couscous d’agneau aux légumes",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_lamb"
+      },
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_couscous"
+      },
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_roasted_vegetables"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_lunch_1",
+       "items": [
+        {
+         "ref": null,
+         "term": "Boulettes d’agneau aux flocons d’avoine",
+         "grams": 297,
+         "ref_refused": false,
+         "preparation_id": "prep_lamb"
+        },
+        {
+         "ref": null,
+         "term": "Couscous complet huilé",
+         "grams": 147,
+         "ref_refused": false,
+         "preparation_id": "prep_couscous"
+        },
+        {
+         "ref": null,
+         "term": "Légumes rôtis au four",
+         "grams": 151,
+         "ref_refused": false,
+         "preparation_id": "prep_roasted_vegetables"
+        },
+        {
+         "ref": "feta",
+         "term": "feta",
+         "grams": 19,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 8,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 23,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Agneau, couscous complet, légumes rôtis, feta et citron",
+     "method": "Réunir l’agneau, le couscous complet et les légumes rôtis, puis ajouter la feta, le tahini et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "feta",
+       "part": null,
+       "term": "feta",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 19.361702127659576,
+       "quantity": "19,36 g de feta",
+       "grams_raw": 19.361702127659576,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 7.74468085106383,
+       "quantity": "7,74 g de tahini",
+       "grams_raw": 7.74468085106383,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.3872340425531915,
+       "quantity": "0,39",
+       "grams_raw": 23.23404255319149,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Le saumon devient un dîner différent grâce à la tortilla, la sauce au tahini et la salade croquante.",
+     "name": "Saumon roulé au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_dinner_2",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti à l’huile d’olive",
+         "grams": 145,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon"
+        },
+        {
+         "ref": "tortilla_wholemeal",
+         "term": "tortilla complète",
+         "grams": 50,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 50,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d’olive",
+         "grams": 12,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 41,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 50,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 25,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, tortilla complète, tahini, laitue et tomate",
+     "method": "Garnir la tortilla avec le saumon, le tahini, l’huile d’olive, la laitue, la tomate et le citron, puis rouler.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tortilla_wholemeal",
+       "part": null,
+       "term": "tortilla complète",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.8272727272727273,
+       "quantity": "0,83 tortilla complète",
+       "grams_raw": 49.63636363636363,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 49.63636363636363,
+       "quantity": "49,64 g de tahini",
+       "grams_raw": 49.63636363636363,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "ml",
+       "group": null,
+       "state": "raw",
+       "amount": 12.409090909090908,
+       "quantity": "12,41 ml d’huile d’olive",
+       "grams_raw": 12.409090909090908,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 41.36363636363637,
+       "quantity": "41,36 g de laitue",
+       "grams_raw": 41.36363636363637,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 49.63636363636363,
+       "quantity": "49,64 g de tomate",
+       "grams_raw": 49.63636363636363,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.41363636363636364,
+       "quantity": "0,41",
+       "grams_raw": 24.818181818181817,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le yaourt grec garde le petit-déjeuner simple tout en apportant une base protéinée et des fruits de saison.",
+     "name": "Yaourt grec pêche et amandes",
+     "slot": "breakfast",
+     "uses": [],
+     "boxes": [
+      {
+       "id": "box_sun_breakfast_3",
+       "items": [
+        {
+         "ref": "greek_yogurt",
+         "term": "yaourt grec nature",
+         "grams": 303,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "oats",
+         "term": "flocons d’avoine",
+         "grams": 53,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "peach",
+         "term": "pêche",
+         "grams": 197,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "almonds",
+         "term": "amandes",
+         "grams": 23,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Yaourt grec, avoine, pêche et amandes",
+     "method": "Verser le yaourt grec dans un bol, ajouter les flocons d’avoine, la pêche et les amandes.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 3
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "greek_yogurt",
+       "part": null,
+       "term": "yaourt grec nature",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 303.3333333333333,
+       "quantity": "303,33 g de yaourt grec nature",
+       "grams_raw": 303.3333333333333,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "oats",
+       "part": null,
+       "term": "flocons d’avoine",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 53.08333333333333,
+       "quantity": "53,08 g de flocons d’avoine",
+       "grams_raw": 53.08333333333333,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "peach",
+       "part": null,
+       "term": "pêche",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 197.16666666666666,
+       "quantity": "197,17 g de pêche",
+       "grams_raw": 197.16666666666666,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "almonds",
+       "part": null,
+       "term": "amandes",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 22.75,
+       "quantity": "22,75 g d’amandes",
+       "grams_raw": 22.75,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Cette salade utilise le saumon autrement que le dîner précédent avec des pommes de terre, de la laitue et de la feta.",
+     "name": "Salade de saumon et pommes de terre",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon"
+      },
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_potatoes"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_lunch_4",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti à l’huile d’olive",
+         "grams": 168,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon"
+        },
+        {
+         "ref": null,
+         "term": "Pommes de terre rôties",
+         "grams": 360,
+         "ref_refused": false,
+         "preparation_id": "prep_potatoes"
+        },
+        {
+         "ref": "feta",
+         "term": "feta",
+         "grams": 38,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 96,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 29,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d’olive",
+         "grams": 10,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, pommes de terre, feta, laitue et citron",
+     "method": "Mélanger le saumon et les pommes de terre, ajouter la feta, la laitue, l’huile d’olive et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "feta",
+       "part": null,
+       "term": "feta",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 38.35616438356164,
+       "quantity": "38,36 g de feta",
+       "grams_raw": 38.35616438356164,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 95.8904109589041,
+       "quantity": "95,89 g de laitue",
+       "grams_raw": 95.8904109589041,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.4794520547945205,
+       "quantity": "0,48",
+       "grams_raw": 28.767123287671232,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "ml",
+       "group": null,
+       "state": "raw",
+       "amount": 9.58904109589041,
+       "quantity": "9,59 ml d’huile d’olive",
+       "grams_raw": 9.58904109589041,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Les lentilles forment l’ancrage protéiné d’un dîner sans viande, complété par le couscous, les légumes et les matières grasses.",
+     "name": "Lentilles crémeuses au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_lentils"
+      },
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_couscous"
+      },
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_roasted_vegetables"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_dinner_5",
+       "items": [
+        {
+         "ref": null,
+         "term": "Lentilles mijotées à la carotte",
+         "grams": 228,
+         "ref_refused": false,
+         "preparation_id": "prep_lentils"
+        },
+        {
+         "ref": null,
+         "term": "Couscous complet huilé",
+         "grams": 73,
+         "ref_refused": false,
+         "preparation_id": "prep_couscous"
+        },
+        {
+         "ref": null,
+         "term": "Légumes rôtis au four",
+         "grams": 75,
+         "ref_refused": false,
+         "preparation_id": "prep_roasted_vegetables"
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 39,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d’olive",
+         "grams": 19,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "parmesan",
+         "term": "parmesan",
+         "grams": 15,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "a62648ae-86f2-40e8-a83a-c66167e62499"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Lentilles, couscous complet, légumes rôtis, tahini et parmesan",
+     "method": "Assembler les lentilles avec le couscous complet et les légumes rôtis, puis napper de tahini et d’huile d’olive et terminer avec le parmesan.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 38.51851851851852,
+       "quantity": "38,52 g de tahini",
+       "grams_raw": 38.51851851851852,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "ml",
+       "group": null,
+       "state": "raw",
+       "amount": 19.25925925925926,
+       "quantity": "19,26 ml d’huile d’olive",
+       "grams_raw": 19.25925925925926,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "parmesan",
+       "part": null,
+       "term": "parmesan",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 15.407407407407408,
+       "quantity": "15,41 g de parmesan",
+       "grams_raw": 15.407407407407408,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    }
+   ],
+   "preparations": [
+    {
+     "id": "prep_lamb",
+     "title": "Boulettes d’agneau aux flocons d’avoine",
+     "method": "Hacher l’oignon et l’ail, mélanger avec l’agneau et les flocons d’avoine, former les boulettes, les huiler et les cuire au four jusqu’à ce qu’elles soient bien cuites.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "lamb_leg",
+       "part": null,
+       "term": "agneau",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 232.3404255319149,
+       "quantity": "232,34 g d’agneau",
+       "grams_raw": 232.3404255319149,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "onion",
+       "part": null,
+       "term": "oignon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 85.19148936170212,
+       "quantity": "85,19 g d’oignon",
+       "grams_raw": 85.19148936170212,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "oats",
+       "part": null,
+       "term": "flocons d’avoine",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 30.97872340425532,
+       "quantity": "30,98 g de flocons d’avoine",
+       "grams_raw": 30.97872340425532,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 1.548936170212766,
+       "quantity": "1,55 cuillère à soupe d’huile d’olive",
+       "grams_raw": 23.23404255319149,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "garlic",
+       "part": null,
+       "term": "ail",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 3.872340425531915,
+       "quantity": "3,87 g d’ail",
+       "grams_raw": 3.872340425531915,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 1,
+     "total_minutes": 40,
+     "active_minutes": 15
+    },
+    {
+     "id": "prep_couscous",
+     "title": "Couscous complet huilé",
+     "method": "Hydrater le couscous complet, le laisser gonfler, l’égrener et incorporer l’huile d’olive.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "couscous_wholemeal",
+       "part": null,
+       "term": "couscous complet",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 80,
+       "quantity": "80 g",
+       "grams_raw": 80,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 0.5798266351457841,
+       "quantity": "0,58 cuillère à soupe d’huile d’olive",
+       "grams_raw": 8.697399527186763,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 15,
+     "active_minutes": 5
+    },
+    {
+     "id": "prep_roasted_vegetables",
+     "title": "Légumes rôtis au four",
+     "method": "Émincer le poivron, la carotte et l’oignon, mélanger avec l’huile d’olive et rôtir au four jusqu’à ce que les légumes soient tendres et dorés.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "bell_pepper",
+       "part": null,
+       "term": "poivron",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 86.97399527186762,
+       "quantity": "86,97 g de poivron",
+       "grams_raw": 86.97399527186762,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "carrot",
+       "part": null,
+       "term": "carotte",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 81.17572892040978,
+       "quantity": "81,18 g de carotte",
+       "grams_raw": 81.17572892040978,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "onion",
+       "part": null,
+       "term": "oignon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 63.78092986603625,
+       "quantity": "63,78 g d’oignon",
+       "grams_raw": 63.78092986603625,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 1.1596532702915683,
+       "quantity": "1,16 cuillère à soupe d’huile d’olive",
+       "grams_raw": 17.394799054373525,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 40,
+     "active_minutes": 10
+    },
+    {
+     "id": "prep_salmon",
+     "title": "Saumon rôti à l’huile d’olive",
+     "method": "Badigeonner le saumon d’huile d’olive et le cuire au four jusqu’à ce qu’il soit juste cuit, puis le laisser refroidir avant de le ranger.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "salmon",
+       "part": null,
+       "term": "saumon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 360,
+       "quantity": "360 g",
+       "grams_raw": 360,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 1.7861768368617683,
+       "quantity": "1,79 cuillère à soupe d’huile d’olive",
+       "grams_raw": 26.792652552926526,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 20,
+     "active_minutes": 10
+    },
+    {
+     "id": "prep_potatoes",
+     "title": "Pommes de terre rôties",
+     "method": "Couper les pommes de terre, les mélanger avec l’huile d’olive et les rôtir au four jusqu’à ce qu’elles soient dorées et tendres.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "potato",
+       "part": null,
+       "term": "pomme de terre",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 385,
+       "quantity": "385 g",
+       "grams_raw": 385,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 0.958904109589041,
+       "quantity": "0,96 cuillère à soupe d’huile d’olive",
+       "grams_raw": 14.383561643835616,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 1,
+     "total_minutes": 40,
+     "active_minutes": 10
+    },
+    {
+     "id": "prep_lentils",
+     "title": "Lentilles mijotées à la carotte",
+     "method": "Faire revenir l’oignon, la carotte et l’ail dans l’huile d’olive, ajouter les lentilles et le bouillon, puis mijoter jusqu’à ce que les lentilles soient tendres.",
+     "cook_on": "sun",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "lentils_dry",
+       "part": null,
+       "term": "lentilles sèches",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 60,
+       "quantity": "60 g",
+       "grams_raw": 60,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "onion",
+       "part": null,
+       "term": "oignon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 40,
+       "quantity": "40 g",
+       "grams_raw": 40,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "carrot",
+       "part": null,
+       "term": "carotte",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 25,
+       "quantity": "25 g",
+       "grams_raw": 25,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d’olive",
+       "unit": "tbsp",
+       "group": null,
+       "state": "raw",
+       "amount": 0.7703703703703704,
+       "quantity": "0,77 cuillère à soupe d’huile d’olive",
+       "grams_raw": 11.555555555555555,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "garlic",
+       "part": null,
+       "term": "ail",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 2,
+       "quantity": "2 g",
+       "grams_raw": 2,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "stock_cube",
+       "part": null,
+       "term": "cube de bouillon",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 0.3851851851851852,
+       "quantity": "0,39 cube de bouillon",
+       "grams_raw": 3.851851851851852,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "servings_made": 1,
+     "total_minutes": 45,
+     "active_minutes": 15
+    }
+   ],
+   "shopping_list": [
+    {
+     "term": "agneau",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "230 g d’agneau",
+     "food_group": "red_meat",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "saumon",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "360 g de saumon",
+     "food_group": "fatty_fish",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "ail",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "6 g d’ail",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "poivron",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "85 g de poivron",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "laitue",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "135 g de laitue",
+     "food_group": "leafy_greens",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "fraises",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "260 g de fraises",
+     "food_group": "berries",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pêche",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "195 g de pêche",
+     "food_group": "other_fruit",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "flocons d’avoine",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "155 g de flocons d’avoine",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "couscous complet",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "80 g de couscous complet",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "lentilles sèches",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "60 g de lentilles sèches",
+     "food_group": "legumes",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tortilla complète",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "1 tortilla complète",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "huile d’olive",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "130 ml d’huile d’olive",
+     "food_group": "olive_oil",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tahini",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "120 g de tahini",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "cube de bouillon",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "1 cube de bouillon",
+     "food_group": "sauce_dressing",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "petits-suisses nature",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "345 g de petits-suisses nature",
+     "food_group": null,
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "yaourt grec nature",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "305 g de yaourt grec nature",
+     "food_group": "dairy_yogurt",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "feta",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "60 g de feta",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "parmesan",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "15 g de parmesan",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "noix",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "25 g de noix",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "amandes",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "25 g d’amandes",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    }
+   ],
+   "cooking_sessions": [
+    {
+     "day": "sat",
+     "run_through": "Préchauffer le four, préparer les boulettes d’agneau et les légumes sur leurs plaques, puis les enfourner. Pendant la cuisson, hydrater et égrener le couscous. Laisser refroidir, répartir chaque préparation en portions et ranger au réfrigérateur.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_lamb",
+      "prep_couscous",
+      "prep_roasted_vegetables"
+     ]
+    },
+    {
+     "day": "sat",
+     "run_through": "Acheter le saumon frais ce jour-là ou la veille. Mettre les pommes de terre huilées au four, préparer le saumon pendant que le four chauffe, puis cuire les deux préparations en parallèle. Laisser refroidir et ranger les portions au réfrigérateur.",
+     "total_minutes": 40,
+     "preparation_ids": [
+      "prep_salmon",
+      "prep_potatoes"
+     ]
+    },
+    {
+     "day": "sun",
+     "run_through": "Émincer l’oignon, la carotte et l’ail, les faire revenir dans l’huile d’olive, ajouter les lentilles et le bouillon, puis laisser mijoter jusqu’à tendreté. Répartir la préparation et assembler le dîner.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_lentils"
+     ]
+    }
+   ],
+   "member_portions": [
+    {
+     "member_id": "a62648ae-86f2-40e8-a83a-c66167e62499",
+     "display_name": "Max",
+     "eating_slots": null,
+     "portion_note": null,
+     "preparation_shares": []
+    }
+   ]
+  },
+  "duo": {
+   "id": "49ee82ab-f4ee-4d65-8167-68a6adc985e0",
+   "starts_on": "2026-09-12",
+   "ends_on": "2026-09-13",
+   "servings": 2,
+   "content_locale": "fr-FR",
+   "dishes": [
+    {
+     "day": "sat",
+     "why": "Le même poulet devient un wrap frais, ce qui garde le repas du matin simple et différent.",
+     "name": "Wrap matinal au poulet",
+     "slot": "breakfast",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_chicken"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_breakfast_0_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": null,
+         "term": "Poulet rôti aux poivres",
+         "grams": 160,
+         "ref_refused": false,
+         "preparation_id": "prep_chicken"
+        },
+        {
+         "ref": "tortilla_wholemeal",
+         "term": "tortilla complète",
+         "grams": 37,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 62,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 62,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "plain_yogurt",
+         "term": "yaourt nature",
+         "grams": 31,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sat_breakfast_0_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": null,
+         "term": "Poulet rôti aux poivres",
+         "grams": 215,
+         "ref_refused": false,
+         "preparation_id": "prep_chicken"
+        },
+        {
+         "ref": "tortilla_wholemeal",
+         "term": "tortilla complète",
+         "grams": 50,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 83,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 83,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "plain_yogurt",
+         "term": "yaourt nature",
+         "grams": 41,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Poulet, tortilla complète, tomate, laitue et yaourt",
+     "method": "Garnir la tortilla avec la laitue, la tomate, le poulet froid et le yaourt, puis la rouler.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tortilla_wholemeal",
+       "part": null,
+       "term": "tortilla complète",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 86.75675675675676,
+       "quantity": "86,76 g de tortilla complète",
+       "grams_raw": 86.75675675675676,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 144.5945945945946,
+       "quantity": "144,59 g de tomate",
+       "grams_raw": 144.5945945945946,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 144.5945945945946,
+       "quantity": "144,59 g de laitue",
+       "grams_raw": 144.5945945945946,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "plain_yogurt",
+       "part": null,
+       "term": "yaourt nature",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 72.2972972972973,
+       "quantity": "72,3 g de yaourt nature",
+       "grams_raw": 72.2972972972973,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Le bœuf est servi en pita citronnée pour changer de texture tout en gardant une assiette complète.",
+     "name": "Pita de bœuf citronné",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_beef"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_lunch_1_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 209,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "pita_wholemeal",
+         "term": "pita complète",
+         "grams": 62,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 16,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 104,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 52,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 31,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 10,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sat_lunch_1_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 280,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "pita_wholemeal",
+         "term": "pita complète",
+         "grams": 84,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 21,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 139,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 70,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 42,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 14,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Bœuf à l'oignon, pita complète, tomate, laitue, tahini et citron",
+     "method": "Ouvrir la pita et la garnir de tomate, de laitue et de bœuf froid à l'oignon. Ajouter le tahini, l'huile d'olive et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "pita_wholemeal",
+       "part": null,
+       "term": "pita complète",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 145.9090909090909,
+       "quantity": "145,91 g de pita complète",
+       "grams_raw": 145.9090909090909,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 36.47727272727273,
+       "quantity": "36,48 g de tahini",
+       "grams_raw": 36.47727272727273,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 243.18181818181816,
+       "quantity": "243,18 g de tomate",
+       "grams_raw": 243.18181818181816,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 121.59090909090908,
+       "quantity": "121,59 g de laitue",
+       "grams_raw": 121.59090909090908,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 1.2159090909090908,
+       "quantity": "1,22",
+       "grams_raw": 72.95454545454545,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 24.318181818181817,
+       "quantity": "24,32 g d'huile d'olive",
+       "grams_raw": 24.318181818181817,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sat",
+     "why": "Le saumon et le couscous prennent une forme crémeuse au tahini pour un dîner estival.",
+     "name": "Saumon couscous au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon_couscous"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sat_dinner_2_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 198,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 28,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 9,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 18,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sat_dinner_2_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 267,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 37,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 12,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 25,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, couscous complet, tomate, tahini et huile d'olive",
+     "method": "Assembler le saumon et le couscous froids avec la tomate, le tahini et l'huile d'olive.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 64.87969201154957,
+       "quantity": "64,88 g de tahini",
+       "grams_raw": 64.87969201154957,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 21.626564003849854,
+       "quantity": "21,63 g d'huile d'olive",
+       "grams_raw": 21.626564003849854,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 43.25312800769971,
+       "quantity": "43,25 g de tomate",
+       "grams_raw": 43.25312800769971,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le bol de yaourt, fruits et avoine utilise des aliments simples pour un matin sans cuisson.",
+     "name": "Bol pêche, avoine et framboises",
+     "slot": "breakfast",
+     "uses": [],
+     "boxes": [
+      {
+       "id": "box_sun_breakfast_3_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": "greek_yogurt",
+         "term": "yaourt grec",
+         "grams": 197,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "oats",
+         "term": "flocons d'avoine",
+         "grams": 30,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "peach",
+         "term": "pêche",
+         "grams": 128,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "raspberries",
+         "term": "framboises",
+         "grams": 49,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "almonds",
+         "term": "amandes",
+         "grams": 10,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sun_breakfast_3_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": "greek_yogurt",
+         "term": "yaourt grec",
+         "grams": 264,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "oats",
+         "term": "flocons d'avoine",
+         "grams": 40,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "peach",
+         "term": "pêche",
+         "grams": 172,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "raspberries",
+         "term": "framboises",
+         "grams": 66,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "almonds",
+         "term": "amandes",
+         "grams": 13,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Yaourt grec, avoine, pêche, framboises et amandes",
+     "method": "Verser le yaourt dans un bol, ajouter l'avoine, la pêche, les framboises et les amandes.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 3
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "greek_yogurt",
+       "part": null,
+       "term": "yaourt grec",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 461.2068965517241,
+       "quantity": "461,21 g de yaourt grec",
+       "grams_raw": 461.2068965517241,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "oats",
+       "part": null,
+       "term": "flocons d'avoine",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 69.18103448275862,
+       "quantity": "69,18 g de flocons d'avoine",
+       "grams_raw": 69.18103448275862,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "peach",
+       "part": null,
+       "term": "pêche",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 299.7844827586207,
+       "quantity": "299,78 g de pêche",
+       "grams_raw": 299.7844827586207,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "raspberries",
+       "part": null,
+       "term": "framboises",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 115.30172413793103,
+       "quantity": "115,3 g de framboises",
+       "grams_raw": 115.30172413793103,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "almonds",
+       "part": null,
+       "term": "amandes",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 23.060344827586206,
+       "quantity": "23,06 g d'amandes",
+       "grams_raw": 23.060344827586206,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le saumon revient en salade fraîche avec feta et citron, plutôt que dans la même assiette.",
+     "name": "Saumon couscous façon salade",
+     "slot": "lunch",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_salmon_couscous"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_lunch_4_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 300,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "feta",
+         "term": "feta",
+         "grams": 28,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 93,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 47,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 5,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 28,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sun_lunch_4_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": null,
+         "term": "Saumon rôti et couscous complet",
+         "grams": 404,
+         "ref_refused": false,
+         "preparation_id": "prep_salmon_couscous"
+        },
+        {
+         "ref": "feta",
+         "term": "feta",
+         "grams": 38,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 125,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 63,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 6,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lemon",
+         "term": "citron",
+         "grams": 38,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Saumon, couscous complet, tomate, laitue, feta et citron",
+     "method": "Assembler le saumon et le couscous froids avec la laitue, la tomate, la feta, l'huile d'olive et le citron.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "feta",
+       "part": null,
+       "term": "feta",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 65.51020408163265,
+       "quantity": "65,51 g de feta",
+       "grams_raw": 65.51020408163265,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 218.3673469387755,
+       "quantity": "218,37 g de tomate",
+       "grams_raw": 218.3673469387755,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 109.18367346938776,
+       "quantity": "109,18 g de laitue",
+       "grams_raw": 109.18367346938776,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 10.918367346938776,
+       "quantity": "10,92 g d'huile d'olive",
+       "grams_raw": 10.918367346938776,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lemon",
+       "part": null,
+       "term": "citron",
+       "unit": "unit",
+       "group": null,
+       "state": "raw",
+       "amount": 1.0918367346938775,
+       "quantity": "1,09",
+       "grams_raw": 65.51020408163265,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    },
+    {
+     "day": "sun",
+     "why": "Le bœuf devient une assiette ouverte au pain et au tahini, distincte de la pita.",
+     "name": "Bœuf grillé au tahini",
+     "slot": "dinner",
+     "uses": [
+      {
+       "kept": "fridge",
+       "servings": 1,
+       "preparation_id": "prep_beef"
+      }
+     ],
+     "boxes": [
+      {
+       "id": "box_sun_dinner_5_26e415dd-b732-4f7c-b826-ede18ab2f826",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 112,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "wholemeal_bread",
+         "term": "pain complet",
+         "grams": 33,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "goat_cheese",
+         "term": "fromage de chèvre",
+         "grams": 22,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 35,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 14,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 22,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 17,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "26e415dd-b732-4f7c-b826-ede18ab2f826"
+       ],
+       "legacy_total_grams": null
+      },
+      {
+       "id": "box_sun_dinner_5_e4f848fe-5150-4292-8757-7a82da58eb9b",
+       "items": [
+        {
+         "ref": null,
+         "term": "Bœuf haché à l'oignon",
+         "grams": 151,
+         "ref_refused": false,
+         "preparation_id": "prep_beef"
+        },
+        {
+         "ref": "wholemeal_bread",
+         "term": "pain complet",
+         "grams": 45,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "goat_cheese",
+         "term": "fromage de chèvre",
+         "grams": 30,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tahini",
+         "term": "tahini",
+         "grams": 46,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "olive_oil",
+         "term": "huile d'olive",
+         "grams": 19,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "tomato",
+         "term": "tomate",
+         "grams": 30,
+         "ref_refused": false,
+         "preparation_id": null
+        },
+        {
+         "ref": "lettuce",
+         "term": "laitue",
+         "grams": 22,
+         "ref_refused": false,
+         "preparation_id": null
+        }
+       ],
+       "member_ids": [
+        "e4f848fe-5150-4292-8757-7a82da58eb9b"
+       ],
+       "legacy_total_grams": null
+      }
+     ],
+     "title": "Bœuf à l'oignon, pain complet, tomate, laitue, fromage de chèvre et tahini",
+     "method": "Dresser la laitue et la tomate, puis ajouter le bœuf froid à l'oignon, le pain, le fromage de chèvre, le tahini et l'huile d'olive.",
+     "same_day": {
+      "kind": "assemble",
+      "minutes": 5
+     },
+     "member_id": null,
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "wholemeal_bread",
+       "part": null,
+       "term": "pain complet",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 78.36094158674803,
+       "quantity": "78,36 g de pain complet",
+       "grams_raw": 78.36094158674803,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "goat_cheese",
+       "part": null,
+       "term": "fromage de chèvre",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 52.24062772449869,
+       "quantity": "52,24 g de fromage de chèvre",
+       "grams_raw": 52.24062772449869,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tahini",
+       "part": null,
+       "term": "tahini",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 80.97297297297297,
+       "quantity": "80,97 g de tahini",
+       "grams_raw": 80.97297297297297,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 32.65039232781168,
+       "quantity": "32,65 g d'huile d'olive",
+       "grams_raw": 32.65039232781168,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "tomato",
+       "part": null,
+       "term": "tomate",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 52.24062772449869,
+       "quantity": "52,24 g de tomate",
+       "grams_raw": 52.24062772449869,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "lettuce",
+       "part": null,
+       "term": "laitue",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 39.18047079337401,
+       "quantity": "39,18 g de laitue",
+       "grams_raw": 39.18047079337401,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      }
+     ],
+     "complements_shared": false,
+     "honours_belief_keys": [
+      "whole_foods_first",
+      "protein_at_every_meal",
+      "regular_meals_beat_perfect_meals"
+     ]
+    }
+   ],
+   "preparations": [
+    {
+     "id": "prep_chicken",
+     "title": "Poulet rôti aux poivres",
+     "method": "Chauffer le four. Assaisonner le poulet de sel et de poivre, l'arroser d'huile d'olive et le rôtir jusqu'à cuisson complète. Refroidir rapidement, puis répartir en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "chicken_thigh",
+       "part": null,
+       "term": "cuisses de poulet désossées",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 520.5405405405406,
+       "quantity": "520,54 g de cuisses de poulet désossées",
+       "grams_raw": 520.5405405405406,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 14.45945945945946,
+       "quantity": "14,46 g d'huile d'olive",
+       "grams_raw": 14.45945945945946,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 1,
+     "total_minutes": 45,
+     "active_minutes": 10
+    },
+    {
+     "id": "prep_beef",
+     "title": "Bœuf haché à l'oignon",
+     "method": "Émincer l'oignon et le faire revenir dans l'huile d'olive. Ajouter le bœuf, assaisonner de sel et de poivre, puis cuire en l'émiettant. Refroidir rapidement et répartir en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "beef_mince",
+       "part": null,
+       "term": "bœuf haché",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 747.5667749861298,
+       "quantity": "747,57 g de bœuf haché",
+       "grams_raw": 747.5667749861298,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "onion",
+       "part": null,
+       "term": "oignon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 205.5808631211857,
+       "quantity": "205,58 g d'oignon",
+       "grams_raw": 205.5808631211857,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 18.689169374653247,
+       "quantity": "18,69 g d'huile d'olive",
+       "grams_raw": 18.689169374653247,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 35,
+     "active_minutes": 15
+    },
+    {
+     "id": "prep_salmon_couscous",
+     "title": "Saumon rôti et couscous complet",
+     "method": "Rôtir le saumon assaisonné avec une partie de l'huile d'olive. Préparer le couscous complet avec de l'eau chaude et le reste de l'huile, puis laisser gonfler. Refroidir rapidement et répartir le saumon et le couscous en portions au réfrigérateur.",
+     "cook_on": "sat",
+     "components": [],
+     "ingredients": [
+      {
+       "ref": "salmon",
+       "part": null,
+       "term": "saumon",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 471.30777238710687,
+       "quantity": "471,31 g de saumon",
+       "grams_raw": 471.30777238710687,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "couscous_wholemeal",
+       "part": null,
+       "term": "couscous complet",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 290.0355522382196,
+       "quantity": "290,04 g de couscous complet",
+       "grams_raw": 290.0355522382196,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": "olive_oil",
+       "part": null,
+       "term": "huile d'olive",
+       "unit": "g",
+       "group": null,
+       "state": "raw",
+       "amount": 36.25444402977745,
+       "quantity": "36,25 g d'huile d'olive",
+       "grams_raw": 36.25444402977745,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": "structured"
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "sel",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de sel",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      },
+      {
+       "ref": null,
+       "part": null,
+       "term": "poivre noir",
+       "unit": null,
+       "group": null,
+       "state": null,
+       "amount": null,
+       "quantity": "une pincée de poivre noir",
+       "grams_raw": null,
+       "in_pantry": false,
+       "ref_refused": false,
+       "quantity_source": null
+      }
+     ],
+     "servings_made": 2,
+     "total_minutes": 35,
+     "active_minutes": 15
+    }
+   ],
+   "shopping_list": [
+    {
+     "term": "cuisses de poulet désossées",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "520 g",
+     "food_group": "poultry",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "bœuf haché",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "750 g",
+     "food_group": "red_meat",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "saumon",
+     "aisle": "protein",
+     "buy_on": "2026-09-12",
+     "quantity": "470 g",
+     "food_group": "fatty_fish",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "couscous complet",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "290 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pain complet",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "155 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tortilla complète",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "85 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pita complète",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "145 g",
+     "food_group": null,
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "flocons d'avoine",
+     "aisle": "grains",
+     "buy_on": "2026-09-12",
+     "quantity": "70 g",
+     "food_group": "whole_grain",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "huile d'olive",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "160 g",
+     "food_group": "olive_oil",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tahini",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "250 g",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "sel",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "1 paquet",
+     "food_group": "sauce_dressing",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "poivre noir",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "1 paquet",
+     "food_group": "sauce_dressing",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "oignon",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "205 g",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "tomates",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "400 g",
+     "food_group": "non_starchy_veg",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "laitue",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "470 g",
+     "food_group": "leafy_greens",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "citrons",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "1 unité",
+     "food_group": "citrus",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "yaourt nature",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "70 g",
+     "food_group": "dairy_yogurt",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "yaourt grec",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "460 g",
+     "food_group": "dairy_yogurt",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "feta",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "65 g",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "fromage de chèvre",
+     "aisle": "dairy",
+     "buy_on": "2026-09-12",
+     "quantity": "50 g",
+     "food_group": "dairy_cheese",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "pêche",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "300 g",
+     "food_group": "other_fruit",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "framboises",
+     "aisle": "produce",
+     "buy_on": "2026-09-12",
+     "quantity": "115 g",
+     "food_group": "berries",
+     "freeze_on_purchase": false
+    },
+    {
+     "term": "amandes",
+     "aisle": "pantry",
+     "buy_on": "2026-09-12",
+     "quantity": "25 g",
+     "food_group": "nuts_seeds",
+     "freeze_on_purchase": false
+    }
+   ],
+   "cooking_sessions": [
+    {
+     "day": "sat",
+     "run_through": "Mettre le four à chauffer, assaisonner et enfourner le poulet, puis le laisser rôtir. Refroidir rapidement et ranger les portions au réfrigérateur.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_chicken"
+     ]
+    },
+    {
+     "day": "sat",
+     "run_through": "Acheter le saumon et le bœuf frais le samedi ou la veille. Mettre le saumon au four, faire revenir l'oignon et le bœuf pendant la cuisson, puis préparer le couscous complet. Refroidir rapidement, répartir les trois préparations et les ranger au réfrigérateur.",
+     "total_minutes": 45,
+     "preparation_ids": [
+      "prep_beef",
+      "prep_salmon_couscous"
+     ]
+    }
+   ],
+   "member_portions": [
+    {
+     "member_id": "e4f848fe-5150-4292-8757-7a82da58eb9b",
+     "display_name": "Paul",
+     "eating_slots": null,
+     "portion_note": null,
+     "preparation_shares": []
+    },
+    {
+     "member_id": "26e415dd-b732-4f7c-b826-ede18ab2f826",
+     "display_name": "Lea",
+     "eating_slots": null,
+     "portion_note": null,
+     "preparation_shares": []
+    }
+   ]
+  }
+ }
+}

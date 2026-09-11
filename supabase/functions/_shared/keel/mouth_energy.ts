@@ -50,7 +50,6 @@ import type { CompositionIndex } from "./food_composition.ts";
 import {
   type DishEnergy,
   dishEnergy,
-  dishEnergyAtTolerance,
   UNRESOLVED_ENERGY_TOLERANCE,
   type EnergyIngredient,
   type EnergyPreparation,
@@ -63,10 +62,18 @@ import {
 // rendrait un chiffre faux.
 import { foldPreparationsIntoDishes } from "./meal_verdict.ts";
 // ⟳ LOT 0 (2026-09-06) — LA MÊME MASSE PRÊTE QUE LE DENSIFIEUR ET LA CROISSANCE
-// DES CASSEROLES (`weighedReadyGrams` : eau de cuisson exclue quand un grain
-// absorbe). Une casserole doit avoir UNE densité dans tout le moteur ; la
-// recalculer ici avec une autre règle en ferait deux.
-import { weighedReadyGrams } from "./box_densify.ts";
+// DES CASSEROLES (eau de cuisson exclue quand un grain absorbe). Une casserole
+// doit avoir UNE densité dans tout le moteur ; la recalculer ici avec une autre
+// règle en ferait deux.
+// ⟳ 2026-09-11 · LOT B — ET CETTE RÈGLE VIT MAINTENANT DANS `preparation_mass.ts`,
+// où elle décide PAR UNITÉ DE CUISSON. `weighedReadyGrams` y délègue ; on lit
+// la source plutôt que son alias.
+import {
+  measureFresh,
+  measurePreparation,
+  proteinOfUnit,
+  readyGramsOfUnit,
+} from "./preparation_mass.ts";
 
 /**
  * POURQUOI UNE BOUCHE N'A PAS SON CHIFFRE SUR UN PLAT. Nommé, jamais un `null`
@@ -351,13 +358,45 @@ export function potDensities(
 ): ReadonlyMap<string, number | null> {
   const out = new Map<string, number | null>();
   for (const prep of preparations) {
-    const energy = dishEnergy(index, { method: prep.method ?? "", ingredients: prep.ingredients });
-    const ready = weighedReadyGrams(prep.ingredients, index);
+    // ⟳ 2026-09-11 · LOT B — UNE SEULE MESURE POUR LES DEUX MOITIÉS. L'énergie
+    // et la masse prête sortaient de deux appels; `measurePreparation` les rend
+    // ensemble, sous la même règle d'eau que `standardPortionOf`,
+    // `densityFromComposition` et `applySizing`. C'est ce qui garantit que
+    // « mesurer l'assiette » et « mesurer les composants appliqués » rendent le
+    // même nombre — le critère de fin du lot.
+    const m = measurePreparation(index, prep);
     out.set(
       prep.id,
-      energy.complete && energy.kcal !== null && ready !== null && ready > 0
-        ? energy.kcal / ready
-        : null,
+      m.kcal !== null && m.readyG !== null && m.readyG > 0 ? m.kcal / m.readyG : null,
+    );
+  }
+  return out;
+}
+
+/**
+ * ⟳ 2026-09-11 · LOT B — LA PROTÉINE DE CHAQUE CASSEROLE, par gramme PRÊT.
+ *
+ * ⛔ ELLE EXISTE PARCE QU'UNE BOÎTE TIRE DES GRAMMES, PAS DES PARTS. La protéine
+ * d'un contenant se calcule comme son énergie: `grammes tirés × la valeur au
+ * gramme de la casserole`. Sans ce lecteur, la seule façon d'avoir la protéine
+ * d'une boîte serait `uses.servings / servingsMade` — le prorata dont ce dépôt
+ * a mesuré qu'il se trompe d'un facteur 5,9 (M07, 2026-09-05).
+ *
+ * `null` quand la casserole ne rend pas de protéine (une borne de groupe donne
+ * une densité d'énergie, jamais des grammes de protéine).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function potProteinPerGram(
+  index: CompositionIndex,
+  preparations: readonly EnergyPreparation[],
+): ReadonlyMap<string, number | null> {
+  const out = new Map<string, number | null>();
+  for (const prep of preparations) {
+    const m = measurePreparation(index, prep);
+    out.set(
+      prep.id,
+      m.proteinG !== null && m.readyG !== null && m.readyG > 0 ? m.proteinG / m.readyG : null,
     );
   }
   return out;
@@ -391,6 +430,27 @@ export function boxKcalByItems(
   dish: MouthEnergyDish,
   densities: ReadonlyMap<string, number | null>,
 ): Array<{ kcal: number | null; gap: MouthEnergyGap | null }> | null {
+  return boxNutritionByItems(index, dish, densities, null);
+}
+
+/**
+ * ⟳ 2026-09-11 · LOT B — LA MÊME PASSE REND AUSSI LA PROTÉINE.
+ *
+ * ⛔ UNE SEULE ARITHMÉTIQUE DU PRORATA, PAS DEUX. La protéine d'un contenant se
+ * calcule exactement comme son énergie: `grammes tirés × la valeur au gramme de
+ * la casserole`, plus la part de frais au prorata des grammes frais. En écrire
+ * une seconde version ailleurs la ferait diverger de celle-ci au premier
+ * ajustement — c'est la raison d'être de ce fichier depuis sa première ligne.
+ *
+ * `proteins` à `null` = l'appelant ne demande pas la protéine; le champ sort
+ * alors `null` sans qu'aucun référentiel ne soit interrogé pour rien.
+ */
+export function boxNutritionByItems(
+  index: CompositionIndex,
+  dish: MouthEnergyDish,
+  densities: ReadonlyMap<string, number | null>,
+  proteins: ReadonlyMap<string, number | null> | null,
+): Array<{ kcal: number | null; proteinG: number | null; gap: MouthEnergyGap | null }> | null {
   if (dish.boxes.length === 0 || !boxesCarryPreparationIds(dish)) return null;
   const totalGrams = dish.boxes.reduce((n, b) => n + boxGramsOf(b), 0);
   const freshGrams = dish.boxes.map((box) =>
@@ -412,34 +472,57 @@ export function boxKcalByItems(
   // règle des 5 % s'applique à `casserole + frais` de CHAQUE boîte — même
   // seuil, même bande, dénominateur juste. Un frais sans borne ni quantité
   // reste illisible, comme avant.
-  const own = dish.ingredients.length > 0
-    ? dishEnergyAtTolerance(index, { method: dish.method, ingredients: dish.ingredients }, 1)
-    : null;
+  // ⟳ 2026-09-11 · LOT B — LE FRAIS PASSE PAR `measureFresh`, le même lecteur
+  // que `measurePlate`. Les deux appliquaient déjà la même règle; une seule
+  // écriture supprime la possibilité qu'elles divergent au premier ajustement.
+  const own = dish.ingredients.length > 0 ? measureFresh(index, dish) : null;
   return dish.boxes.map((box, i) => {
     const grams = boxGramsOf(box);
-    if (grams <= 0 || totalGrams <= 0) return { kcal: null, gap: "empty_box" as const };
+    if (grams <= 0 || totalGrams <= 0) {
+      return { kcal: null, proteinG: null, gap: "empty_box" as const };
+    }
     let kcal = 0;
+    // ⚠️ `null` DÈS QU'UNE CASSEROLE NE REND PAS SA PROTÉINE, et l'énergie
+    // continue sans elle. Une borne de groupe donne une densité d'énergie,
+    // jamais des grammes de protéine: compter la casserole à zéro rendrait une
+    // somme amputée qui a l'air d'un résultat.
+    let protein: number | null = proteins === null ? null : 0;
     for (const item of box.items) {
       const g = Number(item.grams);
       if (!Number.isFinite(g) || g <= 0) continue;
       if (typeof item.preparationId !== "string") continue;
       const density = densities.get(item.preparationId);
       if (density === null || density === undefined) {
-        return { kcal: null, gap: "dish_incomplete" as const };
+        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
       }
       kcal += g * density;
+      if (protein !== null) {
+        const perG = proteins?.get(item.preparationId);
+        if (perG === null || perG === undefined) protein = null;
+        else protein += g * perG;
+      }
     }
     if (own !== null) {
-      if (!own.complete || own.kcal === null) return { kcal: null, gap: "dish_incomplete" as const };
+      if (!own.complete || own.kcal === null) {
+        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
+      }
       const share = freshTotal > 0 ? freshGrams[i] / freshTotal : grams / totalGrams;
       const ownShare = own.kcal * share;
       const boundedShare = (own.boundedKcal ?? 0) * share;
       if (boundedShare > UNRESOLVED_ENERGY_TOLERANCE * (kcal + ownShare)) {
-        return { kcal: null, gap: "dish_incomplete" as const };
+        return { kcal: null, proteinG: null, gap: "dish_incomplete" as const };
       }
       kcal += ownShare;
+      if (protein !== null) {
+        if (own.proteinG === null) protein = null;
+        else protein += own.proteinG * share;
+      }
     }
-    return { kcal, gap: null };
+    return {
+      kcal,
+      proteinG: protein === null ? null : Math.round(protein * 10) / 10,
+      gap: null,
+    };
   });
 }
 
@@ -477,7 +560,7 @@ export function potAttributionGap(args: {
   const ready = new Map<string, { grams: number | null; servingsMade: number }>();
   let potsUnreadable = 0;
   for (const prep of args.preparations) {
-    const g = weighedReadyGrams(prep.ingredients, args.index);
+    const g = readyGramsOfUnit(args.index, prep.ingredients);
     if (g === null) potsUnreadable++;
     ready.set(prep.id, { grams: g, servingsMade: Math.max(1, Number(prep.servingsMade) || 1) });
   }
@@ -515,6 +598,20 @@ export interface BoxEnergy {
   kcal: number | null;
   /** Le motif NOMMÉ du silence. `null` = un chiffre est sorti. */
   gap: MouthEnergyGap | null;
+}
+
+/**
+ * ⟳ 2026-09-11 · LOT B — CE QUE LE CONTENANT PORTE **AUSSI** EN PROTÉINE.
+ *
+ * ⛔ UN TYPE À PART, ET PAS UN CHAMP DE PLUS SUR `BoxEnergy`. `box_energy_
+ * decision.ts` et son test construisent des `BoxEnergy` littéraux; ajouter un
+ * champ obligatoire là-bas casserait un fichier qui n'a rien à voir avec la
+ * protéine. `BoxNutrition` ÉTEND `BoxEnergy`, donc `boxEnergies` reste
+ * exactement ce qu'elle était pour ses cinq appelants.
+ */
+export interface BoxNutrition extends BoxEnergy {
+  /** `null` quand la protéine n'est pas mesurable — jamais zéro. */
+  proteinG: number | null;
 }
 
 /**
@@ -559,6 +656,24 @@ export function boxEnergies(args: {
   dishes: readonly BoxedMouthEnergyDish[];
   preparations: readonly EnergyPreparation[];
 }): BoxEnergy[] {
+  return boxNutrition(args);
+}
+
+/**
+ * ⟳ 2026-09-11 · LOT B — LA MESURE DU CONTENANT ÉCRIT: grammes, kcal, protéine.
+ *
+ * ⛔ C'EST LE LECTEUR DE LA **MESURE FINALE** du chantier: « calories, protéines
+ * et grammes des items effectivement enregistrés dans chaque portion ».
+ * `boxEnergies` n'en est que la projection sans protéine — une seule passe,
+ * deux vues, aucune chance de divergence.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function boxNutrition(args: {
+  index: CompositionIndex;
+  dishes: readonly BoxedMouthEnergyDish[];
+  preparations: readonly EnergyPreparation[];
+}): BoxNutrition[] {
   const folded = foldPreparationsIntoDishes({
     dishes: args.dishes.map((d) => ({
       slot: d.slot,
@@ -568,8 +683,9 @@ export function boxEnergies(args: {
     })),
     preparations: args.preparations,
   });
-  const out: BoxEnergy[] = [];
+  const out: BoxNutrition[] = [];
   const densities = potDensities(args.index, args.preparations);
+  const proteins = potProteinPerGram(args.index, args.preparations);
   for (const [i, dish] of args.dishes.entries()) {
     const gramsOf = (box: MouthEnergyDish["boxes"][number]): number => {
       let sum = 0;
@@ -588,7 +704,7 @@ export function boxEnergies(args: {
       ingredients: folded[i].ingredients,
     });
     // ⟳ LOT 0 — par items quand la boîte cite ses casseroles, pliage sinon.
-    const byItems = boxKcalByItems(args.index, dish, densities);
+    const byItems = boxNutritionByItems(args.index, dish, densities, proteins);
     for (const [j, box] of dish.boxes.entries()) {
       const grams = gramsOf(box);
       const common = {
@@ -599,18 +715,34 @@ export function boxEnergies(args: {
         grams,
       };
       if (total <= 0 || grams <= 0) {
-        out.push({ ...common, kcal: null, gap: "empty_box" as const });
+        out.push({ ...common, kcal: null, proteinG: null, gap: "empty_box" as const });
         continue;
       }
       if (byItems !== null) {
-        out.push({ ...common, kcal: byItems[j].kcal, gap: byItems[j].gap });
+        out.push({
+          ...common,
+          kcal: byItems[j].kcal,
+          proteinG: byItems[j].proteinG,
+          gap: byItems[j].gap,
+        });
         continue;
       }
       if (!energy.complete || energy.kcal === null) {
-        out.push({ ...common, kcal: null, gap: "dish_incomplete" as const });
+        out.push({ ...common, kcal: null, proteinG: null, gap: "dish_incomplete" as const });
         continue;
       }
-      out.push({ ...common, kcal: energy.kcal * (grams / total), gap: null });
+      // ⚠️ LE CHEMIN LEGACY (aucun item ne cite sa casserole) GARDE SON PRORATA
+      // DE GRAMMES, protéine comprise: une seconde règle ici ferait lire deux
+      // valeurs différentes du même contenant selon son âge.
+      const foldedProtein = proteinOfUnit(args.index, dish.method, folded[i].ingredients);
+      out.push({
+        ...common,
+        kcal: energy.kcal * (grams / total),
+        proteinG: foldedProtein === null
+          ? null
+          : Math.round(foldedProtein * (grams / total) * 10) / 10,
+        gap: null,
+      });
     }
   }
   return out;

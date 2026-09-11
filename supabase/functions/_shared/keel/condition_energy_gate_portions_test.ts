@@ -54,9 +54,11 @@ const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
   goal: "fat_loss",
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
   ...over,
 });
 

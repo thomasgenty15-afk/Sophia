@@ -9,6 +9,7 @@ import { type MessageKey, t } from "../i18n/t";
 import { uiLocale } from "../i18n/runtime";
 import { MEMBER_GENDERS } from "../api/household";
 import GoalTiles from "./GoalTiles";
+import ActivityAxesTiles from "./ActivityAxesTiles";
 import type { MemberGender, MemberGoal } from "../api/household";
 import { DIET_ANSWERS } from "../api/onboarding";
 import {
@@ -19,8 +20,8 @@ import {
 import { mealCopy } from "../api/mealLabels";
 import { type MouthVoice, voiced, whoOf } from "../lib/mouthVoice";
 import { arrivalHorizonCopy } from "../lib/arrivalHorizon";
+import { scaleDirectionOf } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 import {
-  activityIsRequired,
   ageStateOfDraft,
   blockList,
   filledPreferenceBlocks,
@@ -36,19 +37,10 @@ import {
   foldMinorGoal,
 } from "../lib/mouthForm";
 import type { EatingStructure } from "../api/eatingStructure";
-import {
-  MEAL_EXTRAS,
-  slotBearsExtras,
-  toggleExtra,
-} from "../lib/mealExtras";
-import {
-  ACTIVITY_LEVELS,
-  APPETITE_LEVELS,
-  DAY_ACTIVITY_LEVELS,
-  SPORT_FREQUENCIES,
-} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { rhythmPrefillFor, rhythmPrefillLatches } from "../lib/rhythmPrefill";
+import { slotBearsLight, toggleLight } from "../lib/mealExtras";
+import { APPETITE_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type {
-  ActivityLevel,
   AppetiteLevel,
   DayActivityLevel,
   SportFrequency,
@@ -474,8 +466,33 @@ function RequiredBlock(
   );
 }
 
+/**
+ * LES MOTS DES TROIS DIRECTIONS — ET IL N'EN RESTE QU'UN JEU.
+ *
+ * ⟳ 2026-09-06 — PASSÉ DE `household.goal.*` À `setup.goal.*`. Deux libellés
+ * pour les trois mêmes jetons vivaient à un doigt l'un de l'autre depuis que le
+ * lot A5 (2026-09-03) a monté cette fiche dans l'étape 2 de l'entonnoir: la
+ * carte du titulaire disait « Perdre du poids », la fiche de la personne qu'on
+ * ajoute « Perte de masse grasse » — le même choix, deux registres, sur le même
+ * écran. `GoalTiles` porte encore un `labelOf` par appelant (« les mots restent
+ * à la page »), et cette règle valait tant qu'il y avait DEUX pages.
+ *
+ * ⛔ ET C'EST LE VOCABULAIRE CLINIQUE QUI TOMBE, PAS L'AUTRE. Sa justification
+ * était écrite dans le catalogue et elle est MORTE: « forme nominale pour
+ * toutes: ce sont des étiquettes dans une liste déroulante, pas des phrases ».
+ * La liste déroulante n'existe plus — le chantier P3 l'a remplacée par des
+ * tuiles le 2026-09-03. `/mealprep` avait déjà quitté ce registre le
+ * 2026-09-01 (« le vocabulaire d'une fiche clinique »), et `plan.goal.*` porte
+ * l'argument du mot retenu: « Perdre du poids » et pas « perdre du gras », le
+ * second demandant de savoir ce qu'on perd, ce que personne ne sait avant de
+ * commencer.
+ *
+ * ⚠️ LES CLÉS `household.goal.minor_*` NE BOUGENT PAS. Elles ne nomment pas une
+ * direction: elles disent le pli de l'âge, et `GoalTiles` les écrit en littéral
+ * pour les cinq sites d'un coup.
+ */
 function goalLabel(goal: MemberGoal): string {
-  return t(`household.goal.${goal}` as "household.goal.fat_loss");
+  return t(`setup.goal.${goal}` as "setup.goal.fat_loss");
 }
 
 /**
@@ -631,18 +648,34 @@ export function MouthPreferencesButton(
 // suffit pas au calcul (`composedDishShare` rend alors la moyenne), et c'est
 // dit à l'écran plutôt que découvert dans un compteur.
 
-/** Ce que les cinq questions du 2026-08-20 valent, pour une bouche. */
+/** Ce que les questions du 2026-08-20 valent, pour une bouche. */
 export interface MouthActivityAndStructure {
   dayActivity: DayActivityLevel | "";
   sportFrequency: SportFrequency | "";
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
   /** ⑤ (2026-08-20). `""` = pas répondu ⇒ ×1,00, un neutre VRAI. */
   appetite: AppetiteLevel | "";
 }
 
 
+// ── ⟳ 2026-09-06 · UNE SEULE GRILLE POUR LES SIX JETONS ────────────────────
+// Ces deux axes étaient rendus ICI par des radios d'une ligne, avec leur propre
+// catalogue (`household.mouth.day_activity_*`, `household.mouth.sport_*`),
+// pendant que l'entonnoir les rendait en TUILES titre + explication avec le
+// sien (`setup.day_activity.*`, `setup.sport.*`). Deux formulaires, six jetons,
+// douze libellés — exactement le mode d'échec que l'en-tête de ce fichier
+// annonce deux paragraphes plus haut, et qui s'est vu le jour où le lot A5 a
+// monté cette fiche DANS l'étape 2, à côté de la carte du titulaire.
+//
+// ⛔ LE CATALOGUE QUI SURVIT EST CELUI DE L'ENTONNOIR, et ce n'est pas un tirage
+// au sort: lui seul porte une PAIRE par jeton, et son explication est mot pour
+// mot le libellé que rendait celui-ci (« Plutôt assis » + « Assis toute la
+// journée, peu de marche »). L'écran ne perd donc aucun mot; il perd un
+// exemplaire.
+//
+// ⚠️ CE QUI RESTE À CETTE FICHE EST SA VOIX. Les titres continuent de NOMMER la
+// personne (`voiced` + `whoOf`), et les deux phrases d'aide continuent de dire
+// où s'arrête chaque axe — c'est elles qui empêchent de compter ses séances une
+// fois dans la journée et une fois dans le sport.
 export function MouthActivityAxesFields(
   { value, onChange, voice, who }: {
     value: MouthActivityAndStructure;
@@ -652,69 +685,21 @@ export function MouthActivityAxesFields(
   },
 ): React.ReactElement {
   return (
-    <>
-      {/* ── ② LA JOURNÉE ──────────────────────────────────────────────── */}
-      <Field
-        label={t(voiced("household.mouth.day_activity", voice), { who })}
-        hint={t("household.mouth.day_activity_hint")}
-      >
-        <div
-          className="flex flex-col gap-2"
-          role="radiogroup"
-          aria-label={t(voiced("household.mouth.day_activity", voice), { who })}
-        >
-          {DAY_ACTIVITY_LEVELS.map((level) => (
-            <label
-              key={level}
-              className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
-            >
-              <input
-                type="radio"
-                name="mouth-day-activity"
-                value={level}
-                checked={value.dayActivity === level}
-                onChange={() => onChange({ dayActivity: level })}
-              />
-              <span>
-                {t(
-                  `household.mouth.day_activity_${level}` as "household.mouth.day_activity_seated",
-                )}
-              </span>
-            </label>
-          ))}
-        </div>
-      </Field>
-
-      {/* ── ② LE SPORT ────────────────────────────────────────────────── */}
-      <Field
-        label={t(voiced("household.mouth.sport", voice), { who })}
-        hint={t("household.mouth.sport_hint")}
-      >
-        <div
-          className="flex flex-col gap-2"
-          role="radiogroup"
-          aria-label={t(voiced("household.mouth.sport", voice), { who })}
-        >
-          {SPORT_FREQUENCIES.map((freq) => (
-            <label
-              key={freq}
-              className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
-            >
-              <input
-                type="radio"
-                name="mouth-sport-frequency"
-                value={freq}
-                checked={value.sportFrequency === freq}
-                onChange={() => onChange({ sportFrequency: freq })}
-              />
-              <span>
-                {t(`household.mouth.sport_${freq}` as "household.mouth.sport_none")}
-              </span>
-            </label>
-          ))}
-        </div>
-      </Field>
-    </>
+    <ActivityAxesTiles
+      dayLabel={t(voiced("household.mouth.day_activity", voice), { who })}
+      dayHint={t("household.mouth.day_activity_hint")}
+      sportLabel={t(voiced("household.mouth.sport", voice), { who })}
+      sportHint={t("household.mouth.sport_hint")}
+      day={value.dayActivity === "" ? null : value.dayActivity}
+      sport={value.sportFrequency === "" ? null : value.sportFrequency}
+      onDay={(next) => onChange({ dayActivity: next })}
+      onSport={(next) => onChange({ sportFrequency: next })}
+      // ⚠️ JAMAIS GRISÉES. Cette fiche n'a pas d'état « occupé » à ce niveau —
+      // son bouton en a un, les champs non —, et griser une grille pendant une
+      // écriture voisine ferait lire un refus là où il n'y en a pas.
+      busy={false}
+      idPrefix="mouth"
+    />
   );
 }
 
@@ -820,9 +805,17 @@ export function MouthCoreFields(
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        <p className="text-sm leading-6 text-ink-soft">
-          {t("household.mouth.intro")}
-        </p>
+        {/* ⛔ LA PHRASE D'INTRODUCTION EST PARTIE (2026-09-09) ─────────────
+            « Trois choses dont on a besoin, trois que tu peux sauter… » décrivait
+            LE FORMULAIRE au lieu de dire quoi que ce soit de la personne — et ce
+            qu'elle promettait est déjà dit par ce que l'écran FAIT: les trois
+            blocs qui retiennent le bouton portent leur cadre, et la ligne
+            « il manque… » les nomme à côté du geste. Décision de l'utilisateur
+            (« ça n'apporte pas de valeur »). La clé `household.mouth.intro` est
+            partie des deux packs avec elle.
+            ⚠️ CE QUI NE DOIT PAS REVENIR ICI à sa place: une phrase qui dit
+            comment la fiche se remplit. Ce qui manque se dit à côté du bouton
+            qui le lève, jamais en tête. */}
 
         {/* ── BLOC 1 · QUI C'EST ─────────────────────────────────────────── */}
         <RequiredBlock
@@ -973,96 +966,46 @@ export function MouthCoreFields(
             {t("setup.mouths.body_together")}
           </p>
 
-          {/* ── LE NIVEAU D'ACTIVITÉ — le champ neuf ────────────────────────
-              `energy_target.ts` servait une fourchette de 28 à 33 kcal/kg parce
-              que « rien ne collecte le niveau d'activité », et multiplier un
-              métabolisme de base par une constante devinée « produit une cible
-              fausse avec l'aplomb d'un tableau ».
+          {/* ── ⛔ ICI SE TENAIENT LES QUATRE CRANS D'ACTIVITÉ ───────────────
+              Retirés le 2026-09-06. Ils demandaient en UNE question ce que les
+              deux grilles juste en dessous demandent en deux, et l'entonnoir
+              avait déjà tranché le 2026-08-19: les quatre crans mélangeaient la
+              journée et le sport, donc quelqu'un d'assis qui court deux fois par
+              semaine ne pouvait dire que l'un des deux — il cochait « Sport 2 à
+              3 fois » et héritait de PAL 1,80 quand le croisement vaut ~1,60.
+              **239 kcal/jour fabriqués par la forme de la question.**
 
-              ⛔ QUATRE CRANS ET PAS CINQ: aucun « je ne sais pas ». `null` (ne
-              pas répondre) est déjà cette réponse, et il vit dans la colonne;
-              un cinquième bouton en ferait une réponse cochée, c'est-à-dire un
-              fait que personne n'a dit.
+              CETTE FICHE-CI N'AVAIT PAS SUIVI, et le lot A5 (2026-09-03) l'a
+              montée dans l'étape 2 telle quelle: l'écran posait alors la même
+              question DEUX FOIS, dans les deux formes, celle d'avant au-dessus
+              de celle d'après.
 
-              ⛔ ET JAMAIS UN NOMBRE. Un nombre demandé est un nombre inventé, et
-              l'inventé entre ensuite dans un calcul avec l'autorité d'une
-              mesure.
+              ⛔ ET LA QUESTION EN TROP RETENAIT LE BOUTON, pendant que les deux
+              qui comptent ne le retenaient pas. `missingRequiredBlocks` exigeait
+              `activityLevel` dès que la direction bougeait; `activityFactorOf`,
+              lui, JETTE ce cran dès que les deux axes sont remplis (`crossed`
+              l'emporte sur `legacy`). On bloquait donc l'inscription sur une
+              réponse dont on savait déjà qu'on ne la lirait pas — et si un seul
+              axe manquait, c'est le cran qui gagnait, c'est-à-dire très
+              exactement le PAL faux que la scission avait retiré.
 
-              ── ⚠️ RÉCLAMÉ SEULEMENT SOUS UNE DIRECTION QUI BOUGE ────────────
-              Décision du 2026-08-18. Le champ reste MONTRÉ à tout le monde —
-              « facultatif » n'est pas « absent », et quelqu'un qui maintient
-              peut très bien répondre —, mais il ne retient le bouton que si la
-              balance doit bouger. La décision vit dans `activityIsRequired`, et
-              elle est rendue ICI par `aria-required`: sans cet attribut, la
-              seule trace de la règle serait la ligne « il manque… », c'est-à-dire
-              une différence qu'on ne voit qu'APRÈS avoir essayé de sortir.
+              ⚠️ LA COLONNE, ELLE, RESTE, ET IL NE FAUT PAS LA VIDER.
+              `p_activity_level` est un paramètre REQUIS de la RPC, `legacy` est
+              le repli NOMMÉ des fiches qui n'ont répondu qu'à lui, et le
+              brouillon continue de le porter d'un bout à l'autre: ce qui a été
+              déclaré autrefois est renvoyé tel quel. On a retiré le CONTRÔLE,
+              pas la donnée. Son vocabulaire reste lisible dans
+              `SetupPage.tsx` (`ACTIVITY_KEYS`), gardé exprès pour ça. */}
 
-              ⚠️ ET LE BLOCAGE SUIT PAR LE MÊME CHEMIN: `missingRequiredBlocks`
-              lit `activityIsRequired`, `submitIsHeld` lit `missingRequired
-              Blocks`, et le bouton lit `submitIsHeld`. Un `aria-required` qui
-              dirait « facultatif » au-dessus d'un bouton qui retient quand même
-              serait une garde désarmée doublée d'un mensonge. */}
-          <Field
-            label={t(voiced("household.mouth.activity", voice), { who })}
-            hint={t("household.mouth.activity_hint")}
-          >
-            <div
-              className="flex flex-col gap-2"
-              role="radiogroup"
-              aria-label={t(voiced("household.mouth.activity", voice), { who })}
-              aria-required={activityIsRequired(draft.goal)}
-            >
-              {ACTIVITY_LEVELS.map((level) => (
-                <label
-                  key={level}
-                  className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
-                >
-                  <input
-                    type="radio"
-                    name="mouth-activity"
-                    value={level}
-                    checked={draft.activityLevel === level}
-                    onChange={() =>
-                      set({ activityLevel: level as ActivityLevel })}
-                  />
-                  <span>
-                    {t(
-                      `household.mouth.activity_${level}` as "household.mouth.activity_sedentary",
-                    )}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </Field>
-
-          {/* ── ② LES DEUX AXES, DANS LE BLOC DU CORPS ────────────────────
-              Ils y sont parce qu'ils sont la TROISIÈME ENTRÉE DE LA MÊME
-              ÉQUATION: le corps dit combien on pèse, l'activité dit ce qu'on en
-              fait, et `meal_envelope.ts` multiplie les deux. Les ranger dans
-              les préférences en ferait une option, alors que l'écart entre les
-              deux extrêmes du croisement est de ~47 % de l'enveloppe.
-
-              ⛔ ① ET ⑤ NE SONT PLUS ICI (2026-08-20, soir). Ils décrivent une
-              habitude de table, pas un corps: ils vivent dans la fenêtre des
-              préférences (`MouthEatingHabitsFields`). */}
-          <MouthActivityAxesFields
-            voice={voice}
-            who={who}
-            value={{
-              dayActivity: draft.dayActivity,
-              sportFrequency: draft.sportFrequency,
-              takesDessert: draft.takesDessert,
-              takesCheese: draft.takesCheese,
-              takesBread: draft.takesBread,
-              appetite: draft.appetite,
-            }}
-            onChange={(patch) => set(patch)}
-          />
         </RequiredBlock>
 
-        {/* ── BLOC 3 · LA DIRECTION — ET SES DEUX CHAMPS DÉPLIABLES ─────── */}
+        {/* ── BLOC 3 · CE QU'ELLE VISE — ET SES DEUX CHAMPS DÉPLIABLES ────
+            ⟳ 2026-09-06 — LE TITRE NOMME L'INTENTION, PLUS L'EFFET. Il disait
+            « Le sens dans lequel la balance va »: vrai du calcul, faux de la
+            question. Voir la note du catalogue, et `setup.people.goal` sur la
+            carte du titulaire, qui portait déjà ces mots-là. */}
         <RequiredBlock
-          title={t("household.mouth.direction")}
+          title={t(voiced("household.mouth.direction", voice))}
           hint={t("household.mouth.direction_hint")}
         >
           {/* TROIS CHOIX, PAS SIX — ET UN SEUL POUR UN MINEUR (2026-09-03).
@@ -1078,7 +1021,7 @@ export function MouthCoreFields(
               nommer la direction d'ORIGINE. Le pli, lui, est dans `checked`. */}
           <GoalTiles
             name="mouth-goal"
-            ariaLabel={t("household.mouth.direction")}
+            ariaLabel={t(voiced("household.mouth.direction", voice))}
             value={props.draft.goal}
             ageState={ageState}
             labelOf={goalLabel}
@@ -1107,6 +1050,40 @@ export function MouthCoreFields(
             who={who}
           />
         </RequiredBlock>
+
+        {/* ── ② LES DEUX AXES — SOUS LA DIRECTION, ET PAS DANS LE CORPS ───
+            ⟳ 2026-09-06 · DEMANDÉ À L'ÉCRAN. Ils étaient dans le bloc du corps
+            depuis le 2026-08-20, et l'argument était le CALCUL: le corps dit
+            combien on pèse, l'activité dit ce qu'on en fait, `meal_envelope.ts`
+            multiplie les deux, et l'écart entre les deux extrêmes du croisement
+            vaut ~47 % de l'enveloppe. Rien de tout ça n'a bougé — mais ce n'est
+            pas l'ordre de la LECTURE.
+
+            La carte du titulaire avait déjà fait ce déplacement le 2026-09-01,
+            avec ses mots: « d'abord CE QU'EST ce corps (naissance, sexe, taille,
+            poids), ensuite CE QU'IL VISE, ensuite CE QU'IL FAIT de ses
+            journées ». Les deux fiches se lisent l'une sous l'autre dans
+            l'étape 2 depuis A5; celle-ci suit la même route.
+
+            ⛔ ET ELLES RESTENT EN LIGNE, HORS DES PRÉFÉRENCES. Les ranger
+            derrière le bouton en ferait une option, alors qu'elles
+            dimensionnent chaque part. Elles sont hors des trois cadres
+            obligatoires parce qu'elles ne retiennent rien — et c'est ce que le
+            cadre dit.
+
+            ⛔ ① ET ⑤ NE SONT PAS ICI (2026-08-20, soir). Ils décrivent une
+            habitude de table, pas un corps: ils vivent dans la fenêtre des
+            préférences (`MouthEatingHabitsFields`). */}
+        <MouthActivityAxesFields
+          voice={voice}
+          who={who}
+          value={{
+            dayActivity: draft.dayActivity,
+            sportFrequency: draft.sportFrequency,
+            appetite: draft.appetite,
+          }}
+          onChange={(patch) => set(patch)}
+        />
 
         {/* ── LE BOUTON QUI OUVRE LES PRÉFÉRENCES ─────────────────────────
             Les blocs 4-6 vivent DERRIÈRE lui depuis le 2026-08-18: ils affinent
@@ -1209,7 +1186,50 @@ export function MouthPreferencesFields(
    * a coché ses moments a répondu: on ne réécrit pas sa réponse, on verrouille
    * seulement son plancher. Et comme la condition tombe dès qu'on a écrit, cet
    * effet ne peut pas boucler.
+   *
+   * ── ⟳ 2026-09-08 — REVENU, APRÈS AVOIR ÉTÉ RETIRÉ LE 2026-09-06 ─────────
+   * La pierre tombale qui vivait ici disait qu'une pré-coche confond le
+   * PLANCHER (« ce corps a besoin de N moments ») et la DÉCLARATION (« voilà
+   * quand je mange »), et que la cicatrice `auto-tick-writes-undeniable-false-
+   * facts` s'appliquait mot pour mot.
+   *
+   * Décision du propriétaire, et son argument porte: cette fiche se remplit
+   * DANS L'ENTONNOIR, sous les yeux de la personne, et c'est elle qui
+   * l'enregistre. Des cases qu'elle voit, qu'elle peut décocher, et qu'elle
+   * valide en enregistrant ne sont pas un fait écrit dans son dos — c'est un
+   * formulaire pré-rempli, et l'enregistrement EST la confirmation. La
+   * cicatrice de 2026-08-05 parlait d'une coche écrite par une PHOTO, sans
+   * personne devant l'écran et sans moyen de la retirer; ce n'est pas ce cas.
+   *
+   * ⚠️ CE QUI SURVIT DE LA CICATRICE, ET QUI EST LA MOITIÉ DU LOT: la
+   * proposition ne se fait qu'UNE FOIS par fiche (`prefilled`). Sans ce
+   * verrou, décocher le dernier moment remettrait `rhythm` à `null` — l'état
+   * même sur lequel on propose —, la liste se recocherait sous les doigts, et
+   * « comme la maison » deviendrait un état que le produit refuse d'atteindre.
+   *
+   * ⛔ ET LA DÉCISION N'EST PAS ICI. Quels moments et combien viennent de
+   * `structure.slots`, c'est-à-dire de `_shared/keel/eating_structure.ts` — le
+   * même module pur que le générateur. Le tri du « quand » vit dans
+   * `lib/rhythmPrefill.ts`, testé seul; cet effet ne fait que le câbler.
    */
+  const prefilled = React.useRef(false);
+  React.useEffect(() => {
+    if (rhythmPrefillLatches(draft.rhythm)) {
+      prefilled.current = true;
+      return;
+    }
+    const next = rhythmPrefillFor({
+      declared: draft.rhythm,
+      // ⚠️ `slots` ET PAS `opened` — voir `RhythmPrefillInput`: `opened` est le
+      // delta, et il retombe à zéro dès que le brouillon porte les moments.
+      derived: props.structure?.slots ?? [],
+      latched: prefilled.current,
+    });
+    if (next === null) return;
+    prefilled.current = true;
+    set({ rhythm: next });
+  }, [draft.rhythm, props.structure]);
+
   /**
    * ⛔ LA PHRASE SUIT LE VERROU, PAS `opened` — ET C'EST UN DÉFAUT MESURÉ.
    *
@@ -1227,21 +1247,99 @@ export function MouthPreferencesFields(
    */
   const floorCount = props.structure?.requiredCount ?? 0;
   const tickedCount = (draft.rhythm ?? []).length;
-  const floorBinds = floorCount > 0 && tickedCount <= floorCount;
-  const openedKey = (props.structure?.opened ?? []).join(",");
-  React.useEffect(() => {
-    if (draft.rhythm !== null) return;
-    if (openedKey.length === 0) return;
-    const slots = openedKey.split(",") as EatingOccasion[];
-    onChange((prev) =>
-      prev.rhythm !== null ? prev : {
-        ...prev,
-        rhythm: EATING_OCCASIONS
-          .filter((s) => slots.includes(s))
-          .map((s) => ({ slot: s, size: null })),
-      }
-    );
-  }, [openedKey, draft.rhythm, onChange]);
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ CE QUI S'EST PASSÉ ICI EN TROIS JOURS — à lire avant de re-trancher
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // 2026-09-04  la pré-coche arrive, en écrivant `structure.opened`.
+  // 2026-09-06  elle est RETIRÉE: « pourquoi cette personne a l'après-midi qui
+  //             est automatiquement cochée ? ». Motif écrit alors: deux choses
+  //             sans rapport tombaient dans le même champ — le PLANCHER (le
+  //             serveur dit « ce corps a besoin de N moments ») et la
+  //             DÉCLARATION (ce qu'elle dit manger).
+  // 2026-09-08  elle REVIENT, et le motif de 09-06 est jugé faux ICI: la fiche
+  //             se remplit dans l'entonnoir, sous les yeux de la personne, et
+  //             l'enregistrement est sa confirmation. Le détail, et ce qui
+  //             survit quand même de la cicatrice, sont sur l'effet plus haut
+  //             et dans `lib/rhythmPrefill.ts`.
+  //
+  // ⚠️ CE QUI N'A JAMAIS BOUGÉ, DANS LES TROIS ÉTATS: la PHRASE. Sans elle, la
+  // personne ne sait pas d'où vient le goûter coché — et une case pré-cochée
+  // sans phrase est exactement ce qui a fait retirer le lot en 09-06.
+  //
+  // ⚠️ ET RIEN N'EST PERDU SI ELLE DÉCOCHE TOUT. `rhythm = null` veut dire
+  // « comme la maison », et le générateur dérive le plancher lui-même
+  // (`eatingStructureFor`, le MÊME module pur que cette réponse): les moments
+  // manquants s'ouvriront au plan. Décocher ne prive donc de rien — c'est ce
+  // qui rend la pré-coche acceptable.
+
+  // ── CE QUI VERROUILLE, ET SEULEMENT QUAND ÇA A UN SENS ────────────────────
+  // ⟳ 2026-09-06 — `<=` EST DEVENU `===`, ET LE `<=` ÉTAIT UN PIÈGE MASQUÉ.
+  // Il ne se voyait pas tant que l'effet ci-dessus pré-cochait exactement
+  // `floorCount` moments: on partait donc TOUJOURS à l'égalité. Sans lui, une
+  // fiche part à zéro coché — et `tickedCount <= floorCount` verrouillait la
+  // PREMIÈRE case cochée (1 <= 4), sans qu'aucune autre ne soit cochable pour
+  // la libérer. Un formulaire où le premier geste est irréversible.
+  //
+  // ⛔ 2026-09-08 — LA PRÉ-COCHE EST REVENUE, DONC LE MASQUE AUSSI: on repart
+  // à l'égalité, et un `<=` redeviendrait invisible en fiche neuve. Il ne
+  // mordrait qu'après le premier décochage — c'est-à-dire chez la personne qui
+  // essaie précisément de corriger ce qu'on lui a proposé. NE LE REMETS PAS.
+  // `oneCookingSessionField`-style: le test qui tient ça est
+  // `rhythmPrefill.int.test.ts :: « le verrou ne mord qu'à l'égalité »`.
+  //
+  // La règle juste est celle que ce fichier écrit déjà plus bas: « on peut
+  // échanger, on ne peut pas DESCENDRE ». Elle ne mord qu'À l'égalité —
+  // au-dessous, la personne est déjà sous le compte et le plan complètera;
+  // au-dessus, il reste de la marge.
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ ON N'IMPOSE DE MANGER QU'À QUI VEUT PRENDRE DU POIDS — 2026-09-06
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Décision produit, mot pour mot: « si une personne n'a pas pour objectif de
+  // prendre du poids il faut pas qu'on impose de manger. Donc on propose
+  // 3 repas par jour mais si c'est pas pour gagner du poids on peut décocher
+  // et après l'algorithme fera comme il peut ».
+  //
+  // ── CE QUE LE VERROU FAISAIT, ET POURQUOI ÇA NE TIENT QUE DANS UN SENS ───
+  // Le plancher vient d'un plafond de MASSE: une assiette ne peut pas porter
+  // toute la journée, donc au-delà d'un certain besoin il faut plus de
+  // moments. Le raisonnement est juste, mais sa CONSÉQUENCE ne l'est que quand
+  // on cherche à faire ENTRER de l'énergie. Pour qui maintient ou perd, une
+  // journée en trois repas qui n'atteint pas tout à fait sa cible n'est pas un
+  // défaut à corriger de force: c'est une journée ordinaire, et le plan
+  // compose au mieux dans ce qu'on lui laisse.
+  //
+  // ⛔ ET « IMPOSER DE MANGER » N'EST PAS UNE FIGURE DE STYLE. Une case grisée
+  // sur un goûter dit à quelqu'un qu'il doit prendre une collation. À une
+  // personne qui perd du poids, c'est le produit qui se met en travers de son
+  // objectif; à une personne qui a un rapport difficile à la nourriture, c'est
+  // pire que ça. Le plancher TCA est ailleurs et reste entier
+  // (`mouthTargetKcal`, `restriction_floor`): il protège d'un déficit, il ne
+  // réclame pas un repas de plus.
+  //
+  // ⚠️ LE PLANCHER CONTINUE DE SE DIRE, DANS LES DEUX CAS. Ce qui disparaît est
+  // la contrainte, jamais l'information: la phrase annonce toujours combien de
+  // moments le plan ouvrira, et c'est ce qui évite de découvrir un goûter dans
+  // son plan sans rien pour l'expliquer.
+  // ⚠️ `""` — AUCUNE DIRECTION CHOISIE — N'IMPOSE RIEN NON PLUS. Elle n'est pas
+  // « probablement une prise »: c'est une question sans réponse, et un verrou
+  // posé dessus réclamerait un repas au nom d'un objectif que personne n'a
+  // encore nommé.
+  const gainsWeight = draft.goal !== "" && scaleDirectionOf(draft.goal) === "up";
+  const floorBinds = gainsWeight && floorCount > 0 &&
+    tickedCount === floorCount;
+  // ── ET CE QUI PARLE, QUI N'EST PAS LA MÊME CHOSE ─────────────────────────
+  // La phrase couvre TOUT le dessous du plancher, verrou compris: à zéro coché
+  // elle annonce ce que le plan ouvrira, à l'égalité elle explique en plus la
+  // case grisée. Au-DESSUS, elle se tait — il n'y a plus rien à ouvrir, et une
+  // phrase qui resterait dirait une contrainte que l'écran n'applique plus.
+  //
+  // ⚠️ C'EST L'ANCIEN `floorBinds`, ET CE N'EST PAS UN HASARD: il faisait les
+  // deux travaux à la fois parce que l'écran pré-cochait exactement
+  // `floorCount` moments, ce qui collait les deux conditions l'une sur l'autre.
+  // Elles se séparent le jour où la fiche part vide.
+  const floorSpeaks = floorCount > 0 && tickedCount <= floorCount;
 
   /**
    * ⟳ `declaredSlots` A ÉTÉ RETIRÉ LE 2026-09-01 — IL N'AVAIT PLUS DE LECTEUR.
@@ -1462,26 +1560,23 @@ export function MouthPreferencesFields(
         value={{
           dayActivity: draft.dayActivity,
           sportFrequency: draft.sportFrequency,
-          takesDessert: draft.takesDessert,
-          takesCheese: draft.takesCheese,
-          takesBread: draft.takesBread,
           appetite: draft.appetite,
         }}
         onChange={(patch) => set(patch)}
       />
 
-      {/* ⛔ « CE QU'IL Y A D'AUTRE DANS L'ASSIETTE » A ÉTÉ RETIRÉ LE
-          2026-09-01, et ses trois oui/non avec lui. Ils étaient posés UNE FOIS
-          POUR LA PERSONNE: « je prends du pain » ne disait pas si c'était le
-          midi, le soir, ou les deux, et le même ratio partait sur les six
-          moments — petit-déjeuner compris, que le plan compose pourtant en
-          entier. La question se pose maintenant DANS le moment qu'elle
-          concerne, en bulles (voir la section « quand … mange, et quoi »).
+      {/* ⛔ « CE QU'IL Y A D'AUTRE DANS L'ASSIETTE » N'EXISTE PLUS.
+          Les trois oui/non par personne ont été retirés de l'écran le
+          2026-09-01, remplacés par des bulles par moment; les bulles elles-
+          mêmes ont été retirées le 2026-09-10.
 
-          ⚠️ `takesDessert / takesCheese / takesBread` RESTENT dans le
-          brouillon et en base, et le moteur les lit encore EN REPLI pour les
-          bouches d'avant ce lot. Leur retrait est un lot à part, et le
-          compteur `meal_extras_source` dit quand il devient légitime. */}
+          ⛔ DÉCISION PRODUIT: le plan dimensionne les aliments qu'il prévoit et
+          ne réserve plus d'énergie pour un accompagnement personnel hors plan.
+          La phrase qui le dit est sous le bloc « quand … mange, et quoi ».
+
+          ⚠️ `takes_dessert / takes_cheese / takes_bread` RESTENT EN BASE et ne
+          sont effacés par personne — l'écran ne les écrit plus et le moteur ne
+          les lit plus, ce qui suffit à les neutraliser. */}
 
       {/* ══════════════════════════════════════════════════════════════════
           4 · QUAND ELLE MANGE, ET QUOI — UNE SEULE QUESTION (2026-09-01)
@@ -1653,66 +1748,43 @@ export function MouthPreferencesFields(
                           className={inputClass}
                         />
                       </Field>
-                      {/* ── LES BULLES: CE QUI EST PRIS À CÔTÉ DU PLAT ──
-                          ⛔ SUR LE DÉJEUNER ET LE DÎNER SEULEMENT. Ailleurs, le
-                          plan compose TOUT ce qui a été déclaré — « chocolat
-                          chaud + tartines l'après-midi » devient le contenu du
-                          moment. Y afficher des bulles ferait retrancher une
-                          seconde fois ce qui est déjà dans l'assiette.
+                      {/* ── « + REPAS LÉGER » ────────────────────────────
+                          ⟳ 2026-09-10 — LES CINQ BULLES D'EXTRAS QUI VIVAIENT
+                          ICI ONT ÉTÉ RETIRÉES (pain, fromage, yaourt, fruit,
+                          dessert, sur le déjeuner et le dîner). Le plan
+                          dimensionne les aliments qu'il prévoit; il ne réserve
+                          plus d'énergie pour un accompagnement personnel.
 
-                          ⛔ ET UNE BULLE ÉTEINTE N'EST PAS « NON ». Trois états,
-                          deux apparences: jamais touché (le moteur retire sa
-                          convention de 58 %), touché puis éteint (« rien à
-                          côté », le plat porte tout le repas), allumé. Ce qui
-                          les sépare est la CLÉ du moment, posée au premier clic
-                          — voir `toggleExtra`. Rien à l'écran ne distingue les
-                          deux premiers, et c'est assumé: la seule alternative
-                          serait une sixième bulle « rien », c'est-à-dire une
-                          question de plus pour une réponse que le repli couvre
-                          déjà correctement. */}
-                      {slotBearsExtras(slot) ? (
+                          ⚠️ TROIS MOMENTS, PAS SIX: une collation pèse déjà
+                          0,10 de la journée, la marquer légère demanderait au
+                          plan de composer ~40 kcal. « Je ne prends pas de
+                          goûter » se dit en ne cochant pas le goûter.
+
+                          ⛔ ET UNE BULLE ÉTEINTE N'EST PAS « NON ». Trois
+                          états, deux apparences: jamais touché, touché puis
+                          éteint (« ce moment est comme d'habitude »), allumé.
+                          Ce qui les sépare est la CLÉ du moment, posée au
+                          premier clic — voir `toggleLight`. */}
+                      {slotBearsLight(slot) ? (
                         <div className="mt-3">
-                          <p className="mb-1.5 text-xs font-medium text-ink-soft">
-                            {t("household.mouth.extras_field")}
+                          <button
+                            type="button"
+                            disabled={props.busy}
+                            aria-pressed={draft.light[slot] === true}
+                            data-mouth-light={slot}
+                            onClick={() => set({ light: toggleLight(draft.light, slot) })}
+                            className={`rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50 ${
+                              draft.light[slot] === true
+                                ? "border-ink bg-ink text-paper"
+                                : "border-line-strong bg-paper text-ink-soft hover:border-ink hover:text-ink"
+                            }`}
+                          >
+                            {draft.light[slot] === true ? "" : "+ "}
+                            {t("household.mouth.light")}
+                          </button>
+                          <p className="mt-1.5 text-xs leading-5 text-ink-soft">
+                            {t("household.mouth.light_hint")}
                           </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {MEAL_EXTRAS.map((extra) => {
-                              const picked =
-                                (draft.extras[slot] ?? []).includes(extra);
-                              return (
-                                <button
-                                  key={extra}
-                                  type="button"
-                                  disabled={props.busy}
-                                  aria-pressed={picked}
-                                  data-mouth-extra={`${slot}:${extra}`}
-                                  onClick={() =>
-                                    set({
-                                      extras: toggleExtra(
-                                        draft.extras,
-                                        slot,
-                                        extra,
-                                      ),
-                                    })}
-                                  className={`rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50 ${
-                                    picked
-                                      ? "border-ink bg-ink text-paper"
-                                      : "border-line-strong bg-paper text-ink-soft hover:border-ink hover:text-ink"
-                                  }`}
-                                >
-                                  {/* LE « + » EST UNE PROPOSITION, ET IL
-                                      DISPARAÎT UNE FOIS LA BULLE ALLUMÉE: elle
-                                      ne propose plus d'ajouter, elle DIT ce qui
-                                      est pris. */}
-                                  {picked ? "" : "+ "}
-                                  {t(
-                                    `household.mouth.extra.${extra}` as
-                                      "household.mouth.extra.bread",
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
                         </div>
                       ) : null}
                       {shakerHere ? (
@@ -1734,18 +1806,54 @@ export function MouthPreferencesFields(
               {t(voiced("household.mouth.rhythm_house", voice), { who })}
             </p>
           ) : null}
+          {/* ⟳ 2026-09-10 — CE QUE LE PLAN COMPTE, ET CE QU'IL NE COMPTE PAS.
+              ⛔ ELLE REMPLACE UNE QUESTION PAR UN FAIT. Les cinq bulles
+              demandaient ce qui était pris à côté du plat pour en retrancher
+              l'énergie; le plan ne réserve plus rien hors de ce qu'il compose.
+              Sans cette phrase, quelqu'un qui ajoute du pain croirait que son
+              plan en tient compte — et rien à l'écran ne le démentirait. */}
+          <p className="mt-2 text-xs leading-5 text-ink-soft">
+            {t("household.mouth.portions_plan_only")}
+          </p>
           {/* ⚠️ ON NE COCHE JAMAIS UN MOMENT SANS LE DIRE — la règle est déjà
               écrite pour le shaker, et elle vaut ici pour la même raison: un
               moment apparu tout seul, sans phrase, se lit comme un bug. */}
-          {floorBinds
+          {/* ── LE PLANCHER SE DIT DÈS QU'IL EXISTE — 2026-09-06 ────────────
+              ⟳ LA CONDITION ÉTAIT `floorBinds`, ET ELLE EST DEVENUE
+              `floorCount > 0`. Tant que l'écran cochait les moments tout seul,
+              les deux revenaient au même: on partait à l'égalité, donc la
+              phrase était toujours là. Depuis que plus rien n'est coché
+              d'office, `floorBinds` est faux sur une fiche neuve — et la
+              personne n'aurait plus rien pour savoir que le plan lui ouvrira
+              un goûter. Un plancher qu'on applique sans le nommer est
+              indiscernable d'une lubie du plan.
+
+              ⟳ 2026-09-08 (soir) — TROIS PHRASES EMPILÉES SONT DEVENUES UNE,
+              ET L'EMPILEMENT SE CONTREDISAIT. Il rendait `rhythm_derived` +
+              `rhythm_derived_why` + `rhythm_floor_locked` à la suite: le
+              chiffre trois fois, « cochés » trois fois — et une invitation à
+              « décocher » posée juste au-dessus de la phrase qui explique que
+              les cases sont tenues. Signalé mot pour mot: « on peut pas
+              décocher les repas imposés ».
+
+              ⛔ UNE PHRASE PAR ÉTAT, ET CHACUNE NE NOMME QUE LE GESTE QUI
+              EXISTE. Tenu (`floorBinds`) ⇒ on ne peut qu'AJOUTER, et la phrase
+              porte alors le pourquoi, parce que c'est là qu'il sert. Libre ⇒ on
+              peut RETIRER. Les servir toutes les deux, c'était promettre un
+              geste que l'écran refuse — la cicatrice du bouton mort prise par
+              l'autre bout. */}
+          {floorSpeaks
             ? (
               <p className="text-xs leading-5 text-ink-soft">
-                {t(voiced("household.mouth.rhythm_derived", voice), {
-                  who,
-                  count: String(floorCount),
-                })}
-                {" "}
-                {t("household.mouth.rhythm_derived_why")}
+                {t(
+                  voiced(
+                    floorBinds
+                      ? "household.mouth.rhythm_floor_locked"
+                      : "household.mouth.rhythm_derived",
+                    voice,
+                  ),
+                  { who, count: String(floorCount) },
+                )}
               </p>
             )
             : null}
@@ -2006,36 +2114,18 @@ export function TargetAndPaceFields(
                       ]}
                     </p>
                   ) : null}
-                  {/* ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT. Mesuré: au
-                      delà de `MAX_SURPLUS_FRACTION`, 0,20 et 0,60 rendent le
-                      MÊME écart quotidien — les deux tiers de la course du
-                      curseur ne changent pas un gramme dans une boîte. Sans
-                      cette phrase, quelqu'un pousse à 1,0 en croyant
-                      accélérer, ne voit aucune différence, et ne peut pas
-                      savoir si c'est le produit qui l'ignore ou son corps qui
-                      plafonne.
-
-                      ⚠️ SÉPARÉE DE L'AVERTISSEMENT DU DESSUS, et pas fondue
-                      dedans: les deux sont vraies en même temps au-delà de
-                      0,5 kg/semaine sur un grand corps, et elles ne disent pas
-                      la même chose — l'une parle de physiologie, l'autre de ce
-                      que le plan exécute. Un bloc unique en ferait taire une.
-
-                      ⚠️ TON NEUTRE, PAS AMBRE. Ce n'est pas un risque, c'est
-                      une information sur le contrôle: le peindre en alerte
-                      ferait lire « tu fais quelque chose de dangereux » à
-                      quelqu'un qui a simplement poussé un curseur. */}
-                  {/* ⛔ LA PHRASE DE SATURATION N'EST PLUS RENDUE (2026-08-19).
-                      « À partir de ce cran, l'assiette ne change plus… »
-                      décrivait le comportement INTERNE du plafond à quelqu'un
-                      qui pousse un curseur déjà borné par ce même plafond: le
-                      contrôle ne monte pas plus haut, ce qui est l'information
-                      — la phrase ne faisait que la répéter en trente mots.
-
-                      ⚠️ `PACE_SATURATION_LABELS` RESTE dans le module moteur,
-                      avec ses tests: c'est l'AFFICHAGE qui part, pas la
-                      décision. Le jour où un écran veut l'expliquer, le texte
-                      est là et il est traduit. */}
+                  {/* ③ — LA SATURATION, ET POURQUOI IL N'Y A PLUS RIEN ICI.
+                      Du 2026-08-18 au -08-19, cette place a porté « à partir
+                      de ce cran, l'assiette ne change plus » : le moteur
+                      rabotait une prise à +10 % de l'entretien pendant que le
+                      curseur montait à la borne dure, et 0,20 comme 0,60
+                      rendaient la même boîte. L'AFFICHAGE est parti le
+                      2026-08-19 (la phrase répétait en trente mots ce que la
+                      butée du curseur montrait déjà). Le PLAFOND CACHÉ, lui,
+                      est parti le 2026-09-09 : le curseur est le contrat, et
+                      un cran réglé ici est exécuté tel quel — en-tête de
+                      `weight_pace.ts`. Il n'y a donc plus de cran qui « ne
+                      change plus rien », et plus rien à dire à cette place. */}
                   {/* ⚠️ L'HORIZON — REVENU LE 2026-09-01, À LA DEMANDE, ET
                       IL NE REVIENT PAS NU.
 

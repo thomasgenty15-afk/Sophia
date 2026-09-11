@@ -44,7 +44,9 @@ import {
   resolveIngredient,
 } from "./food_composition.ts";
 import { verdictFor } from "./meal_verdict.ts";
-import { envelopeFor } from "./meal_envelope.ts";
+import { envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 
 // ---------------------------------------------------------------------------
 // LA DUPLICATION EST UNE DÉCISION, PAS UNE DÉRIVE
@@ -92,6 +94,7 @@ Deno.test("les listes recopiées sont ÉGALES à celles d'origine", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
       }).dishes[0]?.day,
@@ -306,6 +309,7 @@ Deno.test("LES DEUX BOUTS — le parseur DROP le plat, la consigne ne suffit pas
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   });
@@ -360,6 +364,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -387,7 +392,7 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
+const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
 
 const DISH = {
   slot: "dinner",
@@ -520,6 +525,7 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
   { day: null, sport: null, asked: false },
   null,
   null,
+MAINTENANCE_ENVELOPE_DIRECTION
 );
   assertEquals(restricted.mode, "per_portion");
   const v = verdictFor({
@@ -549,11 +555,14 @@ const PROMPT_ARGS = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   dietBlock: "",
   doctrineBlock: "",
@@ -593,8 +602,8 @@ Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACT
   // strictement rien — ni ligne, ni saut de ligne, ni titre orphelin.
   assertEquals(fixedIntakePromptLines([]), []);
 
-  const empty = buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: [] });
-  const withIntake = buildMealPrompt({ ...PROMPT_ARGS, fixedIntakes: [intake()] });
+  const empty = buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, fixedIntakes: [] });
+  const withIntake = buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, fixedIntakes: [intake()] });
 
   // La branche EXISTE — sans ça, le désarmement serait vrai parce que rien ne
   // marche, ce qui est le piège de tous les tests de désarmement.
@@ -618,7 +627,7 @@ Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACT
 });
 
 Deno.test("la consigne dit en NÉGATIF ce qui est pris", () => {
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_ARGS,
     fixedIntakes: [intake()],
     dayProperties: [],
@@ -628,7 +637,7 @@ Deno.test("la consigne dit en NÉGATIF ce qui est pris", () => {
   assert(userMessage.includes("those moments are TAKEN"));
   assert(userMessage.includes("no breakfast on Monday"));
   // Et un apport qui ne remplace rien ne prend rien, dans la prose non plus.
-  const kept = buildMealPrompt({
+  const kept = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_ARGS,
     fixedIntakes: [intake({ replaces_meal: false })],
     dayProperties: [],
@@ -727,6 +736,7 @@ Deno.test("LA PREUVE DU LOT: la dosette pèse ses 24 g de protéines, pas zéro"
     unit: "unit",
     state: "raw",
     yieldClass: ref!.yieldClass,
+    yieldFactor: ref!.yieldFactor,
     unitGrams: ref!.unitGrams,
   });
   assertEquals(grams, 30);
@@ -762,6 +772,7 @@ Deno.test("un apport déclaré ne MASQUE aucune entrée du référentiel", () =>
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral" as const,
+    yieldFactor: null,
     atwaterDiscount: 1.0,
     energyDense: false,
     unitGrams: null,

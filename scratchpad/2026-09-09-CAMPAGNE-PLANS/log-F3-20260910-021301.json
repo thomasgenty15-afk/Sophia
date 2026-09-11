@@ -1,0 +1,312 @@
+[
+ {
+  "tag": "keel.household_meal.member_bodies",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "members": 4,
+  "accounts": 1,
+  "with_body": 4,
+  "reads": 8
+ },
+ {
+  "tag": "keel.household_meal.condition_gate",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "pregnancy": 0,
+  "breastfeeding": 0,
+  "other": 0,
+  "none": 4
+ },
+ {
+  "tag": "keel.household_meal.composition",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "mode": "per_portion",
+  "deltas": 0,
+  "family_service": true,
+  "residual_gaps_count": 0,
+  "residual_gaps_max_band": "none"
+ },
+ {
+  "tag": "keel.household_meal.retained_items",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0,
+  "portion_applied": 0
+ },
+ {
+  "tag": "keel.household_meal.structure",
+  "derived": 4,
+  "capped": 0,
+  "no_target": 0,
+  "no_body": 0,
+  "opened_total": 4,
+  "mouths_opened": 2
+ },
+ {
+  "tag": "keel.household_meal.shake",
+  "compose": 1,
+  "declared": 0,
+  "not_applicable": 3,
+  "taken": 0
+ },
+ {
+  "tag": "keel.household_meal.cells",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "request_id": "9c20aabc-87e7-46fc-855b-7fd1d9467aad",
+  "cells": 6,
+  "non_empty": 6,
+  "empty": 0,
+  "light": 0,
+  "light_mixed": 0,
+  "eaters_hist": {
+   "1": 0,
+   "2": 0,
+   "3": 0,
+   "4_plus": 6
+  },
+  "dedicated_cells": 0,
+  "dedicated_mouths": 0,
+  "dedicated_by_reason": {
+   "regime": 0,
+   "own_meal": 0
+  },
+  "one_eater_cells": 0,
+  "cook_day_cells": 0,
+  "spent_cells": 0,
+  "regime_by_cell": {
+   "none": 6
+  },
+  "dish_bearing_delta": 0,
+  "dish_bearing_only_cells": 0,
+  "dish_bearing_only_current": 0
+ },
+ {
+  "tag": "keel.household_meal.cooking_shape",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "weekly_cooking_minutes": 120,
+  "time_allows_second_dish": true,
+  "shape": "one_dish",
+  "asked_shape": null,
+  "computed_shape": "one_dish",
+  "shape_capped": false,
+  "shape_unused": false,
+  "diverging": [],
+  "dish_bearing": [],
+  "from_merge": false,
+  "strictest_regime": null,
+  "regimes": 0
+ },
+ {
+  "tag": "keel.household_meal.member_voices",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "accounts_at_table": 1,
+  "with_lines": 0,
+  "lines_raw": 0,
+  "reads": 0
+ },
+ {
+  "tag": "keel.household_meal.voices_used",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "heard": 0,
+  "linesIn": 0,
+  "linesUsed": 0,
+  "linesWithheld": 0,
+  "linesOverCap": 0,
+  "linesTooLong": 0,
+  "perMember": []
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "reused",
+  "userId": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "draftId": "48a70857-d11b-4788-b8a7-3228a7af62b2"
+ },
+ {
+  "tag": "keel.household_meal.notes",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "lines": 0,
+  "household_lines": 0,
+  "member_lines": 0,
+  "served": 0,
+  "block_served": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.household_meal.precedence",
+  "user_id": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+  "household_id": "690cf821-7cdc-4245-b332-932fff1692e0",
+  "intent": "draft",
+  "place": "tail",
+  "exact": true,
+  "blocks_after": 0,
+  "ranks_with_object": 2,
+  "ranks_without_object": 3,
+  "by_rank": {
+   "rank_1": 0,
+   "rank_2": 6,
+   "rank_3": 5,
+   "rank_4": 0,
+   "rank_5": 0
+  }
+ },
+ {
+  "tag": "keel.household_meal.member_bodies",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "members": 1,
+  "accounts": 1,
+  "with_body": 1,
+  "reads": 8
+ },
+ {
+  "tag": "keel.household_meal.condition_gate",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "pregnancy": 0,
+  "breastfeeding": 0,
+  "other": 0,
+  "none": 1
+ },
+ {
+  "tag": "keel.household_meal.composition",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "mode": "per_portion",
+  "deltas": 0,
+  "family_service": false,
+  "residual_gaps_count": 0,
+  "residual_gaps_max_band": "none"
+ },
+ {
+  "tag": "keel.household_meal.retained_items",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0,
+  "portion_applied": 0
+ },
+ {
+  "tag": "keel.household_meal.structure",
+  "derived": 1,
+  "capped": 0,
+  "no_target": 0,
+  "no_body": 0,
+  "opened_total": 1,
+  "mouths_opened": 1
+ },
+ {
+  "tag": "keel.household_meal.shake",
+  "compose": 0,
+  "declared": 1,
+  "not_applicable": 0,
+  "taken": 0
+ },
+ {
+  "tag": "keel.household_meal.fixed_intakes",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "mouths": 1,
+  "intakes": 1,
+  "demoted": 0,
+  "discarded": 0,
+  "dropped": 0,
+  "reads": 1
+ },
+ {
+  "tag": "keel.household_meal.cooking_shape",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "weekly_cooking_minutes": 120,
+  "time_allows_second_dish": true,
+  "shape": "one_dish",
+  "asked_shape": null,
+  "computed_shape": "one_dish",
+  "shape_capped": false,
+  "shape_unused": false,
+  "diverging": [],
+  "dish_bearing": [],
+  "from_merge": false,
+  "strictest_regime": null,
+  "regimes": 0
+ },
+ {
+  "tag": "keel.household_meal.member_voices",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "accounts_at_table": 1,
+  "with_lines": 0,
+  "lines_raw": 0,
+  "reads": 0
+ },
+ {
+  "tag": "keel.household_meal.voices_used",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "heard": 0,
+  "linesIn": 0,
+  "linesUsed": 0,
+  "linesWithheld": 0,
+  "linesOverCap": 0,
+  "linesTooLong": 0,
+  "perMember": []
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "draftId": "f4f99fde-ea13-4ae1-bb40-ce45f54dd3fb",
+  "lane": "household_meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.household_meal.notes",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "lines": 0,
+  "household_lines": 0,
+  "member_lines": 0,
+  "served": 0,
+  "block_served": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.household_meal.precedence",
+  "user_id": "9ad48313-663c-4796-b49f-d3ba216964c6",
+  "household_id": "11111111-2222-4333-8444-555555555555",
+  "intent": "draft",
+  "place": "tail",
+  "exact": true,
+  "blocks_after": 0,
+  "ranks_with_object": 2,
+  "ranks_without_object": 3,
+  "by_rank": {
+   "rank_1": 0,
+   "rank_2": 6,
+   "rank_3": 6,
+   "rank_4": 0,
+   "rank_5": 0
+  }
+ }
+]

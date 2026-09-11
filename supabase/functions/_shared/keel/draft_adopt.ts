@@ -88,13 +88,10 @@ import {
 import {
   FINAL_GATE_POLICY_LOT_1,
   finalPlanGate,
+  asGatePlan,
   type GateContext,
-  type GateDish,
   type GatePlan,
-  type GatePreparation,
   type GateRefusal,
-  type GateSession,
-  type GateShoppingLine,
 } from "./final_plan_gate.ts";
 import { type DietaryRegime, parseDietaryRegime } from "./dietary_regime.ts";
 import type { ForbiddenTerm } from "./forbidden_matcher.ts";
@@ -416,6 +413,22 @@ function parseGateContext(value: unknown): GateContext | null {
     // décrit ce que le PRODUIT accepte aujourd'hui, pas ce que la composition
     // croyait hier. La geler ferait adopter un plan sous la sévérité d'avant.
     energy,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-11 · LOT E — `null` ET `null`, ET C'EST LA SEULE RÉPONSE VRAIE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ L'ADOPTION N'A PAS DE RÉFÉRENTIEL. `shoppingIdentityAudit` et
+    // `cellNutritionTable` exigent `CompositionIndex`, qui se charge en base et
+    // n'existe pas sur ce chemin: il relit une ligne, il n'a jamais eu d'objet
+    // mémoire ni d'index. C'est d'ailleurs la raison pour laquelle ces deux
+    // mesures vivent dans `final_plan_audit.ts` et pas dans la garde.
+    //
+    // ⚠️ `null` NE SE LIT PAS « RIEN À SIGNALER »: les dénominateurs
+    // `shopping_identities`, `portion_cells`, `measured_days` et `protein_days`
+    // restent à zéro, et `finalGateDelivery().unevaluated` NOMME les causes qui
+    // n'ont pas tourné. Un `[]` vide aurait dit l'inverse.
+    shopping: null,
+    nutrition: null,
     policy: FINAL_GATE_POLICY_LOT_1,
   };
 }
@@ -428,15 +441,11 @@ function parseGateContext(value: unknown): GateContext | null {
  * écrit serait celui que ce fichier a reconstruit, c'est-à-dire — sous une
  * autre forme — le défaut de tête de fichier.
  */
-function asGatePlan(value: unknown): GatePlan {
-  const src = isRecord(value) ? value : {};
-  return {
-    dishes: asArray(src.dishes) as readonly GateDish[],
-    preparations: asArray(src.preparations) as readonly GatePreparation[],
-    cooking_sessions: asArray(src.cooking_sessions) as readonly GateSession[],
-    shopping_list: asArray(src.shopping_list) as readonly GateShoppingLine[],
-  };
-}
+// ⟳ 2026-09-10 · LOT 6 — `asGatePlan` A DÉMÉNAGÉ dans `final_plan_gate.ts`,
+// à côté du type qu'il produit. Il était privé ICI, donc la seule façon
+// d'atteindre la garde finale était de passer par l'adoption — et l'adoption
+// n'a aucun appelant vivant. La garde n'avait donc jamais tourné sur un plan
+// réel. Le générateur l'appelle maintenant directement.
 
 function parsePostWrite(value: unknown): AdoptPostWrite {
   const root = isRecord(value) ? value : {};

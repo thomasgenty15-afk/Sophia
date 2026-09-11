@@ -63,6 +63,7 @@ import {
   readMemoryViewToken,
 } from "../api/memoryView";
 import { useNavigate } from "react-router-dom";
+import { subscribeQuickAdd, takeQuickAdd } from "../lib/quickAdd";
 import { browserLocalDate } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
 
@@ -149,6 +150,33 @@ function SettingSwitch({
   );
 }
 
+/**
+ * UNE RÉPONSE EST-ELLE ARRIVÉE SOUS LE MESSAGE ENVOYÉ ?
+ *
+ * ⚠️ EXTRAIT POUR ÊTRE MESURÉ. La règle vit dans un `useEffect` d'un composant
+ * qui ne se monte pas dans ce harnais (`vitest` en environnement `node`, pas de
+ * jsdom); laissée en ligne, elle n'aurait eu pour garde qu'une lecture de
+ * source — et ce dépôt a déjà trouvé des tests de source verts sur du code
+ * mort. Même arbitrage que `SessionPreparation`.
+ *
+ * ⛔ « SOUS », PAS « N'IMPORTE OÙ ». Une bulle d'assistant PLUS ANCIENNE que ce
+ * qu'on vient de taper n'est pas une réponse à ce qu'on vient de taper: c'est
+ * le message d'avant. Les deux fusions trient par `created_at`, donc la
+ * position porte l'information.
+ *
+ * `false` tant que le message envoyé n'est pas dans la liste: on attend
+ * toujours, l'écho n'a simplement pas encore été fusionné.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function answerLandedAfter(
+  messages: readonly ChatMessage[],
+  clientMessageId: string,
+): boolean {
+  const sent = messages.findIndex((m) => m.clientMessageId === clientMessageId);
+  if (sent < 0) return false;
+  return messages.slice(sent + 1).some((m) => m.role === "assistant");
+}
+
 export default function ChatPage() {
   const { user } = useAuth();
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
@@ -159,6 +187,23 @@ export default function ChatPage() {
   const [draft, setDraft] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [thinking, setThinking] = React.useState(false);
+  /**
+   * ⟳ 2026-09-09 — LE MESSAGE DONT ON ATTEND LA RÉPONSE, ou `null`.
+   *
+   * ⛔ LE DÉFAUT QU'IL FERME, VU EN CAPTURE. « Sophia écrit… » restait allumé
+   * SOUS une réponse déjà affichée. `setThinking(false)` ne vivait que dans
+   * l'écouteur Realtime; or l'envoi finit TOUJOURS par un `refetch()` — le
+   * filet posé pour le cas où l'abonnement était tombé — et ce chemin-là
+   * n'éteignait rien. Une réponse arrivée par le filet laissait donc
+   * l'indicateur tourner pour toujours: l'écran disait « elle écrit » à côté
+   * de ce qu'elle venait d'écrire.
+   *
+   * ⚠️ UNE SEULE RÈGLE, ET ELLE EST SUR L'ÉTAT, PAS SUR LE CHEMIN. L'effet
+   * ci-dessous regarde `messages`; les deux chemins d'arrivée y aboutissent,
+   * et un troisième y aboutirait aussi. Éteindre dans chaque chemin, c'est
+   * exactement ce qui vient de laisser un chemin sans extinction.
+   */
+  const waitingForRef = React.useRef<string | null>(null);
   const [status, setStatus] = React.useState<Status>("connecting");
   const [hasMore, setHasMore] = React.useState(false);
   const [loadingMore, setLoadingMore] = React.useState(false);
@@ -286,13 +331,30 @@ export default function ChatPage() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [user?.id]);
 
+  /**
+   * L'INDICATEUR S'ÉTEINT QUAND UNE RÉPONSE EST ARRIVÉE SOUS LE MESSAGE ENVOYÉ.
+   *
+   * ⚠️ « SOUS », pas « n'importe où »: une bulle d'assistant PLUS ANCIENNE que
+   * ce qu'on vient de taper n'est pas une réponse à ce qu'on vient de taper.
+   * La liste est triée par `created_at` dans les deux fusions, donc la position
+   * porte l'information.
+   */
+  React.useEffect(() => {
+    const waiting = waitingForRef.current;
+    if (!waiting) return;
+    if (!answerLandedAfter(messages, waiting)) return;
+    waitingForRef.current = null;
+    setThinking(false);
+  }, [messages]);
+
   React.useEffect(() => {
     if (!user?.id) return;
     const sub = subscribeToChat({
       userId: user.id,
       onMessage: (message) => {
         setMessages((prev) => mergeMessage(prev, message));
-        if (message.role === "assistant") setThinking(false);
+        // ⟳ 2026-09-09 — L'EXTINCTION A QUITTÉ CE CHEMIN. Elle est sur l'état
+        // (voir `waitingForRef`): la poser ici ne couvrait pas le `refetch`.
         // Il vient de s'afficher sous ses yeux. L'ancre avance, sinon le badge
         // se rallumerait au prochain changement d'écran.
         if (
@@ -507,6 +569,7 @@ export default function ChatPage() {
       const nowIso = new Date().toISOString();
       setSending(true);
       setThinking(true);
+      waitingForRef.current = clientMessageId;
       setError(null);
       setMessages((prev) => [...prev, {
         id: `pending-${clientMessageId}`,
@@ -524,6 +587,7 @@ export default function ChatPage() {
       });
       setSending(false);
       if (!result.ok) {
+        waitingForRef.current = null;
         setThinking(false);
         setMessages((prev) =>
           prev.map((m) =>
@@ -688,11 +752,64 @@ export default function ChatPage() {
     setPendingPhoto(null);
   }, [pendingPhoto]);
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE « + » DE LA BARRE DU BAS ARRIVE ICI
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // La coquille n'exécute aucun des trois gestes: elle arme une intention
+  // (`lib/quickAdd.ts`) et vient sur cet écran, qui les porte déjà en entier.
+  // Chacune retombe donc sur le MÊME chemin que le « + » du composeur —
+  // `attachPhoto` avec ses deux refus, le dialogue de description avec son
+  // créneau, le jeton de pesée avec sa garde de montage.
+  //
+  // ⚠️ DEUX MOMENTS DE CONSOMMATION, ET ILS SONT TOUS LES DEUX NÉCESSAIRES.
+  // Au MONTAGE quand on arrive d'un autre écran; à l'ARMEMENT quand on y était
+  // déjà — `navigate("/app/chat")` depuis `/app/chat` ne remonte rien, et sans
+  // l'abonnement le tap n'aurait alors aucun effet visible.
+  const consumeQuickAdd = React.useCallback(() => {
+    const intent = takeQuickAdd();
+    if (!intent) return;
+    // ⛔ UN `switch` EXHAUSTIF, ET PAS UNE CASCADE DE `if` AVEC UN DERNIER
+    // GESTE EN `else`. Le `else` traiterait un quatrième geste, ajouté demain
+    // au tiroir, comme une PESÉE — un dialogue de poids ouvert par le bouton
+    // « photo », et rien pour le dire. `never` fait rougir `tsc` à la place.
+    switch (intent.kind) {
+      case "photo":
+        attachPhoto(intent.file);
+        return;
+      case "describe":
+        setDescribeSlot(intent.slot);
+        return;
+      case "weight":
+        // ⚠️ LE MÊME JETON QUE LE « + » DU COMPOSEUR, frappé par l'écran.
+        // `writeWeighInReply` n'utilise `askedOn` que pour le journal: un jeton
+        // produit sans qu'aucune bulle ne soit partie s'écrit comme un autre.
+        setWeighInToken(weighInTokenFor(browserLocalDate()));
+        return;
+      default: {
+        const never: never = intent;
+        throw new Error(`quickAdd: geste inconnu ${JSON.stringify(never)}`);
+      }
+    }
+  }, [attachPhoto]);
+
+  // La référence suit l'état, l'effet ne se rejoue pas. `attachPhoto` change
+  // d'identité à chaque photo en attente et à chaque envoi: un effet qui en
+  // dépendrait se désabonnerait et se réabonnerait sous les doigts, et
+  // rappellerait `takeQuickAdd` à chaque fois.
+  const quickAddRef = React.useRef(consumeQuickAdd);
+  quickAddRef.current = consumeQuickAdd;
+  React.useEffect(() => {
+    quickAddRef.current();
+    return subscribeQuickAdd(() => quickAddRef.current());
+  }, []);
+
   const sendPhoto = React.useCallback(
     async (photo: PendingPhoto, note: string) => {
       const clientMessageId = crypto.randomUUID();
       setSending(true);
       setThinking(true);
+      waitingForRef.current = clientMessageId;
       setError(null);
       setMessages((prev) => [...prev, {
         id: `pending-${clientMessageId}`,
@@ -735,6 +852,7 @@ export default function ChatPage() {
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setSending(false);
+        waitingForRef.current = null;
         setThinking(false);
       }
     },
@@ -830,7 +948,15 @@ export default function ChatPage() {
     <KeelAppShell
       variant="student"
       title={t("chat.title")}
-      subtitle={t("chat.subtitle")}
+      // ⟳ 2026-09-09 — LE SOUS-TITRE EST RETIRÉ, sur demande, et sa clé avec
+      // lui. « Ton quotidien, avec la méthode de ton coach derrière » décrivait
+      // la conversation au-dessus de la conversation, sur l'écran où la place
+      // verticale est la plus chère du produit: le fil défile, le composeur
+      // reste en bas, et chaque ligne de chrome prend une bulle de lecture.
+      //
+      // ⛔ LA CLÉ EST SUPPRIMÉE DES DEUX PACKS, pas laissée en place « au cas
+      // où »: une clé traduite que rien ne rend est de la copie morte
+      // (`tracking.describe.done` en est la cicatrice).
       // LA BULLE OCCUPE L'ÉCRAN, elle ne l'allonge pas. Voir `fill` dans
       // KeelAppShell: c'est le fil qui défile, le composeur reste en bas.
       fill
@@ -855,19 +981,61 @@ export default function ChatPage() {
             l'apprend) ne se comprend qu'au-dessus de la conversation. Repliés
             par défaut: un interrupteur permanent au-dessus d'un fil de
             discussion invite à couper. */}
+        {/* ══════════════════════════════════════════════════════════════════
+            ⟳ 2026-09-09 — « NOTIFICATIONS » NE RESSEMBLAIT PAS À UN BOUTON.
+
+            Il était en `variant="ghost"`: la variante n'a NI bordure NI fond
+            (`text-ink-soft hover:bg-fig-50`), donc au repos c'est du texte gris
+            posé à droite, au-dessus d'un fil de conversation. Rien ne dit qu'on
+            peut appuyer dessus, et c'est la seule porte vers les deux réglages
+            de la bulle — dont celui qui coupe les relances.
+
+            Trois choses, et elles vont ensemble:
+
+            · `secondary` lui donne un contour de CONTRÔLE. `line-strong` et pas
+              `line`: WCAG 1.4.11 exige 3:1 pour la bordure d'un composant
+              d'interface, `line` est à 1,30:1 (un séparateur décoratif) et
+              `line-strong` à 3,84:1. C'est la règle déjà écrite sur le bouton
+              Menu de la coquille.
+            · `md` et pas `sm`: `sm` fait 24 px de haut (`min-h-6`), soit très
+              en dessous des ~44 px sous lesquels une cible se rate au pouce —
+              et cet écran est celui du téléphone.
+            · le chevron TOURNE. `aria-expanded` disait déjà l'état aux lecteurs
+              d'écran; il ne le disait à personne d'autre. Il est
+              `aria-hidden`: le nom du bouton est son libellé, un caractère
+              annoncé par-dessus ne dirait rien de plus.
+
+            ⚠️ ET `aria-controls` DÉSIGNE ENFIN QUELQUE CHOSE. L'attribut
+            manquait, et le panneau n'avait pas d'`id`: `aria-expanded` seul
+            annonce « déplié » sans dire QUOI. Même paire que `shell-menu`.
+            ═══════════════════════════════════════════════════════════════ */}
         <div className="flex justify-end">
           <Button
-            variant="ghost"
-            size="sm"
+            variant="secondary"
+            size="md"
+            data-testid="chat-settings-toggle"
             aria-expanded={settingsOpen}
+            aria-controls="chat-settings"
             onClick={() => setSettingsOpen((open) => !open)}
           >
             {t("chat.settings.toggle")}
+            <span
+              aria-hidden="true"
+              className={`text-[0.625rem] leading-none transition-transform duration-150 motion-reduce:transition-none ${
+                settingsOpen ? "rotate-180" : ""
+              }`}
+            >
+              ▾
+            </span>
           </Button>
         </div>
 
         {settingsOpen && (
-          <div className="flex flex-col gap-3 rounded-card border border-line-strong bg-paper-2 p-3">
+          <div
+            id="chat-settings"
+            data-testid="chat-settings"
+            className="flex flex-col gap-3 rounded-card border border-line-strong bg-paper-2 p-3"
+          >
             <SettingSwitch
               testId="setting-checkins"
               label={t("chat.settings.checkins.label")}

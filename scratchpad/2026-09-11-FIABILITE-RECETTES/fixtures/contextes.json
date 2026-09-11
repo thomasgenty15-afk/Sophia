@@ -1,0 +1,294 @@
+{
+  "gele_le": "2026-09-11",
+  "note": "Contextes figes des deux tirs de campagne. Lecture seule, aucune ecriture. Les preferences ne se deduisent NI d'un prenom NI d'un titre de recette : tout ce qui est ici vient d'une ligne de table nommee.",
+  "contextes": [
+    {
+      "goal": {
+        "goal": "fat_loss",
+        "created_at": "2026-09-11T13:07:26.03708+00:00",
+        "updated_at": "2026-09-11T13:07:26.03708+00:00",
+        "content_locale": "fr-FR",
+        "target_weight_kg": 78,
+        "target_pace_kg_per_week": 0.5
+      },
+      "members": [
+        {
+          "diet": null,
+          "goal": null,
+          "role": "owner",
+          "user_id": "4566b443-073c-4343-9e0e-73a1a93d0b94",
+          "away_days": [],
+          "member_id": "3cd7524e-9e74-4141-b595-a5baa86341a8",
+          "birth_date": "1990-03-14",
+          "first_name": "Paul",
+          "work_lunch": null,
+          "eating_rhythm": null,
+          "fixed_intakes": [],
+          "target_weight_kg": null,
+          "target_pace_kg_per_week": null
+        }
+      ],
+      "plan_id": "1f8a8988-b3ed-4b83-a4d0-93297ac0d652",
+      "profile": {
+        "id": "4566b443-073c-4343-9e0e-73a1a93d0b94",
+        "gender": "male",
+        "locale": "fr-FR",
+        "country": "FR",
+        "timezone": "Europe/Paris",
+        "full_name": "Paul Campagne",
+        "height_cm": 178,
+        "keel_role": "student",
+        "birth_date": "1990-03-14",
+        "day_activity": "seated",
+        "activity_level": "trains_some",
+        "sport_frequency": "3_4",
+        "onboarding_completed": true
+      },
+      "household": {
+        "id": "af46e357-bc4f-46ba-9548-6dc37533ecb0",
+        "created_at": "2026-09-11T13:07:25.801795+00:00"
+      },
+      "body_measures": [
+        {
+          "kind": "weight",
+          "source": "setup",
+          "value_si": 88,
+          "local_date": "2026-09-11",
+          "measured_at": "2026-09-11T13:07:26.011+00:00"
+        }
+      ],
+      "member_bodies": [
+        {
+          "gender": "male",
+          "appetite": "average",
+          "height_cm": 178.0,
+          "member_id": "3cd7524e-9e74-4141-b595-a5baa86341a8",
+          "weight_kg": 88.0,
+          "takes_bread": null,
+          "day_activity": "seated",
+          "takes_cheese": null,
+          "takes_dessert": null,
+          "activity_level": "trains_some",
+          "sport_frequency": "3_4",
+          "appetite_asked_at": "2026-09-11T13:07:26.090819+00:00",
+          "activity_axes_asked_at": "2026-09-11T13:07:26.090819+00:00",
+          "meal_structure_asked_at": null
+        }
+      ],
+      "member_habits": [],
+      "member_allergies": [],
+      "food_restrictions": [],
+      "safety_constraints": [],
+      "request_id": "f5a3dd19-d47d-4f52-9678-536f2cfb3bc5",
+      "instant": {
+        "source": "llm_raw_response_events.created_at du premier evenement de la requete",
+        "prompt_envoye_utc": "2026-09-11T13:07:26.767133+00:00",
+        "fuseau": "Europe/Paris",
+        "prompt_envoye_local": "2026-09-11 15:07:26.767133 (CEST, UTC+2)",
+        "jour_local": "2026-09-11",
+        "jour_semaine_local": "fri",
+        "pourquoi": "Sans l'heure locale, une journee partielle n'est pas rejouable : c'est elle qui decide quels moments du premier jour sont deja passes."
+      },
+      "grille": {
+        "fenetre_demandee": {
+          "kind": "days",
+          "count": 3
+        },
+        "rythme_maison": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "rythme_declare_par_la_bouche": null,
+        "jours": [
+          "fri",
+          "sat",
+          "sun"
+        ],
+        "cases_par_jour": {
+          "fri": [
+            "dinner"
+          ],
+          "sat": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "sun": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ]
+        },
+        "light_slots": [],
+        "fixed_intakes": [],
+        "atteste_par": {
+          "journal": "keel.household_meal.cells",
+          "cells": 9,
+          "non_empty": 7,
+          "empty": 2,
+          "spent_cells": 2,
+          "light": 0
+        },
+        "derivation": "9 cases = 3 jours x DEFAULT_EATING_RHYTHM (breakfast/lunch/dinner). 2 cases depensees le premier jour (prompt parti a 15 h locales) => 7 cases attendues. ATTENTION : le moteur ne persiste PAS la grille NOMMEE ; il n'en compte que les cases. Les deux noms retires (fri breakfast, fri lunch) sont deduits de l'heure locale et recoupes par les 7 plats produits. C'est un trou du lot B : la grille devrait etre emise avec ses cles jour/moment."
+      },
+      "contrat_de_calcul": {
+        "coachCounting": "no_position",
+        "coach_id": "00000000-0000-4000-8000-00000000d15c (coach maison)",
+        "floors": {
+          "normal": 100,
+          "light": 60
+        },
+        "restriction": "clear",
+        "ageState": "adult",
+        "portionIndex": null,
+        "conditionRefs": [],
+        "atteste_par": "densityFragment(requiredDensityFor(...)) reproduit CARACTERE POUR CARACTERE la ligne de densite du prompt archive. Si un seul de ces champs etait faux, les nombres de la ligne changeraient."
+      }
+    },
+    {
+      "goal": {
+        "goal": "muscle_gain",
+        "created_at": "2026-09-11T13:09:30.670173+00:00",
+        "updated_at": "2026-09-11T13:09:30.670173+00:00",
+        "content_locale": "fr-FR",
+        "target_weight_kg": 70,
+        "target_pace_kg_per_week": 0.25
+      },
+      "members": [
+        {
+          "diet": null,
+          "goal": null,
+          "role": "owner",
+          "user_id": "6c2aa5d2-362c-42d4-9bd7-67120f8dac1c",
+          "away_days": [],
+          "member_id": "07965f74-c04e-40f8-acd5-54917b3739ed",
+          "birth_date": "1998-07-02",
+          "first_name": "Max",
+          "work_lunch": null,
+          "eating_rhythm": null,
+          "fixed_intakes": [],
+          "target_weight_kg": null,
+          "target_pace_kg_per_week": null
+        }
+      ],
+      "plan_id": "1eada05b-2c3d-4ed5-aa85-14edf2840b77",
+      "profile": {
+        "id": "6c2aa5d2-362c-42d4-9bd7-67120f8dac1c",
+        "gender": "male",
+        "locale": "fr-FR",
+        "country": "FR",
+        "timezone": "Europe/Paris",
+        "full_name": "Max Campagne",
+        "height_cm": 178,
+        "keel_role": "student",
+        "birth_date": "1998-07-02",
+        "day_activity": "seated",
+        "activity_level": "trains_some",
+        "sport_frequency": "3_4",
+        "onboarding_completed": true
+      },
+      "household": {
+        "id": "1d66dc7f-617e-4693-b832-17d792249ee6",
+        "created_at": "2026-09-11T13:09:30.492671+00:00"
+      },
+      "body_measures": [
+        {
+          "kind": "weight",
+          "source": "setup",
+          "value_si": 62,
+          "local_date": "2026-09-11",
+          "measured_at": "2026-09-11T13:09:30.641+00:00"
+        }
+      ],
+      "member_bodies": [
+        {
+          "gender": "male",
+          "appetite": "average",
+          "height_cm": 178.0,
+          "member_id": "07965f74-c04e-40f8-acd5-54917b3739ed",
+          "weight_kg": 62.0,
+          "takes_bread": null,
+          "day_activity": "seated",
+          "takes_cheese": null,
+          "takes_dessert": null,
+          "activity_level": "trains_some",
+          "sport_frequency": "3_4",
+          "appetite_asked_at": "2026-09-11T13:09:30.710468+00:00",
+          "activity_axes_asked_at": "2026-09-11T13:09:30.710468+00:00",
+          "meal_structure_asked_at": null
+        }
+      ],
+      "member_habits": [],
+      "member_allergies": [],
+      "food_restrictions": [],
+      "safety_constraints": [],
+      "request_id": "ecaf04b2-354e-460f-b6c5-df81b54c5640",
+      "instant": {
+        "source": "llm_raw_response_events.created_at du premier evenement de la requete",
+        "prompt_envoye_utc": "2026-09-11T13:09:30.855859+00:00",
+        "fuseau": "Europe/Paris",
+        "prompt_envoye_local": "2026-09-11 15:09:30.855859 (CEST, UTC+2)",
+        "jour_local": "2026-09-11",
+        "jour_semaine_local": "fri",
+        "pourquoi": "Sans l'heure locale, une journee partielle n'est pas rejouable : c'est elle qui decide quels moments du premier jour sont deja passes."
+      },
+      "grille": {
+        "fenetre_demandee": {
+          "kind": "days",
+          "count": 3
+        },
+        "rythme_maison": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "rythme_declare_par_la_bouche": null,
+        "jours": [
+          "fri",
+          "sat",
+          "sun"
+        ],
+        "cases_par_jour": {
+          "fri": [
+            "dinner"
+          ],
+          "sat": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ],
+          "sun": [
+            "breakfast",
+            "lunch",
+            "dinner"
+          ]
+        },
+        "light_slots": [],
+        "fixed_intakes": [],
+        "atteste_par": {
+          "journal": "keel.household_meal.cells",
+          "cells": 9,
+          "non_empty": 7,
+          "empty": 2,
+          "spent_cells": 2,
+          "light": 0
+        },
+        "derivation": "9 cases = 3 jours x DEFAULT_EATING_RHYTHM (breakfast/lunch/dinner). 2 cases depensees le premier jour (prompt parti a 15 h locales) => 7 cases attendues. ATTENTION : le moteur ne persiste PAS la grille NOMMEE ; il n'en compte que les cases. Les deux noms retires (fri breakfast, fri lunch) sont deduits de l'heure locale et recoupes par les 7 plats produits. C'est un trou du lot B : la grille devrait etre emise avec ses cles jour/moment."
+      },
+      "contrat_de_calcul": {
+        "coachCounting": "no_position",
+        "coach_id": "00000000-0000-4000-8000-00000000d15c (coach maison)",
+        "floors": {
+          "normal": 100,
+          "light": 60
+        },
+        "restriction": "clear",
+        "ageState": "adult",
+        "portionIndex": null,
+        "conditionRefs": [],
+        "atteste_par": "densityFragment(requiredDensityFor(...)) reproduit CARACTERE POUR CARACTERE la ligne de densite du prompt archive. Si un seul de ces champs etait faux, les nombres de la ligne changeraient."
+      }
+    }
+  ]
+}

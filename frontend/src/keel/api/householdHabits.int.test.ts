@@ -25,6 +25,7 @@ import { householdErrorKey } from "../copy/planRefusals";
 const APPLE: MemberHabitsView = {
   memberId: "m1",
   slots: [{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }],
+  light: {},
   note: null,
 };
 
@@ -124,7 +125,7 @@ describe("habitDraft — le piège n°1 de la spec, en code", () => {
     // gouverner la composition. Ce dépôt appelle ça un fait indémentable.
     // Ce qui est à l'écran est ce qui sera écrit.
     expect(habitDraft(["lunch"], APPLE).map((d) => d.slot)).toEqual(["lunch"]);
-    expect(habitPayload(habitDraft(["lunch"], APPLE), {})).toEqual([]);
+    expect(habitPayload(habitDraft(["lunch"], APPLE), { light: {} })).toEqual([]);
   });
 });
 
@@ -134,7 +135,7 @@ describe("habitPayload", () => {
       { slot: "breakfast", choice: "own_usual", usual: "une pomme" },
       { slot: "lunch", choice: "household_dish", usual: "" },
       { slot: "dinner", choice: "household_dish", usual: "" },
-    ], {})).toEqual([{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }]);
+    ], { light: {} })).toEqual([{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }]);
   });
 
   it("un moment sans réponse n'écrit RIEN", () => {
@@ -143,36 +144,40 @@ describe("habitPayload", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: null, usual: "" },
       { slot: "lunch", choice: null, usual: "" },
-    ], {})).toEqual([]);
+    ], { light: {} })).toEqual([]);
   });
 
   it("un `usual` resté vide ne part pas — la base le refuserait", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: "own_usual", usual: "   " },
-    ], {})).toEqual([]);
+    ], { light: {} })).toEqual([]);
   });
 
   it("le texte part sans ses bords", () => {
     expect(habitPayload([
       { slot: "breakfast", choice: "own_usual", usual: "  une pomme  " },
-    ], {})[0].usual).toBe("une pomme");
+    ], { light: {} })[0].usual).toBe("une pomme");
   });
 
-  it("⛔ LES EXTRAS DÉJÀ ÉCRITS SURVIVENT À UN ENREGISTREMENT D'ICI", () => {
+  it("⛔ LE « + REPAS LÉGER » DÉJÀ ÉCRIT SURVIT À UN ENREGISTREMENT D'ICI", () => {
     // ⚠️ CETTE CARTE N'ÉDITE QUE LA PROSE, et la porte REMPLACE la liste
     // entière: sans le report, enregistrer une habitude depuis
-    // `/app/household` effacerait les bulles cochées dans la fiche.
+    // `/app/household` effacerait la bulle cochée dans la fiche.
+    //
+    // ⟳ 2026-09-10 — CE CAS PORTAIT LES EXTRAS (pain / fromage / dessert pris
+    // hors plan), supprimés le même jour. Le report qu'il garde est le même,
+    // sur la seule réponse qui reste.
     expect(habitPayload(
       [{ slot: "breakfast", choice: "own_usual", usual: "une pomme" }],
-      { lunch: ["bread"], dinner: [] },
+      { light: { lunch: true, dinner: false } },
     )).toEqual([
       { slot: "breakfast", kind: "own_usual", usual: "une pomme" },
       // Aucune prose au déjeuner ⇒ `household_dish`, la seule forme que la
       // porte accepte pour une entrée sans texte.
-      { slot: "lunch", kind: "household_dish", usual: "", extras: ["bread"] },
-      // ⛔ ET LE TABLEAU VIDE PART QUAND MÊME: c'est « on m'a demandé, je ne
-      // prends rien à côté », une réponse distincte de la clé absente.
-      { slot: "dinner", kind: "household_dish", usual: "", extras: [] },
+      { slot: "lunch", kind: "household_dish", usual: "", light: true },
+      // ⛔ ET `false` PART QUAND MÊME: c'est « on m'a demandé, ce moment est
+      // comme d'habitude », une réponse distincte de la clé absente.
+      { slot: "dinner", kind: "household_dish", usual: "", light: false },
     ]);
   });
 
@@ -181,7 +186,7 @@ describe("habitPayload", () => {
     // et c'est le CHOIX qui décide de ce qui s'écrit.
     expect(habitPayload([
       { slot: "breakfast", choice: "household_dish", usual: "une pomme" },
-    ], {})).toEqual([]);
+    ], { light: {} })).toEqual([]);
   });
 });
 

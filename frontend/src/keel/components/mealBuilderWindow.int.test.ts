@@ -154,11 +154,16 @@ describe("les deux bornes du départ, sur les DEUX écrans", () => {
       ["SetupPage", SETUP_SOURCE],
     ] as const
   ) {
-    it(`${name}: le départ ne peut être ni dans le passé, ni au-delà de dimanche`, () => {
+    it(`${name}: le départ est libre, sauf le passé`, () => {
+      // ⟳ 2026-09-06 — LE `max` A ÉTÉ RETIRÉ, ET CE CAS TIENT SON ABSENCE.
+      // Il valait `lastNameableStart(today)`; un dimanche il tombait sur `min`
+      // et le calendrier n'offrait qu'une case. Décision produit: la date de
+      // départ est libre, seul le passé reste borné. Le refus serveur qui
+      // justifiait ce `max` (`window_beyond_this_week`) est parti le même jour,
+      // et le prompt ancre la liste des jours sur la date d'ouverture.
       expect(source, `${name}: min`).toMatch(/min=\{browserLocalDate\(\)\}/);
-      expect(source, `${name}: max`).toMatch(
-        /max=\{lastNameableStart\(browserLocalDate\(\)\)\}/,
-      );
+      expect(source, `${name}: un max est revenu sur le départ`)
+        .not.toMatch(/max=\{lastNameableStart/);
     });
   }
 
@@ -172,5 +177,73 @@ describe("les deux bornes du départ, sur les DEUX écrans", () => {
     // Et le champ MONTRE le déplacement: sans cette ligne, l'écran afficherait
     // le 29 au-dessus d'un plan qui part du 31.
     expect(SETUP_SOURCE).toMatch(/setStartDraft\(clamped\);/);
+  });
+});
+
+// ===========================================================================
+// ⟳ 2026-09-03 — « CHOISIR LES REPAS » EXISTE SUR LES DEUX SURFACES
+//
+// ── LE TROU QUE ÇA FERME ──────────────────────────────────────────────────
+// `/app/plan` porte ce lien sous les dates depuis le premier jour. L'entonnoir
+// ne l'avait pas: sa seule grille est per-BOUCHE (`presenceRoster`), et un
+// compte SOLO n'a pas de ligne membre — pas de foyer ⇒ `ownMemberId` à `null`
+// ⇒ aucune grille. La première composition d'une personne seule partait donc
+// avec vingt-et-un repas à la maison, quoi qu'elle vive, et rien à l'écran ne
+// permettait d'en retirer un.
+//
+// ⚠️ CE QUE CE BLOC GARDE, ET QUI EST PLUS QUE « le lien est là »: qu'il écrit
+// LA MÊME COLONNE que `/app/plan`. La grille est la même sur les deux écrans;
+// ce qui pouvait diverger sans un mot du compilateur, c'est la destination —
+// `setMemberAway` rangerait la réponse dans la colonne du FOYER, où un solo
+// n'a même pas de ligne, et le plan composerait sans elle.
+// ===========================================================================
+describe("« Choisir les repas » — le même geste sur les deux écrans", () => {
+  it("les deux surfaces montent le lien, avec la MÊME clé", () => {
+    // Un second libellé divergerait au premier mot retouché, et `/app/setup`
+    // déclare déjà le namespace `meals` (il monte la grille).
+    for (
+      const [name, src] of [
+        ["MealBuilder", SOURCE],
+        ["SetupPage", SETUP_SOURCE],
+      ] as const
+    ) {
+      expect(src, `${name}: le lien a disparu`).toMatch(/meals\.picker\.open/);
+      expect(src, `${name}: la grille n'est plus montée`).toMatch(
+        /<MealPickerGrid/,
+      );
+    }
+  });
+
+  it("⛔ et il écrit la colonne DE LA PERSONNE, pas celle du foyer", () => {
+    // `/app/plan` passe par `saveAwayDays` (`StudentWeekPlanPage`), qui fusionne
+    // `away_days` dans `practical_constraints`. L'entonnoir fait exactement la
+    // même chose, avec une photo FRAÎCHE de la colonne — la relire au montage
+    // effacerait le régime et l'équipement écrits depuis.
+    expect(SETUP_SOURCE, "l'écrivain de la grille du titulaire a disparu")
+      .toMatch(/patch: \{ away_days: next \}/);
+    expect(
+      SETUP_SOURCE,
+      "la photo de la colonne est celle du montage: elle effacera les autres clés",
+    ).toMatch(/const fresh = await readFunnelFacts\(userId\);\n\s+await mergePracticalConstraints\(\{\n\s+userId,\n\s+current: fresh\.practicalConstraints,\n\s+patch: \{ away_days: next \}/);
+  });
+
+  it("⛔ LES DEUX SOURCES RESTENT SÉPARÉES (D14): deux états, jamais un seul", () => {
+    // La liste dépliable écrit `household_members.away_days` (ce que le maître
+    // déclare POUR quelqu'un); le lien écrit ce que la personne dit d'ELLE.
+    // Un seul état d'ouverture les aurait recollées au premier
+    // `setAwayFor(ownMemberId)`, et la grille aurait montré une colonne en
+    // enregistrant l'autre.
+    expect(SETUP_SOURCE).toMatch(/const \[selfPickerOpen, setSelfPickerOpen\]/);
+    expect(SETUP_SOURCE).toMatch(/selfAway=\{parseAwayMarks\(/);
+    expect(
+      SETUP_SOURCE,
+      "le lien s'est rebranché sur la colonne du foyer",
+    ).not.toMatch(/onSelfAwaySaved=\{[^}]*setMemberAway/);
+  });
+
+  it("la grille ne s'ouvre pas sur un rythme vide — un contrôle sans ligne", () => {
+    // Sans moment déclaré, `MealPickerGrid` n'a aucune ligne à rendre: le lien
+    // ouvrirait une fenêtre vide, ce qui se lit comme une panne.
+    expect(SETUP_SOURCE).toMatch(/\{rhythm\.length > 0 && \(/);
   });
 });

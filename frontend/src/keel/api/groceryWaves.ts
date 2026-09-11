@@ -35,6 +35,10 @@ import {
 import type { MealPreparation, ShoppingItem } from "./mealGeneration";
 
 export {
+  // ⟳ 2026-09-09 — ce qu'une session sort du congélateur la veille: la
+  // MÊME lecture que le PDF et le rappel du chat, jamais un jumeau d'écran.
+  frozenLinesForPreparations,
+  wavePreparationsFromRows,
   MAX_FRIDGE_DAYS,
   PERISHABLE_AISLES,
   waveItemCount,

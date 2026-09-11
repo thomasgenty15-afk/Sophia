@@ -1,0 +1,40 @@
+[
+  {
+    "request_id": "38ba3c15-ebf1-4b39-9df3-86cbf04acec9",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 54971,
+    "prompt_tokens": 10131,
+    "output_tokens": 6074,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0209d74f86567f96006a9c669c038087d29e71d4204e18bd73",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "38ba3c15-ebf1-4b39-9df3-86cbf04acec9",
+    "source": "keel-draft-note-classify",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 3484,
+    "prompt_tokens": 3568,
+    "output_tokens": 162,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_089887c4c126181e006a9c66d320a887d29346301dd2dc0bcd",
+      "user_id_resolution": "provided"
+    }
+  }
+]

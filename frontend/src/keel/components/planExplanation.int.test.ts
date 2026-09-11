@@ -76,25 +76,35 @@ describe("l'enveloppe lit l'explication du modèle", () => {
 });
 
 describe("la carte est rendue, et AU-DESSUS des phrases déterministes", () => {
-  it("le dialogue rend le titre du modèle et celui de l'app", () => {
+  it("le dialogue rend le titre du modèle", () => {
     expect(DIALOG).toContain('t("plan.explanation.title")');
-    expect(DIALOG).toContain('t("plan.rationale.title")');
   });
 
-  it("⛔ L'ORDRE — les choix du modèle passent AVANT le plancher fixe", () => {
-    const model = DIALOG.indexOf('t("plan.explanation.title")');
-    const app = DIALOG.indexOf('t("plan.rationale.title")');
-    expect(model).toBeGreaterThan(-1);
-    expect(app).toBeGreaterThan(-1);
-    expect(model).toBeLessThan(app);
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-09 — DEUX TESTS D'ORDRE SONT PARTIS, PARCE QU'IL N'Y A PLUS
+  // DEUX CARTES.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Ils tenaient « les choix du modèle passent AVANT le plancher fixe » et sa
+  // prémisse (deux frères, chacun gardé par sa propre longueur). La carte du
+  // plancher — « Pourquoi ces jours-là », `plan.rationale.*` — a été retirée:
+  // décision produit. Un ordre entre une carte et rien n'est pas un ordre.
+  it("⛔ ET LA CARTE DU PLANCHER N'EST PLUS RENDUE — elle ne revient pas par accident", () => {
+    // ⚠️ CE TEST N'EST PAS UNE FORMALITÉ. Les deux cartes se ressemblaient à
+    // l'écran et disaient des choses opposées (la prose du MODÈLE contre les
+    // phrases DÉTERMINISTES de l'app); la remonter sans intention rouvrirait
+    // très exactement la confusion qui l'a fait retirer.
+    expect(DIALOG).not.toContain('t("plan.rationale.title")');
+    expect(DIALOG).not.toContain("{rationale.length > 0");
+    // ⛔ MAIS LE CHAMP DU SERVEUR RESTE LU. L'enveloppe est le miroir de ce que
+    // la fonction rend; lui retirer `rationale` ferait mentir le contrat, et
+    // c'est l'unique raison pour laquelle le champ survit à sa surface.
+    const env = readDraftEnvelope({ draft: true, rationale: { lines: ["a"] } });
+    expect(env.rationale).toEqual(["a"]);
   });
 
-  it("LA PRÉMISSE DE L'ORDRE, vérifiée et non supposée", () => {
-    // Les deux cartes sont des frères du même parent et ne dépendent d'aucune
-    // condition partagée: chacune n'est gardée que par SA propre longueur.
-    // Sans cette prémisse, l'ordre du fichier ne dirait rien de l'ordre du DOM.
+  it("LA CARTE DU MODÈLE, ELLE, EST GARDÉE PAR SA PROPRE LONGUEUR", () => {
     expect(DIALOG).toContain("{explanation.length > 0");
-    expect(DIALOG).toContain("{rationale.length > 0");
   });
 
   it("les DEUX écrans passent le champ, et depuis l'enveloppe", () => {
@@ -108,7 +118,8 @@ describe("la carte est rendue, et AU-DESSUS des phrases déterministes", () => {
     expect(en["plan.explanation.title"]).toContain("Sophia");
     // ⛔ ET IL NE SE CONFOND PAS AVEC CELUI DE L'APP: deux blocs voisins qui
     // porteraient le même titre feraient croire à un seul auteur.
-    expect(fr["plan.explanation.title"]).not.toBe(fr["plan.rationale.title"]);
-    expect(en["plan.explanation.title"]).not.toBe(en["plan.rationale.title"]);
+    // ⟳ 2026-09-09 — la comparaison portait sur `plan.rationale.title`, dont
+    // la carte a été retirée. Ce qui reste vrai et utile: le titre nomme son
+    // auteur, vérifié juste au-dessus.
   });
 });

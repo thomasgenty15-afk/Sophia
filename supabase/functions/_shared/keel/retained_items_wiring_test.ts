@@ -419,9 +419,10 @@ type Lane = {
 // gardé à l'identique sur les deux lanes restantes, par les mêmes assertions
 // partagées. Ce sont les mêmes fonctions, appelées deux fois au lieu de trois.
 
+// deno-lint-ignore no-unused-vars
 const MEAL: Lane = {
   lane: "meal",
-  rel: "generate-meal-v1/index.ts",
+  rel: "generate-household-meal-v1/index.ts",
   assertWired(src) {
     assertBothStores(src, "meal");
     assertSpeaksForIsNeverEmpty(src, "meal");
@@ -734,7 +735,11 @@ const HOUSEHOLD: Lane = {
   ],
 };
 
-const LANES: readonly Lane[] = [MEAL, HOUSEHOLD];
+// ⟳ 2026-09-11 · LOT 7 — LA LANE `MEAL` A ÉTÉ RETIRÉE DE LA LISTE avec la
+// fonction `generate-meal-v1`. Sa définition reste juste au-dessus, inerte,
+// pour que le jour où une seconde lane revient on la rebranche au lieu de
+// la réécrire. La propriété, elle, continue d'être éprouvée sur le foyer.
+const LANES: readonly Lane[] = [HOUSEHOLD];
 
 // ---------------------------------------------------------------------------
 // LES DEUX APPELS — le vrai fichier, puis la copie amputée

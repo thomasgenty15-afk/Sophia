@@ -227,6 +227,7 @@ function causeOf(index: CompositionIndex, input: CompositionInput): Cause | null
     unit: input.unit ?? null,
     state: input.state ?? null,
     yieldClass: ref.yieldClass,
+    yieldFactor: ref.yieldFactor,
     unitGrams: input.unitGrams ?? ref.unitGrams,
   });
   if (grams !== null) return null;

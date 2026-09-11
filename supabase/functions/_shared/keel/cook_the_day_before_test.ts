@@ -50,6 +50,8 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null as string | null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -60,7 +62,7 @@ const PROMPT_BASE = {
   merge: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -71,6 +73,7 @@ const PROMPT_BASE = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   // Un plan qui part du dimanche: `sun` est la veille, `mon`…`fri` se mangent.
   daysToFill: ["sun", "mon", "tue", "wed", "thu", "fri"],
@@ -189,13 +192,13 @@ Deno.test("le miroir de l'écran rend le MÊME verdict que le moteur", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("sans veille, le message ne parle PAS d'un jour de cuisine seul", () => {
-  const off = buildMealPrompt({ ...PROMPT_BASE }).userMessage;
+  const off = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE }).userMessage;
   assert(!off.includes("COOKING day only"));
   assertStringIncludes(off, "days to fill, in this order: sun, mon, tue, wed, thu, fri");
 });
 
 Deno.test("avec veille, le jour est NOMMÉ et retiré des jours à remplir", () => {
-  const on = buildMealPrompt({ ...PROMPT_BASE, cookOnlyDay: "sun" }).userMessage;
+  const on = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, cookOnlyDay: "sun" }).userMessage;
   // ⛔ IL SORT DE LA COMMANDE…
   assertStringIncludes(on, "days to fill, in this order: mon, tue, wed, thu, fri");
   // …ET IL EST DIT, parce qu'une absence ne s'obéit pas: le modèle connaît le
@@ -208,7 +211,7 @@ Deno.test("la veille EST un jour de cuisine pour la session unique", () => {
   // Sans cette liaison, un plan « je cuisine la veille » n'aurait AUCUN jour de
   // cuisine connu: la session serait posée « au plus tôt » par le modèle,
   // c'est-à-dire n'importe où.
-  const on = buildMealPrompt({
+  const on = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     cookOnlyDay: "sun",
     oneCookingSession: true,
@@ -252,7 +255,10 @@ Deno.test("la version de prompt a bougé avec ce lot", () => {
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });
 
 Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
@@ -271,7 +277,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v33_one_standard_recipe_the_engine_multiplies");
 });
 
 // ---------------------------------------------------------------------------
@@ -279,7 +285,6 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
 // ---------------------------------------------------------------------------
 
 const LANES: readonly [string, string][] = [
-  ["solo", "../../generate-meal-v1/index.ts"],
   ["foyer", "../../generate-household-meal-v1/index.ts"],
 ];
 

@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "data": {
+    "ok": false,
+    "reason": "not_a_personal_plan"
+  }
+}

@@ -1,3 +1,4 @@
+import { envelopeDirectionFor } from "./weight_pace.ts";
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
   MAX_SCALE,
@@ -9,7 +10,9 @@ import {
   scaleFactorsFor,
   scaleIngredients,
 } from "./portion_scaling.ts";
-import { ENERGY_DIRECTION_MARGIN, envelopeFor } from "./meal_envelope.ts";
+import { ENERGY_DIRECTION_MARGIN, envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 import type { AgeBand } from "./student_age.ts";
 
 function bodyOf(kg: number, cm: number, g: "male" | "female", flag = false) {
@@ -23,7 +26,36 @@ function bodyOf(kg: number, cm: number, g: "male" | "female", flag = false) {
     restrictionFlag: flag,
   };
 }
-const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
+
+/**
+ * ⟳ 2026-09-09 — LA DIRECTION RÉELLE DE CE CORPS, pas la neutre.
+ *
+ * ⛔ `MAINTENANCE_ENVELOPE_DIRECTION` sur un `fat_loss` rendrait la bande
+ * d'ENTRETIEN, c'est-à-dire un test qui mesure autre chose que ce qu'il dit.
+ * Depuis que le moteur suit l'écran, la bande descend du CRAN de la personne:
+ * un `fat_loss` sans direction est un `fat_loss` désarmé.
+ */
+const LOSS_DIRECTION = envelopeDirectionFor({
+  goal: "fat_loss",
+  // ⟳ 2026-09-11 — REQUIS depuis que la garde de condition vit DANS la
+  // fonction. `false` = aucune condition n'annule l'écart, ce que ces
+  // décors décrivent. Le cas qui MORD est éprouvé à part.
+  deficitCancelled: false,
+  subject: {
+    body: {
+      heightCm: 186,
+      weightKg: 92,
+      gender: "male",
+      ageYears: 37,
+      activityLevel: null,
+      activityAxes: { day: null, sport: null, asked: false },
+      appetite: null,
+    },
+    isMinor: false,
+  },
+  paceKgPerWeek: null,
+});
+const PER_KG = envelopeFor("fat_loss", bodyOf(92, 186, "male"), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, LOSS_DIRECTION);
 const PER_PORTION = envelopeFor(
   "fat_loss",
   bodyOf(92, 186, "male", true),
@@ -34,6 +66,7 @@ null,
   { day: null, sport: null, asked: false },
   null,
   null,
+  LOSS_DIRECTION,
 );
 
 function ing(over: Partial<ScalableIngredient> = {}): ScalableIngredient {
@@ -84,7 +117,7 @@ Deno.test("SOUS LE PLANCHER TCA, rien ne se met à l'échelle", () => {
     null,
   );
   // Corps inconnu: même silence, ce qui rend les deux indiscernables.
-  const unknown = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null);
+  const unknown = envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
   assertEquals(
     scaleFactorFor({ computedKcal: 800, envelope: unknown, daysCovered: 1, resolvedShare: 1 }),
     null,

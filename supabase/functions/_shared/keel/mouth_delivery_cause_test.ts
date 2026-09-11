@@ -158,8 +158,11 @@ const MOUTH: AnchorMouth = {
   direction: null,
   paceKgPerWeek: null,
   conditionRefs: [],
+  // ⟳ 2026-09-08 — `null` = aucune réponse de part, donc une cible
+  // EXACTEMENT celle d'avant ce lot. C'est la propriété que ces cas
+  // mesurent, et elle doit rester vraie.
+  portionIndex: null,
   declaredSlots: [],
-  slotExtraKcal: null,
 };
 
 Deno.test("`anchorFactorFor` sort `common_pot_day` sur un bac, `no_delivery` sinon", () => {
@@ -206,7 +209,6 @@ Deno.test("`common_pot_day` NE DÉPLACE AUCUN GRAMME", () => {
   assertEquals(a.deliveredKcal, null);
   assertEquals(a.factor, b.factor);
   assertEquals(a.targetKcal, b.targetKcal);
-  assertEquals(a.structureState, b.structureState);
   // ⛔ ET LE JETON EST DANS LE VOCABULAIRE. Sans ça, le générateur
   // l'écrirait dans un seau qu'aucune initialisation n'a créé, et le
   // compteur rendrait `undefined` en silence.

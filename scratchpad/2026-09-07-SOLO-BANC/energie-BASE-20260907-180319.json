@@ -1,0 +1,76 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 9,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Yaourt, flocons d’avoine, pêche et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 618,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 460,
+      "density_kcal_per_100g": 134.3,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet, riz, légumes rôtis et salade",
+      "member_id": null,
+      "pots": [
+        "Cuisses de poulet rôties ÷2",
+        "Riz complet cuit ÷1",
+        "Légumes rôtis d’été ÷2"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 1102,
+      "density_kcal_per_100g": null,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 158,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 170,
+      "density_kcal_per_100g": 92.9,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet, légumes rôtis, houmous et pain pita",
+      "member_id": null,
+      "pots": [
+        "Cuisses de poulet rôties ÷2",
+        "Légumes rôtis d’été ÷2"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 750,
+      "density_kcal_per_100g": null,
+      "boxes": 0
+    }
+  ]
+}

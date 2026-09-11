@@ -104,7 +104,7 @@ function edgeTokens(): string[] {
   const tokens = new Set<string>();
   for (
     const rel of [
-      "supabase/functions/generate-meal-v1/index.ts",
+      "supabase/functions/generate-household-meal-v1/index.ts",
       "supabase/functions/generate-household-meal-v1/index.ts",
     ]
   ) {
@@ -166,6 +166,20 @@ function edgeTokens(): string[] {
   // partagent aucun jour » est la réponse la plus courante à une fusion.
   for (const [name, value] of constants) {
     if (name.startsWith("MERGE_WINDOW")) tokens.add(value);
+  }
+  // ⟳ 2026-09-11 · LOT 2 — LES REFUS D'ADMISSION VOYAGENT PAR UNE EXPRESSION.
+  //
+  // ⛔ `generate-household-meal-v1` rend `error: admission.refusal`, c'est-à-dire
+  // une VALEUR, pas un littéral: aucun scan de source ne peut la voir. C'est
+  // très exactement la cicatrice « la garde des refus ne lit que les
+  // littéraux » — un motif qui devient orphelin en silence, et un mur muet à
+  // l'écran.
+  //
+  // Le vocabulaire est FERMÉ et épinglé côté serveur
+  // (`GENERATION_REFUSAL_STATUS`, `constant_pins_test.ts`): on le lit ici plutôt
+  // que de le deviner.
+  for (const t of ["not_authenticated", "no_household", "not_owner", "household_frozen"]) {
+    tokens.add(t);
   }
   return [...tokens];
 }

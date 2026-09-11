@@ -1,0 +1,12 @@
+{
+  "id": "V1d-egg",
+  "uid": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-06T21:27:21.559Z",
+  "end": "2026-09-06T21:29:51.636Z",
+  "http": 504,
+  "seconds": 150.008756458,
+  "before": "17effcb90b69c61f7b4a13fb132dd3034619a31f5ecb4f201ed0bc8c8b8167a7",
+  "after": "17effcb90b69c61f7b4a13fb132dd3034619a31f5ecb4f201ed0bc8c8b8167a7",
+  "fresh_runtime": false
+}

@@ -1,8 +1,8 @@
 import {
   type CookingStyle,
-  type GroceryRuns,
+  type GroceryRunsAnswer,
   readCookingStyle,
-  readGroceryRuns,
+  readGroceryRunsAnswer,
 } from "./cookingPlan";
 // KEEL — L'ARGENT DE CE PLAN-LÀ, LU ET ÉCRIT EN UN SEUL ENDROIT.
 //
@@ -41,6 +41,22 @@ import {
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
 import type { PracticalConstraints } from "./practicalConstraints";
+// ⚠️ LE MODULE DU MOTEUR, LU ET PAS RECOPIÉ — même geste que `household.ts`
+// avec `student_age.ts`. Le plancher n'a pas de seconde version côté écran:
+// une table de prix dupliquée diverge au premier ajustement, et c'est celle
+// que personne ne regarde qui refuserait quelqu'un.
+import {
+  assessBudget,
+  type BudgetFloorMouth,
+  budgetMarketFor,
+  budgetMouthDays,
+  type BudgetVerdict,
+} from "../../../../supabase/functions/_shared/keel/budget_floor.ts";
+import { type AwayMark, presenceStateOf } from "../lib/presenceMarks";
+import type { EatingOccasion, EatingOccasionSlot } from "./mealGeneration";
+
+export type { BudgetFloorMouth, BudgetVerdict };
+export { assessBudget };
 
 /**
  * LE PLAFOND DE SAISIE, ET SON AUTORITÉ EST LE SERVEUR.
@@ -152,7 +168,17 @@ export interface PlanRequestInputs {
    * de `cook_days`, dix lignes plus bas.
    */
   cookingStyle: string | null;
-  groceryRuns: number | null;
+  /**
+   * ⟳ 2026-09-09 — `number | string`, PARCE QUE « peu importe » S'ÉCRIT COMME
+   * UN JETON. Le champ vit dans le jsonb `practical_constraints`, qui ne
+   * contraint pas la forme — c'est donc au type de dire que la colonne porte
+   * maintenant deux natures, plutôt qu'à un `as` de le cacher.
+   *
+   * ⛔ ET PAS UN NOMBRE SENTINELLE (`0`, `-1`). Un sentinelle se lit comme une
+   * valeur par tout ce qui compare, et `readGroceryRuns` le rendrait `null` un
+   * jour et `0` un autre selon qui l'appelle.
+   */
+  groceryRuns: number | string | null;
 }
 
 /**
@@ -191,7 +217,8 @@ export interface PlanRequestFacts extends PlanRequestInputs {
    * `null` = pas encore répondu.
    */
   cookingStyle: CookingStyle | null;
-  groceryRuns: GroceryRuns | null;
+  /** ⟳ 2026-09-09 — « peu importe » compris: c'est une réponse qui s'écrit. */
+  groceryRuns: GroceryRunsAnswer | null;
   practicalConstraints: PracticalConstraints;
   /**
    * Y A-T-IL UNE LIGNE `student_goals` À METTRE À JOUR ?
@@ -222,7 +249,7 @@ export async function readPlanInputs(userId: string): Promise<PlanRequestFacts> 
     // seconde lecture du vocabulaire ferait un écran qui montre autre chose
     // que ce avec quoi on compose.
     cookingStyle: readCookingStyle(pc),
-    groceryRuns: readGroceryRuns(pc),
+    groceryRuns: readGroceryRunsAnswer(pc),
     cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
     practicalConstraints: pc as PracticalConstraints,
     // `data === null` = aucune ligne. `maybeSingle` rend `null` sans erreur, et
@@ -322,5 +349,116 @@ export async function saveBudgetAmount(
     current: (data?.practical_constraints ?? {}) as Record<string, unknown>,
     patch: { budget_amount: amount },
     source: "planBudget",
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE PLANCHER, CÔTÉ ÉCRAN — 2026-09-11
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── POURQUOI LE REFUS VIT ICI, ET PAS DANS LA FONCTION EDGE ───────────────
+// Un budget impossible n'est pas une panne: c'est une réponse à une question
+// posée. Le seul endroit où quelqu'un peut la corriger est le champ qui l'a
+// posée, et ce dépôt a déjà payé trois fois la cicatrice « refus loin du geste
+// = bouton mort » (`SetupPage`, 2026-09-06). Le serveur, lui, ne refuse pas: il
+// CESSE d'écrire un plafond qu'aucun panier ne peut tenir, et il NOMME ce qu'il
+// a fait sur la ligne — voir `meal_generation.ts`. Les deux moitiés lisent le
+// même module et les mêmes prix, donc elles ne peuvent pas se contredire.
+//
+// ⛔ ET LES DEUX ÉCRANS QUI COMPOSENT PORTENT LE CHAMP. C'est l'invariant écrit
+// en tête de ce fichier (« un écran qui composerait SANS montrer le champ
+// ferait revenir le défaut du lieu »), et le plancher en dépend entièrement:
+// il se rend à côté du champ, jamais ailleurs.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * LE MARCHÉ DE CE COMPTE, ou `null` hors de France et des États-Unis.
+ *
+ * ⚠️ LA SOURCE EST `profiles.country`, ET C'EST LA MÊME QUE LE PROMPT. Le
+ * fuseau du navigateur (`countryFromTimezone`) sert à DÉDUIRE un pays à
+ * l'inscription; s'en servir ici ferait bouger le plancher de quelqu'un qui
+ * voyage, et diverger de ce que le serveur mesure au même instant.
+ *
+ * ⚠️ UNE PANNE DE LECTURE REND `null`, c'est-à-dire « pas de plancher » — et
+ * pas un plancher français par défaut. Un refus posé sur une lecture ratée
+ * refuserait quelqu'un pour une raison qui ne le concerne pas.
+ */
+export async function readBudgetMarket(userId: string): Promise<"fr" | "us" | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("country")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) return null;
+  return budgetMarketFor((data as { country: string | null } | null)?.country ?? null);
+}
+
+/** Une bouche telle que les DEUX écrans de composition la connaissent. */
+export interface PlanMouthPresence {
+  /** Pour retrouver le titulaire, et pour rien d'autre ici. */
+  memberId: string | null;
+  /** `omnivore`, un des quatre régimes, ou `null` — la question jamais posée. */
+  diet: string | null;
+  /** `null` = aux moments de la maison, JAMAIS « ne mange rien ». */
+  eatingSlots: readonly EatingOccasionSlot[] | null;
+  /** ⚠️ LA COLONNE DU FOYER SEULE (`awayHousehold` / `mouth.away`). */
+  away: readonly AwayMark[];
+}
+
+/**
+ * LES BOUCHES DE CETTE DEMANDE, AVEC LEUR PART DE JOURNÉE.
+ *
+ * ⚠️ « DEHORS » ET « ABSENT » COMPTENT PAREIL ICI, et seulement ici: le
+ * plancher parle d'ARGENT, et dans les deux cas le plan ne compose rien à
+ * acheter. Ailleurs dans le produit les deux états se séparent, parce que ce
+ * qui les distingue est ce que le produit DIT — un conseil chiffré pour un midi
+ * dehors, le silence pour des vacances. Une liste de courses ne se dit pas.
+ *
+ * ⚠️ LE RYTHME DE LA MAISON EST LE REPLI, exactement comme la grille de
+ * présence le fait deux lignes plus loin dans les mêmes écrans
+ * (`member.eatingSlots ?? rhythm`). Un second repli ferait compter des journées
+ * que la grille, elle, ne propose pas de marquer.
+ */
+export function budgetMouthsFor(args: {
+  /** Les jours de la fenêtre, en jetons (`mon`…`sun`). */
+  dayTokens: readonly string[];
+  /** Les moments de la maison — le rythme de la personne qui compose. */
+  houseSlots: readonly EatingOccasionSlot[];
+  mouths: readonly PlanMouthPresence[];
+  /**
+   * LE TITULAIRE, ET SA PROPRE DÉCLARATION D'ABSENCE.
+   *
+   * ⛔ REQUIS TOUS LES DEUX, jamais `?`. D14 tient DEUX colonnes: ce que le
+   * maître a marqué pour une bouche (`awayHousehold`) et ce que la personne a
+   * déclaré pour elle-même (`practical_constraints.away_days`). Le moteur
+   * compose sur l'UNION (`away.effective`); ne lire ici que la première ferait
+   * un plancher TROP HAUT pour quelqu'un qui a dit « je suis absent trois
+   * jours » — c'est-à-dire un refus contre un budget honnête, la seule
+   * direction que ce module n'a pas le droit d'avoir.
+   *
+   * ⚠️ ET L'UNION NE SE FAIT QUE SUR SA LIGNE À LUI. Appliquée à tout le
+   * monde, elle recopierait sa déclaration sur des bouches qui n'ont rien dit
+   * — l'interdit écrit sur `awayHousehold`, dans l'autre sens.
+   */
+  selfMemberId: string | null;
+  selfAway: readonly AwayMark[];
+}): BudgetFloorMouth[] {
+  return args.mouths.map((mouth) => {
+    const rhythm = mouth.eatingSlots ?? args.houseSlots;
+    const declaredSlots = rhythm.map((s) => s.slot);
+    const away = mouth.memberId !== null && mouth.memberId === args.selfMemberId
+      ? [...mouth.away, ...args.selfAway]
+      : [...mouth.away];
+    return {
+      diet: mouth.diet,
+      mouthDays: budgetMouthDays(
+        args.dayTokens.map((day) => ({
+          declaredSlots,
+          askedSlots: declaredSlots.filter((slot) =>
+            presenceStateOf(away, day, slot as EatingOccasion) === "at_table"
+          ),
+        })),
+      ),
+    };
   });
 }

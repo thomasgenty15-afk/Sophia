@@ -1,0 +1,60 @@
+{
+ "cas": "S5",
+ "wall_s": 60.4,
+ "http_line": "http=200 \u00b7 55.1s \u00b7 essais=1 \u00b7 empreinte apr\u00e8s 8097d2125f41 (inchang\u00e9e)",
+ "appels": [
+  {
+   "created_at": "2026-09-10T04:51:28.824099+00:00",
+   "source": "generate-meal-v1",
+   "model": "gpt-5.6-luna",
+   "status": "success",
+   "latency_ms": 45448,
+   "prompt_tokens": 8777,
+   "output_tokens": 12211,
+   "total_tokens": 20988,
+   "cost_usd": 0.01555864,
+   "effort": null,
+   "tier_sent": "fast",
+   "tier_echoed": "priority",
+   "tier_source": "call",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  },
+  {
+   "created_at": "2026-09-10T04:51:31.185985+00:00",
+   "source": "generate-meal-v1.composition_fill",
+   "model": "gpt-5.4-nano",
+   "status": "success",
+   "latency_ms": 1647,
+   "prompt_tokens": 419,
+   "output_tokens": 73,
+   "total_tokens": 492,
+   "cost_usd": 0,
+   "effort": null,
+   "tier_sent": null,
+   "tier_echoed": "default",
+   "tier_source": "none",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  }
+ ],
+ "refus_budget": [],
+ "shutdown": [
+  "CPU time soft limit reached: isolate: a955583d-73a7-4b96-999c-35cad0135df3",
+  "CPU time hard limit reached: isolate: a955583d-73a7-4b96-999c-35cad0135df3",
+  "CPU time soft limit reached: isolate: 45f41e23-2435-45a7-a9df-4d00d40b2e11",
+  "wall clock duration warning: isolate: 18761e38-51ce-4b15-81a2-def501130b59",
+  "CPU time soft limit reached: isolate: 18761e38-51ce-4b15-81a2-def501130b59",
+  "CPU time soft limit reached: isolate: 98614353-ac3e-400e-9b30-3e6a0a1e4f98",
+  "CPU time soft limit reached: isolate: 52d5d730-7428-4fba-ad9d-24810c4873d0",
+  "CPU time soft limit reached: isolate: 9ce8bc90-a74b-4ab9-a348-b05038ae8012",
+  "wall clock duration warning: isolate: 96d760cd-c091-43cd-babf-7ef350909e81",
+  "wall clock duration warning: isolate: 44cd2a7f-c1f8-4a15-a2f2-71c10a053964",
+  "CPU time soft limit reached: isolate: 2d777b6e-73ea-44d5-b8b6-a9f3e87de71c"
+ ],
+ "since": "2026-09-10T04:50:35"
+}

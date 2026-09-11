@@ -1,0 +1,3917 @@
+{
+    "plans": [
+        {
+            "id": "1f8a8988-b3ed-4b83-a4d0-93297ac0d652",
+            "dishes": [
+                {
+                    "day": "fri",
+                    "why": "Le poulet rôti devient une assiette rapide avec du pain et des crudités, sans répéter la même présentation.",
+                    "name": "Poulet tahini express",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_chicken"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_fri_dinner_0",
+                            "items": [
+                                {
+                                    "term": "Poulet rôti aux poivres",
+                                    "grams": 168,
+                                    "preparation_id": "prep_chicken"
+                                },
+                                {
+                                    "term": "pain complet",
+                                    "grams": 78,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 52,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 32,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 26,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Poulet, pain complet, tomate, laitue et tahini",
+                    "method": "Assembler la portion froide de poulet avec la tomate, la laitue, le pain complet et le tahini.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "wholemeal_bread",
+                            "term": "pain complet",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 77.61144578313252,
+                            "quantity": "60 g de pain complet",
+                            "grams_raw": 77.61144578313252,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 51.74096385542168,
+                            "quantity": "40 g de tahini",
+                            "grams_raw": 51.74096385542168,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 32.33810240963855,
+                            "quantity": "25 g de tomate",
+                            "grams_raw": 32.33810240963855,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 25.87048192771084,
+                            "quantity": "20 g de laitue",
+                            "grams_raw": 25.87048192771084,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Le même poulet devient un wrap frais, ce qui garde le repas du matin simple et différent.",
+                    "name": "Wrap matinal au poulet",
+                    "slot": "breakfast",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_chicken"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sat_breakfast_1",
+                            "items": [
+                                {
+                                    "term": "Poulet rôti aux poivres",
+                                    "grams": 163,
+                                    "preparation_id": "prep_chicken"
+                                },
+                                {
+                                    "term": "tortilla complète",
+                                    "grams": 75,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 125,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 125,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "yaourt nature",
+                                    "grams": 63,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Poulet, tortilla complète, tomate, laitue et yaourt",
+                    "method": "Garnir la tortilla avec la laitue, la tomate, le poulet froid et le yaourt, puis la rouler.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "tortilla_wholemeal",
+                            "term": "tortilla complète",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 75.2760736196319,
+                            "quantity": "60 g de tortilla complète",
+                            "grams_raw": 75.2760736196319,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 125.46012269938652,
+                            "quantity": "100 g de tomate",
+                            "grams_raw": 125.46012269938652,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 125.46012269938652,
+                            "quantity": "100 g de laitue",
+                            "grams_raw": 125.46012269938652,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "plain_yogurt",
+                            "term": "yaourt nature",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 62.73006134969326,
+                            "quantity": "50 g de yaourt nature",
+                            "grams_raw": 62.73006134969326,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Le bœuf est servi en pita citronnée pour changer de texture tout en gardant une assiette complète.",
+                    "name": "Pita de bœuf citronné",
+                    "slot": "lunch",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_beef"
+                        }
+                    ],
+                    "boxes": [
+                    ],
+                    "title": "Bœuf à l'oignon, pita complète, tomate, laitue, tahini et citron",
+                    "method": "Ouvrir la pita et la garnir de tomate, de laitue et de bœuf froid à l'oignon. Ajouter le tahini, l'huile d'olive et le citron.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "pita_wholemeal",
+                            "term": "pita complète",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 60,
+                            "quantity": "60 g de pita complète",
+                            "grams_raw": 60,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 15,
+                            "quantity": "15 g de tahini",
+                            "grams_raw": 15,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 100,
+                            "quantity": "100 g de tomate",
+                            "grams_raw": 100,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 50,
+                            "quantity": "50 g de laitue",
+                            "grams_raw": 50,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lemon",
+                            "term": "citron",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.5,
+                            "quantity": "un demi-citron",
+                            "grams_raw": 30,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 10,
+                            "quantity": "10 g d'huile d'olive",
+                            "grams_raw": 10,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Le saumon et le couscous prennent une forme crémeuse au tahini pour un dîner estival.",
+                    "name": "Saumon couscous au tahini",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_salmon_couscous"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sat_dinner_3",
+                            "items": [
+                                {
+                                    "term": "Saumon rôti et couscous complet",
+                                    "grams": 275,
+                                    "preparation_id": "prep_salmon_couscous"
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 38,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d'olive",
+                                    "grams": 10,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 29,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Saumon, couscous complet, tomate, tahini et huile d'olive",
+                    "method": "Assembler le saumon et le couscous froids avec la tomate, le tahini et l'huile d'olive.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 38.4199801192843,
+                            "quantity": "45 g de tahini",
+                            "grams_raw": 38.4199801192843,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 9.64768389662028,
+                            "quantity": "11.3 g d'huile d'olive",
+                            "grams_raw": 9.64768389662028,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 28.772296222664018,
+                            "quantity": "33.7 g de tomate",
+                            "grams_raw": 28.772296222664018,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Le bol de yaourt, fruits et avoine utilise des aliments simples pour un matin sans cuisson.",
+                    "name": "Bol pêche, avoine et framboises",
+                    "slot": "breakfast",
+                    "uses": [
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_breakfast_4",
+                            "items": [
+                                {
+                                    "term": "yaourt grec",
+                                    "grams": 264,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "flocons d'avoine",
+                                    "grams": 40,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "pêche",
+                                    "grams": 172,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "framboises",
+                                    "grams": 66,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "amandes",
+                                    "grams": 13,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Yaourt grec, avoine, pêche, framboises et amandes",
+                    "method": "Verser le yaourt dans un bol, ajouter l'avoine, la pêche, les framboises et les amandes.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 3
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "greek_yogurt",
+                            "term": "yaourt grec",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 264.4396551724138,
+                            "quantity": "200 g de yaourt grec",
+                            "grams_raw": 264.4396551724138,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "oats",
+                            "term": "flocons d'avoine",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 39.66594827586207,
+                            "quantity": "30 g de flocons d'avoine",
+                            "grams_raw": 39.66594827586207,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "peach",
+                            "term": "pêche",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 171.88577586206895,
+                            "quantity": "130 g de pêche",
+                            "grams_raw": 171.88577586206895,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "raspberries",
+                            "term": "framboises",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 66.10991379310344,
+                            "quantity": "50 g de framboises",
+                            "grams_raw": 66.10991379310344,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "almonds",
+                            "term": "amandes",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 13.22198275862069,
+                            "quantity": "10 g d'amandes",
+                            "grams_raw": 13.22198275862069,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Le saumon revient en salade fraîche avec feta et citron, plutôt que dans la même assiette.",
+                    "name": "Saumon couscous façon salade",
+                    "slot": "lunch",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_salmon_couscous"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_lunch_5",
+                            "items": [
+                                {
+                                    "term": "Saumon rôti et couscous complet",
+                                    "grams": 404,
+                                    "preparation_id": "prep_salmon_couscous"
+                                },
+                                {
+                                    "term": "feta",
+                                    "grams": 38,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 125,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 63,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d'olive",
+                                    "grams": 6,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "citron",
+                                    "grams": 38,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Saumon, couscous complet, tomate, laitue, feta et citron",
+                    "method": "Assembler le saumon et le couscous froids avec la laitue, la tomate, la feta, l'huile d'olive et le citron.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "feta",
+                            "term": "feta",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 37.56122448979592,
+                            "quantity": "30 g de feta",
+                            "grams_raw": 37.56122448979592,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 125.20408163265306,
+                            "quantity": "100 g de tomate",
+                            "grams_raw": 125.20408163265306,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 62.60204081632653,
+                            "quantity": "50 g de laitue",
+                            "grams_raw": 62.60204081632653,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 6.260204081632653,
+                            "quantity": "5 g d'huile d'olive",
+                            "grams_raw": 6.260204081632653,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lemon",
+                            "term": "citron",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.6260204081632653,
+                            "quantity": "un demi-citron",
+                            "grams_raw": 37.56122448979592,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Le bœuf devient une assiette ouverte au pain et au tahini, distincte de la pita.",
+                    "name": "Bœuf grillé au tahini",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_beef"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_dinner_6",
+                            "items": [
+                                {
+                                    "term": "Bœuf haché à l'oignon",
+                                    "grams": 157,
+                                    "preparation_id": "prep_beef"
+                                },
+                                {
+                                    "term": "pain complet",
+                                    "grams": 47,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "fromage de chèvre",
+                                    "grams": 31,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 48,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d'olive",
+                                    "grams": 16,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 35,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 23,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Bœuf à l'oignon, pain complet, tomate, laitue, fromage de chèvre et tahini",
+                    "method": "Dresser la laitue et la tomate, puis ajouter le bœuf froid à l'oignon, le pain, le fromage de chèvre, le tahini et l'huile d'olive.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "wholemeal_bread",
+                            "term": "pain complet",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 46.72166817769719,
+                            "quantity": "60 g de pain complet",
+                            "grams_raw": 46.72166817769719,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "goat_cheese",
+                            "term": "fromage de chèvre",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 31.147778785131457,
+                            "quantity": "40 g de fromage de chèvre",
+                            "grams_raw": 31.147778785131457,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 48.27905711695376,
+                            "quantity": "62 g de tahini",
+                            "grams_raw": 48.27905711695376,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 15.573889392565729,
+                            "quantity": "20 g d'huile d'olive",
+                            "grams_raw": 15.573889392565729,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 35.041251133272894,
+                            "quantity": "45 g de tomate",
+                            "grams_raw": 35.041251133272894,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 23.360834088848595,
+                            "quantity": "30 g de laitue",
+                            "grams_raw": 23.360834088848595,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                }
+            ],
+            "pantry": [
+            ],
+            "context": null,
+            "ends_on": "2026-09-13",
+            "user_id": "4566b443-073c-4343-9e0e-73a1a93d0b94",
+            "servings": 1,
+            "lead_days": 0,
+            "plan_kind": "household",
+            "starts_on": "2026-09-11",
+            "created_at": "2026-09-11T13:09:22.93902+00:00",
+            "retired_at": null,
+            "updated_at": "2026-09-11T13:09:22.93902+00:00",
+            "preferences": null,
+            "household_id": "af46e357-bc4f-46ba-9548-6dc37533ecb0",
+            "preparations": [
+                {
+                    "id": "prep_chicken",
+                    "title": "Poulet rôti aux poivres",
+                    "method": "Chauffer le four. Assaisonner le poulet de sel et de poivre, l'arroser d'huile d'olive et le rôtir jusqu'à cuisson complète. Refroidir rapidement, puis répartir en portions au réfrigérateur.",
+                    "cook_on": "fri",
+                    "ingredients": [
+                        {
+                            "ref": "chicken_thigh",
+                            "term": "cuisses de poulet désossées",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 458.6625582082933,
+                            "quantity": "360 g de cuisses de poulet désossées",
+                            "grams_raw": 458.6625582082933,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 12.740626616897037,
+                            "quantity": "10 g d'huile d'olive",
+                            "grams_raw": 12.740626616897037,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": null,
+                            "term": "sel",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de sel",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        },
+                        {
+                            "ref": null,
+                            "term": "poivre noir",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de poivre noir",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 45,
+                    "active_minutes": 10
+                },
+                {
+                    "id": "prep_beef",
+                    "title": "Bœuf haché à l'oignon",
+                    "method": "Émincer l'oignon et le faire revenir dans l'huile d'olive. Ajouter le bœuf, assaisonner de sel et de poivre, puis cuire en l'émiettant. Refroidir rapidement et répartir en portions au réfrigérateur.",
+                    "cook_on": "sat",
+                    "ingredients": [
+                        {
+                            "ref": "beef_mince",
+                            "term": "bœuf haché",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 355.7388939256573,
+                            "quantity": "400 g de bœuf haché",
+                            "grams_raw": 355.7388939256573,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "onion",
+                            "term": "oignon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 97.82819582955575,
+                            "quantity": "110 g d'oignon",
+                            "grams_raw": 97.82819582955575,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 8.893472348141433,
+                            "quantity": "10 g d'huile d'olive",
+                            "grams_raw": 8.893472348141433,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": null,
+                            "term": "sel",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de sel",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        },
+                        {
+                            "ref": null,
+                            "term": "poivre noir",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de poivre noir",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 35,
+                    "active_minutes": 15
+                },
+                {
+                    "id": "prep_salmon_couscous",
+                    "title": "Saumon rôti et couscous complet",
+                    "method": "Rôtir le saumon assaisonné avec une partie de l'huile d'olive. Préparer le couscous complet avec de l'eau chaude et le reste de l'huile, puis laisser gonfler. Refroidir rapidement et répartir le saumon et le couscous en portions au réfrigérateur.",
+                    "cook_on": "sat",
+                    "ingredients": [
+                        {
+                            "ref": "salmon",
+                            "term": "saumon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 273.7563598003814,
+                            "quantity": "260 g de saumon",
+                            "grams_raw": 273.7563598003814,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "couscous_wholemeal",
+                            "term": "couscous complet",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 168.46545218485008,
+                            "quantity": "160 g de couscous complet",
+                            "grams_raw": 168.46545218485008,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d'olive",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 21.05818152310626,
+                            "quantity": "20 g d'huile d'olive",
+                            "grams_raw": 21.05818152310626,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": null,
+                            "term": "sel",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de sel",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        },
+                        {
+                            "ref": null,
+                            "term": "poivre noir",
+                            "unit": null,
+                            "group": null,
+                            "state": null,
+                            "amount": null,
+                            "quantity": "une pincée de poivre noir",
+                            "grams_raw": null,
+                            "in_pantry": false,
+                            "quantity_source": null
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 35,
+                    "active_minutes": 15
+                }
+            ],
+            "validated_at": null,
+            "duration_days": 3,
+            "shopping_list": [
+                {
+                    "term": "cuisses de poulet désossées",
+                    "aisle": "protein",
+                    "buy_on": "2026-09-11",
+                    "quantity": "460 g",
+                    "food_group": "poultry",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "bœuf haché",
+                    "aisle": "protein",
+                    "buy_on": "2026-09-11",
+                    "quantity": "355 g",
+                    "food_group": "red_meat",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "saumon",
+                    "aisle": "protein",
+                    "buy_on": "2026-09-11",
+                    "quantity": "275 g",
+                    "food_group": "fatty_fish",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "couscous complet",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "170 g",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pain complet",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "125 g",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tortilla complète",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "75 g",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pita complète",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "60 g",
+                    "food_group": null,
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "flocons d'avoine",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "40 g",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "huile d'olive",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "85 g",
+                    "food_group": "olive_oil",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tahini",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "155 g",
+                    "food_group": "nuts_seeds",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "sel",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 paquet",
+                    "food_group": "sauce_dressing",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "poivre noir",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 paquet",
+                    "food_group": "sauce_dressing",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "oignon",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "100 g",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tomates",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "400 g",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "laitue",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "300 g",
+                    "food_group": "leafy_greens",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "citrons",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 unité",
+                    "food_group": "citrus",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "yaourt nature",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "65 g",
+                    "food_group": "dairy_yogurt",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "yaourt grec",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "265 g",
+                    "food_group": "dairy_yogurt",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "feta",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "40 g",
+                    "food_group": "dairy_cheese",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "fromage de chèvre",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "30 g",
+                    "food_group": "dairy_cheese",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pêche",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "170 g",
+                    "food_group": "other_fruit",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "framboises",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "65 g",
+                    "food_group": "berries",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "amandes",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "13 g",
+                    "food_group": "nuts_seeds",
+                    "freeze_on_purchase": false
+                }
+            ],
+            "content_locale": "fr-FR",
+            "generated_from": {
+                "goal": "fat_loss",
+                "names": {
+                    "kept": 7,
+                    "dishes": 7,
+                    "refused": 0,
+                    "declared": 7
+                },
+                "intent": "prepare_next",
+                "issues": [
+                    "shopping_waves: 1 (2026-09-11)",
+                    "freeze_on_purchase: 0/23",
+                    "raw_keeping_needs_later_shop: 0/3 preparations",
+                    "waves_kept_for_freshness: 0/23",
+                    "sessions_fed_from_freezer: 0/0 name the freezer",
+                    "shopping_list_unattributed: 2/23 lines match no kept and no dropped ingredient -- kept, not guessed",
+                    "ref_absent: 6/47 ingredients",
+                    "model_returned_no_box: 0/6 -- 6 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+                    "uses_kept_freezer: 0/6"
+                ],
+                "timing": {
+                    "kind": "same_morning",
+                    "reason": "starts_today",
+                    "lead_day": null
+                },
+                "coach_id": "00000000-0000-4000-8000-00000000d15c",
+                "same_day": {
+                    "dishes": 7,
+                    "invalid": 0,
+                    "declared": 7,
+                    "minutes_missing": 0
+                },
+                "household": {
+                    "id": "af46e357-bc4f-46ba-9548-6dc37533ecb0",
+                    "hand": {
+                        "taken": [
+                        ],
+                        "partial": [
+                        ],
+                        "unmerged": [
+                        ],
+                        "reclaimed": [
+                        ]
+                    },
+                    "swap": {
+                        "flagrant": false,
+                        "strictest": null,
+                        "free_mouths": 0,
+                        "absent_cells": [
+                        ],
+                        "bound_mouths": 0,
+                        "cells_checked": 0,
+                        "cells_carrying": 0,
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "retry_reverted": false,
+                        "cells_swap_absent": 0,
+                        "retry_rejected_by": null,
+                        "retry_merged_cells": 0
+                    },
+                    "boxes": {
+                        "boxes": 0,
+                        "items": 0,
+                        "meals": 6,
+                        "names": 0,
+                        "capped": 0,
+                        "mouths": 1,
+                        "refused": 0,
+                        "delivery": "none_delivered",
+                        "expected": 6,
+                        "sum_over": 0,
+                        "with_box": 0,
+                        "mouth_slots": 0,
+                        "sum_checked": 0,
+                        "cells_no_box": 7,
+                        "preparations": 3,
+                        "items_refused": 0,
+                        "legacy_folded": 0,
+                        "mouths_double": 0,
+                        "names_refused": 0,
+                        "mouths_unboxed": 0,
+                        "sum_unverifiable": 0,
+                        "mouths_no_box_cell": 7,
+                        "mouths_double_model": 0
+                    },
+                    "shares": {
+                        "shares": 0,
+                        "unknown": 0,
+                        "regime_refused": 0
+                    },
+                    "voices": {
+                        "heard": 0,
+                        "lines_in": 0,
+                        "over_cap": 0,
+                        "withheld": 0,
+                        "lines_used": 0,
+                        "per_member": [
+                        ],
+                        "accounts_at_table": 1
+                    },
+                    "cooking": {
+                        "asked": null,
+                        "capped": false,
+                        "served": "one_dish",
+                        "unused": false,
+                        "computed": "one_dish",
+                        "diverging": [
+                        ],
+                        "dish_bearing": [
+                        ]
+                    },
+                    "kitchen": {
+                        "missing": [
+                        ],
+                        "declared": null
+                    },
+                    "presence": {
+                        "members": [
+                        ],
+                        "deserted": [
+                        ],
+                        "servings": 1
+                    },
+                    "why_rule": {
+                        "valid": 0,
+                        "dishes": 7,
+                        "holders": 0,
+                        "refused": 0,
+                        "declared": 0
+                    },
+                    "envy_week": "2026-09-07",
+                    "box_sizing": {
+                        "boxes": 6,
+                        "items": 32,
+                        "share": {
+                            "sized": 0,
+                            "no_body": 0,
+                            "age_unknown": 0,
+                            "no_reference": 1,
+                            "restriction_floor": 0,
+                            "restriction_unknown": 0
+                        },
+                        "sized": 0,
+                        "unmet": {
+                            "both": 0,
+                            "none": 3,
+                            "pot_ceiling": 0,
+                            "not_anchored": 0,
+                            "tub_estimate": 0,
+                            "factor_clamped": 0
+                        },
+                        "anchor": {
+                            "clamped": 0,
+                            "no_body": 0,
+                            "anchored": 3,
+                            "pregnancy": 0,
+                            "age_unknown": 0,
+                            "no_delivery": 0,
+                            "breastfeeding": 0,
+                            "common_pot_day": 0,
+                            "day_incomplete": 0,
+                            "restriction_floor": 0,
+                            "restriction_unknown": 0
+                        },
+                        "common": 0,
+                        "mouths": {
+                            "minor": 0,
+                            "sized": 1,
+                            "no_body": 0,
+                            "no_pace": 0,
+                            "pregnancy": 0,
+                            "age_unknown": 0,
+                            "no_direction": 0,
+                            "breastfeeding": 0,
+                            "restriction_floor": 0,
+                            "implausible_factor": 0,
+                            "sized_default_pace": 0,
+                            "restriction_unknown": 0,
+                            "doctrine_no_counting": 0
+                        },
+                        "densify": {
+                            "skipped": "standard_recipe"
+                        },
+                        "activity": {
+                            "partial": 0,
+                            "answered": 1,
+                            "not_asked": 0,
+                            "not_answered": 0
+                        },
+                        "appetite": {
+                            "declared": 1,
+                            "not_asked": 0,
+                            "not_answered": 0
+                        },
+                        "unchanged": 32,
+                        "anchor_cap": {
+                            "none": 3,
+                            "density": 0,
+                            "factor_bound": 0,
+                            "density_floor": 0,
+                            "assumed_density": 0
+                        },
+                        "lost_slots": {
+                            "slots": 0,
+                            "mouth_days": 0,
+                            "kcal_lt_200": 0,
+                            "kcal_gte_200": 0,
+                            "kcal_unknown": 0
+                        },
+                        "note_boost": {
+                            "detail": [
+                            ],
+                            "applied": 0,
+                            "applied_pot": 0,
+                            "member_days": 0,
+                            "unknown_member": 0,
+                            "household_dated": 0
+                        },
+                        "pot_growth": {
+                            "capped": 0,
+                            "passes": 1,
+                            "scaled": 0,
+                            "shopping": 18,
+                            "regrammed": 0,
+                            "short_after": 0,
+                            "unrewritable": 0
+                        },
+                        "pot_shrink": {
+                            "kept": 0,
+                            "pots": 0,
+                            "removed": 0,
+                            "unreadable": 2,
+                            "unboxed_use": 1,
+                            "lines_scaled": 18,
+                            "lines_dropped": 0,
+                            "sessions_emptied": 0,
+                            "lines_unattributed": 4,
+                            "lines_unrewritable": 0
+                        },
+                        "unmet_band": {
+                            "lt_200": 0,
+                            "gte_200": 0
+                        },
+                        "lost_by_line": {
+                            "kcal": 0,
+                            "slots": 0,
+                            "mouth_days": 0,
+                            "kcal_unknown": 0
+                        },
+                        "unverifiable": 0,
+                        "capped_by_pot": 0,
+                        "share_clamped": 0,
+                        "anchor_applied": 6,
+                        "activity_source": {
+                            "legacy": 0,
+                            "assumed": 0,
+                            "crossed": 1
+                        },
+                        "pot_attribution": {
+                            "ratio": 0.85,
+                            "drawnGrams": 1167,
+                            "potsUnreadable": 0,
+                            "attributedGrams": 1367
+                        }
+                    },
+                    "eating_out": {
+                        "cells": 0,
+                        "mouths": 0
+                    },
+                    "precedence": {
+                        "exact": true,
+                        "place": "tail",
+                        "by_rank": {
+                            "rank_1": 0,
+                            "rank_2": 6,
+                            "rank_3": 0,
+                            "rank_4": 0,
+                            "rank_5": 0
+                        },
+                        "blocks_after": 0,
+                        "ranks_with_object": 1,
+                        "ranks_without_object": 4
+                    },
+                    "traditions": {
+                        "declared": 0,
+                        "honoured": 0,
+                        "not_composed": 0,
+                        "out_of_window": 0,
+                        "composed_without_label": 0
+                    },
+                    "work_lunch": {
+                        "cold": 0,
+                        "mouths": 0
+                    },
+                    "dish_owners": {
+                        "asked": 0,
+                        "refused": 0,
+                        "declared": 0,
+                        "attributed": 0
+                    },
+                    "minor_count": 0,
+                    "regime_belt": {
+                        "kept": 0,
+                        "bites": 0,
+                        "mouths": 0,
+                        "checked": 0,
+                        "refused": 0,
+                        "silenced": 0,
+                        "separated": 0,
+                        "box_scoped": 0,
+                        "groups_valid": 0,
+                        "item_repaired": 0,
+                        "not_separated": 0,
+                        "unknown_mouth": 0,
+                        "group_excluded": 0,
+                        "groups_refused": 0,
+                        "group_undecided": 0,
+                        "groups_declared": 0,
+                        "group_plant_only": 0,
+                        "citation_repaired": 0,
+                        "silenced_spelling": 0,
+                        "silenced_homograph": 0
+                    },
+                    "member_count": 1,
+                    "member_deltas": [
+                    ],
+                    "envy_line_used": false,
+                    "exclusion_belt": {
+                        "kept": 0,
+                        "bites": 0,
+                        "mouths": 0,
+                        "checked": 0,
+                        "refused": 0,
+                        "separated": 0,
+                        "box_scoped": 0,
+                        "final_bites": 0,
+                        "not_separated": 0
+                    },
+                    "portion_sizing": {
+                        "apply": {
+                            "regrammed": 35,
+                            "pots_scaled": 3,
+                            "fresh_scaled": 27,
+                            "own_authored": 0,
+                            "tubs_authored": 0,
+                            "boxes_authored": 6,
+                            "dishes_unsized": 1,
+                            "eaters_unsized": 0,
+                            "fresh_unweighed": 0,
+                            "pots_unreadable": 0,
+                            "items_unresolved": 0,
+                            "servings_rewritten": 0
+                        },
+                        "final": {
+                            "boxes": 6,
+                            "water": {
+                                "kept": 2,
+                                "absorbed": 1,
+                                "discarded": 0,
+                                "undetermined": 0
+                            },
+                            "judged": 6,
+                            "reason": "remeasured_after_apply",
+                            "measured": true,
+                            "verdicts": {
+                                "over_max": 0,
+                                "in_bounds": 6,
+                                "under_min": 0,
+                                "unmeasurable": 0
+                            },
+                            "out_of_bounds": [
+                            ],
+                            "tubs_not_judged": 0,
+                            "pot_density_gone": 0,
+                            "pot_density_drifted": 0,
+                            "pot_density_unmeasurable": 0
+                        },
+                        "slots": {
+                            "light": 0,
+                            "composed": 3,
+                            "declared": 0,
+                            "without_target": 0
+                        },
+                        "dishes": 7,
+                        "mouths": 1,
+                        "reason": "one_mouth",
+                        "target": {
+                            "anchored": 1,
+                            "no_target": 0
+                        },
+                        "applied": true,
+                        "clamped": {
+                            "max": 0,
+                            "min": 0
+                        },
+                        "repairs": {
+                            "asked": 0,
+                            "splice": {
+                                "pot_missing": 0,
+                                "dish_missing": 0,
+                                "pots_spliced": 0,
+                                "fresh_spliced": 0,
+                                "uses_mismatch": 0,
+                                "shopping_added": 0,
+                                "shopping_pruned": 0,
+                                "density_checks_cleared": 0
+                            },
+                            "accepted": 0,
+                            "attempts": 0,
+                            "rejected": {
+                                "belt": 0,
+                                "no_cell": 0,
+                                "degraded": 0,
+                                "missing_pot": 0,
+                                "unparseable": 0,
+                                "unmeasurable": 0,
+                                "title_changed": 0,
+                                "dedicated_lost": 0,
+                                "frozen_rewritten": 0
+                            },
+                            "still_out": 0,
+                            "pot_forked": 0,
+                            "pots_frozen": 0,
+                            "fresh_frozen": 0,
+                            "pot_unforked": 0,
+                            "recipe_terms": 0,
+                            "stuck_dishes": 0,
+                            "stuck_eaters": 0,
+                            "fill_absorbed": null,
+                            "retried_after": null,
+                            "skipped_stuck": 0,
+                            "residual_stuck": 0,
+                            "skipped_budget": 0,
+                            "residual_eaters": 0,
+                            "recipe_quantified": 0,
+                            "retry_skipped_small": 0
+                        },
+                        "measured": 6,
+                        "verdicts": {
+                            "over_max": 0,
+                            "in_bounds": 6,
+                            "under_min": 0,
+                            "unmeasurable": 1
+                        },
+                        "gap_closed": 0,
+                        "unmet_band": {
+                            "lt_200": 0,
+                            "gte_200": 0
+                        },
+                        "sizing_path": "portion_v1",
+                        "verification": {
+                            "anchored": 3,
+                            "pot_shrunk": 0,
+                            "unmet_none": 3,
+                            "pot_removed": 0,
+                            "would_resize": 0,
+                            "anchor_clamped": 0,
+                            "densify_touched": 0,
+                            "pot_short_after": 0,
+                            "shopping_scaled": 18,
+                            "shopping_unattributed": 4
+                        },
+                        "bounds_source": {
+                            "age_known": 7,
+                            "age_unknown": 0
+                        },
+                        "fixed_covered": 0,
+                        "fixed_conflict": 0,
+                        "fixed_slot_kcal": {
+                            "loose": 0,
+                            "off_day": 0,
+                            "declared": 0,
+                            "unresolved": 0,
+                            "referential": 0,
+                            "loose_ignored_kcal": 0
+                        },
+                        "unmeasurable_by": {
+                            "unknown_ingredient": 1
+                        },
+                        "pot_ingredients_without_amount": 0
+                    },
+                    "vague_portions": {
+                        "notes": 0,
+                        "vague": 0,
+                        "box_ids": 0,
+                        "quantified": 0
+                    },
+                    "meals_delivered": {
+                        "fed": 7,
+                        "rows": [
+                        ],
+                        "mouths": 1,
+                        "missing": 0,
+                        "rehomed": 0,
+                        "retried": false,
+                        "by_cause": {
+                            "double": 0,
+                            "no_dish": 0,
+                            "not_named": 0,
+                            "held_off_regime": 0,
+                            "held_off_exclusion": 0
+                        },
+                        "expected": 7,
+                        "restored": 0,
+                        "retry_on": {
+                        },
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "restored_fallback": 0,
+                        "cells_without_dish": 0,
+                        "retry_merged_cells": 0
+                    },
+                    "preference_split": {
+                        "pairs": 0,
+                        "wanters": 0,
+                        "composed": 0,
+                        "pairs_fresh": 0,
+                        "refuser_clean": 0,
+                        "refuser_bitten": 0,
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "pairs_from_stores": 0,
+                        "retry_rejected_by": null,
+                        "retry_merged_cells": 0
+                    },
+                    "accountless_count": 0,
+                    "restriction_count": 0,
+                    "unknown_age_count": 0,
+                    "portion_quantities": {
+                        "notes": 0,
+                        "model_quantity": 0,
+                        "model_size_word": 0
+                    },
+                    "cross_contact_block": {
+                        "emitted": 0,
+                        "skipped_no_medical": 1,
+                        "skipped_no_dedicated": 0
+                    },
+                    "unquantified_dish_ingredients": {
+                        "ingredients": 33,
+                        "unquantified": 0
+                    }
+                },
+                "rationale": {
+                    "lines": [
+                        "Ce plan couvre 3 jours, à partir d'aujourd'hui.",
+                        "Courses et cuisson dès le matin, pour être prêt à midi.",
+                        "Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.",
+                        "Une seule course, vendredi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+                        "Chaque personne a chacun de ses repas."
+                    ],
+                    "refusal": null
+                },
+                "belief_keys": [
+                    "whole_foods_first",
+                    "protein_at_every_meal",
+                    "regular_meals_beat_perfect_meals",
+                    "one_change_at_a_time",
+                    "a_missed_day_is_data",
+                    "this_is_a_discovery_program"
+                ],
+                "empty_slots": [
+                ],
+                "explanation": {
+                    "kept": 1,
+                    "lines": [
+                        "J’ai décliné chaque préparation en assiettes différentes pour suivre la méthode sans sacrifier la simplicité des sessions."
+                    ],
+                    "refusal": null,
+                    "declared": 1
+                },
+                "food_groups": {
+                    "lines": 47,
+                    "valid": 0,
+                    "refused": 0,
+                    "declared": 0,
+                    "persisted": 0
+                },
+                "hunger_days": 0,
+                "mouth_facts": {
+                    "gender.personal": 1,
+                    "ageYears.personal": 1,
+                    "heightCm.personal": 1,
+                    "weightKg.personal": 1,
+                    "activityAxes.personal": 1,
+                    "appetite.member_sheet": 1,
+                    "activityLevel.personal": 1
+                },
+                "plan_budget": {
+                    "charged": [
+                    ],
+                    "total_ms": 380000,
+                    "usable_ms": 233633,
+                    "elapsed_ms": 116367,
+                    "reserve_ms": 30000,
+                    "remaining_ms": 263633,
+                    "repairs_used": 0,
+                    "repairs_asked": 0,
+                    "repairs_allowed": 2,
+                    "repairs_refused": {
+                    },
+                    "provider_attempts": 1
+                },
+                "budget_floor": {
+                    "asked": null,
+                    "floor": 7.95,
+                    "plausible": 11.31,
+                    "ceiling_sent": false
+                },
+                "prompt_version": "meal.en.v31_shape_not_plate_weight+household.v33_one_standard_recipe_the_engine_multiplies",
+                "request_report": {
+                    "lines": [
+                    ],
+                    "refusal": null
+                },
+                "doctrine_reason": "loaded",
+                "doctrine_version": 1,
+                "satiety_priority": false,
+                "hunger_window_end": "2026-09-11",
+                "generation_context": {
+                    "write_scope": "household",
+                    "household_size": 1,
+                    "master_member_id": "3cd7524e-9e74-4141-b595-a5baa86341a8",
+                    "served_member_ids": [
+                        "3cd7524e-9e74-4141-b595-a5baa86341a8"
+                    ],
+                    "plan_owner_user_id": "4566b443-073c-4343-9e0e-73a1a93d0b94",
+                    "coverage_unreadable": false
+                },
+                "hunger_window_days": 7,
+                "hunger_window_start": "2026-09-05",
+                "protein_anchor_retry": false,
+                "protein_anchor_missing": [
+                ]
+            },
+            "member_portions": [
+                {
+                    "member_id": "3cd7524e-9e74-4141-b595-a5baa86341a8",
+                    "display_name": "Paul",
+                    "eating_slots": null,
+                    "portion_note": null,
+                    "preparation_shares": [
+                    ]
+                }
+            ],
+            "cooking_sessions": [
+                {
+                    "day": "fri",
+                    "run_through": "Mettre le four à chauffer, assaisonner et enfourner le poulet, puis le laisser rôtir. Refroidir rapidement et ranger les portions au réfrigérateur.",
+                    "total_minutes": 45,
+                    "preparation_ids": [
+                        "prep_chicken"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "run_through": "Acheter le saumon et le bœuf frais le samedi ou la veille. Mettre le saumon au four, faire revenir l'oignon et le bœuf pendant la cuisson, puis préparer le couscous complet. Refroidir rapidement, répartir les trois préparations et les ranger au réfrigérateur.",
+                    "total_minutes": 45,
+                    "preparation_ids": [
+                        "prep_beef",
+                        "prep_salmon_couscous"
+                    ]
+                }
+            ],
+            "composition_unknowns": 1,
+            "composition_energy_sources": {
+                "kcal": 5168,
+                "model": 0,
+                "table": 1,
+                "promoted": 0,
+                "group_bounds": 0
+            }
+        },
+        {
+            "id": "1eada05b-2c3d-4ed5-aa85-14edf2840b77",
+            "dishes": [
+                {
+                    "day": "fri",
+                    "why": "La pita assemble rapidement une préparation d’agneau, un féculent, une matière grasse et un légume.",
+                    "name": "Pita d’agneau au tahini",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_lamb"
+                        }
+                    ],
+                    "boxes": [
+                    ],
+                    "title": "Agneau, pita complète, tahini et tomate",
+                    "method": "Ouvrir la pita, ajouter l’agneau préparé, le tahini, l’huile d’olive et la tomate, puis servir.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "pita_wholemeal",
+                            "term": "pita complète",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 1,
+                            "quantity": "1 pita complète",
+                            "grams_raw": 60,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 40,
+                            "quantity": "40 g de tahini",
+                            "grams_raw": 40,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "ml",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 15,
+                            "quantity": "15 ml d’huile d’olive",
+                            "grams_raw": 15,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 60,
+                            "quantity": "60 g de tomate",
+                            "grams_raw": 60,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Les petits-suisses donnent à ce petit-déjeuner frais un ancrage protéiné avec des aliments simples.",
+                    "name": "Petits-suisses aux fraises",
+                    "slot": "breakfast",
+                    "uses": [
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sat_breakfast_1",
+                            "items": [
+                                {
+                                    "term": "petits-suisses nature",
+                                    "grams": 258,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "flocons d’avoine",
+                                    "grams": 52,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "fraises",
+                                    "grams": 194,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "noix",
+                                    "grams": 19,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Petits-suisses, avoine, fraises et noix",
+                    "method": "Mettre les petits-suisses dans un bol, ajouter les flocons d’avoine, les fraises et les noix.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 3
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "petit_suisse_cream_cheese",
+                            "term": "petits-suisses nature",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 258.15602836879435,
+                            "quantity": "200 g de petits-suisses nature",
+                            "grams_raw": 258.15602836879435,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "oats",
+                            "term": "flocons d’avoine",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 51.63120567375887,
+                            "quantity": "40 g de flocons d’avoine",
+                            "grams_raw": 51.63120567375887,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "strawberries",
+                            "term": "fraises",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 193.61702127659575,
+                            "quantity": "150 g de fraises",
+                            "grams_raw": 193.61702127659575,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "walnuts",
+                            "term": "noix",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 19.361702127659576,
+                            "quantity": "15 g de noix",
+                            "grams_raw": 19.361702127659576,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Ce bol change la préparation d’agneau en déjeuner complet avec céréale, légumes et matières grasses.",
+                    "name": "Couscous d’agneau aux légumes",
+                    "slot": "lunch",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_lamb"
+                        },
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_couscous"
+                        },
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_roasted_vegetables"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sat_lunch_2",
+                            "items": [
+                                {
+                                    "term": "Boulettes d’agneau aux flocons d’avoine",
+                                    "grams": 207,
+                                    "preparation_id": "prep_lamb"
+                                },
+                                {
+                                    "term": "Couscous complet huilé",
+                                    "grams": 204,
+                                    "preparation_id": "prep_couscous"
+                                },
+                                {
+                                    "term": "Légumes rôtis au four",
+                                    "grams": 210,
+                                    "preparation_id": "prep_roasted_vegetables"
+                                },
+                                {
+                                    "term": "feta",
+                                    "grams": 27,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 11,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "citron",
+                                    "grams": 32,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Agneau, couscous complet, légumes rôtis, feta et citron",
+                    "method": "Réunir l’agneau, le couscous complet et les légumes rôtis, puis ajouter la feta, le tahini et le citron.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "feta",
+                            "term": "feta",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 26.97545159796202,
+                            "quantity": "25 g de feta",
+                            "grams_raw": 26.97545159796202,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 10.790180639184808,
+                            "quantity": "10 g de tahini",
+                            "grams_raw": 10.790180639184808,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lemon",
+                            "term": "citron",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.5395090319592404,
+                            "quantity": "la moitié d’un citron",
+                            "grams_raw": 32.37054191755442,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "why": "Le saumon devient un dîner différent grâce à la tortilla, la sauce au tahini et la salade croquante.",
+                    "name": "Saumon roulé au tahini",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_salmon"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sat_dinner_3",
+                            "items": [
+                                {
+                                    "term": "Saumon rôti à l’huile d’olive",
+                                    "grams": 161,
+                                    "preparation_id": "prep_salmon"
+                                },
+                                {
+                                    "term": "tortilla complète",
+                                    "grams": 55,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 41,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d’olive",
+                                    "grams": 10,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 63,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "tomate",
+                                    "grams": 55,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "citron",
+                                    "grams": 28,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Saumon, tortilla complète, tahini, laitue et tomate",
+                    "method": "Garnir la tortilla avec le saumon, le tahini, l’huile d’olive, la laitue, la tomate et le citron, puis rouler.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "tortilla_wholemeal",
+                            "term": "tortilla complète",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.91985559566787,
+                            "quantity": "1 tortilla complète",
+                            "grams_raw": 55.1913357400722,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 41.39350180505415,
+                            "quantity": "45 g de tahini",
+                            "grams_raw": 41.39350180505415,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "ml",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 10.394368231046931,
+                            "quantity": "11.3 ml d’huile d’olive",
+                            "grams_raw": 10.394368231046931,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 63.19407942238267,
+                            "quantity": "68.7 g de laitue",
+                            "grams_raw": 63.19407942238267,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "tomato",
+                            "term": "tomate",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 55.1913357400722,
+                            "quantity": "60 g de tomate",
+                            "grams_raw": 55.1913357400722,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lemon",
+                            "term": "citron",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.459927797833935,
+                            "quantity": "la moitié d’un citron",
+                            "grams_raw": 27.5956678700361,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Le yaourt grec garde le petit-déjeuner simple tout en apportant une base protéinée et des fruits de saison.",
+                    "name": "Yaourt grec pêche et amandes",
+                    "slot": "breakfast",
+                    "uses": [
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_breakfast_4",
+                            "items": [
+                                {
+                                    "term": "yaourt grec nature",
+                                    "grams": 303,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "flocons d’avoine",
+                                    "grams": 53,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "pêche",
+                                    "grams": 197,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "amandes",
+                                    "grams": 23,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Yaourt grec, avoine, pêche et amandes",
+                    "method": "Verser le yaourt grec dans un bol, ajouter les flocons d’avoine, la pêche et les amandes.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 3
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "greek_yogurt",
+                            "term": "yaourt grec nature",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 303.3333333333333,
+                            "quantity": "200 g de yaourt grec nature",
+                            "grams_raw": 303.3333333333333,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "oats",
+                            "term": "flocons d’avoine",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 53.08333333333333,
+                            "quantity": "35 g de flocons d’avoine",
+                            "grams_raw": 53.08333333333333,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "peach",
+                            "term": "pêche",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 197.16666666666666,
+                            "quantity": "130 g de pêche",
+                            "grams_raw": 197.16666666666666,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "almonds",
+                            "term": "amandes",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 22.75,
+                            "quantity": "15 g d’amandes",
+                            "grams_raw": 22.75,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Cette salade utilise le saumon autrement que le dîner précédent avec des pommes de terre, de la laitue et de la feta.",
+                    "name": "Salade de saumon et pommes de terre",
+                    "slot": "lunch",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_salmon"
+                        },
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_potatoes"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_lunch_5",
+                            "items": [
+                                {
+                                    "term": "Saumon rôti à l’huile d’olive",
+                                    "grams": 167,
+                                    "preparation_id": "prep_salmon"
+                                },
+                                {
+                                    "term": "Pommes de terre rôties",
+                                    "grams": 358,
+                                    "preparation_id": "prep_potatoes"
+                                },
+                                {
+                                    "term": "feta",
+                                    "grams": 38,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "laitue",
+                                    "grams": 95,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "citron",
+                                    "grams": 29,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d’olive",
+                                    "grams": 10,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Saumon, pommes de terre, feta, laitue et citron",
+                    "method": "Mélanger le saumon et les pommes de terre, ajouter la feta, la laitue, l’huile d’olive et le citron.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "feta",
+                            "term": "feta",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 38.15888615888616,
+                            "quantity": "40 g de feta",
+                            "grams_raw": 38.15888615888616,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lettuce",
+                            "term": "laitue",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 95.39721539721539,
+                            "quantity": "100 g de laitue",
+                            "grams_raw": 95.39721539721539,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "lemon",
+                            "term": "citron",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.476986076986077,
+                            "quantity": "la moitié d’un citron",
+                            "grams_raw": 28.619164619164618,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "ml",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 9.53972153972154,
+                            "quantity": "10 ml d’huile d’olive",
+                            "grams_raw": 9.53972153972154,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "why": "Les lentilles forment l’ancrage protéiné d’un dîner sans viande, complété par le couscous, les légumes et les matières grasses.",
+                    "name": "Lentilles crémeuses au tahini",
+                    "slot": "dinner",
+                    "uses": [
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_lentils"
+                        },
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_couscous"
+                        },
+                        {
+                            "kept": "fridge",
+                            "servings": 1,
+                            "preparation_id": "prep_roasted_vegetables"
+                        }
+                    ],
+                    "boxes": [
+                        {
+                            "id": "box_sun_dinner_6",
+                            "items": [
+                                {
+                                    "term": "Lentilles mijotées à la carotte",
+                                    "grams": 228,
+                                    "preparation_id": "prep_lentils"
+                                },
+                                {
+                                    "term": "Couscous complet huilé",
+                                    "grams": 73,
+                                    "preparation_id": "prep_couscous"
+                                },
+                                {
+                                    "term": "Légumes rôtis au four",
+                                    "grams": 75,
+                                    "preparation_id": "prep_roasted_vegetables"
+                                },
+                                {
+                                    "term": "tahini",
+                                    "grams": 39,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "huile d’olive",
+                                    "grams": 19,
+                                    "preparation_id": null
+                                },
+                                {
+                                    "term": "parmesan",
+                                    "grams": 15,
+                                    "preparation_id": null
+                                }
+                            ],
+                            "member_ids": [
+                                "07965f74-c04e-40f8-acd5-54917b3739ed"
+                            ],
+                            "legacy_total_grams": null
+                        }
+                    ],
+                    "title": "Lentilles, couscous complet, légumes rôtis, tahini et parmesan",
+                    "method": "Assembler les lentilles avec le couscous complet et les légumes rôtis, puis napper de tahini et d’huile d’olive et terminer avec le parmesan.",
+                    "same_day": {
+                        "kind": "assemble",
+                        "minutes": 5
+                    },
+                    "member_id": null,
+                    "ingredients": [
+                        {
+                            "ref": "tahini",
+                            "term": "tahini",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 38.51851851851852,
+                            "quantity": "100 g de tahini",
+                            "grams_raw": 38.51851851851852,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "ml",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 19.25925925925926,
+                            "quantity": "50 ml d’huile d’olive",
+                            "grams_raw": 19.25925925925926,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "parmesan",
+                            "term": "parmesan",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 15.407407407407408,
+                            "quantity": "40 g de parmesan",
+                            "grams_raw": 15.407407407407408,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "complements_shared": false,
+                    "honours_belief_keys": [
+                        "whole_foods_first",
+                        "protein_at_every_meal",
+                        "regular_meals_beat_perfect_meals"
+                    ]
+                }
+            ],
+            "pantry": [
+            ],
+            "context": null,
+            "ends_on": "2026-09-13",
+            "user_id": "6c2aa5d2-362c-42d4-9bd7-67120f8dac1c",
+            "servings": 1,
+            "lead_days": 0,
+            "plan_kind": "household",
+            "starts_on": "2026-09-11",
+            "created_at": "2026-09-11T13:11:48.271865+00:00",
+            "retired_at": null,
+            "updated_at": "2026-09-11T13:11:48.271865+00:00",
+            "preferences": null,
+            "household_id": "1d66dc7f-617e-4693-b832-17d792249ee6",
+            "preparations": [
+                {
+                    "id": "prep_lamb",
+                    "title": "Boulettes d’agneau aux flocons d’avoine",
+                    "method": "Hacher l’oignon et l’ail, mélanger avec l’agneau et les flocons d’avoine, former les boulettes, les huiler et les cuire au four jusqu’à ce qu’elles soient bien cuites.",
+                    "cook_on": "fri",
+                    "ingredients": [
+                        {
+                            "ref": "lamb_leg",
+                            "term": "agneau",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 311.8527095877721,
+                            "quantity": "300 g d’agneau",
+                            "grams_raw": 311.8527095877721,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "onion",
+                            "term": "oignon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 114.34599351551644,
+                            "quantity": "110 g d’oignon",
+                            "grams_raw": 114.34599351551644,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "oats",
+                            "term": "flocons d’avoine",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 41.580361278369615,
+                            "quantity": "40 g de flocons d’avoine",
+                            "grams_raw": 41.580361278369615,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 2.0790180639184808,
+                            "quantity": "2 cuillères à soupe d’huile d’olive",
+                            "grams_raw": 31.18527095877721,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "garlic",
+                            "term": "ail",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 5.197545159796202,
+                            "quantity": "5 g d’ail",
+                            "grams_raw": 5.197545159796202,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 40,
+                    "active_minutes": 15
+                },
+                {
+                    "id": "prep_couscous",
+                    "title": "Couscous complet huilé",
+                    "method": "Hydrater le couscous complet, le laisser gonfler, l’égrener et incorporer l’huile d’olive.",
+                    "cook_on": "fri",
+                    "ingredients": [
+                        {
+                            "ref": "couscous_wholemeal",
+                            "term": "couscous complet",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 102.49422743725663,
+                            "quantity": "140 g de couscous complet",
+                            "grams_raw": 102.49422743725663,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.732101624551833,
+                            "quantity": "1 cuillère à soupe d’huile d’olive",
+                            "grams_raw": 10.981524368277496,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 15,
+                    "active_minutes": 5
+                },
+                {
+                    "id": "prep_roasted_vegetables",
+                    "title": "Légumes rôtis au four",
+                    "method": "Émincer le poivron, la carotte et l’oignon, mélanger avec l’huile d’olive et rôtir au four jusqu’à ce que les légumes soient tendres et dorés.",
+                    "cook_on": "fri",
+                    "ingredients": [
+                        {
+                            "ref": "bell_pepper",
+                            "term": "poivron",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 109.81524368277495,
+                            "quantity": "150 g de poivron",
+                            "grams_raw": 109.81524368277495,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "carrot",
+                            "term": "carotte",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 102.49422743725663,
+                            "quantity": "140 g de carotte",
+                            "grams_raw": 102.49422743725663,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "onion",
+                            "term": "oignon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 80.53117870070163,
+                            "quantity": "110 g d’oignon",
+                            "grams_raw": 80.53117870070163,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 1.464203249103666,
+                            "quantity": "2 cuillères à soupe d’huile d’olive",
+                            "grams_raw": 21.963048736554992,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 40,
+                    "active_minutes": 10
+                },
+                {
+                    "id": "prep_salmon",
+                    "title": "Saumon rôti à l’huile d’olive",
+                    "method": "Badigeonner le saumon d’huile d’olive et le cuire au four jusqu’à ce qu’il soit juste cuit, puis le laisser refroidir avant de le ranger.",
+                    "cook_on": "sat",
+                    "ingredients": [
+                        {
+                            "ref": "salmon",
+                            "term": "saumon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 375,
+                            "quantity": "375 g",
+                            "grams_raw": 375,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 1.873827749640024,
+                            "quantity": "2 cuillères à soupe d’huile d’olive",
+                            "grams_raw": 28.10741624460036,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 2,
+                    "total_minutes": 20,
+                    "active_minutes": 10
+                },
+                {
+                    "id": "prep_potatoes",
+                    "title": "Pommes de terre rôties",
+                    "method": "Couper les pommes de terre, les mélanger avec l’huile d’olive et les rôtir au four jusqu’à ce qu’elles soient dorées et tendres.",
+                    "cook_on": "sat",
+                    "ingredients": [
+                        {
+                            "ref": "potato",
+                            "term": "pomme de terre",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 380,
+                            "quantity": "380 g",
+                            "grams_raw": 380,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 1.1924651924651926,
+                            "quantity": "1.3 cuillère à soupe d’huile d’olive",
+                            "grams_raw": 17.88697788697789,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 1,
+                    "total_minutes": 40,
+                    "active_minutes": 10
+                },
+                {
+                    "id": "prep_lentils",
+                    "title": "Lentilles mijotées à la carotte",
+                    "method": "Faire revenir l’oignon, la carotte et l’ail dans l’huile d’olive, ajouter les lentilles et le bouillon, puis mijoter jusqu’à ce que les lentilles soient tendres.",
+                    "cook_on": "sun",
+                    "ingredients": [
+                        {
+                            "ref": "lentils_dry",
+                            "term": "lentilles sèches",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 60,
+                            "quantity": "60 g",
+                            "grams_raw": 60,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "onion",
+                            "term": "oignon",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 40,
+                            "quantity": "40 g",
+                            "grams_raw": 40,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "carrot",
+                            "term": "carotte",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 25,
+                            "quantity": "25 g",
+                            "grams_raw": 25,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "olive_oil",
+                            "term": "huile d’olive",
+                            "unit": "tbsp",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.7703703703703704,
+                            "quantity": "2 cuillères à soupe d’huile d’olive",
+                            "grams_raw": 11.555555555555555,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "garlic",
+                            "term": "ail",
+                            "unit": "g",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 2,
+                            "quantity": "2 g",
+                            "grams_raw": 2,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        },
+                        {
+                            "ref": "stock_cube",
+                            "term": "cube de bouillon",
+                            "unit": "unit",
+                            "group": null,
+                            "state": "raw",
+                            "amount": 0.3851851851851852,
+                            "quantity": "1 cube de bouillon",
+                            "grams_raw": 3.851851851851852,
+                            "in_pantry": false,
+                            "quantity_source": "structured"
+                        }
+                    ],
+                    "servings_made": 1,
+                    "total_minutes": 45,
+                    "active_minutes": 15
+                }
+            ],
+            "validated_at": null,
+            "duration_days": 3,
+            "shopping_list": [
+                {
+                    "term": "agneau",
+                    "aisle": "protein",
+                    "buy_on": "2026-09-11",
+                    "quantity": "310 g d’agneau",
+                    "food_group": "red_meat",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "saumon",
+                    "aisle": "protein",
+                    "buy_on": "2026-09-11",
+                    "quantity": "375 g de saumon",
+                    "food_group": "fatty_fish",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "oignons",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "220 g d’oignons",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "ail",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "7 g d’ail",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "poivron",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "110 g de poivron",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "carottes",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "210 g de carottes",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tomates",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "120 g de tomates",
+                    "food_group": "non_starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "laitue",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "160 g de laitue",
+                    "food_group": "leafy_greens",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "citrons",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "2 citrons",
+                    "food_group": "citrus",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "fraises",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "195 g de fraises",
+                    "food_group": "berries",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pêche",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "195 g de pêche",
+                    "food_group": "other_fruit",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pommes de terre",
+                    "aisle": "produce",
+                    "buy_on": "2026-09-11",
+                    "quantity": "400 g de pommes de terre",
+                    "food_group": "starchy_veg",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "flocons d’avoine",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "145 g de flocons d’avoine",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "couscous complet",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "100 g de couscous complet",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "lentilles sèches",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "60 g de lentilles sèches",
+                    "food_group": "legumes",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "pitas complètes",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 pita complète",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tortilla complète",
+                    "aisle": "grains",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 tortilla complète",
+                    "food_group": "whole_grain",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "huile d’olive",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "145 ml d’huile d’olive",
+                    "food_group": "olive_oil",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "tahini",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "130 g de tahini",
+                    "food_group": "nuts_seeds",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "cube de bouillon",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "1 cube de bouillon",
+                    "food_group": "sauce_dressing",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "petits-suisses nature",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "260 g de petits-suisses nature",
+                    "food_group": null,
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "yaourt grec nature",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "305 g de yaourt grec nature",
+                    "food_group": "dairy_yogurt",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "feta",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "65 g de feta",
+                    "food_group": "dairy_cheese",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "parmesan",
+                    "aisle": "dairy",
+                    "buy_on": "2026-09-11",
+                    "quantity": "15 g de parmesan",
+                    "food_group": "dairy_cheese",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "noix",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "19 g de noix",
+                    "food_group": "nuts_seeds",
+                    "freeze_on_purchase": false
+                },
+                {
+                    "term": "amandes",
+                    "aisle": "pantry",
+                    "buy_on": "2026-09-11",
+                    "quantity": "25 g d’amandes",
+                    "food_group": "nuts_seeds",
+                    "freeze_on_purchase": false
+                }
+            ],
+            "content_locale": "fr-FR",
+            "generated_from": {
+                "goal": "muscle_gain",
+                "names": {
+                    "kept": 7,
+                    "dishes": 7,
+                    "refused": 0,
+                    "declared": 7
+                },
+                "intent": "prepare_next",
+                "issues": [
+                    "shopping_waves: 1 (2026-09-11)",
+                    "freeze_on_purchase: 0/26",
+                    "raw_keeping_needs_later_shop: 0/4 preparations",
+                    "waves_kept_for_freshness: 0/26",
+                    "sessions_fed_from_freezer: 0/0 name the freezer",
+                    "pot_density_drift_after_measure",
+                    "shopping_list_unattributed: 6/26 lines match no kept and no dropped ingredient -- kept, not guessed",
+                    "model_returned_no_box: 0/5 -- 5 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+                    "uses_kept_freezer: 0/10"
+                ],
+                "timing": {
+                    "kind": "same_morning",
+                    "reason": "starts_today",
+                    "lead_day": null
+                },
+                "coach_id": "00000000-0000-4000-8000-00000000d15c",
+                "same_day": {
+                    "dishes": 7,
+                    "invalid": 0,
+                    "declared": 7,
+                    "minutes_missing": 0
+                },
+                "household": {
+                    "id": "1d66dc7f-617e-4693-b832-17d792249ee6",
+                    "hand": {
+                        "taken": [
+                        ],
+                        "partial": [
+                        ],
+                        "unmerged": [
+                        ],
+                        "reclaimed": [
+                        ]
+                    },
+                    "swap": {
+                        "flagrant": false,
+                        "strictest": null,
+                        "free_mouths": 0,
+                        "absent_cells": [
+                        ],
+                        "bound_mouths": 0,
+                        "cells_checked": 0,
+                        "cells_carrying": 0,
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "retry_reverted": false,
+                        "cells_swap_absent": 0,
+                        "retry_rejected_by": null,
+                        "retry_merged_cells": 0
+                    },
+                    "boxes": {
+                        "boxes": 0,
+                        "items": 0,
+                        "meals": 5,
+                        "names": 0,
+                        "capped": 0,
+                        "mouths": 1,
+                        "refused": 0,
+                        "delivery": "none_delivered",
+                        "expected": 5,
+                        "sum_over": 0,
+                        "with_box": 0,
+                        "mouth_slots": 0,
+                        "sum_checked": 0,
+                        "cells_no_box": 7,
+                        "preparations": 6,
+                        "items_refused": 0,
+                        "legacy_folded": 0,
+                        "mouths_double": 0,
+                        "names_refused": 0,
+                        "mouths_unboxed": 0,
+                        "sum_unverifiable": 0,
+                        "mouths_no_box_cell": 7,
+                        "mouths_double_model": 0
+                    },
+                    "shares": {
+                        "shares": 0,
+                        "unknown": 0,
+                        "regime_refused": 0
+                    },
+                    "voices": {
+                        "heard": 0,
+                        "lines_in": 0,
+                        "over_cap": 0,
+                        "withheld": 0,
+                        "lines_used": 0,
+                        "per_member": [
+                        ],
+                        "accounts_at_table": 1
+                    },
+                    "cooking": {
+                        "asked": null,
+                        "capped": false,
+                        "served": "one_dish",
+                        "unused": false,
+                        "computed": "one_dish",
+                        "diverging": [
+                        ],
+                        "dish_bearing": [
+                        ]
+                    },
+                    "kitchen": {
+                        "missing": [
+                        ],
+                        "declared": null
+                    },
+                    "presence": {
+                        "members": [
+                        ],
+                        "deserted": [
+                        ],
+                        "servings": 1
+                    },
+                    "why_rule": {
+                        "valid": 0,
+                        "dishes": 7,
+                        "holders": 0,
+                        "refused": 0,
+                        "declared": 0
+                    },
+                    "envy_week": "2026-09-07",
+                    "box_sizing": {
+                        "boxes": 6,
+                        "items": 33,
+                        "share": {
+                            "sized": 0,
+                            "no_body": 0,
+                            "age_unknown": 0,
+                            "no_reference": 1,
+                            "restriction_floor": 0,
+                            "restriction_unknown": 0
+                        },
+                        "sized": 0,
+                        "unmet": {
+                            "both": 0,
+                            "none": 2,
+                            "pot_ceiling": 0,
+                            "not_anchored": 0,
+                            "tub_estimate": 0,
+                            "factor_clamped": 0
+                        },
+                        "anchor": {
+                            "clamped": 0,
+                            "no_body": 0,
+                            "anchored": 2,
+                            "pregnancy": 0,
+                            "age_unknown": 0,
+                            "no_delivery": 0,
+                            "breastfeeding": 0,
+                            "common_pot_day": 0,
+                            "day_incomplete": 0,
+                            "restriction_floor": 0,
+                            "restriction_unknown": 0
+                        },
+                        "common": 0,
+                        "mouths": {
+                            "minor": 0,
+                            "sized": 1,
+                            "no_body": 0,
+                            "no_pace": 0,
+                            "pregnancy": 0,
+                            "age_unknown": 0,
+                            "no_direction": 0,
+                            "breastfeeding": 0,
+                            "restriction_floor": 0,
+                            "implausible_factor": 0,
+                            "sized_default_pace": 0,
+                            "restriction_unknown": 0,
+                            "doctrine_no_counting": 0
+                        },
+                        "densify": {
+                            "skipped": "standard_recipe"
+                        },
+                        "activity": {
+                            "partial": 0,
+                            "answered": 1,
+                            "not_asked": 0,
+                            "not_answered": 0
+                        },
+                        "appetite": {
+                            "declared": 1,
+                            "not_asked": 0,
+                            "not_answered": 0
+                        },
+                        "unchanged": 33,
+                        "anchor_cap": {
+                            "none": 2,
+                            "density": 0,
+                            "factor_bound": 0,
+                            "density_floor": 0,
+                            "assumed_density": 0
+                        },
+                        "lost_slots": {
+                            "slots": 0,
+                            "mouth_days": 0,
+                            "kcal_lt_200": 0,
+                            "kcal_gte_200": 0,
+                            "kcal_unknown": 0
+                        },
+                        "note_boost": {
+                            "detail": [
+                            ],
+                            "applied": 0,
+                            "applied_pot": 0,
+                            "member_days": 0,
+                            "unknown_member": 0,
+                            "household_dated": 0
+                        },
+                        "pot_growth": {
+                            "capped": 0,
+                            "passes": 1,
+                            "scaled": 3,
+                            "shopping": 17,
+                            "regrammed": 6,
+                            "short_after": 1,
+                            "unrewritable": 0
+                        },
+                        "pot_shrink": {
+                            "kept": 5,
+                            "pots": 0,
+                            "removed": 0,
+                            "unreadable": 0,
+                            "unboxed_use": 1,
+                            "lines_scaled": 17,
+                            "lines_dropped": 0,
+                            "sessions_emptied": 0,
+                            "lines_unattributed": 6,
+                            "lines_unrewritable": 0
+                        },
+                        "unmet_band": {
+                            "lt_200": 0,
+                            "gte_200": 0
+                        },
+                        "lost_by_line": {
+                            "kcal": 0,
+                            "slots": 0,
+                            "mouth_days": 0,
+                            "kcal_unknown": 0
+                        },
+                        "unverifiable": 0,
+                        "capped_by_pot": 0,
+                        "share_clamped": 0,
+                        "anchor_applied": 6,
+                        "activity_source": {
+                            "legacy": 0,
+                            "assumed": 0,
+                            "crossed": 1
+                        },
+                        "pot_attribution": {
+                            "ratio": 0.9,
+                            "drawnGrams": 1683,
+                            "potsUnreadable": 0,
+                            "attributedGrams": 1870
+                        }
+                    },
+                    "eating_out": {
+                        "cells": 0,
+                        "mouths": 0
+                    },
+                    "precedence": {
+                        "exact": true,
+                        "place": "tail",
+                        "by_rank": {
+                            "rank_1": 0,
+                            "rank_2": 6,
+                            "rank_3": 0,
+                            "rank_4": 0,
+                            "rank_5": 0
+                        },
+                        "blocks_after": 0,
+                        "ranks_with_object": 1,
+                        "ranks_without_object": 4
+                    },
+                    "traditions": {
+                        "declared": 0,
+                        "honoured": 0,
+                        "not_composed": 0,
+                        "out_of_window": 0,
+                        "composed_without_label": 0
+                    },
+                    "work_lunch": {
+                        "cold": 0,
+                        "mouths": 0
+                    },
+                    "dish_owners": {
+                        "asked": 0,
+                        "refused": 0,
+                        "declared": 0,
+                        "attributed": 0
+                    },
+                    "minor_count": 0,
+                    "regime_belt": {
+                        "kept": 0,
+                        "bites": 0,
+                        "mouths": 0,
+                        "checked": 0,
+                        "refused": 0,
+                        "silenced": 0,
+                        "separated": 0,
+                        "box_scoped": 0,
+                        "groups_valid": 0,
+                        "item_repaired": 0,
+                        "not_separated": 0,
+                        "unknown_mouth": 0,
+                        "group_excluded": 0,
+                        "groups_refused": 0,
+                        "group_undecided": 0,
+                        "groups_declared": 0,
+                        "group_plant_only": 0,
+                        "citation_repaired": 0,
+                        "silenced_spelling": 0,
+                        "silenced_homograph": 0
+                    },
+                    "member_count": 1,
+                    "member_deltas": [
+                    ],
+                    "envy_line_used": false,
+                    "exclusion_belt": {
+                        "kept": 0,
+                        "bites": 0,
+                        "mouths": 0,
+                        "checked": 0,
+                        "refused": 0,
+                        "separated": 0,
+                        "box_scoped": 0,
+                        "final_bites": 0,
+                        "not_separated": 0
+                    },
+                    "portion_sizing": {
+                        "apply": {
+                            "regrammed": 45,
+                            "pots_scaled": 6,
+                            "fresh_scaled": 24,
+                            "own_authored": 0,
+                            "tubs_authored": 0,
+                            "boxes_authored": 6,
+                            "dishes_unsized": 1,
+                            "eaters_unsized": 0,
+                            "fresh_unweighed": 0,
+                            "pots_unreadable": 0,
+                            "items_unresolved": 0,
+                            "servings_rewritten": 2
+                        },
+                        "final": {
+                            "boxes": 6,
+                            "water": {
+                                "kept": 5,
+                                "absorbed": 1,
+                                "discarded": 0,
+                                "undetermined": 0
+                            },
+                            "judged": 6,
+                            "reason": "remeasured_after_apply",
+                            "measured": true,
+                            "verdicts": {
+                                "over_max": 0,
+                                "in_bounds": 6,
+                                "under_min": 0,
+                                "unmeasurable": 0
+                            },
+                            "out_of_bounds": [
+                            ],
+                            "tubs_not_judged": 0,
+                            "pot_density_gone": 0,
+                            "pot_density_drifted": 1,
+                            "pot_density_unmeasurable": 0
+                        },
+                        "slots": {
+                            "light": 0,
+                            "composed": 3,
+                            "declared": 0,
+                            "without_target": 0
+                        },
+                        "dishes": 7,
+                        "mouths": 1,
+                        "reason": "one_mouth",
+                        "target": {
+                            "anchored": 1,
+                            "no_target": 0
+                        },
+                        "applied": true,
+                        "clamped": {
+                            "max": 0,
+                            "min": 0
+                        },
+                        "repairs": {
+                            "asked": 0,
+                            "splice": {
+                                "pot_missing": 0,
+                                "dish_missing": 0,
+                                "pots_spliced": 0,
+                                "fresh_spliced": 0,
+                                "uses_mismatch": 0,
+                                "shopping_added": 0,
+                                "shopping_pruned": 0,
+                                "density_checks_cleared": 0
+                            },
+                            "accepted": 0,
+                            "attempts": 0,
+                            "rejected": {
+                                "belt": 0,
+                                "no_cell": 0,
+                                "degraded": 0,
+                                "missing_pot": 0,
+                                "unparseable": 0,
+                                "unmeasurable": 0,
+                                "title_changed": 0,
+                                "dedicated_lost": 0,
+                                "frozen_rewritten": 0
+                            },
+                            "still_out": 0,
+                            "pot_forked": 0,
+                            "pots_frozen": 0,
+                            "fresh_frozen": 0,
+                            "pot_unforked": 0,
+                            "recipe_terms": 0,
+                            "stuck_dishes": 0,
+                            "stuck_eaters": 0,
+                            "fill_absorbed": null,
+                            "retried_after": null,
+                            "skipped_stuck": 0,
+                            "residual_stuck": 0,
+                            "skipped_budget": 0,
+                            "residual_eaters": 0,
+                            "recipe_quantified": 0,
+                            "retry_skipped_small": 0
+                        },
+                        "measured": 6,
+                        "verdicts": {
+                            "over_max": 0,
+                            "in_bounds": 6,
+                            "under_min": 0,
+                            "unmeasurable": 1
+                        },
+                        "gap_closed": 0,
+                        "unmet_band": {
+                            "lt_200": 0,
+                            "gte_200": 0
+                        },
+                        "sizing_path": "portion_v1",
+                        "verification": {
+                            "anchored": 2,
+                            "pot_shrunk": 0,
+                            "unmet_none": 2,
+                            "pot_removed": 0,
+                            "would_resize": 0,
+                            "anchor_clamped": 0,
+                            "densify_touched": 0,
+                            "pot_short_after": 1,
+                            "shopping_scaled": 17,
+                            "shopping_unattributed": 6
+                        },
+                        "bounds_source": {
+                            "age_known": 7,
+                            "age_unknown": 0
+                        },
+                        "fixed_covered": 0,
+                        "fixed_conflict": 0,
+                        "fixed_slot_kcal": {
+                            "loose": 0,
+                            "off_day": 0,
+                            "declared": 0,
+                            "unresolved": 0,
+                            "referential": 0,
+                            "loose_ignored_kcal": 0
+                        },
+                        "unmeasurable_by": {
+                            "missing_quantity": 1
+                        },
+                        "pot_ingredients_without_amount": 0
+                    },
+                    "vague_portions": {
+                        "notes": 0,
+                        "vague": 0,
+                        "box_ids": 0,
+                        "quantified": 0
+                    },
+                    "meals_delivered": {
+                        "fed": 7,
+                        "rows": [
+                        ],
+                        "mouths": 1,
+                        "missing": 0,
+                        "rehomed": 0,
+                        "retried": false,
+                        "by_cause": {
+                            "double": 0,
+                            "no_dish": 0,
+                            "not_named": 0,
+                            "held_off_regime": 0,
+                            "held_off_exclusion": 0
+                        },
+                        "expected": 7,
+                        "restored": 0,
+                        "retry_on": {
+                        },
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "restored_fallback": 0,
+                        "cells_without_dish": 0,
+                        "retry_merged_cells": 0
+                    },
+                    "preference_split": {
+                        "pairs": 0,
+                        "wanters": 0,
+                        "composed": 0,
+                        "pairs_fresh": 0,
+                        "refuser_clean": 0,
+                        "refuser_bitten": 0,
+                        "retry_accepted": 0,
+                        "retry_attempts": 0,
+                        "pairs_from_stores": 0,
+                        "retry_rejected_by": null,
+                        "retry_merged_cells": 0
+                    },
+                    "accountless_count": 0,
+                    "restriction_count": 0,
+                    "unknown_age_count": 0,
+                    "portion_quantities": {
+                        "notes": 0,
+                        "model_quantity": 0,
+                        "model_size_word": 0
+                    },
+                    "cross_contact_block": {
+                        "emitted": 0,
+                        "skipped_no_medical": 1,
+                        "skipped_no_dedicated": 0
+                    },
+                    "unquantified_dish_ingredients": {
+                        "ingredients": 28,
+                        "unquantified": 0
+                    }
+                },
+                "rationale": {
+                    "lines": [
+                        "Ce plan couvre 3 jours, à partir d'aujourd'hui.",
+                        "Courses et cuisson dès le matin, pour être prêt à midi.",
+                        "Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.",
+                        "Une seule course, vendredi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+                        "Chaque personne a chacun de ses repas."
+                    ],
+                    "refusal": null
+                },
+                "belief_keys": [
+                    "whole_foods_first",
+                    "protein_at_every_meal",
+                    "regular_meals_beat_perfect_meals",
+                    "one_change_at_a_time",
+                    "a_missed_day_is_data",
+                    "this_is_a_discovery_program"
+                ],
+                "empty_slots": [
+                ],
+                "explanation": {
+                    "kept": 0,
+                    "lines": [
+                    ],
+                    "refusal": null,
+                    "declared": 0
+                },
+                "food_groups": {
+                    "lines": 49,
+                    "valid": 0,
+                    "refused": 0,
+                    "declared": 0,
+                    "persisted": 0
+                },
+                "hunger_days": 0,
+                "mouth_facts": {
+                    "gender.personal": 1,
+                    "ageYears.personal": 1,
+                    "heightCm.personal": 1,
+                    "weightKg.personal": 1,
+                    "activityAxes.personal": 1,
+                    "appetite.member_sheet": 1,
+                    "activityLevel.personal": 1
+                },
+                "plan_budget": {
+                    "charged": [
+                    ],
+                    "total_ms": 380000,
+                    "usable_ms": 212451,
+                    "elapsed_ms": 137549,
+                    "reserve_ms": 30000,
+                    "remaining_ms": 242451,
+                    "repairs_used": 0,
+                    "repairs_asked": 0,
+                    "repairs_allowed": 2,
+                    "repairs_refused": {
+                    },
+                    "provider_attempts": 1
+                },
+                "budget_floor": {
+                    "asked": null,
+                    "floor": 7.95,
+                    "plausible": 11.31,
+                    "ceiling_sent": false
+                },
+                "prompt_version": "meal.en.v31_shape_not_plate_weight+household.v33_one_standard_recipe_the_engine_multiplies",
+                "request_report": {
+                    "lines": [
+                    ],
+                    "refusal": null
+                },
+                "doctrine_reason": "loaded",
+                "doctrine_version": 1,
+                "satiety_priority": false,
+                "hunger_window_end": "2026-09-11",
+                "generation_context": {
+                    "write_scope": "household",
+                    "household_size": 1,
+                    "master_member_id": "07965f74-c04e-40f8-acd5-54917b3739ed",
+                    "served_member_ids": [
+                        "07965f74-c04e-40f8-acd5-54917b3739ed"
+                    ],
+                    "plan_owner_user_id": "6c2aa5d2-362c-42d4-9bd7-67120f8dac1c",
+                    "coverage_unreadable": false
+                },
+                "hunger_window_days": 7,
+                "hunger_window_start": "2026-09-05",
+                "protein_anchor_retry": false,
+                "protein_anchor_missing": [
+                ]
+            },
+            "member_portions": [
+                {
+                    "member_id": "07965f74-c04e-40f8-acd5-54917b3739ed",
+                    "display_name": "Max",
+                    "eating_slots": null,
+                    "portion_note": null,
+                    "preparation_shares": [
+                    ]
+                }
+            ],
+            "cooking_sessions": [
+                {
+                    "day": "fri",
+                    "run_through": "Préchauffer le four, préparer les boulettes d’agneau et les légumes sur leurs plaques, puis les enfourner. Pendant la cuisson, hydrater et égrener le couscous. Laisser refroidir, répartir chaque préparation en portions et ranger au réfrigérateur.",
+                    "total_minutes": 45,
+                    "preparation_ids": [
+                        "prep_lamb",
+                        "prep_couscous",
+                        "prep_roasted_vegetables"
+                    ]
+                },
+                {
+                    "day": "sat",
+                    "run_through": "Acheter le saumon frais ce jour-là ou la veille. Mettre les pommes de terre huilées au four, préparer le saumon pendant que le four chauffe, puis cuire les deux préparations en parallèle. Laisser refroidir et ranger les portions au réfrigérateur.",
+                    "total_minutes": 40,
+                    "preparation_ids": [
+                        "prep_salmon",
+                        "prep_potatoes"
+                    ]
+                },
+                {
+                    "day": "sun",
+                    "run_through": "Émincer l’oignon, la carotte et l’ail, les faire revenir dans l’huile d’olive, ajouter les lentilles et le bouillon, puis laisser mijoter jusqu’à tendreté. Répartir la préparation et assembler le dîner.",
+                    "total_minutes": 45,
+                    "preparation_ids": [
+                        "prep_lentils"
+                    ]
+                }
+            ],
+            "composition_unknowns": 2,
+            "composition_energy_sources": {
+                "kcal": 7339,
+                "model": 0,
+                "table": 0.957,
+                "promoted": 0,
+                "group_bounds": 0.043
+            }
+        }
+    ],
+    "source": "student_generated_meals (lecture seule)",
+    "gele_le": "2026-09-11"
+}

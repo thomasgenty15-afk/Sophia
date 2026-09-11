@@ -21,6 +21,9 @@
  * ⚠️ Et chaque moitié retirée fait ROUGIR : sans les tests de coupe, ces
  * épingles seraient un `indexOf` sur une chaîne qui pourrait disparaître.
  */
+// ⟳ 2026-09-11 · LOT 7 — L'ENTRÉE DE LA LANE INDIVIDUELLE A ÉTÉ RETIRÉE
+// AVEC LA LANE. La propriété est CONSERVÉE, sur la lane qui reste: c'est un
+// second exemplaire du contrôle qui disparaît, pas le contrôle.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 const FUNCTIONS_DIR = new URL("../../", import.meta.url);
@@ -51,7 +54,6 @@ const LANES: readonly Lane[] = [
     rel: "generate-household-meal-v1/index.ts",
     tag: "keel.household_meal.wall",
   },
-  { lane: "solo", rel: "generate-meal-v1/index.ts", tag: "keel.meal.wall" },
 ];
 
 for (const lane of LANES) {

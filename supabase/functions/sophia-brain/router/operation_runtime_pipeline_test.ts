@@ -250,8 +250,13 @@ Deno.test("direct_effect_lane defers on ideation codes even without crisis-block
       }),
       // Route synthétique de flow local actif : AUCUN blocked_path crise.
       routeDecision: baseRouteDecision({
-        response_owner: "keel_reengagement_resume_v1",
-        reason_code: "active_keel_reengagement_resume_with_direct_effects",
+        // ⟳ 2026-09-09 — FIXTURE REBASÉE. Le cas prouve un invariant de
+        // PIPELINE (un flow non-safety possède le tour), pas quelque chose du
+        // réengagement; ce flow-là ne possède plus aucun tour. Le seul
+        // propriétaire non-safety armé hors conversation qui reste est
+        // `weight_divergence`.
+        response_owner: "weight_divergence",
+        reason_code: "active_weight_divergence_with_direct_effects",
         direct_effects_to_run: ["create_one_shot_reminder"],
       }),
       safetyContextOutput: { risk_band: "medium", reason_codes: [] },
@@ -334,12 +339,13 @@ Deno.test("operation_runtime_pipeline product_help route allows one-shot reminde
         },
       }],
     }),
-    // A6: la lane `product_help` a disparu. Ce que le cas prouve — un effet
-    // direct s'exécute pendant qu'un flow local possède le tour — se rejoue
-    // sur le seul propriétaire de lane non-safety restant.
+    // A6: la lane `product_help` a disparu; ⟳ 2026-09-09 le réengagement aussi.
+    // Ce que le cas prouve — un effet direct s'exécute pendant qu'un flow local
+    // possède le tour — se rejoue sur le seul propriétaire de lane non-safety
+    // restant.
     routeDecision: baseRouteDecision({
-      response_owner: "keel_reengagement_resume_v1",
-      selected_handler: "keel_reengagement_resume_v1",
+      response_owner: "weight_divergence",
+      selected_handler: "weight_divergence",
       direct_effects_to_run: ["create_one_shot_reminder"],
     }),
     clientNow: new Date("2026-06-13T08:00:00.000Z"),
@@ -396,10 +402,10 @@ Deno.test("operation_runtime_pipeline active local flow does not parse raw messa
     userMessage: message,
     turnFrame: baseTurnFrame(),
     routeDecision: baseRouteDecision({
-      response_owner: "keel_reengagement_resume_v1",
-      selected_handler: "keel_reengagement_resume_v1",
+      response_owner: "weight_divergence",
+      selected_handler: "weight_divergence",
       direct_effects_to_run: [],
-      reason_code: "active_keel_reengagement_resume",
+      reason_code: "active_weight_divergence",
     }),
     allowDirectEffectMessageIntakeFallback: true,
     clientNow: new Date("2026-06-13T08:00:00.000Z"),

@@ -1,0 +1,12 @@
+{
+  "proportion_adjust.ts": "4351e70692e417484eb3772937b7912ebc26218ca4333d7d1a2eb38686bbe8f4",
+  "plan_proportion_units.ts": "d8ebfd97ccdba1b259be114eab89460f075b600b12e7b5309a5b14461b4bb977",
+  "portion_sizing.ts": "ab2969483a73511b8713158dc9d60e0ef95743f7dd5ba1ff16e5787b2f4a5630",
+  "preparation_mass.ts": "3179eab2b431c35236bdfbbc6de4057aa3e039e74bf21e0992f6136d86015e53",
+  "final_plan_gate.ts": "970f9e938b4ecdd16f1ec2cb0b8e3d7bbf2b0f45552c97916ebee8d9ec1a7c98",
+  "food_composition.ts": "cdaa841cc2a74e18b74c601d57c3e48dfd47d8ca608e32f516fc49142735c357",
+  "food_composition_io.ts": "4c7c7477d1ba9961ee6dfb06eb56d188a9351ddf90b77a89f24d8184214611da",
+  "composition_fill_io.ts": "90ec329f6b5b25940a837edab823e400f1f80ce5fc98e708203d77c2187edec5",
+  "mouth_energy.ts": "cc5135d10e8ff7796290db4dbb8506b5ed56edef0bfa557940c99cb66d4df4fd",
+  "plan_energy_read.ts": "1da8e045e947988125a4017b82ce2251c3058a744b2b79ae5822fe2d5baa00b4"
+}

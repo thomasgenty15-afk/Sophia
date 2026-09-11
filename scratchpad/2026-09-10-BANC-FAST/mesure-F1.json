@@ -1,0 +1,50 @@
+{
+ "cas": "F1",
+ "wall_s": 190.5,
+ "http_line": "http=200 \u00b7 187.6s \u00b7 essais=2 \u00b7 empreinte apr\u00e8s c1b3ceecc944 (inchang\u00e9e)",
+ "appels": [
+  {
+   "created_at": "2026-09-10T04:57:18.633997+00:00",
+   "source": "generate-household-meal-v1",
+   "model": "gpt-5.6-luna",
+   "status": "success",
+   "latency_ms": 63750,
+   "prompt_tokens": 9474,
+   "output_tokens": 13367,
+   "total_tokens": 22841,
+   "cost_usd": 0.01623042,
+   "effort": null,
+   "tier_sent": "fast",
+   "tier_echoed": "priority",
+   "tier_source": "call",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  },
+  {
+   "created_at": "2026-09-10T04:58:40.472205+00:00",
+   "source": "generate-household-meal-v1.dedicated_repair",
+   "model": "gpt-5.6-luna",
+   "status": "success",
+   "latency_ms": 81573,
+   "prompt_tokens": 9768,
+   "output_tokens": 15031,
+   "total_tokens": 24799,
+   "cost_usd": 0.01914642,
+   "effort": null,
+   "tier_sent": "fast",
+   "tier_echoed": "priority",
+   "tier_source": "call",
+   "max_retries": null,
+   "timeout_ms": null,
+   "attempt": null,
+   "chain_index": null
+  }
+ ],
+ "refus_budget": [],
+ "shutdown": [
+  "CPU time soft limit reached: isolate: f0011368-8e26-435d-9397-df81cdb965ec"
+ ],
+ "since": "2026-09-10T04:55:30"
+}

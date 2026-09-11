@@ -61,29 +61,35 @@
  * serait fausse dès le premier jour. Une date fausse est pire qu'une absence de
  * date.
  *
- * ⚠️ ET SUR UNE PRISE, LE SLIDER MONTE PLUS HAUT QUE CE QUE L'ENVELOPPE
- * EXÉCUTE — DEPUIS LE 2026-08-18, EN CONNAISSANCE DE CAUSE. La bande
- * `muscle_gain` plafonne à +10 % (`MAX_SURPLUS_FRACTION`), soit ~0,23 kg/sem
- * sur 2 500 kcal d'entretien, alors que le slider monte jusqu'à la borne dure.
- * C'est le prix, assumé, de ne pas refuser à quelqu'un un rythme qu'il a le
- * droit de choisir.
+ * ── ⟳ 2026-09-09 — LE CURSEUR EST LE CONTRAT, DANS LES DEUX SENS ───────────
+ * Du 2026-08-18 au 2026-09-09, une PRISE d'adulte a vécu avec DEUX nombres:
+ * le curseur montait jusqu'à la borne dure (1 kg, 1 % du poids), et
+ * `executedPaceFor` plafonnait l'écart exécuté à `MAX_SURPLUS_FRACTION`
+ * (+10 % de l'entretien, ~0,23 kg/sem sur 2 500 kcal). Le lot L8 avait
+ * refermé l'écart « par la seconde sortie »: la date d'arrivée se disait sur
+ * l'exécuté, et l'écran ne mentait pas. Mais la personne, elle, comptait sur
+ * le cran qu'elle avait réglé: à 0,8 kg/sem elle attendait +880 kcal/jour et
+ * en recevait +250, sans qu'aucun écran ne le lui dise (la phrase de
+ * saturation avait quitté l'affichage le 2026-08-19).
  *
- * ⛔ L'ÉCART EST REFERMÉ DEPUIS LE 2026-08-18 (lot L8), ET IL L'EST PAR LA
- * SECONDE SORTIE, PAS PAR LA PREMIÈRE. On n'a PAS élargi la bande de prise —
- * `MAX_SURPLUS_FRACTION` est dérivé de `ENERGY_BANDS.muscle_gain` (Helms 2023)
- * et l'élargir pour faire tenir une promesse d'interface aurait fait exécuter
- * au moteur un surplus que la littérature ne porte pas. On dit la date sur le
- * rythme **EXÉCUTÉ**: `executedPaceFor` ci-dessous rend ce que la composition
- * sait réellement livrer, et c'est LUI que la date d'arrivée et les grammages
- * doivent lire. `paceCeilingFor` continue de rendre ce que le curseur AUTORISE
- * — les deux nombres sont différents et le restent, ce qui est le fait, pas un
- * défaut.
+ * DÉCISION DU PROPRIÉTAIRE, 2026-09-09: ce que le curseur autorise, la
+ * casserole l'exécute. Les bornes DURES restent (plafond absolu, gabarit, A1
+ * et plancher sur une perte, fraction du mineur), et l'avertissement à
+ * 0,5 kg/sem reste — il PARLE, il n'interdit pas. Ce qui disparaît est le
+ * plafond CACHÉ: `executedPaceFor` borne désormais une prise d'adulte sur le
+ * plafond du curseur lui-même (`slider_ceiling`), jamais sur la bande
+ * d'enveloppe. Sur un cran du curseur, exécuté == choisi, dans les deux sens,
+ * et c'est l'invariant que `weight_pace_test.ts` balaie.
  *
- * ⚠️ CE QUI RESTE OUVERT, ET IL FAUT LE SAVOIR: l'écran ne lit pas encore
- * `executedPaceFor` pour composer sa phrase de date (`weeksToTarget` y est
- * appelé sur le cran CHOISI). Tant que c'est vrai, la date affichée sur une
- * prise au-delà de +10 % reste optimiste — mais le moteur, lui, ne l'est plus:
- * les grammages sont dimensionnés sur l'exécuté.
+ * ⚠️ `ENERGY_BANDS.muscle_gain` (+5..+10 %, Helms 2023) N'A PAS BOUGÉ: c'est
+ * l'enveloppe sur laquelle le MODÈLE compose, et la lane solo
+ * (`generate-meal-v1`) la lit sans jamais lire le curseur — dans aucun sens.
+ * Trou nommé, distinct, non traité ici. Ce module ne l'importe plus.
+ *
+ * ⚠️ `BOX_FACTOR_MAX` a suivi (1,25 → 1,50): au plafond du curseur, le
+ * facteur d'une prise atteint 1,48 (100 kg / 150 cm / sédentaire, balayage de
+ * 2 580 corps), et une ceinture plus basse aurait rendu `implausible_factor`
+ * — c'est-à-dire l'assiette d'ENTRETIEN — à la personne qui demande le plus.
  *
  * ── CE QUE CE MODULE NE FAIT PAS ──────────────────────────────────────────
  * Il ne pose aucune cible dans le générateur (c'est le lot L8, et il attend la
@@ -97,7 +103,6 @@ import {
   estimatedChildMaintenanceKcal,
   estimatedMaintenanceKcal,
   MAX_DAILY_DEFICIT_KCAL,
-  MAX_SURPLUS_FRACTION,
   type MouthBody,
 } from "./meal_envelope.ts";
 import { ageBandOf } from "./student_age.ts";
@@ -333,11 +338,10 @@ export interface PaceCeiling {
   /**
    * L'écart quotidien que ce rythme représente, en kcal. INTERNE.
    *
-   * ⚠️ SUR UNE PRISE, CE N'EST PLUS CE QUE L'ENVELOPPE EXÉCUTE. Depuis
-   * l'ouverture du 2026-08-18, le slider de prise monte jusqu'à la borne dure
-   * pendant que `envelopeCore` plafonne à `MAX_SURPLUS_FRACTION` (+10 %). Ce
-   * nombre est l'arithmétique du CRAN CHOISI, pas la promesse du moteur — voir
-   * la note de `paceCeilingFor`. Sur une perte, les deux coïncident toujours.
+   * ⟳ 2026-09-09 — C'EST AUSSI CE QUE LE MOTEUR EXÉCUTE, dans les deux sens.
+   * Entre le 2026-08-18 et cette date, une prise montait ici plus haut que
+   * `executedPaceFor` ne livrait (+10 %). Le plafond exécuté d'une prise est
+   * désormais CE plafond-ci — voir l'en-tête du module.
    */
   dailyDeltaKcal: number;
 }
@@ -400,6 +404,48 @@ export function roundPace(kgPerWeek: number): number {
  * dix-huit ans du dépôt vit dans `student_age.ts`, et une seconde arithmétique
  * de dates est toujours celle qu'on oublie d'ajuster.
  */
+/**
+ * LOT B ① — LE CRAN D'UNE DIRECTION QUE PERSONNE N'A CHIFFRÉE, en kg/semaine.
+ *
+ * ── L'ARBITRAGE, ET POURQUOI C'EST CELUI-LÀ ──────────────────────────────
+ * Deux sorties étaient posées: soit les deux lecteurs exigent la même chose —
+ * une direction sans rythme ne fait alors PAS diverger non plus, et on RETIRE
+ * le plat dédié —, soit une direction sans rythme reçoit un cran par défaut.
+ * La première rend le produit plus petit pour réparer une incohérence: elle
+ * retire à quelqu'un un plat qu'il a aujourd'hui, au motif qu'un curseur
+ * qu'on ne lui a jamais montré n'est pas réglé. La seconde tient la promesse
+ * déjà faite. C'est la seconde qui est retenue.
+ *
+ * ── D'OÙ VIENT 0,25, ET CE QU'IL VAUT DANS LES DEUX SENS ─────────────────
+ * C'est un demi-livre par semaine: le cran modéré, celui qu'on donnerait à
+ * quelqu'un qui a dit « je veux perdre » sans dire à quelle vitesse.
+ * 0,25 × 7 700 / 7 = **275 kcal/jour** demandés, et ce nombre traverse ensuite
+ * `executedPaceFor` comme n'importe quel autre cran:
+ *
+ *   · PERTE d'adulte — 275 kcal est très en dessous d'A1 (500 kcal), donc
+ *     c'est le CRAN qui décide, jamais le plafond. Sur 2 713 kcal d'entretien:
+ *     facteur 0,899. Le plancher d'énergie de ce corps reste évalué et gagne
+ *     quand il est plus proche.
+ *   · PRISE d'adulte — 275 kcal est très en dessous du plafond du curseur
+ *     (⟳ 2026-09-09: `slider_ceiling`, plus la bande +10 %), donc c'est le
+ *     CRAN qui décide ici aussi. Sur 2 713 kcal: facteur 1,101.
+ *   · MINEUR — n'arrive jamais ici: la porte ② ferme avant.
+ *
+ * ⚠️ IL N'EST PAS LE MAXIMUM, ET C'EST DÉLIBÉRÉ. Saturer A1 (500 kcal/jour)
+ * donnerait le déficit le plus creux que le produit connaisse à quelqu'un qui
+ * a seulement coché une case. Un défaut se choisit conservateur; c'est le
+ * curseur, quand un écran le posera, qui a le droit de monter.
+ *
+ * ⚠️ IL N'EST PAS ÉCRIT EN BASE, ET C'EST LA MOITIÉ DE LA DÉCISION. Poser
+ * 0,25 dans `household_members.target_pace_kg_per_week` à l'ajout d'une bouche
+ * rendrait un cran DÉRIVÉ indiscernable d'un cran CHOISI: l'écran l'afficherait
+ * comme la réponse de la personne, `keel_household_set_member_target(null,
+ * null)` l'effacerait comme si elle l'avait retiré, et plus personne ne
+ * pourrait compter qui attend encore qu'on lui pose la question. La dérivation
+ * vit ici, à la lecture, et elle porte son propre motif (`sized_default_pace`).
+ */
+export const DEFAULT_PACE_KG_PER_WEEK = 0.25;
+
 export interface PaceSubject {
   body: MouthBody;
   isMinor: boolean;
@@ -439,6 +485,30 @@ export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
       activityAxes: body.activityAxes,
       appetite: body.appetite,
     })
+    // ══════════════════════════════════════════════════════════════════
+    // ⛔ CE QU'ON A ESSAYÉ ICI LE 2026-09-10, ET POURQUOI ON L'A RETIRÉ
+    // ══════════════════════════════════════════════════════════════════
+    //
+    // Cette ligne appelle `estimatedMaintenanceKcal` — l'équation seule, qui
+    // rend `null` sans TAILLE ni BANDE D'ÂGE. La CIBLE, elle, passe par
+    // `adultMaintenanceKcal`, qui a un repli au poids (`weight_shortcut`).
+    //
+    // ⚠️ LA CONSÉQUENCE EST RÉELLE ET ELLE N'EST PAS REFERMÉE: sur une fiche
+    // sans taille, la personne reçoit une cible (par le raccourci) et un écart
+    // `null` ⇒ `gap: 0`. **Son objectif est annulé sans motif**: elle lit
+    // « perdre 0,5 kg par semaine » et mange son entretien. Ni compteur, ni
+    // jeton ne le disent.
+    //
+    // ⛔ ON N'A PAS ALIGNÉ LES DEUX, ET C'EST UNE DÉCISION. Donner le repli au
+    // rythme contredirait le pavé en tête de cette fonction — « `null`, jamais
+    // un repli, quand le corps ne suffit pas » — et quatre tests l'énoncent
+    // explicitement (`un corps sans poids n'a PAS de plafond de secours`,
+    // `pas de corps, pas d'entretien — jamais un repli`). Renverser une
+    // décision datée sur un défaut voisin demande son propriétaire.
+    //
+    // La sortie propre est de NOMMER le cas (un motif d'ancre distinct de
+    // `no_pace`), pas de deviner un écart. C'est écrit dans
+    // `docs/keel/CHANTIER-DENSITE-PORTIONS-ET-FAST.md` § « ce qui reste ouvert ».
     : estimatedMaintenanceKcal({
       weightKg,
       heightCm: body.heightCm,
@@ -449,12 +519,53 @@ export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
       // l'ancrage; y perdre les axes ferait diverger la cible servie et la
       // cible affichée sans qu'aucun test de module ne le voie.
       activityAxes: body.activityAxes,
-      // ⑤ MÊME CHEMIN. C'est le dénominateur de tout l'ancrage: un appétit qui
-      // n'arriverait pas jusqu'ici serait un cran coché à l'écran et jeté avant
-      // le calcul — le mode d'échec n°1 de ce dépôt.
+      // ⑤ MÊME CHEMIN. ⚠️ Plus lu par l'entretien adulte depuis le
+      // 2026-09-10 (il décrit un volume d'assiette, pas une dépense); passé
+      // ici parce que le paramètre est requis et recense ses appelants.
       appetite: body.appetite,
     });
   return maintenance !== null && maintenance > 0 ? maintenance : null;
+}
+
+/**
+ * ⟳ 2026-09-10 · LOT 3 — POURQUOI IL N'Y A PAS DE RYTHME, QUAND IL DEVRAIT.
+ *
+ * ⛔ LE DÉFAUT QUE CE MOTIF NOMME EST ÉCRIT VINGT LIGNES PLUS HAUT, et il
+ * n'était refermé nulle part: sur une fiche SANS TAILLE, la cible passe par le
+ * raccourci au poids d'`adultMaintenanceKcal` — donc la personne reçoit bien
+ * une fourchette — pendant que `estimatedMaintenanceFor` rend `null`, donc
+ * l'écart vaut zéro. Résultat lu à l'écran: « perdre 0,5 kg par semaine », et
+ * une journée à l'entretien. **Son objectif est annulé sans un mot.**
+ *
+ * ⛔ LE REFUS EST CONSERVÉ, ET C'EST LA DEMANDE DU CHANTIER. On ne donne PAS le
+ * raccourci au rythme: quatre tests énoncent « pas de corps, pas d'entretien —
+ * jamais un repli », et renverser une décision datée sur un défaut voisin
+ * demande son propriétaire. Ce qui change, c'est qu'on cesse de se taire.
+ *
+ * ⚠️ AUCUNE ÉQUATION N'EST RECOPIÉE ICI. La fonction demande à
+ * `estimatedMaintenanceFor` ce qu'elle rend, et compare: une seconde
+ * définition de « ce corps suffit-il » divergerait au premier ajustement.
+ *
+ * `null` quand il n'y a rien à signaler — y compris quand le corps n'a AUCUN
+ * poids: il n'y a alors pas de cible non plus, et le cas est « pas de corps »,
+ * pas « objectif annulé en silence ».
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export const PACE_UNAVAILABLE_REASONS = [
+  "pace_unavailable_missing_body",
+] as const;
+export type PaceUnavailableReason = (typeof PACE_UNAVAILABLE_REASONS)[number];
+
+export function paceUnavailableReason(
+  subject: PaceSubject,
+): PaceUnavailableReason | null {
+  const weightKg = subject.body.weightKg;
+  // Sans poids utilisable, la cible elle-même n'existe pas: rien à signaler.
+  if (!weightKg || weightKg <= 0) return null;
+  return estimatedMaintenanceFor(subject) === null
+    ? "pace_unavailable_missing_body"
+    : null;
 }
 
 /**
@@ -501,15 +612,11 @@ export function paceCeilingFor(
   // reprennent la main, et c'est le SEUL endroit du module où `absolute_cap`
   // gagne (au-delà de 100 kg, le 1 % du poids dépasse le kilo).
   //
-  // ⚠️ CE QUE ÇA DÉCOUPLE, ET QU'IL FAUT LIRE AVANT DE « RÉPARER ». Le rythme
-  // que ce slider autorise dépasse désormais ce que `envelopeCore` exécute:
-  // la bande `muscle_gain` plafonne à `MAX_SURPLUS_FRACTION` (+10 %), soit
-  // ~0,23 kg/semaine sur 2 500 kcal d'entretien. L'écart est ASSUMÉ et il est
-  // la contrepartie exacte de la décision ci-dessus. Il appartient à L8 de le
-  // refermer — en élargissant la bande de prise, ou en disant la date
-  // d'arrivée sur le rythme EXÉCUTÉ. Tant qu'il est ouvert, une date d'arrivée
-  // calculée sur un rythme de prise au-delà de +10 % est OPTIMISTE, et c'est
-  // écrit ici pour que personne ne la croie exacte.
+  // ⟳ 2026-09-09 — ET CE PLAFOND EST CELUI QUE LE MOTEUR EXÉCUTE. Jusqu'à cette
+  // date, `executedPaceFor` rabotait une prise à +10 % de l'entretien pendant
+  // que ce curseur montait ici: la personne réglait 0,8 kg/sem et recevait
+  // 0,23. Le plafond exécuté d'une prise est désormais LU ICI (`slider_ceiling`),
+  // et non recopié — voir l'en-tête du module.
   // ⚠️ L'ORDRE DES CAS EST UNE GARDE, ET IL A CHANGÉ LE 2026-08-18.
   // `isMinor` passe DEVANT `direction`. Avant, `direction === "up"` était
   // testé en premier, et un mineur en prise recevait donc la borne des
@@ -668,8 +775,13 @@ export function targetWeightRefusal(
 export const EXECUTED_PACE_CLAMPS = [
   /** Le cran choisi passe tel quel: le moteur l'exécute en entier. */
   "chosen",
-  /** La bande `muscle_gain` (+10 %) — une PRISE d'adulte, et elle seule. */
-  "surplus_band",
+  /**
+   * Le plafond du CURSEUR — une PRISE d'adulte, et elle seule. ⟳ 2026-09-09:
+   * remplace `surplus_band` (+10 % de l'entretien). Il ne peut mordre que sur
+   * un cran venu de la base AU-DESSUS du curseur (CHECK à 1,0 kg/sem, poids
+   * saisi depuis): un cran réglé au doigt est toujours ≤ ce plafond.
+   */
+  "slider_ceiling",
   /** A1, `MAX_DAILY_DEFICIT_KCAL` — une PERTE d'adulte. */
   "deficit_cap",
   /** Le plancher d'énergie de ce corps — une PERTE d'adulte. */
@@ -705,9 +817,11 @@ export interface ExecutedPace {
  * `paceCeilingFor` répond « jusqu'où le curseur a le droit de monter ».
  * Celle-ci répond « et une fois monté là, qu'est-ce que la casserole fait ».
  * Sur une PERTE les deux coïncident (les trois bornes du curseur incluent déjà
- * A1 et le plancher). Sur une PRISE elles divergent de construction depuis
- * l'ouverture du §Bloc 2, et c'est précisément l'écart que ce module annonçait
- * à refermer.
+ * A1 et le plancher). Sur une PRISE d'adulte elles coïncident AUSSI depuis le
+ * 2026-09-09: le plafond exécuté est le plafond du curseur, et la bande
+ * d'enveloppe (+10 %) n'est plus lue ici. La fonction garde sa raison d'être:
+ * elle NOMME la borne qui a mordu, et un cran venu de la base au-dessus du
+ * curseur est raboté ici plutôt qu'exécuté aveuglément.
  *
  * ⛔ ELLE NE REND AUCUN NOMBRE DESTINÉ À ÊTRE LU. `dailyDeltaKcal` et
  * `maintenanceKcal` sont des grandeurs de CALCUL: elles servent à dériver un
@@ -744,7 +858,19 @@ export function executedPaceFor(
       clamp: "minor_fraction",
     }
     : direction === "up"
-    ? { kcal: maintenance * MAX_SURPLUS_FRACTION, clamp: "surplus_band" }
+    // ⟳ 2026-09-09 — LE PLAFOND DU CURSEUR, LU CHEZ `paceCeilingFor` ET PAS
+    // RECOPIÉ: le même MIN(absolu, gabarit), donc un cran réglé au doigt sort
+    // toujours en `chosen`. `null` est impossible ici — on a déjà un poids et
+    // un entretien —, et le `0` de repli rend alors un écart NUL, jamais un
+    // surplus deviné.
+    ? (() => {
+      const ceiling = paceCeilingFor(direction, subject);
+      const kg = ceiling === null ? 0 : ceiling.maxKgPerWeek;
+      return {
+        kcal: (kg * KCAL_PER_KG_BODY_MASS) / 7,
+        clamp: "slider_ceiling" as ExecutedPaceClamp,
+      };
+    })()
     // Sur une PERTE, deux plafonds, et on nomme celui qui gagne. A1 est
     // non débrayable; le plancher est propre à ce corps. À égalité stricte, on
     // nomme le PLANCHER — même règle que `ceilingFromBounds`: la borne la plus
@@ -754,7 +880,10 @@ export function executedPaceFor(
       const floorRoom = maintenance - energyFloorFor(body.gender);
       return floorRoom <= MAX_DAILY_DEFICIT_KCAL
         ? { kcal: floorRoom, clamp: "energy_floor" as ExecutedPaceClamp }
-        : { kcal: MAX_DAILY_DEFICIT_KCAL, clamp: "deficit_cap" as ExecutedPaceClamp };
+        : {
+          kcal: MAX_DAILY_DEFICIT_KCAL,
+          clamp: "deficit_cap" as ExecutedPaceClamp,
+        };
     })();
 
   const wantedDailyKcal = (chosenKgPerWeek * KCAL_PER_KG_BODY_MASS) / 7;
@@ -804,114 +933,16 @@ export function maintenancePaceFor(subject: PaceSubject): ExecutedPace | null {
 }
 
 // ---------------------------------------------------------------------------
-// ③ — LE CURSEUR SATURE, ET RIEN NE LE DISAIT
+// ③ — LA SATURATION DU CURSEUR, RETIRÉE LE 2026-09-09
 // ---------------------------------------------------------------------------
-
-/**
- * CE QUE CE BLOC RÉPARE, ET CE QU'IL NE RÉPARE PAS.
- *
- * ⛔ CE N'EST PAS UN BUG À CORRIGER. `paceCeilingFor` laisse délibérément une
- * PRISE monter jusqu'à la borne dure (« le slider le DIT, il ne l'interdit
- * pas », §Bloc 2), pendant qu'`executedPaceFor` la plafonne à
- * `MAX_SURPLUS_FRACTION` (+10 %). L'écart est ASSUMÉ, daté, et il repose sur
- * une borne physiologique (Helms 2023): au-delà de +10 % d'excédent, le surplus
- * ne construit plus de muscle, il s'ajoute autrement. On ne l'élargit pas.
- *
- * ⚠️ CE QUI ÉTAIT CASSÉ EST LE SILENCE. Mesuré le 2026-08-18 sur des corps
- * réels — femme de 60 kg, 165 cm, 28 ans, sédentaire, en prise:
- *
- *     cran 0,15  →  165 kcal/jour d'écart exécuté   (`chosen`)
- *     cran 0,20  →  196 kcal/jour                   (`surplus_band`)
- *     cran 0,40  →  196 kcal/jour                   (`surplus_band`)
- *     cran 0,60  →  196 kcal/jour                   (`surplus_band`)
- *
- * Son curseur monte jusqu'à 0,60. Les deux tiers de sa course ne changent
- * RIEN — pas un gramme dans une boîte, pas une ligne dans un plan — et l'écran
- * ne le dit nulle part. Quelqu'un pousse à 1,0 en croyant accélérer, ne voit
- * aucune différence dans son assiette, et n'a aucun moyen de savoir si c'est le
- * produit qui l'ignore ou son corps qui plafonne.
- *
- * ── POURQUOI UN JETON À PART, ET PAS UNE SIXIÈME VALEUR DE `paceWarning` ───
- * Les deux phrases sont vraies EN MÊME TEMPS au-delà de 0,5 kg/semaine sur un
- * grand corps: « le surplus part surtout en gras » (physiologie) et « l'assiette
- * ne bouge plus » (exécution). `paceWarning` rend UN jeton; y ajouter celui-ci
- * ferait taire l'autre, et c'est celui qui parle du corps qu'on perdrait.
- *
- * ── ET POURQUOI CE N'EST PAS UN SEUIL EN kg/SEMAINE ───────────────────────
- * Il n'y en a pas: le point de saturation est `MAX_SURPLUS_FRACTION × entretien`,
- * donc il dépend du corps — 0,178 kg/sem sur la femme ci-dessus, 0,341 sur un
- * homme de 90 kg qui s'entraîne. Un nombre figé dans une constante serait faux
- * pour tout le monde sauf pour le corps qui l'a inspiré. On pose donc la
- * question à `executedPaceFor` lui-même, et la réponse est exacte par
- * construction: si le cran choisi n'est pas exécuté, il sature.
- */
-export const PACE_SATURATIONS = ["plate_stops_changing"] as const;
-export type PaceSaturation = (typeof PACE_SATURATIONS)[number];
-
-/**
- * LA PHRASE, DANS LES DEUX LANGUES.
- *
- * Elle vit ICI, à côté du seuil qui la déclenche, pour la même raison que
- * `PACE_WARNING_LABELS` vingt lignes plus haut: le nombre et le mot qui
- * l'encadre sont une seule décision, et les séparer laisse l'un bouger sans
- * l'autre.
- *
- * ⚠️ ELLE DIT CE QUI ARRIVE, PAS CE QU'IL FAUT FAIRE — même règle que sa
- * voisine. « Redescends le curseur » serait une consigne sur le corps de
- * quelqu'un qui a choisi son rythme; « l'assiette ne change plus » est un fait
- * sur ce que le plan produit, et la personne décide.
- *
- * ⚠️ ELLE NE CITE AUCUN kcal, ET C'EST LA CLAUSE C5. Le point de saturation est
- * une grandeur d'énergie par bouche (`MAX_SURPLUS_FRACTION × entretien`); la
- * nommer en chiffre ici la ferait sortir sans avoir traversé la moindre porte,
- * à côté d'un curseur que le compte maître règle pour QUELQU'UN D'AUTRE. La
- * phrase parle donc de l'assiette, qui est ce que la personne voit.
- */
-export const PACE_SATURATION_LABELS: Record<
-  PaceSaturation,
-  { en: string; fr: string }
-> = {
-  plate_stops_changing: {
-    en: "From this setting on, the plate stops changing: the plan can only " +
-      "add so much in a day, and moving the slider higher puts nothing more " +
-      "on it.",
-    fr: "À partir de ce cran, l'assiette ne change plus : le plan ne peut " +
-      "ajouter qu'une quantité limitée par jour, et monter le curseur plus " +
-      "haut n'y met rien de plus.",
-  },
-};
-
-/**
- * CE CRAN CHANGE-T-IL ENCORE QUELQUE CHOSE ?
- *
- * `null` = oui, il est exécuté tel quel — et c'est le CAS QUI PASSE, celui sans
- * lequel cette fonction ressemblerait à une garde qui marche tout en parlant
- * partout. Sur une PERTE et sur un MINEUR, `paceCeilingFor` borne déjà le
- * curseur exactement là où `executedPaceFor` plafonne: la phrase ne s'y affiche
- * jamais, mesuré, et ce n'est pas de la dormance — c'est la même borne lue deux
- * fois.
- *
- * ⚠️ ON INTERROGE `executedPaceFor`, ON NE RECOPIE PAS SON PLAFOND. Une seconde
- * arithmétique de `MAX_SURPLUS_FRACTION` diverge le jour où la bande bouge, et
- * c'est celle qu'on regarde le moins qui garderait l'ancienne — après quoi
- * l'écran dirait « ça ne change plus » sur un cran qui change, ou se tairait sur
- * un cran qui ne change pas.
- *
- * `null` aussi quand le corps ne suffit pas: on ne dit rien plutôt que de
- * décrire l'assiette de quelqu'un qu'on ne sait pas estimer.
- *
- * PURE: no I/O, no clock, no randomness.
- */
-export function paceSaturation(
-  direction: ScaleDirection,
-  subject: PaceSubject,
-  kgPerWeek: number,
-): PaceSaturation | null {
-  if (!Number.isFinite(kgPerWeek) || kgPerWeek <= 0) return null;
-  const executed = executedPaceFor(direction, subject, kgPerWeek);
-  if (executed === null) return null;
-  return executed.clampedBy === "chosen" ? null : "plate_stops_changing";
-}
+//
+// Ce bloc portait `paceSaturation` et `PACE_SATURATION_LABELS` (« à partir de
+// ce cran, l'assiette ne change plus »): la phrase qui disait que
+// `executedPaceFor` rabotait une prise à +10 % pendant que le curseur montait.
+// Le plafond caché n'existe plus (voir l'en-tête): un cran du curseur est
+// exécuté tel quel, dans les deux sens, et la phrase n'avait plus AUCUN cas où
+// se déclencher — une garde sans cas qui passe ni cas qui mord. L'affichage
+// avait déjà été retiré le 2026-08-19 (`MouthFormDialog.tsx`).
 
 /**
  * COMBIEN DE SEMAINES, AU RYTHME CHOISI — la date d'arrivée du §Bloc 2.
@@ -933,4 +964,88 @@ export function weeksToTarget(
   const gap = Math.abs(targetKg - currentKg);
   if (gap <= 0) return null;
   return Math.ceil(gap / paceKgPerWeek);
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-09 — CE QUE L'ENVELOPPE DOIT SAVOIR DE LA BALANCE
+// ---------------------------------------------------------------------------
+
+/**
+ * LES TROIS VALEURS QUE `plannedEnergyBand` ATTEND, RÉDUITES UNE FOIS.
+ *
+ * ⛔ ELLES VOYAGENT ENSEMBLE PARCE QU'ELLES SE DÉCIDENT ENSEMBLE. Une direction
+ * sans son écart exécuté, ou un écart sans le plancher qui le refuse, sont des
+ * moitiés — et une moitié passée à une enveloppe est une garde désarmée.
+ */
+export interface EnvelopeDirection {
+  direction: ScaleDirection | null;
+  /** Toujours ≥ 0. `0` = aucun écart exécutable: la bande reste l'entretien. */
+  dailyDeltaKcal: number;
+  /** `energyFloorFor(gender)`. Non lu quand `direction` est `null`. */
+  energyFloorKcal: number;
+}
+
+/**
+ * CE QUE LA BALANCE DE CETTE PERSONNE FAIT À SON ENVELOPPE.
+ *
+ * ⛔ UNE SEULE ÉCRITURE DE « CURSEUR RÉGLÉ, OU DÉFAUT », ET ELLE EST ICI.
+ * `mouthTargetFactor` et la lane de lecture appliquaient déjà la même règle
+ * chacune de leur côté; l'enveloppe en aurait fait une troisième. Le défaut
+ * (`DEFAULT_PACE_KG_PER_WEEK`) n'est pas une absence de projet: c'est quelqu'un
+ * qui n'a pas touché un réglage optionnel — mesuré à **87 %** de ceux qui ont
+ * déclaré une direction (2026-09-01).
+ *
+ * ⚠️ `executedPaceFor` RENDANT `null` DONNE UN ÉCART NUL, PAS UNE ABSENCE DE
+ * BANDE. C'est la direction d'erreur de l'écran, à l'octet près: `directedRange`
+ * rend alors la fourchette d'ENTRETIEN avec le motif `no_pace`. Servir un
+ * entretien à qui vise une perte est décevant; ne rien servir du tout ferait
+ * composer un plan sans aucune cible.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function envelopeDirectionFor(args: {
+  goal: GoalToken;
+  subject: PaceSubject;
+  /** Le cran du curseur. `null` ou ≤ 0 ⇒ `DEFAULT_PACE_KG_PER_WEEK`. */
+  paceKgPerWeek: number | null;
+  /**
+   * ⟳ 2026-09-11 — UNE CONDITION QUI ANNULE L'ÉCART. REQUIS, jamais `?`.
+   *
+   * ⛔ POURQUOI CE CHAMP NAÎT ICI. La garde de grossesse vivait EXCLUSIVEMENT
+   * chez l'appelant — il devait coercer l'objectif par `goalUnderConditionGate`
+   * AVANT d'appeler. Un seul appelant le faisait. Cette fonction n'avait même
+   * pas d'endroit où ranger la question, donc **aucun compilateur ne pouvait
+   * recenser la prochaine lane qui l'oublierait**.
+   *
+   * ⚠️ REQUIS ET PAS OPTIONNEL, et c'est toute la différence. Un `?` ici
+   * rendrait la garde désarmée chez quiconque l'oublie — la cicatrice
+   * « paramètre de garde optionnel = garde désarmée », déjà payée par ce dépôt
+   * sur `safetyBand`. Requis, le compilateur force chaque appelant à répondre.
+   *
+   * ⚠️ ET LA COERCION D'OBJECTIF RESTE. Ce champ ne la remplace pas: il la
+   * DOUBLE, ici, au plus près du nombre. Un objectif coercé ET ce drapeau
+   * rendent le même résultat; l'un des deux oublié, l'autre tient.
+   */
+  deficitCancelled: boolean;
+}): EnvelopeDirection {
+  const energyFloorKcal = energyFloorFor(args.subject.body.gender);
+  const direction = scaleDirectionOf(args.goal);
+  if (direction === null) {
+    return { direction: null, dailyDeltaKcal: 0, energyFloorKcal };
+  }
+  // ⛔ UNE CONDITION QUI ANNULE L'ÉCART REND UNE MAINTENANCE, pas un déficit
+  // réduit. « Moins de déficit » sur une grossesse reste un déficit.
+  if (args.deficitCancelled) {
+    return { direction: null, dailyDeltaKcal: 0, energyFloorKcal };
+  }
+  const chosen = Number(args.paceKgPerWeek);
+  const pace = Number.isFinite(chosen) && chosen > 0
+    ? chosen
+    : DEFAULT_PACE_KG_PER_WEEK;
+  const executed = executedPaceFor(direction, args.subject, pace);
+  return {
+    direction,
+    dailyDeltaKcal: executed === null ? 0 : executed.dailyDeltaKcal,
+    energyFloorKcal,
+  };
 }

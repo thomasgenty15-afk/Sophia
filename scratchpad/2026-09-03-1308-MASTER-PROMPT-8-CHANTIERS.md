@@ -237,14 +237,25 @@ demander**, et ce que l'orchestrateur écrit en tête de son journal :
 
 1. **Journal** : crée `scratchpad/2026-09-JJ-HHMM-ORCHESTRATION-8-CHANTIERS.md`, écris-y §3 tel
    quel, puis chaque événement horodaté (lancement, fusion, restart, rouge, gel).
-2. **L'arbre** : `git status --short | wc -l` (attendu ~369). Fais **trois commits par
-   pathspec**, `--no-verify`, motif dans le message (« instantané de l'arbre du 2026-09-03 avant
-   les huit chantiers ; gate sauté parce que ce commit ne fait qu'enregistrer un état ») :
+2. **L'arbre** : `git status --short | wc -l` (attendu ~369). ⚠️ **Quatre sessions écrivent
+   dans cet arbre** (rapporté le 03/09 13:30 par une session voisine, avec un précédent : son
+   commit `488d53b7` a emporté neuf lignes d'une autre lane — `git commit -- <fichier>` protège
+   l'index, **pas l'arbre** : il commite le fichier entier, hunks étrangers compris). Donc, **avant**
+   tout commit d'instantané : `ListAgents`, puis un `SendMessage` à chaque session voisine
+   (« j'enregistre l'arbre entier dans trois commits d'instantané dans 15 minutes ; si tu es au
+   milieu d'une écriture, dis-le, je t'attends ») ; attends 15 minutes ou toutes les réponses ;
+   une session qui demande du temps, tu la laisses finir. Vérifie aussi le disque
+   (`df -h .` — il était sous 4 Go le 03/09 ; en dessous de 2 Go, arrête-toi et remonte à l'humain).
+   Puis fais **trois commits par pathspec**, `--no-verify`, motif dans le message (« instantané
+   de l'arbre du 2026-09-03 avant les huit chantiers ; gate sauté parce que ce commit ne fait
+   qu'enregistrer un état ; quatre sessions écrivaient, prévenues à HH:MM ») :
    (a) ce qui est **stagé** tel quel (le lot énergie) ; (b) `frontend/src/keel/i18n/` ;
    (c) tout le reste des modifiés **et** des non suivis, sauf `scratchpad/**/sorties-*`,
    `*.json` de sortie brute, `tmp/`, `feat/Commande sensibles` (gitignoré de toute façon).
-   Relis `git diff --cached --stat` avant chaque commit. Ce que tu commites, tu ne le juges pas ;
-   tu l'enregistres. **Jamais `git add -A`.** Après : `git status --short` doit être vide.
+   Relis `git diff --cached` **fichier par fichier**, pas seulement `--stat`, avant chaque commit.
+   Ce que tu commites, tu ne le juges pas ; tu l'enregistres. **Jamais `git add -A`.** Après :
+   `git status --short` doit être vide — et s'il ne l'est plus deux minutes après (une session
+   voisine a écrit), c'est **son** travail : tu ne le commites pas, tu le nommes au journal.
    Note le nouveau HEAD dans le journal : c'est la base des worktrees.
 3. **La pile** : `./scripts/check-local-jwt-alg.sh` ; `./scripts/supabase_local.sh start`
    (jamais `supabase start` nu) ; `npx supabase status` ; `functions serve --env-file supabase/.env`
@@ -309,7 +320,12 @@ Pour chaque lot, dans cet ordre, **jamais deux à la fois** :
    lots (§2.2 n°19) — pas de conflit là. Résous **sans réécrire une ligne de logique** ; si un
    conflit demande une décision, renvoie-le à la lane par `SendMessage` avec le hunk.
 2. `docker restart supabase_edge_runtime_Sophia_2` puis le script Kong. Journalise l'heure : les
-   autres lanes savent qu'un run réel est **en cours** et n'en lancent aucun.
+   autres lanes savent qu'un run réel est **en cours** et n'en lancent aucun. ⚠️ **Pendant une
+   fenêtre de run, aucun `deno test` sur l'arbre principal** — ni toi, ni un vérificateur, ni une
+   lane : le cache que `deno test` écrit sous `supabase/functions/` recrée le conteneur (quatre
+   générations perdues la nuit du 02 au 03/09). Les suites Deno tournent dans les **worktrees**
+   (chemin non surveillé) ; sur l'arbre principal, elles tournent **avant** d'ouvrir la fenêtre, et
+   tu attends que le conteneur ait trois minutes (§2.2 n°14) avant d'ouvrir.
 3. Envoie à la lane : « fenêtre de run réel ouverte sur l'arbre principal, jusqu'à <heure> ». La
    lane fait ses runs réels et sa vérification navigateur **sur l'arbre principal** (port 5174), et
    corrige **sur l'arbre principal** par un commit de suite s'il le faut (puis reporte le commit dans

@@ -1,0 +1,14 @@
+{
+  "id": "A06-allergy-pizza-r4",
+  "uid": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T19:21:00.617Z",
+  "end": "2026-09-05T19:25:39.648Z",
+  "http": 200,
+  "seconds": 279.0685434580001,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "fresh_runtime": true,
+  "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+  "ok": true
+}

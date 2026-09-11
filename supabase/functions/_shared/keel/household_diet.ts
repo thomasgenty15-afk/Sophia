@@ -107,6 +107,94 @@ function exclusionCount(regime: DietaryRegime): number {
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * QUI PEUT MANGER LE PLAT DE QUI — la relation, DÉCLARÉE et non déduite.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * `REGIME_COVERS[plat]` liste les régimes qu'un plat suivant `plat` honore.
+ * « Couvre » veut dire: une bouche qui suit l'un de ces régimes peut manger ce
+ * plat sans que rien de ce qu'elle exclut n'y soit.
+ *
+ * ── ⛔ POURQUOI ÇA NE SE DÉDUIT PLUS DU COMPTE — 2026-09-08 ────────────────
+ * Le classement était `exclusionCount`, et il avait le droit d'ordonner TANT
+ * QUE les exclusions étaient emboîtées (`pescatarian ⊂ vegetarian ⊂ vegan`).
+ * Le pavé d'`exclusionCount` annonçait lui-même la fin: « le jour où un régime
+ * non comparable entre, ce test rougit AVANT que ce classement ne choisisse un
+ * plus-strict qui n'exclut pas tout ce que la table exclut ».
+ *
+ * `gluten_free` est ce jour-là. Et il est pire que « non comparable »: son
+ * `EXCLUDED_GROUPS` est VIDE, parce qu'aucun groupe ne l'exprime — le riz, le
+ * maïs et le quinoa sont des céréales sans gluten, et exclure `whole_grain`
+ * interdirait le riz à un cœliaque (même raison que `lean_protein` chez le
+ * végétarien). Sa garantie vit dans les FORMES DE SURFACE, comme le dit
+ * `EXCLUDED_GROUPS`. Compté, il vaut donc ZÉRO — « n'exclut rien », « le moins
+ * strict de la table » — et une bouche sans gluten se serait vu servir le plat
+ * végétarien de sa case, avec le blé dedans.
+ *
+ * ── ⚠️ DÉCLARÉE À LA MAIN, ET C'EST LE POINT ──────────────────────────────
+ * Un `Record` complet: un régime ajouté à `DIETARY_REGIMES` sans sa ligne ici
+ * NE COMPILE PAS. C'est la seule forme qui oblige à répondre « et celui-là,
+ * qui peut manger son plat ? » — une dérivation, elle, aurait donné une
+ * réponse plausible sans que personne l'ait pensée.
+ *
+ * ⛔ CHAQUE RÉGIME SE COUVRE LUI-MÊME, ET AUCUNE LIGNE NE PEUT L'OMETTRE: le
+ * plat végane est mangeable par un végane. C'est vérifié par test plutôt que
+ * par construction, pour que la table reste lisible telle qu'elle est écrite.
+ */
+const REGIME_COVERS: Record<DietaryRegime, readonly DietaryRegime[]> = {
+  // Le plat végane ne contient ni viande, ni poisson, ni œuf, ni laitage: il
+  // honore donc les trois régimes animaux. Il peut contenir du blé.
+  vegan: ["vegan", "vegetarian", "pescatarian"],
+  // Le plat végétarien garde œufs et laitages: il n'honore pas le végane.
+  vegetarian: ["vegetarian", "pescatarian"],
+  pescatarian: ["pescatarian"],
+  // ⛔ ET IL NE COUVRE QUE LUI. Un plat sans gluten peut contenir du poulet;
+  // un plat végane peut contenir du pain. Les deux axes ne se rencontrent
+  // jamais, et la seule réponse honnête est un plat à part.
+  gluten_free: ["gluten_free"],
+};
+
+/**
+ * UN PLAT SUIVANT `dish` EST-IL SÛR POUR UNE BOUCHE SUIVANT `mouth` ?
+ *
+ * ⚠️ `null` DES DEUX CÔTÉS, ET LES DEUX SENS COMPTENT. Une bouche sans régime
+ * n'exclut rien: tout plat la couvre. Un plat sans régime n'exclut rien: il ne
+ * couvre que la bouche qui n'exclut rien non plus.
+ *
+ * ⛔ LA DIRECTION D'ÉCHEC EST LE PLAT À PART. Un couple inconnu rend `false`,
+ * donc « cette bouche a besoin de son plat » — jamais « elle peut manger là ».
+ */
+export function regimeCovers(
+  dish: DietaryRegime | null,
+  mouth: DietaryRegime | null,
+): boolean {
+  if (mouth === null) return true;
+  if (dish === null) return false;
+  return REGIME_COVERS[dish].includes(mouth);
+}
+
+/**
+ * ⟳ 2026-09-07 (LOT 9) — LE MÊME ORDRE, RENDU LISIBLE AUX CASES.
+ *
+ * `household_cells.ts` a besoin de comparer deux régimes: « cette bouche
+ * est-elle PLUS STRICTE que le plat de sa case ? ». C'est exactement le
+ * classement que `exclusionCount` porte déjà, et le pavé au-dessus dit
+ * pourquoi il a le droit d'ordonner (les exclusions sont emboîtées, et un test
+ * le prouve paire par paire).
+ *
+ * ⛔ EXPORTÉ PLUTÔT QUE RECOPIÉ. Un second classement écrit à côté serait la
+ * divergence que ce dépôt paie en boucle: le jour où un régime entre dans la
+ * liste fermée, c'est celui qu'on relit le moins qui garderait l'ancien monde.
+ *
+ * ⚠️ `null` VAUT ZÉRO, et c'est un ajout de sens assumé: une bouche qui n'a
+ * rien déclaré n'exclut rien, donc elle est la moins stricte de la table. Elle
+ * peut manger le plat de n'importe qui; l'inverse est faux.
+ */
+export function regimeStrictness(regime: DietaryRegime | null): number {
+  return regime === null ? 0 : exclusionCount(regime);
+}
+
+/**
  * R4 — LE RÉGIME QUE LE PLAT COMMUN DOIT SUIVRE. `null` = personne n'a rien
  * déclaré, et alors RIEN ne change: aucun bloc, aucune ligne, aucun jeton dans
  * le prompt. C'est le désarmement, et il est tenu par un test d'égalité de
@@ -264,8 +352,11 @@ export function dietDiverges(args: {
 }): boolean {
   const { strictest, own, demands } = args;
   if (strictest === null) return false;
-  const ownCount = own === null ? 0 : exclusionCount(own);
-  if (ownCount >= exclusionCount(strictest)) return false;
+  // ⟳ 2026-09-08 — ÉTAIT UN COMPTE (`ownCount >= exclusionCount(strictest)`).
+  // La question posée est « cette bouche est-elle DÉJÀ au moins aussi
+  // restrictive que la casserole ? », et un compte n'y répond que sur un axe
+  // emboîté. Voir `REGIME_COVERS`.
+  if (regimeCovers(own, strictest)) return false;
   return dietServingConflicts(strictest, demands).length > 0;
 }
 

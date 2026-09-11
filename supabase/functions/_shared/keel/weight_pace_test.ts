@@ -9,13 +9,10 @@ import {
   estimatedMaintenanceFor,
   executedPaceFor,
   maintenancePaceFor,
-  PACE_SATURATION_LABELS,
-  PACE_SATURATIONS,
   PACE_WARN_UP_KG_PER_WEEK,
   PACE_WARNING_LABELS,
   PACE_WARNINGS,
   paceCeilingFor,
-  paceSaturation,
   paceWarning,
   type PaceSubject,
   roundPace,
@@ -322,14 +319,19 @@ Deno.test("① pas de corps, pas d'entretien — jamais un repli", () => {
 });
 
 // ---------------------------------------------------------------------------
-// ③ — LE CURSEUR SATURE, ET LA PHRASE LE DIT
+// ③ — LE CURSEUR EST LE CONTRAT (⟳ 2026-09-09)
 // ---------------------------------------------------------------------------
+//
+// Ce bloc portait la SATURATION: « 0,20 et 0,60 rendent le même écart » sur
+// une prise, parce qu'`executedPaceFor` rabotait à +10 % de l'entretien
+// pendant que le curseur montait à 0,60. Décision du propriétaire du
+// 2026-09-09: ce que le curseur autorise, la casserole l'exécute. Les tests
+// ci-dessous tiennent cet invariant — et son cas qui mord.
 
-Deno.test("③ le curseur SATURE sur une prise, et deux crans très différents rendent le même écart", () => {
-  // ⚠️ LA MESURE D'ABORD, LA PHRASE ENSUITE. Sans cette assertion, la phrase
-  // pourrait s'afficher sur un curseur qui, lui, bougerait encore — et personne
-  // ne le saurait. Femme de 60 kg, 165 cm, 28 ans, sédentaire, en prise: son
-  // curseur monte à 0,60 et les deux tiers de sa course ne changent RIEN.
+Deno.test("③ sur une PRISE, chaque cran du curseur est exécuté TEL QUEL", () => {
+  // Le banc de l'ancienne saturation, exprès: femme de 60 kg, 165 cm, 28 ans,
+  // sédentaire. Son curseur monte à 0,60 et, avant, les deux tiers de sa
+  // course ne changeaient rien.
   const her = adult({
     weightKg: 60,
     heightCm: 165,
@@ -342,110 +344,74 @@ Deno.test("③ le curseur SATURE sur une prise, et deux crans très différents 
   assert(ceiling !== null);
   assertEquals(ceiling.maxKgPerWeek, 0.6);
 
-  const at = (kg: number) => executedPaceFor("up", her, kg);
-  const low = at(0.15);
-  const mid = at(0.2);
-  const top = at(0.6);
-  assert(low !== null && mid !== null && top !== null);
-
-  // ── LE FAIT MESURÉ: 0,20 et 0,60 rendent le MÊME nombre ─────────────────
-  assertEquals(mid.dailyDeltaKcal, top.dailyDeltaKcal);
-  assertEquals(mid.clampedBy, "surplus_band");
-  assertEquals(top.clampedBy, "surplus_band");
-  // ⚠️ ET LE CAS QUI PASSE, sans lequel ce banc resterait vert si la borne
-  // saturait TOUT LE MONDE: à 0,15 le cran est exécuté tel quel, et il rend un
-  // écart STRICTEMENT plus petit. « Une garde a besoin d'un cas qui passe. »
-  assertEquals(low.clampedBy, "chosen");
-  assert(
-    low.dailyDeltaKcal < mid.dailyDeltaKcal,
-    `0,15 devrait rendre moins que 0,20: ${low.dailyDeltaKcal} vs ${mid.dailyDeltaKcal}`,
-  );
-
-  // ── LA PHRASE SUIT EXACTEMENT LA MESURE ─────────────────────────────────
-  assertEquals(paceSaturation("up", her, 0.15), null);
-  assertEquals(paceSaturation("up", her, 0.2), "plate_stops_changing");
-  assertEquals(paceSaturation("up", her, 0.6), "plate_stops_changing");
-  assertEquals(paceSaturation("up", her, 1.0), "plate_stops_changing");
+  let previous = 0;
+  for (let kg = 0.05; kg <= ceiling.maxKgPerWeek + 1e-9; kg += 0.05) {
+    const cran = Math.round(kg * 100) / 100;
+    const out = executedPaceFor("up", her, cran);
+    assert(out !== null, `à ${cran}`);
+    assertEquals(out.clampedBy, "chosen", `à ${cran}`);
+    assertEquals(
+      out.dailyDeltaKcal,
+      Math.round((cran * KCAL_PER_KG_BODY_MASS) / 7),
+      `à ${cran}: l'écart n'est pas l'arithmétique du cran`,
+    );
+    // Et chaque cran change quelque chose: strictement plus que le précédent.
+    assert(out.dailyDeltaKcal > previous, `à ${cran}: ${out.dailyDeltaKcal} ≤ ${previous}`);
+    previous = out.dailyDeltaKcal;
+  }
+  // 0,60 sur ce corps vaut ~660 kcal/jour — bien au-delà des +10 % (~196) qui
+  // la rabotaient avant. C'est le nombre qu'elle a réglé, et c'est celui
+  // qu'elle reçoit.
+  assertEquals(previous, Math.round((0.6 * KCAL_PER_KG_BODY_MASS) / 7));
 });
 
-Deno.test("③ une PERTE ne sature jamais, et un MINEUR non plus", () => {
-  // Ce n'est pas de la dormance: sur une perte et sur un mineur,
-  // `paceCeilingFor` borne le curseur EXACTEMENT là où `executedPaceFor`
-  // plafonne — la même borne, lue deux fois. La phrase n'a donc rien à y dire,
-  // et si elle s'y affichait ce serait le signe que les deux lectures ont
-  // divergé.
+Deno.test("③ le plafond du curseur est la SEULE borne d'une prise d'adulte, et elle a son cas", () => {
+  // « Une garde a besoin d'un cas qui passe ET d'un cas qui mord. » Un cran
+  // AU-DESSUS du curseur peut venir de la base (CHECK à 1,0 kg/sem, poids
+  // saisi depuis): il est raboté sur le plafond du curseur, nommé
+  // `slider_ceiling` — jamais exécuté aveuglément, jamais raboté sur une bande.
+  const her = adult({ weightKg: 60, heightCm: 165, gender: "female", ageYears: 28 });
+  const ceiling = paceCeilingFor("up", her)!;
+  const above = executedPaceFor("up", her, 1.0)!;
+  assertEquals(above.clampedBy, "slider_ceiling");
+  assertEquals(above.dailyDeltaKcal, Math.round((ceiling.maxKgPerWeek * KCAL_PER_KG_BODY_MASS) / 7));
+  assert(above.kgPerWeek <= ceiling.maxKgPerWeek + 1e-9);
+  // Et sur un grand gabarit, le plafond absolu (1 kg) est celui du curseur
+  // ET celui du moteur: 1,0 y passe en `chosen`.
+  const big = adult({ weightKg: 150, heightCm: 190, gender: "male", ageYears: 40 });
+  assertEquals(paceCeilingFor("up", big)!.maxKgPerWeek, MAX_KG_PER_WEEK);
+  assertEquals(executedPaceFor("up", big, 1.0)!.clampedBy, "chosen");
+});
+
+Deno.test("③ une PERTE et un MINEUR: la même borne, lue deux fois, dans les deux sens", () => {
+  // Sur une perte et sur un mineur, `paceCeilingFor` borne le curseur
+  // EXACTEMENT là où `executedPaceFor` plafonne: tout cran du curseur passe en
+  // `chosen`. Si l'un des deux disait autre chose, les deux lectures auraient
+  // divergé — et c'est ce test qui rougirait.
   const her = adult({ weightKg: 60, heightCm: 165, gender: "female", ageYears: 28 });
   const down = paceCeilingFor("down", her);
   assert(down !== null);
   for (let kg = 0.05; kg <= down.maxKgPerWeek + 1e-9; kg += 0.05) {
-    assertEquals(
-      paceSaturation("down", her, Math.round(kg * 100) / 100),
-      null,
-      `perte à ${kg}`,
-    );
+    const cran = Math.round(kg * 100) / 100;
+    assertEquals(executedPaceFor("down", her, cran)!.clampedBy, "chosen", `perte à ${cran}`);
   }
   const child = minor({ weightKg: 45, heightCm: 155, gender: "male", ageYears: 13 });
   for (const dir of ["up", "down"] as const) {
     const c = paceCeilingFor(dir, child);
     assert(c !== null);
     for (let kg = 0.05; kg <= c.maxKgPerWeek + 1e-9; kg += 0.05) {
-      assertEquals(
-        paceSaturation(dir, child, Math.round(kg * 100) / 100),
-        null,
-        `mineur ${dir} à ${kg}`,
-      );
+      const cran = Math.round(kg * 100) / 100;
+      assertEquals(executedPaceFor(dir, child, cran)!.clampedBy, "chosen", `mineur ${dir} à ${cran}`);
     }
   }
 });
 
-Deno.test("③ pas de corps, pas de phrase — et jamais sur un cran nul", () => {
-  // On ne décrit pas l'assiette de quelqu'un qu'on ne sait pas estimer.
-  assertEquals(paceSaturation("up", adult({ weightKg: null }), 1.0), null);
-  assertEquals(paceSaturation("up", adult({ heightCm: null }), 1.0), null);
-  assertEquals(paceSaturation("up", adult(), 0), null);
-  assertEquals(paceSaturation("up", adult(), -1), null);
-  assertEquals(paceSaturation("up", adult(), Number.NaN), null);
-});
-
-Deno.test("③ la phrase de saturation existe dans les DEUX langues, et ne cite aucun kcal", () => {
-  for (const token of PACE_SATURATIONS) {
-    const label = PACE_SATURATION_LABELS[token];
-    assert(label, `${token} n'a pas de phrase`);
-    for (const lang of ["en", "fr"] as const) {
-      const text = label[lang];
-      assert(text.trim().length > 0, `${token}.${lang} est vide`);
-      // ⛔ CLAUSE C5. Le point de saturation est une grandeur d'énergie par
-      // bouche; la nommer ici la ferait sortir à côté d'un curseur que le compte
-      // maître règle pour QUELQU'UN D'AUTRE, sans avoir traversé la moindre
-      // porte. La phrase parle de l'assiette, pas d'un nombre.
-      const lowered = text.toLowerCase();
-      for (const forbidden of ["kcal", "calorie", "calories"]) {
-        assert(
-          !lowered.includes(forbidden),
-          `${token}.${lang} cite « ${forbidden} »: ${text}`,
-        );
-      }
-      assert(
-        !/\d/.test(text),
-        `${token}.${lang} porte un chiffre, alors que le seuil dépend du corps: ${text}`,
-      );
-    }
-    assert(label.en !== label.fr, `${token} n'est pas traduit`);
-  }
-  // ⚠️ DEUX VOCABULAIRES SÉPARÉS, et c'est la décision: les deux phrases sont
-  // vraies EN MÊME TEMPS au-delà de 0,5 kg/semaine sur un grand corps. Fondre
-  // ce jeton dans `PACE_WARNINGS` ferait rendre un seul des deux par
-  // `paceWarning`, et ce serait celui qui parle du corps qu'on perdrait.
-  for (const token of PACE_SATURATIONS) {
-    assert(
-      !(PACE_WARNINGS as readonly string[]).includes(token),
-      `${token} ne doit pas être un avertissement de rythme`,
-    );
-  }
-  // Et le cas qui le PROUVE: un grand corps à 0,7 kg/semaine reçoit les deux.
+Deno.test("③ l'avertissement de physiologie PARLE toujours au-delà de 0,5 kg, et n'interdit rien", () => {
+  // Ce qui reste du §Bloc 2 quand le plafond caché est parti: la ligne de
+  // 0,5 kg/sem. Un grand corps à 0,7 kg/semaine reçoit la phrase ET son cran.
   const big = adult({ weightKg: 90, heightCm: 185, gender: "male", ageYears: 40 });
   assertEquals(paceWarning("up", 0.7), "surplus_becomes_fat");
-  assertEquals(paceSaturation("up", big, 0.7), "plate_stops_changing");
+  assertEquals(executedPaceFor("up", big, 0.7)!.clampedBy, "chosen");
 });
 
 Deno.test("un corps sans poids n'a PAS de plafond de secours", () => {

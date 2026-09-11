@@ -1,0 +1,110 @@
+[
+  {
+    "step": 0,
+    "kind": "generate-household-meal-v1",
+    "metadata": {
+      "source": "generate-household-meal-v1",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 349858,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 17069,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": null
+  },
+  {
+    "step": 2,
+    "kind": "generate-household-meal-v1.density_repair",
+    "metadata": {
+      "source": "generate-household-meal-v1.density_repair",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 252409,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 20466,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": "\n\nSOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you\nwrote for each one:\n- \"Poulet, quinoa, courgette, poivron, yaourt et citron\" serves 105 kcal per 100 g; it has to land between 123 and 250 kcal per 100 g as served, aiming for 135. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 50 g de yaourt nature yaourt nature, un demi-citron citron.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 400 g de courgette courgette, 300 g de poivron rouge poivron rouge, 120 g d'oignon oignon, 15 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Poulet, quinoa, courgette, poivron, feta et roquette\" serves 120 kcal per 100 g; it has to land between 141 and 250 kcal per 100 g as served, aiming for 154. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 50 g de feta feta, 40 g de roquette roquette, 5 ml d'huile d'olive huile d'olive, un demi-citron citron.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 400 g de courgette courgette, 300 g de poivron rouge poivron rouge, 120 g d'oignon oignon, 15 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Poulet, quinoa, courgette, poivron, tomate et pain complet\" serves 126 kcal per 100 g; it has to land between 141 and 250 kcal per 100 g as served, aiming for 154. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 100 g de tomate tomate, 120 g de pain complet pain complet, 5 ml d'huile d'olive huile d'olive.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 400 g de courgette courgette, 300 g de poivron rouge poivron rouge, 120 g d'oignon oignon, 15 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n⛔ Keep each dish's identity: the same name, the same foods, the same cooking.\nA dish that comes back with different food is a REPLACEMENT, and it will be\nthrown away — the person asked for this dish. Do not swap, do not add a\ncourse, do not touch any other dish.\nA FROZEN part comes back unchanged: reach the density through the dish's own\nfresh ingredients and its REWORKABLE preparations.\nReturn the full plan JSON with only these dishes and the preparations they\ndraw on changed."
+  },
+  {
+    "step": 4,
+    "kind": "generate-household-meal-v1.density_repair",
+    "metadata": {
+      "source": "generate-household-meal-v1.density_repair",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 185185,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 20466,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": "\n\nSOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you\nwrote for each one:\n- \"Poulet, quinoa, courgette, poivron, yaourt et citron\" serves 118 kcal per 100 g; it has to land between 123 and 250 kcal per 100 g as served, aiming for 135. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 50 g de yaourt nature yaourt nature, un demi-citron citron.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 250 g de courgette courgette, 200 g de poivron rouge poivron rouge, 100 g d'oignon oignon, 25 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Poulet, quinoa, courgette, poivron, feta et roquette\" serves 134 kcal per 100 g; it has to land between 141 and 250 kcal per 100 g as served, aiming for 154. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 50 g de feta feta, 40 g de roquette roquette, 5 ml d'huile d'olive huile d'olive, un demi-citron citron.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 250 g de courgette courgette, 200 g de poivron rouge poivron rouge, 100 g d'oignon oignon, 25 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Poulet, quinoa, courgette, poivron, tomate et pain complet\" serves 138 kcal per 100 g; it has to land between 141 and 250 kcal per 100 g as served, aiming for 154. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 100 g de tomate tomate, 120 g de pain complet pain complet, 5 ml d'huile d'olive huile d'olive.\n  Preparation prep_poulet_quinoa \"Poulet rôti, quinoa et légumes\", REWORKABLE: 750 g de cuisses de poulet désossées cuisses de poulet désossées, 330 g de quinoa sec quinoa, 250 g de courgette courgette, 200 g de poivron rouge poivron rouge, 100 g d'oignon oignon, 25 ml d'huile d'olive huile d'olive, 2 c. à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n⛔ Keep each dish's identity: the same name, the same foods, the same cooking.\nA dish that comes back with different food is a REPLACEMENT, and it will be\nthrown away — the person asked for this dish. Do not swap, do not add a\ncourse, do not touch any other dish.\nA FROZEN part comes back unchanged: reach the density through the dish's own\nfresh ingredients and its REWORKABLE preparations.\nReturn the full plan JSON with only these dishes and the preparations they\ndraw on changed."
+  },
+  {
+    "step": 6,
+    "kind": "generate-household-meal-v1",
+    "metadata": {
+      "source": "generate-household-meal-v1",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 349853,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 17064,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": null
+  },
+  {
+    "step": 8,
+    "kind": "generate-household-meal-v1.density_repair",
+    "metadata": {
+      "source": "generate-household-meal-v1.density_repair",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 271236,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 21957,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": "\n\nSOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you\nwrote for each one:\n- \"Poulet, quinoa, salade verte, feta et citron\" serves 157 kcal per 100 g; it has to land between 167 and 250 kcal per 100 g as served, aiming for 183. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 100 g de salade verte salade verte, 30 g de feta feta, 1 cuillère à soupe d'huile d'olive huile d'olive, un demi-citron citron.\n  Preparation prep_chicken \"Poulet rôti citronné\", REWORKABLE: 360 g de cuisses de poulet désossées cuisses de poulet désossées, 1 cuillère à soupe d'huile d'olive huile d'olive, 2 gousses d'ail ail, 1 cuillère à café de paprika paprika, une pincée de sel sel, une pincée de poivre noir poivre noir.\n  Preparation prep_quinoa \"Quinoa nature\", REWORKABLE: 140 g de quinoa sec quinoa sec, 300 ml d'eau eau, une pincée de sel sel.\n- \"Lentilles mijotées, pain complet et feta\" serves 92 kcal per 100 g; it has to land between 146 and 250 kcal per 100 g as served, aiming for 160. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 90 g de pain complet pain complet, 40 g de feta feta, 1 cuillère à café d'huile d'olive huile d'olive, un demi-citron citron.\n  Preparation prep_lentil_ratatouille \"Lentilles aux légumes\", REWORKABLE: 140 g de lentilles vertes sèches lentilles vertes sèches, 300 g de tomates tomates, 250 g de courgette courgette, 120 g d'oignon oignon, 2 cuillères à soupe d'huile d'olive huile d'olive, 500 ml d'eau eau, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Lentilles, couscous, feta, amandes et pain\" serves 150 kcal per 100 g; it has to land between 167 and 250 kcal per 100 g as served, aiming for 183. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 80 g de feta feta, 15 g d'amandes amandes, 1 cuillère à soupe d'huile d'olive huile d'olive, 40 g de pain complet pain complet.\n  Preparation prep_lentil_ratatouille \"Lentilles aux légumes\", REWORKABLE: 140 g de lentilles vertes sèches lentilles vertes sèches, 300 g de tomates tomates, 250 g de courgette courgette, 120 g d'oignon oignon, 2 cuillères à soupe d'huile d'olive huile d'olive, 500 ml d'eau eau, une pincée de sel sel, une pincée de poivre noir poivre noir.\n  Preparation prep_couscous \"Couscous aux herbes\", REWORKABLE: 210 g de couscous sec couscous sec, 270 ml d'eau eau, 1 cuillère à soupe d'huile d'olive huile d'olive, une pincée de persil persil, une pincée de sel sel.\n- \"Saumon, couscous, légumes rôtis et amandes\" serves 133 kcal per 100 g; it has to land between 146 and 250 kcal per 100 g as served, aiming for 160. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 15 g d'amandes amandes, 1 cuillère à café d'huile d'olive huile d'olive.\n  Preparation prep_salmon \"Saumon rôti au citron\", REWORKABLE: 360 g de filets de saumon filets de saumon, 1 cuillère à soupe d'huile d'olive huile d'olive, un demi-citron citron, une pincée d'aneth aneth, une pincée de sel sel.\n  Preparation prep_couscous \"Couscous aux herbes\", REWORKABLE: 210 g de couscous sec couscous sec, 270 ml d'eau eau, 1 cuillère à soupe d'huile d'olive huile d'olive, une pincée de persil persil, une pincée de sel sel.\n  Preparation prep_roasted_vegetables \"Légumes rôtis de septembre\", REWORKABLE: 250 g d'aubergine aubergine, 250 g de poivron poivron, 250 g de tomates tomates, 120 g d'oignon oignon, 2 cuillères à soupe d'huile d'olive huile d'olive, une pincée de sel sel, une pincée de poivre noir poivre noir.\n⛔ Keep each dish's identity: the same name, the same foods, the same cooking.\nA dish that comes back with different food is a REPLACEMENT, and it will be\nthrown away — the person asked for this dish. Do not swap, do not add a\ncourse, do not touch any other dish.\nA FROZEN part comes back unchanged: reach the density through the dish's own\nfresh ingredients and its REWORKABLE preparations.\nReturn the full plan JSON with only these dishes and the preparations they\ndraw on changed."
+  },
+  {
+    "step": 10,
+    "kind": "generate-household-meal-v1.density_repair",
+    "metadata": {
+      "source": "generate-household-meal-v1.density_repair",
+      "has_tools": false,
+      "json_mode": true,
+      "base_model": "gpt-5.6-luna",
+      "timeout_ms": 157495,
+      "max_retries": 1,
+      "tool_choice": "auto",
+      "prompt_chars": 19635,
+      "force_real_ai": false,
+      "reasoning_effort": "high",
+      "system_prompt_chars": 17999
+    },
+    "repair_appendix": "\n\nSOME DISHES DO NOT WORK AS A PLATE. Fix only these, and here is what you\nwrote for each one:\n- \"Lentilles mijotées, pain complet et feta\" serves 139 kcal per 100 g; it has to land between 146 and 250 kcal per 100 g as served, aiming for 160. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 90 g de pain complet pain complet, 40 g de feta feta, 1 cuillère à soupe d'huile d'olive huile d'olive, un demi-citron citron.\n  Preparation prep_lentil_ratatouille \"Lentilles aux légumes\", REWORKABLE: 240 g de lentilles vertes sèches lentilles vertes sèches, 180 g de tomates tomates, 150 g de courgette courgette, 80 g d'oignon oignon, 3 cuillères à soupe d'huile d'olive huile d'olive, 280 ml d'eau eau, une pincée de sel sel, une pincée de poivre noir poivre noir.\n- \"Saumon, couscous, légumes rôtis et amandes\" serves 154 kcal per 100 g; it has to land between 167 and 250 kcal per 100 g as served, aiming for 183. Rewrite the recipe, keeping its identity: more of the starch, the protein or the fat it already contains, less water and less watery vegetable. The recipe may end up smaller, and that is fine — the app decides how much of it goes on a plate, you do not.\n  Its own fresh ingredients, REWORKABLE: 15 g d'amandes amandes, 1 cuillère à café d'huile d'olive huile d'olive.\n  Preparation prep_lentil_ratatouille \"Lentilles aux légumes\", REWORKABLE: 240 g de lentilles vertes sèches lentilles vertes sèches, 180 g de tomates tomates, 150 g de courgette courgette, 80 g d'oignon oignon, 3 cuillères à soupe d'huile d'olive huile d'olive, 280 ml d'eau eau, une pincée de sel sel, une pincée de poivre noir poivre noir.\n  Preparation prep_couscous \"Couscous aux herbes\", REWORKABLE: 360 g de couscous sec couscous sec, 450 ml d'eau eau, 3 cuillères à soupe d'huile d'olive huile d'olive, une pincée de persil persil, une pincée de sel sel.\n⛔ Keep each dish's identity: the same name, the same foods, the same cooking.\nA dish that comes back with different food is a REPLACEMENT, and it will be\nthrown away — the person asked for this dish. Do not swap, do not add a\ncourse, do not touch any other dish.\nA FROZEN part comes back unchanged: reach the density through the dish's own\nfresh ingredients and its REWORKABLE preparations.\nReturn the full plan JSON with only these dishes and the preparations they\ndraw on changed."
+  }
+]

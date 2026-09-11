@@ -137,13 +137,64 @@ describe("FF-059 lot 4 — la phrase suit la direction", () => {
     // ⚠️ SANS CE TEST, LES SIX AU-DESSUS SERAIENT VRAIS ET INUTILES: un
     // composant qui aurait gardé ses littéraux en ligne les laisserait tous
     // verts pendant qu'il rend la mauvaise phrase.
-    expect(COMPONENT_SOURCE).toContain("energyTargetRangeKey(target.direction)");
-    expect(COMPONENT_SOURCE).toContain("energyTargetNoteKey(target.direction)");
+    //
+    // ⟳ 2026-09-10 · LOT 3 — L'ARGUMENT N'EST PLUS `target.direction` NU, et
+    // c'est le sujet du cas suivant: il passe par `paceMissing`, qui rabat la
+    // direction sur `null` quand le rythme n'a pas pu être calculé. La
+    // propriété gardée ici est INCHANGÉE — l'appel passe par les deux
+    // fonctions de choix, aucun littéral n'est posé en ligne.
+    expect(COMPONENT_SOURCE).toMatch(/energyTargetRangeKey\(\s*paceMissing \? null : target\.direction,?\s*\)/);
+    expect(COMPONENT_SOURCE).toContain(
+      "energyTargetNoteKey(paceMissing ? null : target.direction)",
+    );
     // Et les clés dirigées n'apparaissent QUE dans les deux fonctions de choix:
     // une occurrence ailleurs serait un second point de décision.
     for (const key of ["meals.energy.target_range_down", "meals.energy.target_range_up"]) {
       const count = COMPONENT_SOURCE.split(key).length - 1;
       expect(count, `${key} apparaît ${count} fois dans le composant`).toBe(1);
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 · LOT 3 — UN RYTHME QUI NE S'EXÉCUTE PAS NE S'ANNONCE PAS
+  // ═════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT, MESURÉ CÔTÉ SERVEUR: sans taille, la cible passe par le
+  // raccourci au poids — une fourchette SORT — pendant que l'entretien du
+  // rythme rend `null`, donc l'écart vaut ZÉRO. L'écran annonçait « pour perdre
+  // à ton rythme » au-dessus de nombres d'entretien: l'objectif de la personne
+  // était annulé sans un mot.
+
+  it("`paceMissing` est lu de `target.paceUnavailable`, et il rabat la direction", () => {
+    // ⚠️ LA PRÉMISSE, ARMÉE: le motif est bien LU du champ, pas d'un état
+    // d'écran. Sans cette ligne, le rabattement pourrait porter sur n'importe
+    // quoi et les deux `toMatch` du dessus resteraient verts.
+    expect(COMPONENT_SOURCE).toContain(
+      "const paceMissing = target.paceUnavailable !== null;",
+    );
+  });
+
+  it("⚠️ ET LE MOTIF SE DIT — sinon le rabattement est un silence de plus", () => {
+    // ⛔ LE CAS QUI PASSE, ET IL EST LA MOITIÉ QUI COMPTE. Retomber sur la
+    // phrase du poids sans rien dire remplacerait un énoncé faux par un énoncé
+    // muet: la personne verrait sa fourchette cesser de parler de son objectif,
+    // sans jamais savoir pourquoi ni quoi faire.
+    expect(COMPONENT_SOURCE).toContain("meals.energy.target_pace_missing_body");
+    for (const [lang, pack] of [["en", en], ["fr", fr]] as const) {
+      const text = String(pack["meals.energy.target_pace_missing_body"]);
+      expect(text.length, `${lang}: la phrase est vide`).toBeGreaterThan(0);
+      // ⛔ ELLE NOMME LA DONNÉE QUI MANQUE. Un motif qui ne dit pas quoi faire
+      // est un mur muet — cicatrice « refus loin du geste » de `SetupPage`.
+      expect(
+        /height|taille/i.test(text),
+        `${lang}: la phrase ne nomme pas la donnée qui manque`,
+      ).toBe(true);
+      // ⛔ ET ELLE N'ANNONCE AUCUN RESTE. Même interdit que les cinq clés
+      // du cas « AUCUNE phrase de ce chemin ne porte un reste ».
+      for (const word of ["il te reste", "left today", "remaining"]) {
+        expect(text.toLowerCase().includes(word), `${lang} contient « ${word} »`)
+          .toBe(false);
+      }
     }
   });
 });

@@ -105,38 +105,37 @@ describe("la question n'est posée que là où elle a un sujet", () => {
   });
 });
 
-describe("le câblage — le jeton part des trois écrans qui composent", () => {
+describe("le câblage — le champ est parti des écrans, le jeton reste au transport", () => {
   /**
-   * ② LE CHAMP EST POSÉ SUR LES DEUX ÉCRANS QUI COMPOSENT, et sur le même
-   * composant. Deux champs écrits séparément divergeraient au premier libellé
-   * retouché, et c'est celui qu'on regarde le moins qui garderait l'ancien mot.
+   * ⟳ 2026-09-06 — CES DEUX CAS DISAIENT « LE CHAMP EST MONTÉ », ET ILS DISENT
+   * MAINTENANT L'INVERSE. La question « comment tu cuisines cette semaine » a
+   * été retirée des deux écrans qui composent, sur une demande d'écran: « il y
+   * a déjà "Comment voulez-vous cuisiner ?" donc pourquoi c'est en double ? ».
+   *
+   * ⛔ CE QUI RESTE, ET IL NE FAUT PAS LE RETIRER AVEC. Le jeton voyage
+   * toujours dans la demande (`cooking_shape`), parce que le serveur s'en sert
+   * ENCORE: le style « le moins possible — je réchauffe » plafonne la forme par
+   * `styleCappedShape`, qui entre dans `capCookingShape` par cette même porte.
+   * Les écrans envoient `null` — très exactement ce que rendait la réponse par
+   * défaut, « laisse le plan décider ».
    */
-  it("`MealBuilder` monte le champ et envoie le jeton", () => {
-    const src = code("frontend/src/keel/components/MealBuilder.tsx");
-    expect(src, "le champ n'est plus monté").toContain("<CookingShapeField");
-    expect(src, "le champ est monté hors du foyer").toContain(
-      "composingForHousehold && (",
-    );
-    // ⚠️ L'ANCRE ÉTAIT `/cookingShape,\s*\}\);/`, C'EST-À-DIRE « DERNIÈRE
-    // PROPRIÉTÉ DE L'OBJET ». Elle a rougi le 2026-08-19 quand le lot D a
-    // branché l'envie du foyer JUSTE APRÈS — un champ de plus dans le même
-    // appel, et la garde tombait sans que le jeton ait bougé d'un octet. Une
-    // garde qui dépend de l'ORDRE des propriétés d'un littéral surveille la
-    // mise en page, pas le câblage. Ce qui compte est: le jeton part DANS
-    // l'appel de la lane foyer.
-    expect(src, "le jeton ne part plus avec la demande").toMatch(
-      /generateHouseholdMeal\(\{[\s\S]*?\bcookingShape,[\s\S]*?\n\s*\}\);/,
-    );
-  });
-
-  it("l'entonnoir monte le champ et le passe aux TROIS gestes", () => {
-    const src = code("frontend/src/keel/pages/SetupPage.tsx");
-    expect(src, "le champ n'est plus monté").toContain("<CookingShapeField");
-    // `draftInput` est la source unique: aperçu, reprise et adoption.
-    expect(src, "le jeton ne part plus dans la demande").toContain(
-      "cookingShape,",
-    );
-  });
+  for (
+    const [name, file] of [
+      ["MealBuilder", "frontend/src/keel/components/MealBuilder.tsx"],
+      ["l'entonnoir", "frontend/src/keel/pages/SetupPage.tsx"],
+    ] as const
+  ) {
+    it(`${name} ne monte plus le champ, et envoie \`null\``, () => {
+      const src = code(file);
+      expect(src, `${name}: le champ est revenu à l'écran`)
+        .not.toContain("<CookingShapeField");
+      // LE CAS QUI PASSE: sans lui, un fichier qui aurait perdu la propriété
+      // ENTIÈRE serait vert — et le plafond du style partirait avec elle, en
+      // silence, puisque c'est par cette clé qu'il atteint `capCookingShape`.
+      expect(src, `${name}: la clé du transport a disparu avec le champ`)
+        .toContain("cookingShape: null,");
+    });
+  }
 
   it("le corps de requête porte `cooking_shape` sur les deux chemins", () => {
     expect(

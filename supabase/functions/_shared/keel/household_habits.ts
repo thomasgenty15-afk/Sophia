@@ -44,7 +44,7 @@ import {
   readDraftNote,
 } from "./plan_draft_note.ts";
 import { type ForbiddenTerm } from "./forbidden_matcher.ts";
-import { MEAL_EXTRAS, type MealExtra } from "./meal_extras.ts";
+import { slotBearsLight } from "./meal_extras.ts";
 
 // ⚠️ CE MODULE N'IMPORTE PAS `meal_generation.ts`, ET C'EST UNE CONTRAINTE
 // STRUCTURELLE, PAS UNE PRÉFÉRENCE.
@@ -178,55 +178,47 @@ export function parseMemberHabits(raw: unknown): MemberHabit[] {
 }
 
 /**
- * ══════════════════════════════════════════════════════════════════════════
- * CE QU'ELLE PREND À CÔTÉ DU PLAT, MOMENT PAR MOMENT — 2026-09-01
- * ══════════════════════════════════════════════════════════════════════════
+ * LES MOMENTS QUE LA BOUCHE A MARQUÉS « LÉGER » — 2026-09-07.
  *
- * ⛔ UN SECOND LECTEUR SUR LA MÊME COLONNE, ET C'EST DÉLIBÉRÉ. `parseMemberHabits`
- * est taillé pour la PROSE DU PROMPT: il écarte toute entrée sans texte, parce
- * qu'« elle mange autre chose » sans dire quoi fait inventer le modèle. Cette
- * règle est juste, et elle est argumentée au-dessus — on ne la tord pas.
+ * ⛔ TROIS ÉTATS, ET ILS NE SE CONFONDENT PAS. La clé
+ * `light` ABSENTE et `light: false` ne disent PAS la même chose:
+ *   · absente ⇒ « la question n'a pas été posée à ce moment-là »;
+ *   · `false` ⇒ « posée, et la réponse est non »;
+ *   · `true`  ⇒ « ce moment pèse moins que d'habitude ».
+ * L'écran ne peut pas distinguer les deux premiers s'ils se relisent pareil, et
+ * un `jsonb` par défaut qui écrase la différence est une cicatrice datée du
+ * dépôt (`jsonb-default-hides-answered-vs-unasked`).
  *
- * Les extras, eux, ne vont jamais au prompt: ils vont au CALCUL, où ils sont
- * retranchés de la cible du repas (`mouth_anchor.ts`). Une entrée qui ne porte
- * QUE des extras est donc muette pour le prompt et parlante pour l'ancrage.
- * Deux lectures, deux règles, aucune ne plie pour l'autre.
+ * ⚠️ RENDU EN `Record<string, boolean>` ET PAS EN LISTE. Une liste de moments
+ * légers perdrait le `false`, donc perdrait « répondu non » — et l'écran
+ * reposerait la question à quelqu'un qui a déjà répondu.
  *
- * ⚠️ ET C'EST CE QUI ÉVITE UNE COLONNE DE PLUS. `slots` est déjà clé par
- * (bouche, moment) et déjà bornée en base; y ajouter une colonne jumelle aurait
- * fait deux endroits où lire « ce qui se passe à ce moment-là ».
+ * ⛔ SEULS LES MOMENTS QUI PEUVENT PORTER LE LÉGER SONT LUS. Un `light: true`
+ * sur `snack_pm` est écarté ici comme il l'est par la contrainte SQL: la lecture
+ * et la base doivent refuser la même chose, sinon la plus permissive des deux
+ * décide.
  *
  * PURE: no I/O, no clock, no randomness.
  */
-export function parseMemberExtras(
-  raw: unknown,
-): Record<string, MealExtra[]> {
+export function parseMemberLight(raw: unknown): Record<string, boolean> {
   if (!Array.isArray(raw)) return {};
-  const out: Record<string, MealExtra[]> = {};
+  const out: Record<string, boolean> = {};
   for (const entry of raw) {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
     const e = entry as Record<string, unknown>;
     const slot = String(e.slot ?? "").trim().toLowerCase();
     if (!HABIT_OCCASION_TOKENS.includes(slot)) continue;
-    // ⛔ LE PREMIER GAGNE, comme pour la prose: deux entrées d'un même moment
-    // sont une erreur d'écrivain, et en fusionner les extras inventerait une
-    // déclaration que personne n'a faite.
+    if (!slotBearsLight(slot)) continue;
+    // ⛔ LE PREMIER GAGNE, comme pour la prose: deux entrées d'un
+    // même moment sont une erreur d'écrivain, et en fusionner les réponses
+    // inventerait une déclaration que personne n'a faite.
     if (Object.prototype.hasOwnProperty.call(out, slot)) continue;
-    // ⚠️ LA CLÉ ABSENTE ET LE TABLEAU VIDE NE DISENT PAS LA MÊME CHOSE, et
-    // c'est tout le lot: absente = « ce moment n'a pas été renseigné » (repli
-    // sur la convention), vide = « renseigné, rien à côté du plat » (le plat
-    // porte tout son repas). Une entrée qui ne porte PAS la clé `extras` n'est
-    // donc pas une réponse — on ne l'inscrit pas.
-    if (!Object.prototype.hasOwnProperty.call(e, "extras")) continue;
-    if (!Array.isArray(e.extras)) continue;
-    const kept: MealExtra[] = [];
-    for (const item of e.extras) {
-      const token = String(item ?? "").trim().toLowerCase();
-      if (!(MEAL_EXTRAS as readonly string[]).includes(token)) continue;
-      if (kept.includes(token as MealExtra)) continue;
-      kept.push(token as MealExtra);
-    }
-    out[slot] = kept;
+    if (!Object.prototype.hasOwnProperty.call(e, "light")) continue;
+    // ⛔ SEUL UN VRAI BOOLÉEN COMPTE. `"yes"`, `1` et `"true"` sont écartés —
+    // la contrainte SQL les refuse aussi, et deviner ici ferait passer en base
+    // ce que la base refuse d'écrire.
+    if (typeof e.light !== "boolean") continue;
+    out[slot] = e.light;
   }
   return out;
 }

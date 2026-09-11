@@ -1,0 +1,73 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 6,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Frittata de courgette, pain et pomme",
+      "member_id": null,
+      "pots": [
+        "Frittata de courgette ÷1"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 294,
+      "density_kcal_per_100g": null,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 157,
+      "density_kcal_per_100g": 86.1,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet rôti, salade, pain complet et vinaigrette",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti, pommes de terre et poivrons ÷1"
+      ],
+      "standard_kcal": 414,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 325,
+      "density_kcal_per_100g": 127.5,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, pommes de terre et poivrons",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti, pommes de terre et poivrons ÷1"
+      ],
+      "standard_kcal": 955,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 700,
+      "density_kcal_per_100g": 136.4,
+      "boxes": 1
+    }
+  ]
+}

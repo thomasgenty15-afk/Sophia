@@ -433,6 +433,7 @@ function planAvecUneLigneEnProse() {
       kitchenEquipment: null,
       cookOnlyDay: null,
       soloBoxes: false,
+      standardRecipe: false,
       boxMemberDiets: [],
       boxMemberExclusions: [],
     },

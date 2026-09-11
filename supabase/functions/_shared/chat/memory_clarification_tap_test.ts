@@ -98,28 +98,12 @@ function fake(opts: FakeOpts = {}) {
     return proxy;
   };
 
-  const inserts: { table: string; row: Record<string, unknown> }[] = [];
   const admin = {
     from: (table: string) => {
-      // ⟳ 2026-09-05 — la porte de sécurité insère dans la table de l'élève.
-      if (table === "student_safety_constraints") {
-        return {
-          insert(row: Record<string, unknown>) {
-            inserts.push({ table, row });
-            return Promise.resolve({ error: opts.writeFails ? { code: "XX000", message: "down" } : null });
-          },
-        };
-      }
       return chainFor(table);
     },
     rpc: (name: string, params: Record<string, unknown>) => {
       rpcs.push({ name, params });
-      if (name === "keel_household_set_member_diet_for") {
-        return Promise.resolve({
-          data: opts.writeFails ? { ok: false, reason: "not_a_member" } : { ok: true },
-          error: null,
-        });
-      }
       if (name === "keel_write_retained_items_for") {
         return Promise.resolve({
           data: opts.writeFails
@@ -132,32 +116,8 @@ function fake(opts: FakeOpts = {}) {
     },
   };
   // deno-lint-ignore no-explicit-any
-  return { admin: admin as any, updates, rpcs, inserts };
+  return { admin: admin as any, updates, rpcs };
 }
-
-const SCOPE_NOTE = "On mange végétarien.";
-const PENDING_SCOPE: PendingClarification = {
-  about: "scope",
-  gate: "notes",
-  kind: null,
-  text: "on mange végétarien",
-  subject: "household",
-  when: null,
-  note: SCOPE_NOTE,
-  at: "2026-09-05",
-  anchor: "2026-09-07",
-  safety: { kind: "diet", ref: "vegetarian", memberId: null, text: SCOPE_NOTE },
-};
-const scopeRow = (over: Record<string, unknown> = {}) => ({
-  id: ROW,
-  user_id: USER,
-  about: "scope",
-  pending: PENDING_SCOPE,
-  options: ["always", "sometimes"],
-  content_locale: "fr-FR",
-  expires_at: LATER,
-  ...over,
-});
 
 const nameOf = (id: string) =>
   id === LEA ? "Léa" : id === ZOE ? "Zoé" : null;
@@ -358,121 +318,4 @@ Deno.test("panne: le port refuse — la ligne reste OUVERTE, et l'accusé ne men
     `UN ACCUSÉ OPTIMISTE SUR UNE ÉCRITURE RATÉE: « ${out.body} ». Il apprend ` +
       "à la personne que les accusés ne veulent rien dire.",
   );
-});
-
-
-// ===========================================================================
-// 5. ⟳ 2026-09-05 — LA PORTÉE: « toujours » écrit une CONTRAINTE, « parfois » une NOTE
-// ===========================================================================
-
-Deno.test("PORTÉE — « toujours » écrit la ligne de sécurité, PAS le port des items, et ferme la question", async () => {
-  const { admin, updates, rpcs, inserts } = fake({ row: scopeRow() });
-  const out = await tap(admin, memoryClarificationPickId(ROW, 0));
-
-  assertEquals(out.handledAs, "keel_memory_clarification_answered");
-  assertEquals(closures(updates), ["answered"]);
-  // ⛔ LA CONTRAINTE VA DANS LA TABLE DE SÉCURITÉ, avec la sévérité par défaut
-  // (strict pour un régime) — jamais dans `retained_items`, qui n'a pas de
-  // ceinture de sortie.
-  assertEquals(inserts.length, 1);
-  assertEquals(inserts[0].table, "student_safety_constraints");
-  assertEquals(inserts[0].row.user_id, USER);
-  assertEquals(inserts[0].row.kind, "diet");
-  assertEquals(inserts[0].row.allergen_ref, "vegetarian");
-  assertEquals(inserts[0].row.severity, "strict");
-  assert(!rpcs.some((r) => r.name === "keel_write_retained_items_for"), "le port des items a été touché");
-  // L'accusé nomme ce qui est écrit, et où le défaire.
-  assert(/végétarien|vegetarian/i.test(out.body), out.body);
-  assert(/fiche santé/.test(out.body), out.body);
-  assertEquals(out.buttons, []);
-});
-
-Deno.test("PORTÉE — « toujours » sur une bouche nommée passe par la RPC `_for`, avec `p_user`", async () => {
-  const { admin, rpcs, inserts } = fake({
-    row: scopeRow({
-      pending: {
-        ...PENDING_SCOPE,
-        subject: `member:${LEA}`,
-        safety: { kind: "diet", ref: "vegan", memberId: LEA, text: SCOPE_NOTE },
-      },
-    }),
-  });
-  const out = await handleMemoryClarificationTap(admin, {
-    userId: USER,
-    reply: reply(memoryClarificationPickId(ROW, 0)),
-    language: "fr",
-    nameOf,
-    memberIds: [LEA, ZOE],
-    contentLocale: "fr-FR",
-    now: NOW,
-  });
-  assertEquals(out.handledAs, "keel_memory_clarification_answered");
-  assertEquals(inserts.length, 0, "le régime d'un enfant a été écrit sur sa mère");
-  const rpc = rpcs.find((r) => r.name === "keel_household_set_member_diet_for");
-  assert(rpc, "la RPC _for n'a pas été appelée");
-  assertEquals(rpc!.params.p_user, USER);
-  assertEquals(rpc!.params.p_member, LEA);
-  assertEquals(rpc!.params.p_diet, "vegan");
-  assert(/Léa/.test(out.body), out.body);
-});
-
-Deno.test("⛔ PORTÉE — une bouche hors du rôle passé n'est PAS écrite: la question reste ouverte", async () => {
-  // Le rôle est la seule chose qui rend `member_id` vérifiable au tap. Sans
-  // lui (ou avec une bouche retirée entre la question et la réponse), la porte
-  // refuse — et on ne replie JAMAIS sur la ligne du titulaire.
-  const { admin, updates, rpcs, inserts } = fake({
-    row: scopeRow({
-      pending: { ...PENDING_SCOPE, safety: { kind: "diet", ref: "vegan", memberId: LEA, text: SCOPE_NOTE } },
-    }),
-  });
-  const out = await handleMemoryClarificationTap(admin, {
-    userId: USER,
-    reply: reply(memoryClarificationPickId(ROW, 0)),
-    language: "fr",
-    nameOf,
-    memberIds: [],
-    now: NOW,
-  });
-  assertEquals(out.handledAs, "keel_memory_clarification_write_failed");
-  assertEquals(inserts.length, 0);
-  assert(!rpcs.some((r) => r.name.endsWith("_for")));
-  assertEquals(closures(updates), []);
-});
-
-Deno.test("PORTÉE — « parfois » écrit une NOTE par le port, avec la citation, et aucune contrainte", async () => {
-  const { admin, updates, rpcs, inserts } = fake({ row: scopeRow() });
-  const out = await tap(admin, memoryClarificationPickId(ROW, 1));
-
-  assertEquals(out.handledAs, "keel_memory_clarification_answered");
-  assertEquals(closures(updates), ["answered"]);
-  assertEquals(inserts.length, 0, "une contrainte a été écrite sur « parfois »");
-  const write = rpcs.find((r) => r.name === "keel_write_retained_items_for");
-  assert(write, "rien n'a été écrit");
-  const memo = write!.params.p_memo as Record<string, unknown>[] | undefined;
-  assert(memo && memo.length === 1, JSON.stringify(write!.params));
-  assertEquals(memo![0].text, "on mange végétarien");
-  assertEquals(memo![0].quote, SCOPE_NOTE);
-  assertEquals(memo![0].subject, "household");
-  // Et « Voir » ouvre le bloc des notes.
-  assertEquals(out.buttons.length, 1);
-  assert(out.buttons[0].payload.endsWith("notes"));
-});
-
-Deno.test("⛔ PORTÉE — la base refuse la contrainte: la question reste OUVERTE, l'accusé ne ment pas", async () => {
-  const { admin, updates } = fake({ row: scopeRow(), writeFails: true });
-  const out = await tap(admin, memoryClarificationPickId(ROW, 0));
-  assertEquals(out.handledAs, "keel_memory_clarification_write_failed");
-  assertEquals(closures(updates), []);
-  assert(!/noté|enregistr/i.test(out.body) || /pas pu/.test(out.body), out.body);
-});
-
-Deno.test("⛔ PORTÉE — une ligne `scope` sans déclaration en attente se ferme sans rien écrire", async () => {
-  const { admin, updates, rpcs, inserts } = fake({
-    row: scopeRow({ pending: { ...PENDING_SCOPE, safety: null } }),
-  });
-  const out = await tap(admin, memoryClarificationPickId(ROW, 0));
-  assertEquals(out.handledAs, "keel_memory_clarification_stale");
-  assertEquals(closures(updates), ["expired"]);
-  assertEquals(inserts.length, 0);
-  assert(!rpcs.some((r) => r.name === "keel_write_retained_items_for"));
 });

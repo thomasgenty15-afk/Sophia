@@ -1,0 +1,12 @@
+{
+  "owner": "101caadd-3cf8-40f9-9108-4c4fdcae9834",
+  "member": "6bd2ad69-6a4e-4ca7-9240-11c5264a0716",
+  "member_id": "11effb1a-17f8-4f03-aec0-22e43c745fb0",
+  "child_id": "9c2af298-121c-4a49-9cc6-821cc104d7e7",
+  "expected": {
+    "owner": "fajitas + Marc excludes betterave",
+    "member": "Marc excludes courgettes + rougail next plan",
+    "note": "Tom cashew allergy must reach household safety, not merely preference"
+  },
+  "scope_correction": "Member account sentinels injected by fixture, not an authorized household-envy flow. Exclude their omission from production failures; real member RPC rejects not_owner."
+}

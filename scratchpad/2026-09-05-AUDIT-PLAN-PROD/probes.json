@@ -1,0 +1,296 @@
+[
+  {
+    "kind": "exclusion",
+    "excluded": "pain complet",
+    "ingredient": "pain complet",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS",
+    "tokens": [
+      "pain",
+      "complet"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "pain complet",
+    "ingredient": "pain blanc",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "pain",
+      "complet"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "pain complet",
+    "ingredient": "riz complet",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "pain",
+      "complet"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "lait",
+    "ingredient": "laitue",
+    "expected": false,
+    "got": false,
+    "verdict": "PASS",
+    "tokens": [
+      "lait"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "lait",
+    "ingredient": "lait de vache",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS",
+    "tokens": [
+      "lait"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "poisson",
+    "ingredient": "saumon",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS",
+    "tokens": [
+      "fish",
+      "seafood",
+      "salmon",
+      "tuna",
+      "cod",
+      "haddock",
+      "hake",
+      "sea bass",
+      "mackerel",
+      "herring",
+      "sardine",
+      "anchovy",
+      "anchovies",
+      "trout",
+      "shrimp",
+      "prawn",
+      "crab",
+      "lobster",
+      "mussel",
+      "clam",
+      "oyster",
+      "scallop",
+      "squid",
+      "calamari",
+      "octopus",
+      "surimi",
+      "fish sauce",
+      "worcestershire",
+      "oyster sauce",
+      "fish stock",
+      "poisson",
+      "fruits de mer",
+      "saumon",
+      "thon",
+      "cabillaud",
+      "morue",
+      "colin",
+      "merlu",
+      "bar",
+      "maquereau",
+      "hareng",
+      "anchois",
+      "truite",
+      "crevette",
+      "gambas",
+      "crabe",
+      "homard",
+      "moule",
+      "palourde",
+      "huitre",
+      "huître",
+      "saint-jacques",
+      "calamar",
+      "encornet",
+      "poulpe",
+      "nuoc-mam",
+      "nuoc mam",
+      "sauce de poisson",
+      "fumet de poisson"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "saumon",
+    "ingredient": "cabillaud",
+    "expected": false,
+    "got": false,
+    "verdict": "PASS",
+    "tokens": [
+      "saumon"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "pommes de terre",
+    "ingredient": "pommes",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "pomme",
+      "terre"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "pommes de terre",
+    "ingredient": "pommes de terre",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS",
+    "tokens": [
+      "pomme",
+      "terre"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "noix de coco",
+    "ingredient": "noix de cajou",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "noix",
+      "coco"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "beurre de cacahuète",
+    "ingredient": "beurre doux",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "beurre",
+      "cacahuete"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "pâtes complètes",
+    "ingredient": "riz complet",
+    "expected": false,
+    "got": false,
+    "verdict": "PASS",
+    "tokens": [
+      "pate",
+      "complete"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "chou-fleur",
+    "ingredient": "chou-fleur",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS",
+    "tokens": [
+      "chou",
+      "fleur"
+    ]
+  },
+  {
+    "kind": "exclusion",
+    "excluded": "chou-fleur",
+    "ingredient": "fleur de sel",
+    "expected": false,
+    "got": true,
+    "verdict": "FAIL",
+    "tokens": [
+      "chou",
+      "fleur"
+    ]
+  },
+  {
+    "kind": "safety",
+    "allergy": "arachide",
+    "ingredient": "beurre de cacahuète",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "oeuf",
+    "ingredient": "mayonnaise aux œufs",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "lait",
+    "ingredient": "lait sans lactose",
+    "expected": true,
+    "got": false,
+    "verdict": "FAIL"
+  },
+  {
+    "kind": "safety",
+    "allergy": "lait",
+    "ingredient": "laitue",
+    "expected": false,
+    "got": false,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "noix de cajou",
+    "ingredient": "purée de noix de cajou",
+    "expected": true,
+    "verdict": "INCONCLUSIVE",
+    "refusal": "HouseholdAllergenWithoutSurfaceFormsError: [keel/household_safety] a household allergy resolves to no catalogued allergen (noix_de_cajou); the output belt would only match the exact word that was typed, so no meal may be composed. Add its surface forms to ALLERGEN_SURFACE_FORMS."
+  },
+  {
+    "kind": "safety",
+    "allergy": "oeuf",
+    "ingredient": "tofu",
+    "expected": false,
+    "got": false,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "arachide",
+    "ingredient": "peanut butter",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "oeuf",
+    "ingredient": "egg noodles",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS"
+  },
+  {
+    "kind": "safety",
+    "allergy": "lait",
+    "ingredient": "whey protein",
+    "expected": true,
+    "got": true,
+    "verdict": "PASS"
+  }
+]

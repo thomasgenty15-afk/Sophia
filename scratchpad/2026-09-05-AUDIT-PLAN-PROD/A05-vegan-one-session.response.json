@@ -1,0 +1,3865 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 6
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+      "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+      "Tout est cuisiné dimanche, en une seule fois : ce qui ne tiendrait pas au frais jusqu'au repas part au congélateur.",
+      "Sur mercredi, le déjeuner et le dîner n'ont pas été composés.",
+      "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+      "La session de dimanche prendra plutôt 2 h que 1 h : c'est ton seul jour de cuisine, et cuisiner moins laisserait des jours vides.",
+      "Les quantités sont faites pour 4 bouches.",
+      "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+      "Nora : 18 repas sur 22. Il manque dimanche au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 18 repas sur 22. Il manque mardi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 18 repas sur 22. Il manque jeudi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 18 repas sur 22. Il manque vendredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "J’ai gardé une base végétale commune et séparé les protéines dans les boîtes afin que chaque assiette reste cohérente avec les différentes lignes alimentaires.",
+      "J’ai varié les céréales, les pommes de terre, les légumes et les présentations pour que les préparations du dimanche ne deviennent pas le même repas chaque jour.",
+      "Les repas de fin de semaine sortent du congélateur la veille, car une seule session doit couvrir tout l’intervalle."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 34,
+    "declared": 34,
+    "kept": 29,
+    "refused": 5
+  },
+  "food_groups": {
+    "declared": 125,
+    "valid": 121,
+    "refused": 4,
+    "persisted": 121,
+    "lines": 129
+  },
+  "household": {
+    "id": "e2f70120-2795-4ad4-ab80-50e6ebf20b93",
+    "member_count": 4,
+    "dish_owners": {
+      "asked": 0,
+      "declared": 0,
+      "attributed": 0,
+      "refused": 0
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 1,
+      "dishes": 36,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 3,
+      "ranks_without_object": 2,
+      "by_rank": {
+        "rank_1": 1,
+        "rank_2": 6,
+        "rank_3": 8,
+        "rank_4": 0,
+        "rank_5": 0
+      }
+    },
+    "boxes": {
+      "meals": 10,
+      "with_box": 10,
+      "boxes": 30,
+      "expected": 30,
+      "delivery": "served",
+      "refused": 0,
+      "names": 40,
+      "names_refused": 0,
+      "items": 60,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 11,
+      "sum_checked": 11,
+      "sum_over": 4,
+      "sum_unverifiable": 0,
+      "mouth_slots": 40,
+      "mouths_unboxed": 0,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 24,
+      "mouths_no_box_cell": 96,
+      "mouths": 4
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 92,
+      "unquantified": 0
+    },
+    "vague_portions": {
+      "notes": 17,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 13,
+      "unknown": 0,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 1,
+      "checked": 10,
+      "kept": 10,
+      "refused": 0,
+      "bites": 10,
+      "separated": 10,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 10,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 125,
+      "groups_valid": 121,
+      "groups_refused": 4,
+      "group_excluded": 0,
+      "group_plant_only": 67,
+      "group_undecided": 26
+    },
+    "swap": {
+      "strictest": "vegan",
+      "bound_mouths": 1,
+      "free_mouths": 3,
+      "cells_checked": 10,
+      "cells_carrying": 10,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": [],
+      "retry_attempts": 0,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "box_scoped": 0
+    },
+    "meals_delivered": {
+      "mouths": 4,
+      "expected": 94,
+      "fed": 90,
+      "missing": 4,
+      "by_cause": {
+        "held_off_regime": 4,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 2,
+      "retried": false,
+      "retry_attempts": 1,
+      "retry_accepted": 0,
+      "retry_merged_cells": 0,
+      "retry_on": {
+        "held_off_regime": 4
+      },
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": [
+        {
+          "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+          "expected": 22,
+          "fed": 18,
+          "missing": [
+            {
+              "day": "sun",
+              "slot": "snack_pm",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "tue",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "thu",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "fri",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            }
+          ]
+        }
+      ]
+    },
+    "box_sizing": {
+      "boxes": 30,
+      "common": 10,
+      "items": 60,
+      "sized": 60,
+      "unchanged": 0,
+      "capped_by_pot": 1,
+      "unverifiable": 0,
+      "mouths": {
+        "sized": 1,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 1,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 2,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 4,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 10,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 10
+      },
+      "anchor_applied": 20,
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 0,
+        "pot_ceiling": 0,
+        "both": 10,
+        "not_anchored": 10
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 10
+      },
+      "densify": {
+        "mouth_days": 10,
+        "boxes_touched": 16,
+        "moved_g": 1150,
+        "closed_kcal": 994,
+        "stopped": {
+          "closed": 0,
+          "floor": 0,
+          "ceiling": 8,
+          "pot_exhausted": 2,
+          "no_dense_target": 0,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 0,
+        "remaining_gte_200": 10
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 4,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 4,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 4
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 4
+      },
+      "appetite": {
+        "declared": 4,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 4,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Porridge fruitée",
+      "title": "Flocons d’avoine, yaourt de soja et prunes",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger les flocons et le yaourt de soja, puis ajouter les prunes en quartiers et les noix.",
+      "why": "Un petit-déjeuner frais avec des prunes françaises de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Tartine crémeuse",
+      "title": "Pain complet, houmous et tomates",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le houmous sur le pain et ajouter les tomates en rondelles avec l’huile.",
+      "why": "Une assiette rapide qui garde un aliment protéiné au premier repas.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Bol pomme cannelle",
+      "title": "Yaourt de soja, pomme, avoine et amandes",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "200 g",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d’avoine",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le yaourt dans un bol, puis ajouter la pomme en dés, l’avoine et les amandes.",
+      "why": "Un bol sans cuisson, nourrissant et facile à préparer à heure régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Tartines du jardin",
+      "title": "Pain complet, haricots blancs écrasés et concombre",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots blancs cuits",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 100,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Écraser les haricots avec l’huile, les étaler sur le pain et servir avec le concombre.",
+      "why": "Une combinaison simple de légumineuse, pain complet et légume croquant.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Bol poire noisette",
+      "title": "Yaourt de soja, poire, avoine et noisettes",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "200 g",
+          "in_pantry": false,
+          "amount": 200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 200,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d’avoine",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt et l’avoine, puis ajouter la poire en morceaux et les noisettes.",
+      "why": "La poire et les noisettes donnent une variation automnale sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Porridge aux raisins",
+      "title": "Flocons d’avoine, yaourt de soja et raisin",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger les flocons et le yaourt, puis ajouter le raisin et les graines de courge.",
+      "why": "Un petit-déjeuner frais qui utilise les fruits de fin d’été.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": null,
+      "title": "Pêche et noix",
+      "slot": "snack_am",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "pêche",
+          "quantity": "1 pêche",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver la pêche et la servir avec les noix.",
+      "why": "Une collation sans préparation qui profite encore des fruits d’été.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": null,
+      "title": "Pomme et amandes",
+      "slot": "snack_am",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer la pomme et la manger avec les amandes.",
+      "why": "Une option portable et régulière pour le milieu de matinée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Raisins croquants",
+      "title": "Raisin et noisettes",
+      "slot": "snack_am",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "raisin",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer le raisin et le servir avec les noisettes.",
+      "why": "Une collation de saison qui demande seulement à être rincée.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": null,
+      "title": "Poire et noix",
+      "slot": "snack_am",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver la poire et la servir avec les noix.",
+      "why": "Une collation simple qui évite de repousser le repas suivant.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Prune et graines",
+      "title": "Prunes et graines de courge",
+      "slot": "snack_am",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les prunes et les servir avec les graines de courge.",
+      "why": "Une petite pause fruitée adaptée à la saison.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": null,
+      "title": "Pomme et noisettes",
+      "slot": "snack_am",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer la pomme et la servir avec les noisettes.",
+      "why": "Une collation stable et facile à emporter.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Yaourt aux fruits",
+      "title": "Yaourt de soja et fruits rouges",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "fruits rouges",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "berries",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de chia",
+          "quantity": "10 g",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le yaourt dans un bol et ajouter les fruits rouges et les graines.",
+      "why": "Une pause fraîche avec une base protéinée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Bâtonnets et houmous",
+      "title": "Carottes, concombre et houmous",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "carottes",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "120 g",
+          "in_pantry": false,
+          "amount": 120,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 120,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "legumes",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tailler les légumes en bâtonnets et les servir avec le houmous.",
+      "why": "Une pause croquante qui utilise une légumineuse prête à servir.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 4
+      }
+    },
+    {
+      "name": "Abricot et amandes",
+      "title": "Abricots et amandes",
+      "slot": "snack_pm",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "abricots",
+          "quantity": "3 abricots",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les abricots et les servir avec les amandes.",
+      "why": "Une collation légère et saisonnière sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Tartinade express",
+      "title": "Pain complet et houmous",
+      "slot": "snack_pm",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "70 g",
+          "in_pantry": false,
+          "amount": 70,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 70,
+          "group": "legumes",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le houmous sur le pain.",
+      "why": "Une pause très rapide, avec une légumineuse et un féculent complet.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Poire au tahini",
+      "title": "Poire et tahini",
+      "slot": "snack_pm",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tahini",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper la poire et la servir avec le tahini à côté.",
+      "why": "Une pause fruitée avec une pâte de graines simple.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Raisin et noix",
+      "slot": "snack_pm",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "raisin",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "20 g",
+          "in_pantry": false,
+          "amount": 20,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 20,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Rincer le raisin et le servir avec les noix.",
+      "why": "Une pause de fin d’été, fraîche et sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Clafoutis de chia",
+      "title": "Yaourt de soja, poire et graines de chia",
+      "slot": "before_bed",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de chia",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt et les graines, puis ajouter la poire en dés.",
+      "why": "Une petite fin de journée fraîche et rassasiante.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Compote minute",
+      "title": "Pomme, cannelle et noix",
+      "slot": "before_bed",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pomme",
+          "quantity": "1 pomme",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper la pomme et la servir avec les noix et une pincée de cannelle.",
+      "why": "Une fin de journée simple qui ne demande pas de cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Yaourt aux prunes",
+      "title": "Yaourt de soja, prunes et amandes",
+      "slot": "before_bed",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "2 prunes",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 16,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Ajouter les prunes en quartiers et les amandes au yaourt.",
+      "why": "Une option fraîche qui prolonge une routine de repas régulière.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Bol douceur",
+      "title": "Yaourt de soja, pêche et noisettes",
+      "slot": "before_bed",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "1 pêche",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 130,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper la pêche et la mélanger au yaourt avec les noisettes.",
+      "why": "Une fin de journée légère et fruitée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Poire aux noix",
+      "title": "Poire et noix",
+      "slot": "before_bed",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver la poire, la couper et la servir avec les noix.",
+      "why": "Une conclusion de journée sans cuisson ni vaisselle complexe.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Yaourt aux raisins",
+      "title": "Yaourt de soja, raisin et graines de courge",
+      "slot": "before_bed",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "yaourt de soja nature",
+          "quantity": "180 g",
+          "in_pantry": false,
+          "amount": 180,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 180,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "15 g",
+          "in_pantry": false,
+          "amount": 15,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt avec le raisin et les graines de courge.",
+      "why": "Une fin de semaine fraîche, avec un fruit encore de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Saumon citronné",
+      "title": "Saumon, couscous, courgettes et tomates",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "jus de citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte de couscous et de légumes à la poêle, puis ajouter le saumon et le citron au moment de servir.",
+      "why": "Un déjeuner coloré qui met les courgettes et tomates de saison au premier plan.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_salmon",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_salmon",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 385
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 267
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 797
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 299
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 297
+            },
+            {
+              "preparation_id": "prep_tofu_salmon",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Poulet aux herbes",
+      "title": "Poulet, riz, poivrons et haricots verts",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "basilic",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle avec un trait d’eau, puis ajouter le citron et le basilic.",
+      "why": "Un dîner familial simple avec des légumes d’été et des herbes fraîches.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 281
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 205
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 454
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 261
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 167
+            },
+            {
+              "preparation_id": "prep_tofu_chicken",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Poulet citronné",
+      "title": "Poulet, riz, salade de concombre et tomates",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "concombre",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le riz et le poulet à la poêle, puis ajouter la salade fraîche et l’huile.",
+      "why": "La même préparation devient un déjeuner plus frais grâce à la salade croquante.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 308
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 178
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 519
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 299
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 167
+            },
+            {
+              "preparation_id": "prep_tofu_chicken",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Saumon aux légumes",
+      "title": "Saumon, pommes de terre et courgettes",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "roquette",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": "leafy_greens",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer les pommes de terre et les légumes à la poêle, ajouter le saumon, puis servir avec la roquette et le citron.",
+      "why": "Un dîner rapide qui change la présentation du saumon avec des pommes de terre.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_potatoes",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_salmon",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_salmon",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 385
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 267
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 697
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 261
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 297
+            },
+            {
+              "preparation_id": "prep_tofu_salmon",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Poulet au couscous",
+      "title": "Poulet, couscous, aubergine et courgette",
+      "slot": "lunch",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "aubergine",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgette",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "persil",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la boîte à la poêle avec un trait d’eau, puis ajouter l’aubergine fraîchement grillée et le persil.",
+      "why": "Le couscous et les légumes rôtis donnent une variation méditerranéenne au poulet.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 474
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 178
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 797
+            },
+            {
+              "preparation_id": "prep_chicken",
+              "term": "poulet cuit",
+              "grams": 299
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 297
+            },
+            {
+              "preparation_id": "prep_tofu_chicken",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bœuf aux poivrons",
+      "title": "Bœuf, riz, poivrons et haricots verts",
+      "slot": "dinner",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le riz et les légumes à la poêle, puis ajouter le bœuf et le citron.",
+      "why": "Un dîner coloré et simple avec des légumes de fin d’été.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_beef",
+          "servings": 1,
+          "kept": "fridge"
+        },
+        {
+          "preparation_id": "prep_tofu_beef",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_tue_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 219
+            },
+            {
+              "preparation_id": "prep_beef",
+              "term": "bœuf cuit",
+              "grams": 267
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 454
+            },
+            {
+              "preparation_id": "prep_beef",
+              "term": "bœuf cuit",
+              "grams": 261
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_tue_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 167
+            },
+            {
+              "preparation_id": "prep_tofu_beef",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Dinde aux légumes",
+      "title": "Dinde, couscous, courgettes et poivrons",
+      "slot": "lunch",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir les boîtes du congélateur la veille. Réchauffer le couscous et la dinde à la poêle, puis ajouter les légumes et le citron.",
+      "why": "Une assiette rapide qui utilise les légumes encore estivaux.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_couscous",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_tofu_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 447
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 205
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 797
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 299
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_couscous",
+              "term": "couscous et légumes cuits",
+              "grams": 297
+            },
+            {
+              "preparation_id": "prep_tofu_turkey",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Dinde au riz",
+      "title": "Dinde, riz, tomates et haricots verts",
+      "slot": "dinner",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "tomates",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "basilic",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir les boîtes du congélateur la veille. Réchauffer le riz et la dinde à la poêle, puis ajouter les tomates, les haricots verts et le basilic.",
+      "why": "Une version chaude et colorée de la dinde, facile à réchauffer.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_tofu_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_thu_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 308
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 178
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 454
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 261
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_thu_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 167
+            },
+            {
+              "preparation_id": "prep_tofu_turkey",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Dinde aux pommes de terre",
+      "title": "Dinde, pommes de terre, courgettes et salade",
+      "slot": "lunch",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "courgette",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "salade verte",
+          "quantity": "50 g",
+          "in_pantry": false,
+          "amount": 50,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 50,
+          "group": "leafy_greens",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir les boîtes du congélateur la veille. Réchauffer les pommes de terre et la dinde à la poêle, puis ajouter la courgette, la salade et l’huile.",
+      "why": "Une assiette de fin de semaine qui reste différente grâce à la salade fraîche.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_potatoes",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_tofu_turkey",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_lunch_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 474
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 178
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_lunch_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 797
+            },
+            {
+              "preparation_id": "prep_turkey",
+              "term": "dinde cuite",
+              "grams": 299
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_lunch_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_potatoes",
+              "term": "pommes de terre et légumes cuits",
+              "grams": 297
+            },
+            {
+              "preparation_id": "prep_tofu_turkey",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Saumon du vendredi",
+      "title": "Saumon, riz, aubergine et tomates",
+      "slot": "dinner",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "aubergine",
+          "quantity": "150 g",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomates",
+          "quantity": "100 g",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "jus de citron",
+          "quantity": "0.5 citron",
+          "in_pantry": false,
+          "amount": 0.5,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": "citrus",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Sortir les boîtes du congélateur la veille. Réchauffer doucement le riz et le saumon à la poêle, puis ajouter l’aubergine, les tomates et le citron.",
+      "why": "Le saumon revient en fin de semaine avec une garniture différente et colorée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_rice",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_salmon",
+          "servings": 1,
+          "kept": "freezer"
+        },
+        {
+          "preparation_id": "prep_tofu_salmon",
+          "servings": 1,
+          "kept": "freezer"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_fri_dinner_paul",
+          "member_ids": [
+            "b60378e6-1956-4dbd-b8dc-7480578a8282"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 219
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 267
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_dinner_claire_leo",
+          "member_ids": [
+            "620d929d-3c61-4af5-8575-150442486648",
+            "49375b46-a94a-43d3-8a3e-e2df1a8151cf"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 454
+            },
+            {
+              "preparation_id": "prep_salmon",
+              "term": "saumon cuit",
+              "grams": 261
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_fri_dinner_nora",
+          "member_ids": [
+            "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_rice",
+              "term": "riz et légumes cuits",
+              "grams": 167
+            },
+            {
+              "preparation_id": "prep_tofu_salmon",
+              "term": "tofu grillé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_couscous",
+      "title": "Couscous aux légumes",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "couscous complet",
+          "quantity": "1.2 kg",
+          "in_pantry": false,
+          "amount": 1200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1200,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1.2 kg",
+          "in_pantry": false,
+          "amount": 1200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1200,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "800 g",
+          "in_pantry": false,
+          "amount": 800,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 800,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "4 tbsp",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire gonfler le couscous avec de l’eau bouillante. Pendant ce temps, rôtir les légumes en morceaux avec l’huile au four à 210 °C, puis mélanger et refroidir rapidement.",
+      "active_minutes": 20,
+      "total_minutes": 45,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_rice",
+      "title": "Riz aux légumes",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "riz complet",
+          "quantity": "1.2 kg",
+          "in_pantry": false,
+          "amount": 1200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1200,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricots verts",
+          "quantity": "1 kg",
+          "in_pantry": false,
+          "amount": 1000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1000,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivrons",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "4 tbsp",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Cuire le riz dans une casserole. Pendant sa cuisson, rôtir les légumes au four avec l’huile, puis mélanger et laisser refroidir avant de portionner.",
+      "active_minutes": 20,
+      "total_minutes": 50,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_potatoes",
+      "title": "Pommes de terre et légumes rôtis",
+      "servings_made": 12,
+      "ingredients": [
+        {
+          "term": "pommes de terre",
+          "quantity": "3 kg",
+          "in_pantry": false,
+          "amount": 3000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 3000,
+          "group": "starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "1.2 kg",
+          "in_pantry": false,
+          "amount": 1200,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1200,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "800 g",
+          "in_pantry": false,
+          "amount": 800,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 800,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "5 tbsp",
+          "in_pantry": false,
+          "amount": 5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 75,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper les pommes de terre et les légumes, les mélanger avec l’huile, puis rôtir sur deux plaques à 210 °C jusqu’à tendreté.",
+      "active_minutes": 20,
+      "total_minutes": 55,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_chicken",
+      "title": "Poulet rôti aux herbes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "blancs de poulet",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "poultry",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "thym",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Assaisonner le poulet avec l’huile et le thym, puis le cuire au four à 200 °C jusqu’à cuisson complète. Refroidir et portionner.",
+      "active_minutes": 10,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_tofu_chicken",
+      "title": "Tofu grillé aux herbes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "thym",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Éponger le tofu, le couper en tranches, l’assaisonner et le dorer à la poêle avec l’huile. Refroidir et portionner.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_salmon",
+      "title": "Saumon au four",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "filets de saumon",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "fatty_fish",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "citrus",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Arroser le saumon d’huile et de citron, puis cuire au four à 190 °C. Refroidir rapidement, portionner et congeler les portions destinées à vendredi.",
+      "active_minutes": 10,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_tofu_salmon",
+      "title": "Tofu citronné",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "1965 g",
+          "in_pantry": false,
+          "amount": 1965,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1965,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "citrus",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Dorer le tofu à la poêle avec l’huile, puis ajouter le citron en fin de cuisson. Refroidir et portionner.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_beef",
+      "title": "Bœuf haché aux herbes",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "bœuf haché",
+          "quantity": "825 g",
+          "in_pantry": false,
+          "amount": 825,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 825,
+          "group": "red_meat",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir l’oignon dans l’huile, ajouter le bœuf et cuire complètement en l’émiettant. Refroidir et portionner.",
+      "active_minutes": 15,
+      "total_minutes": 30,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_tofu_beef",
+      "title": "Tofu aux oignons",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "700 g",
+          "in_pantry": false,
+          "amount": 700,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 700,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "1 oignon",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 110,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Faire revenir l’oignon, ajouter le tofu émietté et le dorer à la poêle. Refroidir et portionner.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_turkey",
+      "title": "Dinde rôtie",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "escalopes de dinde",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "poultry",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "paprika",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Assaisonner la dinde avec l’huile et le paprika, puis la cuire à la poêle jusqu’à cuisson complète. Refroidir et portionner; les portions de jeudi et vendredi vont au congélateur.",
+      "active_minutes": 10,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_tofu_turkey",
+      "title": "Tofu au paprika",
+      "servings_made": 4,
+      "ingredients": [
+        {
+          "term": "tofu ferme",
+          "quantity": "2000 g",
+          "in_pantry": false,
+          "amount": 2000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 2000,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d’olive",
+          "quantity": "1 tbsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": "olive_oil",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "paprika",
+          "quantity": "1 tsp",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 5,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Couper le tofu, l’assaisonner et le dorer à la poêle avec l’huile. Refroidir et portionner; les portions de jeudi et vendredi vont au congélateur.",
+      "active_minutes": 15,
+      "total_minutes": 25,
+      "cook_on": "sun"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_couscous",
+        "prep_rice",
+        "prep_potatoes",
+        "prep_chicken",
+        "prep_tofu_chicken",
+        "prep_salmon",
+        "prep_tofu_salmon",
+        "prep_beef",
+        "prep_tofu_beef",
+        "prep_turkey",
+        "prep_tofu_turkey"
+      ],
+      "run_through": "Acheter le poulet, le saumon, la dinde et les légumes frais le dimanche ou la veille. Préchauffer le four, lancer le riz et préparer le couscous. Mettre les pommes de terre et les légumes au four, puis cuire le poulet, le saumon et la dinde sur les plaques disponibles. Pendant les cuissons, dorer les tofus et cuire le bœuf. Refroidir rapidement, portionner dans les boîtes nommées et congeler les portions prévues pour jeudi et vendredi.",
+      "total_minutes": 120
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "flocons d’avoine",
+      "quantity": "1590 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pain complet",
+      "quantity": "1590 g",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "couscous complet",
+      "quantity": "1.2 kg",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "riz complet",
+      "quantity": "1.2 kg",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes de terre",
+      "quantity": "10 kg",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "courgettes",
+      "quantity": "8 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "aubergines",
+      "quantity": "1.6 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivrons",
+      "quantity": "1.2 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots verts",
+      "quantity": "1.1 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomates",
+      "quantity": "1 kg",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "concombres",
+      "quantity": "1590 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "carottes",
+      "quantity": "380 g",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "salade verte",
+      "quantity": "320 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "roquette",
+      "quantity": "160 g",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pommes",
+      "quantity": "16 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poires",
+      "quantity": "16 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prunes",
+      "quantity": "19 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pêches",
+      "quantity": "6 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "abricots",
+      "quantity": "10 unités",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "raisin",
+      "quantity": "1180 g",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fruits rouges",
+      "quantity": "320 g",
+      "aisle": "frozen",
+      "food_group": "berries",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citrons",
+      "quantity": "25 unités",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "persil",
+      "quantity": "1 bouquet",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "basilic",
+      "quantity": "1 bouquet",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "blancs de poulet",
+      "quantity": "2230 g",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "filets de saumon",
+      "quantity": "2230 g",
+      "aisle": "protein",
+      "food_group": "fatty_fish",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "bœuf haché",
+      "quantity": "2230 g",
+      "aisle": "protein",
+      "food_group": "red_meat",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "escalopes de dinde",
+      "quantity": "2230 g",
+      "aisle": "protein",
+      "food_group": "lean_protein",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tofu ferme",
+      "quantity": "11 kg",
+      "aisle": "protein",
+      "food_group": "tofu_tempeh",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt de soja nature",
+      "quantity": "1.3 kg",
+      "aisle": "other",
+      "food_group": "tofu_tempeh",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "houmous",
+      "quantity": "730 g",
+      "aisle": "other",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricots blancs cuits",
+      "quantity": "320 g",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noix",
+      "quantity": "320 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "320 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noisettes",
+      "quantity": "320 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de courge",
+      "quantity": "160 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de chia",
+      "quantity": "95 g",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tahini",
+      "quantity": "1 tbsp",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d’olive",
+      "quantity": "795 ml",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "paprika",
+      "quantity": "1 tsp",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "thym",
+      "quantity": "1 tsp",
+      "aisle": "pantry",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "b60378e6-1956-4dbd-b8dc-7480578a8282",
+      "display_name": "Paul",
+      "portion_note": "Servir les légumes en premier, puis le poulet, le saumon, le bœuf, la dinde ou le tofu, et terminer par le riz, le couscous ou les pommes de terre.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_couscous",
+          "note": "Prendre la portion de couscous et de légumes avant la protéine."
+        },
+        {
+          "preparation_id": "prep_rice",
+          "note": "Prendre la portion de riz et de légumes avant la protéine."
+        },
+        {
+          "preparation_id": "prep_potatoes",
+          "note": "Prendre la portion de légumes et de pommes de terre avant la protéine."
+        }
+      ]
+    },
+    {
+      "member_id": "620d929d-3c61-4af5-8575-150442486648",
+      "display_name": "Claire",
+      "portion_note": "Mettre ensemble les légumes, le riz, le couscous ou les pommes de terre et la protéine prévue.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_couscous",
+          "note": "Mélanger le couscous, les légumes et la protéine."
+        },
+        {
+          "preparation_id": "prep_rice",
+          "note": "Mélanger le riz, les légumes et la protéine."
+        },
+        {
+          "preparation_id": "prep_potatoes",
+          "note": "Mélanger les pommes de terre, les légumes et la protéine."
+        }
+      ]
+    },
+    {
+      "member_id": "49375b46-a94a-43d3-8a3e-e2df1a8151cf",
+      "display_name": "Leo",
+      "portion_note": "Mettre ensemble les légumes, le riz, le couscous ou les pommes de terre et la protéine prévue.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_couscous",
+          "note": "Mélanger le couscous, les légumes et la protéine."
+        },
+        {
+          "preparation_id": "prep_rice",
+          "note": "Mélanger le riz, les légumes et la protéine."
+        },
+        {
+          "preparation_id": "prep_potatoes",
+          "note": "Mélanger les pommes de terre, les légumes et la protéine."
+        }
+      ]
+    },
+    {
+      "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+      "display_name": "Nora",
+      "portion_note": "Mettre ensemble les légumes, le riz, le couscous ou les pommes de terre et le tofu prévu.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_tofu_chicken",
+          "note": "Mélanger le tofu avec le riz et les légumes."
+        },
+        {
+          "preparation_id": "prep_tofu_salmon",
+          "note": "Mélanger le tofu avec le couscous ou les pommes de terre et les légumes."
+        },
+        {
+          "preparation_id": "prep_tofu_beef",
+          "note": "Mélanger le tofu avec le riz, le couscous ou les pommes de terre et les légumes."
+        },
+        {
+          "preparation_id": "prep_tofu_turkey",
+          "note": "Mélanger le tofu avec le riz, le couscous ou les pommes de terre et les légumes."
+        }
+      ]
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 1 (2026-09-06)",
+    "freeze_on_purchase: 0/41",
+    "raw_keeping_needs_later_shop: 0/11 preparations",
+    "one_cooking_session: 1/1 sessions returned",
+    "preparations[prep_rice]: the sized meals would take 7810 g but the batch makes about 4620 g, every share that draws on it scaled back to fit",
+    "dishes[6]: name repeats the title (\"Pêche et noix\") -- dropped, one line is enough",
+    "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[7]: name repeats the title (\"Pomme et amandes\") -- dropped, one line is enough",
+    "dishes[7]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[8]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[9]: name repeats the title (\"Poire et noix\") -- dropped, one line is enough",
+    "dishes[9]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[10]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[11]: name repeats the title (\"Pomme et noisettes\") -- dropped, one line is enough",
+    "dishes[11]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[14]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[17]: name repeats the title (\"Raisin et noix\") -- dropped, one line is enough",
+    "dishes[17]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[22]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[30]: \"Pommes de terre et légumes rôtis\" is cooked on sun and would still be eaten on wed -- 3 days in the fridge, over the 3-day limit -- dropped",
+    "dishes[31]: \"Couscous aux légumes\" is cooked on sun and would still be eaten on wed -- 3 days in the fridge, over the 3-day limit -- dropped",
+    "shopping_list_unattributed: 5/41 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "cooking session on sun runs 120 min, but they said they have about 60",
+    "preparations[1]: the meals that take from \"Riz aux légumes\" hold 8000 g but it makes about 4620 g ready -- the boxes cannot all be filled",
+    "preparations[3]: the meals that take from \"Poulet rôti aux herbes\" hold 1350 g but it makes about 510 g ready -- the boxes cannot all be filled",
+    "preparations[5]: the meals that take from \"Saumon au four\" hold 1350 g but it makes about 635 g ready -- the boxes cannot all be filled",
+    "preparations[9]: the meals that take from \"Dinde rôtie\" hold 1350 g but it makes about 510 g ready -- the boxes cannot all be filled",
+    "empty_slots: wed/lunch, wed/dinner",
+    "uses_kept_freezer: 12/30"
+  ],
+  "request_id": "95135ad1-39df-41c0-adad-00141c5bbecf"
+}

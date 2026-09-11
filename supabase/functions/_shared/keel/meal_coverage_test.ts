@@ -48,6 +48,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,

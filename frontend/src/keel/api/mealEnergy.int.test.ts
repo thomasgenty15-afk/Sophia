@@ -119,7 +119,42 @@ describe("readTarget — la fourchette de maintenance (niveau C)", () => {
       // direction QUI EXISTE n'a pas été suivie.
       direction: null,
       directionGap: null,
+      // ⟳ 2026-09-10 · LOT 3 — `null` = le rythme s'exécute, ou il n'y en a pas
+      // à exécuter. C'est le cas nominal, et il est ÉNUMÉRÉ ici plutôt que
+      // laissé de côté: `toEqual` compare la forme entière, donc un champ
+      // ajouté au parseur sans être nommé ici ferait rougir — ce qui est
+      // exactement le service qu'on lui demande.
+      paceUnavailable: null,
     });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 · LOT 3 — LE MOTIF D'UN RYTHME QUI NE S'EXÉCUTE PAS
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ SANS TAILLE, LA CIBLE SORT QUAND MÊME (raccourci au poids) pendant que
+  // l'écart du rythme vaut zéro. Le champ est ce qui permet à l'écran de cesser
+  // d'annoncer « pour perdre à ton rythme » au-dessus de nombres d'entretien.
+
+  it("le motif traverse quand le serveur le pose", () => {
+    const target = readTarget({
+      low: 2100,
+      high: 2500,
+      basis: "weight_range",
+      gap: null,
+      pace_unavailable: "pace_unavailable_missing_body",
+    });
+    expect(target!.paceUnavailable).toBe("pace_unavailable_missing_body");
+  });
+
+  it("absent, `null` ou vide se lisent tous « rien à dire »", () => {
+    // ⛔ LA CHAÎNE VIDE EST LE CAS QUI COMPTE. Elle serait « truthy: non » pour
+    // un `if (x)` d'écran et « il y a un motif » pour un `!== null` de
+    // compteur: deux lectures d'un même champ, dont la plus permissive décide.
+    for (const raw of [{}, { pace_unavailable: null }, { pace_unavailable: "  " }]) {
+      const target = readTarget({ low: 2100, high: 2500, gap: null, ...raw });
+      expect(target!.paceUnavailable).toBeNull();
+    }
   });
 
   it("porte ⑤ fermée: le serveur n'envoie aucune cible, et rien n'est inventé", () => {

@@ -26,6 +26,7 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+import { fedDaysDenominator } from "./fed_days.ts";
 import {
   ENERGY_DIRECTION_MARGIN,
   type Envelope,
@@ -452,20 +453,23 @@ export function verdictFor(args: {
 }): CompositionVerdict {
   const { dishes, envelope, index, daysCovered } = args;
   // ══════════════════════════════════════════════════════════════════════════
-  // ⚠️ CE PLANCHER RÉINTRODUIT LE BIAIS SUR LES PLANS TRÈS COURTS. Nommé, gardé.
+  // ⟳ 2026-09-09 — LE PLANCHER EST TOMBÉ, LA MESURE QU'IL ATTENDAIT A ÉTÉ FAITE
   // ══════════════════════════════════════════════════════════════════════════
   //
-  // Il protège d'un dénominateur nul — une division par zéro rendrait `Infinity`
-  // kcal/jour, donc `above` sur tout, donc un rabotage général. Mais il ment
-  // dans un cas précis: une fenêtre d'UN jour qui ne porte qu'un dîner a une
-  // couverture de 0,35, et ce `max` la ramène à 1. Ce plan-là se lit donc
-  // toujours ~3 fois plus léger qu'il n'est, exactement comme AVANT le lot.
+  // Il valait `Math.max(1, daysCovered)`, et son propre pavé disait qu'il
+  // mentait sur toute fenêtre d'UN jour — « ce plan-là se lit ~3 fois plus léger
+  // qu'il n'est » — en ajoutant « NE LE RETIRE PAS SANS MESURE. Le corpus du
+  // 2026-09-04 ne porte aucun plan d'un seul jour. »
   //
-  // ⛔ NE LE RETIRE PAS SANS MESURE. Le corpus du 2026-09-04 ne porte aucun plan
-  // d'un seul jour: le supprimer serait un changement non mesuré sur une
-  // population qu'on n'a pas regardée, dans la direction qui fait RABOTER une
-  // assiette. Le trou est ici, écrit, et il attend sa mesure.
-  const days = Math.max(1, daysCovered);
+  // La mesure existe: plan d'un jour, déjeuner dehors, couverture 0,60, 2 171
+  // kcal servis. Lus sur 1 journée ⇒ `within`; lus sur 0,60 ⇒ 3 618 kcal/j
+  // contre une fourchette 1 950–2 200. Le verdict trouvait correct un plan qui
+  // sert une journée entière en deux repas.
+  //
+  // Ce qui reste — la seule chose que le plancher protégeait vraiment — est la
+  // division par zéro, et elle vit maintenant dans `fedDaysDenominator` avec
+  // son pavé et ses cinq lecteurs.
+  const days = fedDaysDenominator(daysCovered);
   // La CADENCE, elle, ne connaît que la fenêtre — voir `windowDays`.
   const cadenceDays = Math.max(1, Math.floor(args.windowDays));
 

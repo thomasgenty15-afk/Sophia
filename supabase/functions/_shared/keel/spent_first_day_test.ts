@@ -231,7 +231,6 @@ Deno.test("sans retrait, le timing d'avant ce lot ne bouge pas", () => {
  * si quelqu'un ajoute un cinquième lecteur mal câblé.
  */
 const LANES: readonly [string, string][] = [
-  ["solo", "../../generate-meal-v1/index.ts"],
   // ⟳ 2026-09-04 — LA LANE FOYER EST ENTRÉE. Elle passait `{ dropped: null }`
   // en dur, ce que le commentaire d'alors appelait « un aveu ». L'aveu est levé;
   // les mêmes gardes de câblage la tiennent maintenant, et si quelqu'un la

@@ -5,10 +5,18 @@ import {
   type GeneratedDish,
   type MealPreparation,
   type MemberPortionView,
+  type ShoppingItem,
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { plural } from "../i18n/plural";
 import { boxLinesForSession } from "../lib/mealBoxes";
+import { thawLineFor } from "../lib/thawLine";
+// ⟳ LOT C (2026-09-11) — LA QUANTITÉ VIENT DE LA DONNÉE FINALE, PLUS DE LA
+// PROSE. Cet écran rendait `ing.quantity` directement, et c'est le lecteur
+// que la revue a nommé: « 360 g de cuisses de poulet » pour un calcul à
+// 458,66 g. Une casserole affiche les quantités du LOT — c'est ce que le
+// modèle écrit dans `preparations[].ingredients[]`, et c'est ce qu'on cuisine.
+import { ingredientQuantityText } from "../lib/ingredientQuantity";
 import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
@@ -72,9 +80,16 @@ import { EnergyBasisNote } from "./plan/EnergyReadout";
 // `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
-  { sessions, preparations, dishes, portions, open, onClose, boxEnergy }: {
+  { sessions, preparations, dishes, portions, shoppingList, open, onClose, boxEnergy }: {
     sessions: readonly CookingSession[];
     preparations: readonly MealPreparation[];
+    /**
+     * ⟳ 2026-09-09 — LA LISTE DE COURSES, POUR LA PHRASE DE LA VEILLE. Requise,
+     * `[]` pour « aucune »: un `?` aurait laissé les deux appelants sans un mot
+     * du compilateur, et la phrase « sors la dinde du congélateur » ne serait
+     * jamais sortie ici — c'est-à-dire sur l'écran qu'on relit le samedi soir.
+     */
+    shoppingList: readonly ShoppingItem[];
     /**
      * ── LOT 4 · LES PARTS, POUR LES PRÉNOMS DES BOÎTES ────────────────────
      *
@@ -154,9 +169,18 @@ export default function CookingSessions(
 
   return (
     <Modal open={open} onClose={onClose} title={mealCopy("meals.sessions.title")}>
-      <p className="mb-3 text-sm text-ink-soft">
-        {mealCopy("meals.sessions.subtitle")}
-      </p>
+      {/* ⟳ 2026-09-09 — LE SOUS-TITRE EST RETIRÉ, sur demande, et sa clé avec
+          lui. « Cuisine ces jours-là, et le reste de la semaine s'assemble au
+          lieu de se cuisiner » expliquait le principe du batch au-dessus d'une
+          liste qui le MONTRE: un jour, une durée, des préparations, et les
+          repas que chaque casserole couvre. Une phrase qui paraphrase la liste
+          qu'elle surplombe coûte une hauteur de lecture et ne rend rien.
+
+          ⛔ LA CLÉ EST SUPPRIMÉE DES DEUX PACKS, pas laissée en place « au cas
+          où »: une clé traduite que rien ne rend est de la copie morte, et ce
+          dépôt a déjà payé l'inverse (`tracking.describe.done`, présente dans
+          les deux packs, jamais rendue, et qui affirmait le contraire de ce que
+          son chemin faisait). */}
       <div className="space-y-3">
         {sessions.map((session, index) => {
           const preps = session.preparation_ids
@@ -180,6 +204,19 @@ export default function CookingSessions(
                   </span>
                 )}
               </h3>
+
+              {/* ⟳ 2026-09-09 — le geste de la veille, AVANT le déroulé du
+                  modèle: il est déterministe et le contredit au besoin. */}
+              {(() => {
+                const thaw = thawLineFor(session, preparations, shoppingList);
+                return thaw
+                  ? (
+                    <p className="mt-2 text-sm leading-6 text-ink">
+                      {thaw}
+                    </p>
+                  )
+                  : null;
+              })()}
 
               {session.run_through && (
                 <p className="mt-2 text-sm leading-6 text-ink">
@@ -350,17 +387,20 @@ export function SessionPreparation(
                     <>
                       {prep.ingredients.length > 0 && (
                         <ul className="mt-2 space-y-1">
-                          {prep.ingredients.map((ing, i) => (
-                            <li
-                              key={`${ing.term}-${i}`}
-                              className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
-                            >
-                              <span>{ing.term}</span>
-                              {ing.quantity && (
-                                <span className="text-ink-soft">{ing.quantity}</span>
-                              )}
-                            </li>
-                          ))}
+                          {prep.ingredients.map((ing, i) => {
+                            const quantity = ingredientQuantityText(ing);
+                            return (
+                              <li
+                                key={`${ing.term}-${i}`}
+                                className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
+                              >
+                                <span>{ing.term}</span>
+                                {quantity && (
+                                  <span className="text-ink-soft">{quantity}</span>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                       {prep.method && (

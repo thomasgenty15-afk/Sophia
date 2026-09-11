@@ -28,6 +28,11 @@
 import { normalizeForMatch } from "./forbidden_matcher.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 import { readQuantityFromProse } from "./quantity_from_prose.ts";
+// ⚠️ TYPE SEULEMENT, et le cycle est donc vide à l'exécution: le manifeste
+// importe `CompositionRef` d'ici, ce fichier importe `RefValidation` de là-bas.
+// Aucun des deux n'appelle l'autre — les types s'effacent à la compilation.
+import type { RefValidation } from "./food_reference_manifest.ts";
+import { isComposable } from "./food_reference_manifest.ts";
 
 // ---------------------------------------------------------------------------
 // LES CLASSES DE RENDEMENT — la base porte la classe, ce fichier porte le nombre
@@ -72,6 +77,45 @@ export const YIELD_CLASSES = Object.keys(YIELD_FACTORS) as readonly YieldClass[]
  */
 function stateMattersFor(cls: YieldClass): boolean {
   return YIELD_FACTORS[cls] !== 1.0;
+}
+
+/**
+ * LE RENDEMENT DE CET ALIMENT — par aliment s'il en a un, par classe sinon.
+ *
+ * ── UNE SEULE LECTURE, ET C'EST TOUT L'INTÉRÊT ────────────────────────────
+ * `food_composition_refs.yield_factor` (migration `20260907160000`) porte le
+ * rendement mesuré d'UN aliment; la classe reste la table de SECOURS pour les
+ * 919 lignes sur 925 qui n'en ont pas. ⛔ Deux résolutions divergeraient, et
+ * ce dépôt sait ce que ça coûte: la moitié du produit lirait 2,6 pour des
+ * pâtes pendant que l'autre lirait 2,2, et c'est celle qu'on regarde le moins
+ * qui garderait l'ancienne. Les CINQ lecteurs de production passent par ici.
+ *
+ * ⚠️ `stateMattersFor` NE PASSE PAS PAR ICI, et c'est délibéré. Il décide si
+ * un `state` est EXIGÉ, et cette décision appartient à la classe: le CHECK
+ * `yield_factor_agrees_with_class` garantit qu'une classe non neutre garde un
+ * facteur ≠ 1 et qu'une classe neutre garde exactement 1,0. Un aliment ne peut
+ * donc pas changer la règle d'admission de son état en passant par sa valeur.
+ *
+ * ⚠️ `meal_cost.ts` NON PLUS: sa grille de prix est définie sur « classe
+ * neutre », et 111 prix reposent dessus. Le même CHECK les tient.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function yieldFactorOf(ref: CompositionRef): number {
+  return ref.yieldFactor ?? YIELD_FACTORS[ref.yieldClass];
+}
+
+/**
+ * D'OÙ VIENT LE RENDEMENT QU'ON VIENT D'APPLIQUER — pour le COMPTER.
+ *
+ * ⛔ Sans ce compteur, un référentiel où aucune ligne n'a de facteur par
+ * aliment se comporte EXACTEMENT comme un référentiel qui en a partout: le
+ * repli est silencieux. « Une classe qui sert encore sur un féculent est une
+ * ligne à remplir » (`METHODE-GENERATION-DE-PLAN-SOLO.md`) ne se mesure que si
+ * le run dit lequel des deux chemins il a pris, et combien de fois.
+ */
+export function yieldResolutionOf(ref: CompositionRef): "per_food" | "per_class" {
+  return ref.yieldFactor === null ? "per_class" : "per_food";
 }
 
 // ---------------------------------------------------------------------------
@@ -182,6 +226,16 @@ export interface CompositionRef {
   b12Source: boolean;
   folateSource: boolean;
   yieldClass: YieldClass;
+  /**
+   * LE RENDEMENT CRU → CUIT DE CET ALIMENT. `null` = pas de mesure pour cette
+   * ligne ⇒ repli sur le facteur de la CLASSE.
+   *
+   * ⛔ REQUIS, jamais `?`. Un champ facultatif ferait retomber tous les
+   * appelants sur un défaut silencieux, et le compilateur est le seul
+   * recenseur d'appelants qui ne mente pas (même raison que `source`
+   * ci-dessus). Ne se lit JAMAIS en direct: `yieldFactorOf(ref)`.
+   */
+  yieldFactor: number | null;
   atwaterDiscount: number;
   energyDense: boolean;
   /**
@@ -203,6 +257,39 @@ export interface CompositionRef {
    * facultatif désarme en silence.
    */
   condimentGrams: number | null;
+  /**
+   * LE CODE ANSES DE CETTE LIGNE, ET LE NOM FRANÇAIS QU'IL PORTE.
+   *
+   * ⛔ POURQUOI LE NOM FRANÇAIS REMONTE JUSQU'ICI (2026-09-11). `pear` portait
+   * le code **20039** et le `ciqual_name` **« Poireau, cru »** — le POIREAU —
+   * avec ses cinq macronutriments à la décimale près. Rien dans le code ne
+   * pouvait le voir: le chargeur ne lisait ni le code ni le nom, donc « la
+   * ligne s'appelle Pear et dit 32,3 kcal » était toute l'information
+   * disponible. 96 occurrences de `poire`/`poires` dans les plans de cette base
+   * se calculaient en poireau.
+   *
+   * ⚠️ FACULTATIFS, et c'est un aveu plutôt qu'un choix: les rendre requis
+   * ferait échouer le typecheck de ~25 fichiers de test qui construisent des
+   * `CompositionRef` littéraux et qui appartiennent à quatre autres lots. Ils
+   * sont lus par l'audit et par les tests d'identité, jamais par un calcul.
+   */
+  ciqualCode?: string | null;
+  ciqualName?: string | null;
+  /**
+   * L'EXCEPTION DE VALIDATION LUE EN BASE — jamais l'état complet.
+   *
+   * ⛔ NE SE LIT JAMAIS EN DIRECT: `validationOf(ref)`
+   * (`food_reference_manifest.ts`). Absent veut dire « aucune exception pour
+   * cette ligne », pas « vérifiée »: la règle par provenance s'applique alors,
+   * et une ligne `sas` fabriquée à la main reste `a_verifier`. Un lecteur
+   * direct raterait ce repli — même piège que `yieldFactor` face à
+   * `yieldFactorOf`.
+   *
+   * ⚠️ FACULTATIF pour la même raison que `ciqualCode` ci-dessus, et ce n'est
+   * PAS une garde désarmée: le champ porte l'EXCEPTION, la règle vit dans
+   * `validationOf`. Son absence n'ouvre rien.
+   */
+  validation?: RefValidation;
 }
 
 /**
@@ -215,11 +302,49 @@ export interface CompositionRef {
 export interface CompositionIndex {
   bySlug: ReadonlyMap<string, CompositionRef>;
   byAlias: ReadonlyMap<string, string>;
+  /**
+   * ⟳ LOT A — LES FAUX AMIS, forme normalisée → slug. NOMMÉS UN PAR UN.
+   *
+   * ══════════════════════════════════════════════════════════════════════
+   * LA SEULE EXCEPTION À « LE SLUG PARLE EN PREMIER », ET ELLE EST FERMÉE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT, MESURÉ LE 2026-09-11 SUR LES DEUX PLANS DE PREUVE. Le mot
+   * français `raisin` EST un slug anglais valide — la ligne du raisin SEC,
+   * 321 kcal/100 g. `bySlug` gagnant toujours, **aucun alias ne pouvait le
+   * corriger**: le raisin frais (`grapes`, 68,9) était inatteignable par son
+   * propre nom français. Même chose pour `prune` (229) contre la prune fraîche
+   * (`plum`, 46). Quatre petits-déjeuners en portaient l'effet: 614 → 388,
+   * 613 → 356, 728 → 427, 728 → 475 kcal.
+   *
+   * ⚠️ CE N'EST PAS UNE INVERSION DE L'ORDRE GÉNÉRAL. Le contrat « égalité
+   * exacte d'abord, alias ensuite » reste entier pour les 943 lignes et les
+   * 2 600 alias. Seules les formes ÉCRITES DANS CETTE TABLE passent devant, et
+   * elles sont posées par une migration, avec leur langue, leur raison et leur
+   * date. La cicatrice du dépôt est nommée: « laitue » ≠ « lait », 12 faux
+   * positifs sur 12 mesurés — donc pas de matcher, pas de devinette de langue,
+   * pas de distance d'édition. Une égalité de clé, sur une liste qu'on peut
+   * lire en entier.
+   *
+   * ⚠️ LA LANGUE EST CHOISIE AU CHARGEMENT, PAS À L'APPEL. `loadCompositionIndex`
+   * ne retient que les lignes de la langue du plan. Un index anglais n'a donc
+   * PAS de faux amis et se comporte exactement comme avant ce lot.
+   *
+   * Absent (index construit à la main, tests) = aucun faux ami = comportement
+   * d'avant le lot A.
+   */
+  falseFriends?: ReadonlyMap<string, string>;
 }
 
 export function buildCompositionIndex(
   refs: readonly CompositionRef[],
   aliases: readonly { alias: string; slug: string }[],
+  /**
+   * Les faux amis de la langue du plan, `alias` → `slug`. Voir
+   * `CompositionIndex.falseFriends`. Une entrée dont le slug est absent du
+   * référentiel est JETÉE, exactement comme un alias orphelin.
+   */
+  falseFriends: readonly { alias: string; slug: string }[] = [],
 ): CompositionIndex {
   const bySlug = new Map<string, CompositionRef>();
   for (const r of refs) bySlug.set(r.slug, r);
@@ -231,7 +356,14 @@ export function buildCompositionIndex(
     if (!bySlug.has(a.slug)) continue;
     byAlias.set(normalizeTerm(a.alias), a.slug);
   }
-  return { bySlug, byAlias };
+  const ff = new Map<string, string>();
+  for (const f of falseFriends) {
+    // Même règle que pour un alias: une clé sans valeur n'est pas une
+    // résolution, c'est une porte qui s'ouvre sur rien.
+    if (!bySlug.has(f.slug)) continue;
+    ff.set(normalizeTerm(f.alias), f.slug);
+  }
+  return { bySlug, byAlias, falseFriends: ff };
 }
 
 // ---------------------------------------------------------------------------
@@ -779,10 +911,7 @@ function resolveAlternative(
     // résolveur, et il divergerait au premier alias ajouté.
     let hit: CompositionRef | null = null;
     for (const form of candidateForms(branch)) {
-      const direct = index.bySlug.get(form.replace(/ /g, "_"));
-      hit = direct ?? (index.byAlias.has(form)
-        ? index.bySlug.get(index.byAlias.get(form)!) ?? null
-        : null);
+      hit = refForForm(index, form).ref;
       if (hit) break;
     }
     // ⛔ UNE BRANCHE INCONNUE FAIT TOUT TOMBER. Voir l'en-tête: ne rien savoir
@@ -794,22 +923,85 @@ function resolveAlternative(
   return found;
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * UNE FORME, TROIS PORTES, DANS CET ORDRE — ⟳ LOT A, 2026-09-11
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ *   ① LE FAUX AMI NOMMÉ. Une liste FERMÉE, écrite en base par une migration,
+ *      filtrée à la langue du plan au chargement. C'est la seule chose qui
+ *      passe devant le slug nu, et c'est pour un défaut mesuré: `raisin` et
+ *      `prune` écrits en français tombaient sur les slugs anglais du fruit
+ *      SEC (321 et 229 kcal) au lieu du fruit frais (68,9 et 46).
+ *   ② LE SLUG NU. Le contrat d'origine: égalité exacte avant tout alias.
+ *   ③ L'ALIAS CURÉ.
+ *
+ * ⛔ POURQUOI PAS UNE INVERSION GÉNÉRALE ALIAS-AVANT-SLUG. Mesuré le
+ * 2026-09-11 sur les 2 600 alias de la base: **191 sont capturés par un slug,
+ * et AUCUN n'est contradictoire** — ils désignent tous la ligne que leur propre
+ * forme capture. L'inversion serait donc un no-op aujourd'hui… et une bombe
+ * demain: la migration `20260822113000` a retiré 19 alias contradictoires en
+ * écrivant noir sur blanc que « le jour où quelqu'un inverse l'ordre de
+ * consultation, N aliments changent d'un coup, en silence, et le diff qui
+ * l'aurait montré n'existe pas ». On ne rouvre pas cette porte pour quatre
+ * mots: on nomme les quatre mots.
+ *
+ * @returns la ligne trouvée et PAR QUELLE PORTE — le compteur de
+ *   `resolveIngredients` en a besoin, et un faux ami appliqué en silence
+ *   serait exactement le repli muet que ce module refuse.
+ */
+function refForForm(
+  index: CompositionIndex,
+  form: string,
+): { ref: CompositionRef | null; viaFalseFriend: boolean } {
+  const friend = index.falseFriends?.get(form);
+  if (friend) {
+    const hit = index.bySlug.get(friend);
+    if (hit) return { ref: hit, viaFalseFriend: true };
+  }
+  const direct = index.bySlug.get(form.replace(/ /g, "_"));
+  if (direct) return { ref: direct, viaFalseFriend: false };
+  const viaAlias = index.byAlias.get(form);
+  if (viaAlias) return { ref: index.bySlug.get(viaAlias) ?? null, viaFalseFriend: false };
+  return { ref: null, viaFalseFriend: false };
+}
+
+/**
+ * ⚠️ LA SIGNATURE NE BOUGE PAS, ET C'EST DÉLIBÉRÉ. La langue du plan entre par
+ * le CHARGEMENT de l'index (`loadCompositionIndex`), pas par un troisième
+ * argument facultatif. Un argument facultatif ici serait une garde désarmée:
+ * une centaine d'appels existants ne le passeraient jamais, et le lot
+ * ressemblerait trait pour trait à un lot qui marche.
+ */
 export function resolveIngredient(
   index: CompositionIndex,
   term: string,
 ): CompositionRef | null {
+  return resolveIngredientGated(index, term).ref;
+}
+
+/** La même résolution, avec la porte empruntée. Voir `refForForm`. */
+function resolveIngredientGated(
+  index: CompositionIndex,
+  term: string,
+): { ref: CompositionRef | null; viaFalseFriend: boolean } {
   const base = normalizeTerm(term);
-  if (!base) return null;
+  if (!base) return { ref: null, viaFalseFriend: false };
   // L'ALTERNATIVE DISQUALIFIE, et avant tout le reste: « butter or olive oil »
   // contient « olive oil », qui matcherait.
-  if (AMBIGUITY_MARKERS.test(` ${base} `)) return resolveAlternative(index, base);
-  for (const form of candidateForms(term)) {
-    const direct = index.bySlug.get(form.replace(/ /g, "_"));
-    if (direct) return direct;
-    const viaAlias = index.byAlias.get(form);
-    if (viaAlias) return index.bySlug.get(viaAlias) ?? null;
+  if (AMBIGUITY_MARKERS.test(` ${base} `)) {
+    return { ref: resolveAlternative(index, base), viaFalseFriend: false };
   }
-  return null;
+  for (const form of candidateForms(term)) {
+    const hit = refForForm(index, form);
+    if (hit.ref) return hit;
+    // ⚠️ UN ALIAS ORPHELIN ARRÊTE LA BOUCLE, COMME AVANT CE LOT. `byAlias`
+    // connaissait la forme mais son slug a disparu: le terme est « connu et
+    // sans valeur », et essayer la forme réduite suivante rendrait un AUTRE
+    // aliment. Comportement d'origine, conservé à l'identique.
+    if (index.byAlias.has(form)) return hit;
+  }
+  return { ref: null, viaFalseFriend: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -838,6 +1030,17 @@ export function gramsRawOf(args: {
   unit: CompositionUnit | null;
   state: CompositionState | null;
   yieldClass: YieldClass;
+  /**
+   * Le rendement de l'aliment, `null` pour retomber sur celui de la classe.
+   *
+   * ⛔ REQUIS et pas facultatif: un appelant qui l'oublierait diviserait une
+   * quantité cuite par le facteur de classe en croyant appliquer celui de
+   * l'aliment — 100 g de pâtes cuites deviendraient 38 g crus au lieu de 45.
+   * Le seul appelant qui passe légitimement `null` est `boundGramsOf`
+   * (`plan_energy.ts`), qui borne un terme que le référentiel NE RÉSOUT PAS:
+   * sans fiche, il n'y a pas de facteur par aliment à lire.
+   */
+  yieldFactor: number | null;
   unitGrams?: number | null;
 }): number | null {
   const { amount, unit, state, yieldClass } = args;
@@ -869,7 +1072,7 @@ export function gramsRawOf(args: {
   if (grams === null) return null;
 
   if (state === "raw") return grams;
-  if (state === "cooked") return grams / YIELD_FACTORS[yieldClass];
+  if (state === "cooked") return grams / (args.yieldFactor ?? YIELD_FACTORS[yieldClass]);
   // `state` absent: acceptable seulement là où il ne change rien.
   return stateMattersFor(yieldClass) ? null : grams;
 }
@@ -1077,7 +1280,7 @@ export function nutrientsOf(
     carbs = ref.carbsG === null ? null : (carbs === null ? null : carbs + ref.carbsG * per);
     fat = ref.fatG === null ? null : (fat === null ? null : fat + ref.fatG * per);
     fiber = ref.fiberG === null ? null : (fiber === null ? null : fiber + ref.fiberG * per);
-    cookedWeight += gramsRaw * YIELD_FACTORS[ref.yieldClass];
+    cookedWeight += gramsRaw * yieldFactorOf(ref);
   }
 
   if (options.friedMethod) {
@@ -1159,6 +1362,55 @@ export interface ResolutionResult {
    * sait que non.
    */
   unweighedEnergyDense: boolean;
+  /**
+   * ⟳ LOT A — LES TERMES RÉSOLUS PAR UN FAUX AMI NOMMÉ (2026-09-11).
+   *
+   * ⛔ PARCE QU'UNE EXCEPTION SILENCIEUSE EST UNE EXCEPTION QU'ON NE RELIT
+   * JAMAIS. Ces termes ont été détournés du slug qu'ils auraient capturé —
+   * `raisin` n'est plus le fruit SEC. C'est une DÉCISION prise en base, avec sa
+   * langue et sa date; elle doit se voir dans la mesure comme le condiment et
+   * la prose s'y voient déjà. Sans ce compteur, « le faux ami a mordu » et
+   * « la table est vide » rendent exactement le même résultat.
+   *
+   * ⚠️ Ces termes SONT dans `resolved` et comptent dans toutes les sommes.
+   */
+  falseFriendTerms: string[];
+  /**
+   * ⟳ LOT A — LES TERMES RÉSOLUS SUR UNE RÉFÉRENCE NON `verifie`.
+   *
+   * ⛔ ARBITRAGE ② DU SOCLE: « un usage de référence `a_verifier` dans une
+   * mesure est COMPTÉ ET NOMMÉ, jamais silencieux ». La porte de validation est
+   * à la COMPOSITION, pas ici — mesurer un plan déjà servi reste possible, et
+   * doit le rester, sinon on efface la trace d'un défaut au lieu de la lire.
+   * Ce compteur est le prix de cette ouverture: la mesure dit sur quoi elle
+   * s'appuie.
+   *
+   * ⚠️ Ces termes SONT dans `resolved` et comptent dans toutes les sommes.
+   */
+  unverifiedTerms: string[];
+  /**
+   * ⟳ LOT A (2026-09-11) — LES LIGNES REFUSÉES **PAR LEUR IDENTIFIANT**.
+   *
+   * ⛔ UN CINQUIÈME COMPTEUR, ET IL NE DIT PAS LA MÊME CHOSE QUE
+   * `unresolvedTerms`. « Le référentiel ne connaît pas ce mot » appelle une
+   * curation d'alias ou un remplissage; « le modèle a écrit un identifiant
+   * inventé, ou un identifiant que le parseur avait déjà refusé » appelle une
+   * consigne plus dure et une réparation du référentiel. Les fondre ferait
+   * chercher des alias pour un problème de prompt — c'est le défaut exact que
+   * le couple `unweighedTerms` / `unresolvedTerms` existe déjà pour éviter.
+   *
+   * ⛔ CES TERMES NE SONT PAS DANS `resolved`, ET ILS COMPTENT DANS
+   * `coverage` COMME INCONNUS. Une ligne refusée n'a pas d'aliment: la porte
+   * des 80 % doit la voir.
+   *
+   * ⚠️ ILS NE SONT PAS NON PLUS DANS `unresolvedTerms`, donc le sas ne les
+   * réclame pas. Payer un appel modèle pour estimer le libellé d'une ligne dont
+   * l'identifiant est faux ne rendrait pas la ligne valide — voir
+   * `fillRequestsFor`.
+   */
+  refusedTerms: string[];
+  /** Le motif de chaque refus ci-dessus, dans le même ordre. */
+  refusedBy: LineRefRefusal[];
   total: number;
   /**
    * `connus / total` — donc les termes RÉSOLUS MAIS NON PESÉS y comptent
@@ -1211,6 +1463,196 @@ export interface CompositionInput {
    * le modèle avait structurée: **les deux populations se fondraient**.
    */
   quantitySource?: "structured" | "prose" | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ LOT A (2026-09-11) · L'IDENTIFIANT DE RÉFÉRENCE, PORTÉ PAR LA LIGNE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QU'IL FERME, ET IL EST MESURÉ. Le parseur de génération lisait
+   * déjà cet identifiant (`DishIngredient.ref`) et pesait correctement:
+   * `pita_wholemeal` porte `unit_grams = 60` au référentiel, et `grams_raw`
+   * valait bien 60 sur les deux plans de la campagne. Mais tout ce qui MESURE
+   * une portion repartait du libellé français — `preparation_mass.ts` par
+   * `resolveIngredients`, `plan_proportion_units.ts` par
+   * `resolveIngredient(term)`, `box_densify.ts` par `item.term` — et
+   * « pita complète » n'a aucun alias (la table porte « pita complet » et
+   * « pitas completes »). Résultat enregistré le 2026-09-11: **PERTE samedi
+   * déjeuner et GAIN vendredi dîner ont une recette, aucune boîte et aucune
+   * portion**. La personne n'a pas de repas.
+   *
+   * ⛔ ET UN ALIAS N'AURAIT FERMÉ QUE CES DEUX CAS. Le défaut est structurel:
+   * l'identité est acceptée à l'entrée puis perdue à chaque transformation.
+   * C'est pourquoi le champ vit ICI, sur le type que TOUS les lecteurs
+   * partagent, et pas dans le parseur.
+   *
+   * `undefined` / `null` = le modèle n'a pas écrit d'identifiant ⇒ chemin
+   * historique par le terme, conservé tel quel pour les plans déjà écrits.
+   */
+  ref?: string | null;
+  /**
+   * LE MODÈLE A ÉCRIT UN IDENTIFIANT, ET IL A ÉTÉ REFUSÉ.
+   *
+   * ⛔ CE BOOLÉEN EXISTE POUR QUE LE REFUS SURVIVE À LA SÉRIALISATION. Le
+   * parseur met `ref` à `null` quand il refuse (`readRefSlug` ne rend jamais un
+   * slug refusé), donc, relue depuis le JSON du plan, une ligne REFUSÉE était
+   * indiscernable d'une ligne SANS identifiant — et repassait par le terme
+   * libre, c'est-à-dire par le rapprochement approximatif que le chantier
+   * interdit. « Une ligne refusée ne redevient pas valide parce que sa
+   * référence a disparu à la sérialisation. »
+   *
+   * ⚠️ `false`/absent QUAND LE MODÈLE N'A RIEN ÉCRIT. « Il n'a pas donné
+   * d'identifiant » et « il en a donné un faux » ne sont pas la même faute et
+   * n'appellent pas la même correction.
+   */
+  refRefused?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT A (2026-09-11) — LA RÉSOLUTION D'UNE LIGNE, UNE SEULE FOIS
+// ---------------------------------------------------------------------------
+
+/**
+ * PAR OÙ UNE LIGNE A TROUVÉ SON ALIMENT.
+ *
+ * `"ref"`  — l'identifiant structuré, comparé caractère pour caractère;
+ * `"term"` — le libellé libre, chemin HISTORIQUE des plans sans identifiant.
+ */
+export const LINE_REF_SOURCES = ["ref", "term"] as const;
+export type LineRefSource = (typeof LINE_REF_SOURCES)[number];
+
+/**
+ * POURQUOI UNE LIGNE N'A PAS D'ALIMENT — nommé, jamais un `null` nu.
+ *
+ * ⛔ QUATRE MOTIFS ET PAS UN BOOLÉEN, et ils appellent quatre corrections
+ * différentes:
+ *   · `no_index`      le référentiel n'a pas chargé — ce n'est la faute de
+ *                     personne, et surtout pas de la ligne;
+ *   · `ref_refused`   le parseur a DÉJÀ refusé cet identifiant (inexistant ou
+ *                     non composable au moment de la génération);
+ *   · `ref_unknown`   l'identifiant écrit sur la ligne n'est pas dans l'index
+ *                     de lecture — aucun alias, aucune normalisation, aucun
+ *                     secours par le terme;
+ *   · `term_unknown`  pas d'identifiant, et le référentiel ne connaît pas le
+ *                     libellé. C'est la seule worklist du sas.
+ */
+export const LINE_REF_REFUSALS = [
+  "no_index",
+  "ref_refused",
+  "ref_unknown",
+  "term_unknown",
+] as const;
+export type LineRefRefusal = (typeof LINE_REF_REFUSALS)[number];
+
+export interface LineRefResolution {
+  ref: CompositionRef | null;
+  /** `null` exactement quand `ref` est `null`. */
+  source: LineRefSource | null;
+  /** `null` exactement quand `ref` n'est pas `null`. */
+  refusal: LineRefRefusal | null;
+  /** La porte des faux amis a-t-elle mordu ? Toujours `false` par `ref`. */
+  viaFalseFriend: boolean;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ LOT A (2026-09-11) — L'IDENTIFIANT D'ABORD, LE TERME ENSUITE, ET RIEN DU
+ * TOUT QUAND L'IDENTIFIANT A ÉTÉ REFUSÉ.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ **UN SEUL RÉSOLVEUR DE CETTE DÉCISION, ET IL EST ICI.** Il vivait dans
+ * `meal_generation.ts::refForIngredient`, c'est-à-dire dans le parseur de
+ * génération — donc hors de portée de tout ce qui MESURE. Les quatre lecteurs
+ * qui décident d'une portion (`preparation_mass`, `plan_proportion_units`,
+ * `plan_energy`, `box_densify`) repartaient du libellé, et une identité
+ * acceptée à l'entrée se perdait à la première transformation.
+ * `refForIngredient` délègue désormais ici; il n'y a plus qu'un corps.
+ *
+ * ⛔ L'ORDRE EST LE CONTRAT: un identifiant ACCEPTÉ gagne sur le terme, sans
+ * exception. C'est ce qui ferme le défaut mesuré: `resolveIngredient` essaie le
+ * slug direct AVANT les alias, donc le mot français « prune » atteint le slug
+ * anglais `prune` (fruit sec, 229 kcal/100 g) et « raisin » atteint `raisin`
+ * (321) — sans qu'aucune erreur de résolution ne puisse apparaître.
+ *
+ * ⛔ ET UN IDENTIFIANT REFUSÉ OU INCONNU REND `null`, il ne retombe PAS sur le
+ * terme. « Sans rapprochement approximatif de secours » est la demande
+ * explicite du chantier, et c'est la seule lecture honnête: un modèle qui écrit
+ * un identifiant AFFIRME savoir de quel aliment il parle. Le peser quand même
+ * par son terme reviendrait au chemin qui a servi du raisin sec pour du raisin
+ * frais.
+ *
+ * ⚠️ `index === null` N'EST PAS UN REFUS. « Je ne sais rien » et « c'est faux »
+ * sont deux états différents: le référentiel indisponible est un fail-open déjà
+ * assumé par le parseur (`composition: null`), et le compter comme un refus
+ * ferait payer au dîner d'un élève une lecture de base en panne.
+ *
+ * ⚠️ AUCUNE ÉGALITÉ TEXTUELLE N'EST EXIGÉE ENTRE UN LIBELLÉ FRANÇAIS ET UN
+ * SLUG ANGLAIS. La ligne « pita complète · ref pita_wholemeal » est valide et
+ * doit le rester: le slug est lu dans une liste, le libellé est écrit pour
+ * l'humain. Voir `refTermConflict` pour ce qui est réellement contradictoire.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function resolveCompositionLine(
+  index: CompositionIndex | null,
+  line: { term: string; ref?: string | null; refRefused?: boolean },
+): LineRefResolution {
+  if (!index) {
+    return { ref: null, source: null, refusal: "no_index", viaFalseFriend: false };
+  }
+  if (line.refRefused === true) {
+    return { ref: null, source: null, refusal: "ref_refused", viaFalseFriend: false };
+  }
+  // ⚠️ `== null` ET PAS `!== null`: une ligne relue depuis le JSON d'un plan
+  // écrit AVANT le lot C n'a pas la clé du tout, donc `undefined`. Le test
+  // strict la lirait comme « un identifiant est présent », chercherait
+  // `undefined` dans l'index et rendrait `null` — c'est-à-dire qu'il cesserait
+  // de peser TOUS les plans historiques.
+  const slug = line.ref == null ? "" : String(line.ref).trim();
+  if (slug !== "") {
+    const hit = index.bySlug.get(slug);
+    // ⛔ ÉGALITÉ EXACTE, PAS DE `normalizeTerm`, PAS D'ALIAS. Un identifiant a
+    // été lu dans une liste; s'il ne correspond pas, c'est qu'il a été inventé.
+    return hit
+      ? { ref: hit, source: "ref", refusal: null, viaFalseFriend: false }
+      : { ref: null, source: null, refusal: "ref_unknown", viaFalseFriend: false };
+  }
+  const gated = resolveIngredientGated(index, line.term);
+  return gated.ref
+    ? { ref: gated.ref, source: "term", refusal: null, viaFalseFriend: gated.viaFalseFriend }
+    : { ref: null, source: null, refusal: "term_unknown", viaFalseFriend: false };
+}
+
+/**
+ * DEUX IDENTITÉS QUI SE CONTREDISENT SUR LA MÊME LIGNE — ou `null`.
+ *
+ * ⛔ CE QU'ELLE COMPARE, ET CE QU'ELLE NE COMPARE PAS. Elle confronte deux
+ * SLUGS: celui que la ligne déclare et celui que son libellé atteindrait. Elle
+ * ne compare JAMAIS deux libellés — « pita complète » et « Wholemeal pita
+ * bread » désignent le même aliment dans deux langues, et exiger leur égalité
+ * textuelle refuserait tout le corpus français.
+ *
+ * ⛔ ELLE NE DÉCIDE RIEN. `resolveCompositionLine` donne toujours l'identifiant
+ * gagnant; cette fonction sert à COMPTER les lignes où le libellé aurait mené
+ * ailleurs. Sans ce compteur, « le modèle a écrit un identifiant qui contredit
+ * son propre texte » et « les deux disent la même chose » rendent exactement le
+ * même résultat.
+ *
+ * ⚠️ HORS DE `resolveIngredients`, EXPRÈS: elle fait une SECONDE résolution par
+ * ligne, et `resolveIngredients` est appelée des milliers de fois par un
+ * ajustement. Les appelants qui veulent ce compteur le demandent.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function refTermConflict(
+  index: CompositionIndex | null,
+  line: { term: string; ref?: string | null; refRefused?: boolean },
+): { declared: string; viaTerm: string } | null {
+  if (!index) return null;
+  const resolved = resolveCompositionLine(index, line);
+  if (resolved.source !== "ref" || !resolved.ref) return null;
+  const byTerm = resolveIngredientGated(index, line.term).ref;
+  if (!byTerm || byTerm.slug === resolved.ref.slug) return null;
+  return { declared: resolved.ref.slug, viaTerm: byTerm.slug };
 }
 
 /**
@@ -1303,20 +1745,45 @@ export function resolveIngredients(
   const unweighedTerms: string[] = [];
   const conventionalTerms: string[] = [];
   const proseQuantityTerms: string[] = [];
+  const falseFriendTerms: string[] = [];
+  const unverifiedTerms: string[] = [];
+  const refusedTerms: string[] = [];
+  const refusedBy: LineRefRefusal[] = [];
   let unweighedEnergyDense = false;
   for (const input of inputs) {
     const term = String(input?.term ?? "").trim();
     if (!term) continue;
-    const ref = resolveIngredient(index, term);
+    // ⟳ LOT A (2026-09-11) — LA MÊME DÉCISION QUE LE PARSEUR, PAR LE MÊME
+    // CORPS. Cette boucle appelait `resolveIngredientGated(index, term)`: elle
+    // repartait donc du libellé même quand la ligne portait un identifiant
+    // vérifié, et c'est par ici que passent `measurePreparation`,
+    // `measureFresh`, `dishEnergy` et `potDensities` — c'est-à-dire tout ce qui
+    // décide qu'un plat a une boîte.
+    const gated = resolveCompositionLine(index, input);
+    const ref = gated.ref;
     if (!ref) {
-      unresolvedTerms.push(normalizeTerm(term));
+      // ⛔ `term_unknown` ET `no_index` GARDENT LEUR ANCIENNE PLACE: le premier
+      // est la worklist du sas, le second est un référentiel en panne — ni
+      // l'un ni l'autre n'est un identifiant faux.
+      if (gated.refusal === "ref_refused" || gated.refusal === "ref_unknown") {
+        refusedTerms.push(normalizeTerm(term));
+        refusedBy.push(gated.refusal);
+      } else {
+        unresolvedTerms.push(normalizeTerm(term));
+      }
       continue;
     }
+    // ⚠️ LES DEUX COMPTEURS SE POSENT ICI, AVANT TOUTE PESÉE, et pas dans la
+    // branche des lignes pesées: un terme résolu sur une référence douteuse
+    // reste résolu sur une référence douteuse même si personne n'a su le peser.
+    if (gated.viaFalseFriend) falseFriendTerms.push(normalizeTerm(term));
+    if (!isComposable(ref)) unverifiedTerms.push(normalizeTerm(term));
     const grams = gramsRawOf({
       amount: input.amount ?? null,
       unit: input.unit ?? null,
       state: input.state ?? null,
       yieldClass: ref.yieldClass,
+      yieldFactor: ref.yieldFactor,
       // Le poids d'unité vient du RÉFÉRENTIEL, pas de l'appelant: c'est une
       // propriété de l'aliment (« un œuf pèse 55 g »), pas de la recette.
       // L'appelant peut le forcer, mais il n'a aucune raison de le faire.
@@ -1350,6 +1817,7 @@ export function resolveIngredients(
           unit: prose.unit,
           state: input.state ?? null,
           yieldClass: ref.yieldClass,
+          yieldFactor: ref.yieldFactor,
           unitGrams: input.unitGrams ?? ref.unitGrams,
         });
         if (proseGrams !== null) {
@@ -1388,7 +1856,11 @@ export function resolveIngredients(
     resolved.push({ ref, gramsRaw: grams });
   }
   const total = inputs.filter((i) => String(i?.term ?? "").trim()).length;
-  const known = total - unresolvedTerms.length;
+  // ⟳ LOT A — UNE LIGNE REFUSÉE N'EST PAS UNE LIGNE CONNUE. Sans cette
+  // soustraction, `coverage` compterait « le modèle a écrit un identifiant
+  // inventé » comme « le référentiel connaît cette assiette », et la porte des
+  // 80 % laisserait passer un plat dont une ligne n'a aucun aliment.
+  const known = total - unresolvedTerms.length - refusedTerms.length;
   return {
     resolved,
     unresolvedTerms,
@@ -1397,6 +1869,10 @@ export function resolveIngredients(
     proseQuantityTerms,
     unresolvedEnergyDense: unresolvedTerms.some(looksEnergyDense),
     unweighedEnergyDense,
+    falseFriendTerms,
+    unverifiedTerms,
+    refusedTerms,
+    refusedBy,
     total,
     coverage: total === 0 ? 0 : known / total,
   };

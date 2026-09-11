@@ -41,7 +41,21 @@ function prep(id: string, cookOn: string | null, terms: string[]): MealPreparati
     id,
     title: id,
     servings_made: 4,
-    ingredients: terms.map((term) => ({ term, quantity: null, in_pantry: false })),
+    // ⟳ 2026-09-11 — LES SIX CHAMPS STRUCTURÉS DU LOT C SONT REQUIS. Ce banc
+    // ne mesure que les vagues de courses (le TERME et le jour de cuisson);
+    // il les pose à vide plutôt que de les inventer, ce qui est aussi ce que
+    // porte un plan d'avant le lot.
+    ingredients: terms.map((term) => ({
+      term,
+      quantity: null,
+      in_pantry: false,
+      amount: null,
+      unit: null,
+      state: null,
+      grams_raw: null,
+      ref: null,
+      ref_refused: false,
+    })),
     method: "",
     active_minutes: null,
     total_minutes: null,

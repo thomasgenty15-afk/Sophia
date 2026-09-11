@@ -17,7 +17,7 @@ dont ce document reprend le format et les règles transverses (§2).
 | Demande | Ce qui existe | Ce qui manque |
 |---|---|---|
 | Courses/cuisson la veille, coupure 18 h | `SHOPPING_CUTOFF_HOUR = 18` (`_shared/keel/plan_hours.ts:54`) ; `withCookDayBefore` (`meal_plan_window.ts:512-544`) ; `suggested_window` calculé et **jamais rendu** | la veille est une **case manuelle** ; `buyOn` est **borné au premier jour du plan** (`grocery_waves.ts:316`) |
-| Sessions de cuisine / cadence de courses | 1 session = 1 vague, déduit (`grocery_waves.ts`) ; `one_cooking_session` gaté congélateur | **aucune question sur les courses**, **aucun plafond** de sessions, `cook_days` écrit `[]` depuis le 01/09 |
+| Sessions de cuisine / cadence de courses | vagues déduites de la **conservation** (`grocery_waves.ts`), **≤ sessions** — ~~1 session = 1 vague~~ démenti par la mesure le 04/09, voir §2.1 ; `one_cooking_session` gaté congélateur | **aucune question sur les courses**, **aucun plafond** de sessions, `cook_days` écrit `[]` depuis le 01/09 |
 | Membre qui dit « pas mangé » | bifurcation maître/membre **armée** (`evening_strip_io.ts:98`, `masterOnly`) ; boîtes par bouche dans le plan | le membre n'a **ni chat, ni bande, ni coche** : les crons filtrent `keel_role='student'`, il porte `NULL` |
 | Créneaux loupés | canal C1 de FF-062 (`slot_meal_ask.ts`) : photo / décrire / passer | limité aux créneaux `eating_out` déclarés, et au chat |
 | Courbe de poids | `student_body_measures`, série datée append-only | **interdite** par FF-031 §3 (« pas de graphe ») — à renverser par écrit |
@@ -178,7 +178,14 @@ et `HOUSEHOLD_PROMPT_VERSION` si l'enveloppe bouge.
   côtés + rationale : trois implémentations alignées, `freezerMirror.int.test.ts` les tient),
   `cooking_shape` (foyer ≥ 2, **plafond jamais ordre**, `capCookingShape`).
 - **Aucune question sur les courses** — zéro clé i18n, zéro champ. Les vagues sont une **sortie** :
-  `buyOn = max(startsOn, cuisson − fenêtreCrue(groupe))`, une session ⇒ une vague.
+  `buyOn = max(startsOn, cuisson − fenêtreCrue(groupe))`, ~~une session ⇒ une vague~~.
+  > ⛔ **DÉMENTI PAR LA MESURE le 2026-09-04** (E, quatre runs réels de la lane CUISINE, prompt
+  > maître §2.4 C3) : **`vagues ≤ sessions`**, jamais l'égalité. Les vagues se déduisent de la
+  > **conservation** de ce que le modèle a composé, pas du nombre de sessions : à jours de session
+  > identiques (`thu`, `sun`), un décor a rendu 2 vagues et un autre 1. Un aliment à 3 jours cuit
+  > dimanche s'achète jeudi et **rejoint** la première vague. La phrase barrée venait de
+  > `SYNTHESE-GENERATION-PLAN.md`, recopiée ici sans relire `grocery_waves.ts` — la leçon est
+  > méthodologique : une phrase de document a l'air d'une autorité, le code seul en est une.
 - **Aucun plafond de sessions.** `plan_feasibility.ts:45-49` dit pourquoi il n'y a pas de
   `sessionsFloor` exporté (« rien ne le lirait ») et `:27-40` pourquoi on n'ajoute jamais une
   session (= une vague de courses = un déplacement de plus).
@@ -219,7 +226,9 @@ deriveCookingPlan({ style, runs, freezer: true|false|null, daysToEat, leadDay, m
   `resolveWindowPresence`), jamais sur le calendrier nu.
 - `cookDays` dérivés sont **écrits à la composition** comme `[]` l'est aujourd'hui (même écrivains,
   `planBudget.ts:242`, `onboarding.ts:2526`) : ça **réveille exprès** les trois lecteurs endormis, et
-  `planGroceryWaves` produit alors exactement `sessions` vagues. Invariant de rang 2
+  `planGroceryWaves` produit alors **au plus** `sessions` vagues (démenti du 04/09, §2.1 : la
+  conservation décide, pas le compte de sessions — qui demande une course et dont tout se conserve
+  en obtient une, même avec deux sessions). Invariant de rang 2
   (`SYNTHESE-GENERATION-PLAN.md §6`) : **rien de dérivé ne part sans une ligne de `plan_rationale`**
   (« 2 courses : jeudi et dimanche » / « une seule session, tout au congélateur »).
 - Congélateur : la porte reste celle qui existe (`askedOneCookingSession && hasFreezerDeclared`),

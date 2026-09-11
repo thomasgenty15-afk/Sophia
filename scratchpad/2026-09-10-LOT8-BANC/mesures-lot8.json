@@ -1,0 +1,4524 @@
+[
+ {
+  "cas": "S1",
+  "gen": 1,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "0321dae8-3e91-4097-9aab-c0f76c125804",
+  "wall_s": 151.4,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 3,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 39527,
+    "tokens": 15633
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2455,
+    "tokens": 479
+   },
+   {
+    "source": "generate-meal-v1.composition_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 94379,
+    "tokens": 23834
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:03:13Z",
+   "termes_demandes_au_sas": 0,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 4688,
+    "model": 0.001,
+    "table": 0.999,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 2810,
+   "attributedGrams": 3251,
+   "ratio": 0.86,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 3
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 7,
+   "livrees": 7,
+   "manquants": []
+  },
+  "violations_grammes": [
+   {
+    "day": "fri",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Evan Socle"
+    ],
+    "titles": [
+     "Salmon, quinoa, broccoli, cucumber and yoghurt"
+    ],
+    "grams": 733,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 4.7
+   },
+   {
+    "day": "sat",
+    "slot": "lunch",
+    "kind": "own",
+    "mouths": [
+     "Evan Socle"
+    ],
+    "titles": [
+     "Salmon, quinoa, broccoli, tomatoes, rocket and avocado"
+    ],
+    "grams": 780,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 11.4
+   },
+   {
+    "day": "sat",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Evan Socle"
+    ],
+    "titles": [
+     "Chicken, roast potatoes, vegetables and yoghurt"
+    ],
+    "grams": 765,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 9.3
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 7,
+   "in_bounds": 2,
+   "over_max": 3,
+   "under_min": 0,
+   "unmeasurable": 2
+  },
+  "cibles": [
+   {
+    "memberId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+    "name": "Evan Socle",
+    "ageYears": 36,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2541,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 2541
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Evan Socle",
+    "day": "thu",
+    "servi": 972,
+    "cible_couverte": 889,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/1",
+    "ecart_pct": 9.3,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Evan Socle",
+    "day": "fri",
+    "servi": 2474,
+    "cible_couverte": 2541,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -2.6,
+    "classe": "conformant",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Evan Socle",
+    "day": "sat",
+    "servi": 2933,
+    "cible_couverte": 2541,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 15.4,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "residual_gap": 2,
+   "conformant": 1
+  },
+  "conformite_pct": 33.3,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "non_conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S1",
+  "gen": 2,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "46538780-b7a7-4bd5-8b2a-776527351c57",
+  "wall_s": 55.5,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 39160,
+    "tokens": 15816
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 1591,
+    "tokens": 480
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:04:09Z",
+   "termes_demandes_au_sas": 1,
+   "lignes_retenues": 1,
+   "slugs_apres": 944,
+   "parts_declarees_par_le_produit": {
+    "kcal": 5269,
+    "model": 0.018,
+    "table": 0.982,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 2630,
+   "attributedGrams": 2667,
+   "ratio": 0.99,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 3
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 7,
+   "livrees": 7,
+   "manquants": []
+  },
+  "violations_grammes": [
+   {
+    "day": "sat",
+    "slot": "lunch",
+    "kind": "own",
+    "mouths": [
+     "Evan Socle"
+    ],
+    "titles": [
+     "Chicken, roast vegetables, quinoa and wholemeal wraps"
+    ],
+    "grams": 720,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 2.9
+   },
+   {
+    "day": "sat",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Evan Socle"
+    ],
+    "titles": [
+     "Chicken, quinoa, roast vegetables and tomato salsa"
+    ],
+    "grams": 800,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 14.3
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 7,
+   "in_bounds": 3,
+   "over_max": 2,
+   "under_min": 0,
+   "unmeasurable": 2
+  },
+  "cibles": [
+   {
+    "memberId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+    "name": "Evan Socle",
+    "ageYears": 36,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2541,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 2541
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Evan Socle",
+    "day": "thu",
+    "servi": 866,
+    "cible_couverte": 889,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/1",
+    "ecart_pct": -2.6,
+    "classe": "conformant",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Evan Socle",
+    "day": "fri",
+    "servi": 2275,
+    "cible_couverte": 2541,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -10.5,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Evan Socle",
+    "day": "sat",
+    "servi": 2928,
+    "cible_couverte": 2541,
+    "cible_jour": 2541,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 15.2,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "conformant": 1,
+   "residual_gap": 2
+  },
+  "conformite_pct": 33.3,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "non_conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S2",
+  "gen": 1,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "a4868507-f69b-4c53-9b21-14a9ea0f87b4",
+  "wall_s": 142.9,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 39546,
+    "tokens": 16170
+   },
+   {
+    "source": "generate-meal-v1.composition_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 89136,
+    "tokens": 25308
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:06:37Z",
+   "termes_demandes_au_sas": 0,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 6526,
+    "model": 0,
+    "table": 1,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 2990,
+   "attributedGrams": 3730,
+   "ratio": 0.8,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 4
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 10,
+   "livrees": 10,
+   "manquants": []
+  },
+  "violations_grammes": [
+   {
+    "day": "sat",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Chicken, lettuce and tomato wraps"
+    ],
+    "grams": 690,
+    "min": 250,
+    "max": 671,
+    "verdict": "over_max",
+    "ecart_pct": 2.8
+   },
+   {
+    "day": "sun",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Chicken, potatoes, tomatoes and spinach"
+    ],
+    "grams": 695,
+    "min": 250,
+    "max": 671,
+    "verdict": "over_max",
+    "ecart_pct": 3.6
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 10,
+   "in_bounds": 6,
+   "over_max": 2,
+   "under_min": 0,
+   "unmeasurable": 2
+  },
+  "cibles": [
+   {
+    "memberId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+    "name": "Nora Deficit",
+    "ageYears": 41,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 1918,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 1918
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Nora Deficit",
+    "day": "thu",
+    "servi": 584,
+    "cible_couverte": 671,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/1",
+    "ecart_pct": -13.0,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "fri",
+    "servi": 1763,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -8.1,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "sat",
+    "servi": 2131,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 11.1,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "sun",
+    "servi": 3148,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 64.1,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "residual_gap": 4
+  },
+  "conformite_pct": 0.0,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "non_conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S2",
+  "gen": 2,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "2f68ed68-5eaa-4f38-b311-13eb5d393f34",
+  "wall_s": 187.5,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 3,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 42706,
+    "tokens": 17084
+   },
+   {
+    "source": "generate-meal-v1.empty_slots_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 40506,
+    "tokens": 15476
+   },
+   {
+    "source": "generate-meal-v1.composition_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 92945,
+    "tokens": 26471
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:09:46Z",
+   "termes_demandes_au_sas": 0,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 4436,
+    "model": 0,
+    "table": 1,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 3970,
+   "attributedGrams": 6203,
+   "ratio": 0.64,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 4
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 10,
+   "livrees": 10,
+   "manquants": []
+  },
+  "violations_grammes": [
+   {
+    "day": "thu",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Turkey bean skillet and rice"
+    ],
+    "grams": 710,
+    "min": 250,
+    "max": 671,
+    "verdict": "over_max",
+    "ecart_pct": 5.8
+   },
+   {
+    "day": "fri",
+    "slot": "lunch",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Turkey bean skillet with rice"
+    ],
+    "grams": 710,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 1.4
+   },
+   {
+    "day": "sat",
+    "slot": "breakfast",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Boiled eggs, wholemeal toast and tomatoes"
+    ],
+    "grams": 100,
+    "min": 250,
+    "max": 480,
+    "verdict": "under_min",
+    "ecart_pct": -60
+   },
+   {
+    "day": "sun",
+    "slot": "breakfast",
+    "kind": "own",
+    "mouths": [
+     "Nora Deficit"
+    ],
+    "titles": [
+     "Boiled eggs, wholemeal toast, pear and cucumber"
+    ],
+    "grams": 100,
+    "min": 250,
+    "max": 480,
+    "verdict": "under_min",
+    "ecart_pct": -60
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 10,
+   "in_bounds": 4,
+   "over_max": 2,
+   "under_min": 2,
+   "unmeasurable": 2
+  },
+  "cibles": [
+   {
+    "memberId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+    "name": "Nora Deficit",
+    "ageYears": 41,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 1918,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 1918
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Nora Deficit",
+    "day": "thu",
+    "servi": 845,
+    "cible_couverte": 671,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/1",
+    "ecart_pct": 25.9,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "fri",
+    "servi": 2158,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 12.5,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "sat",
+    "servi": 1688,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -12.0,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Nora Deficit",
+    "day": "sun",
+    "servi": 1861,
+    "cible_couverte": 1918,
+    "cible_jour": 1918,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -3.0,
+    "classe": "conformant",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "residual_gap": 3,
+   "conformant": 1
+  },
+  "conformite_pct": 25.0,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "non_conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S3",
+  "gen": 1,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "e35aa020-78d4-4d4f-a776-079c6b806bcf",
+  "wall_s": 155.0,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 4,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 42538,
+    "tokens": 17044
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2311,
+    "tokens": 541
+   },
+   {
+    "source": "generate-meal-v1.empty_slots_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 11549,
+    "tokens": 9852
+   },
+   {
+    "source": "generate-meal-v1.composition_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 86635,
+    "tokens": 25543
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:12:23Z",
+   "termes_demandes_au_sas": 2,
+   "lignes_retenues": 1,
+   "slugs_apres": 944,
+   "parts_declarees_par_le_produit": {
+    "kcal": 6793,
+    "model": 0,
+    "table": 0.988,
+    "promoted": 0,
+    "group_bounds": 0.012
+   },
+   "part_non_restaurable_pct": 1.2,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 2050,
+   "attributedGrams": 4486,
+   "ratio": 0.46,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 3
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 13,
+   "livrees": 12,
+   "manquants": [
+    {
+     "memberId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+     "date": "2026-09-10",
+     "day": "thu",
+     "slot": "snack_am",
+     "name": "Ilan Surplus"
+    }
+   ]
+  },
+  "violations_grammes": [
+   {
+    "day": "fri",
+    "slot": "breakfast",
+    "kind": "own",
+    "mouths": [
+     "Ilan Surplus"
+    ],
+    "titles": [
+     "Egg muffins, tomatoes and wholemeal toast"
+    ],
+    "grams": 220,
+    "min": 250,
+    "max": 700,
+    "verdict": "under_min",
+    "ecart_pct": -12
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 12,
+   "in_bounds": 5,
+   "over_max": 0,
+   "under_min": 1,
+   "unmeasurable": 6
+  },
+  "cibles": [
+   {
+    "memberId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+    "name": "Ilan Surplus",
+    "ageYears": 27,
+    "minor": false,
+    "goal": "muscle_gain",
+    "targetKcal": 3810,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 3810
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Ilan Surplus",
+    "day": "thu",
+    "servi": 1375,
+    "cible_couverte": 1429,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "dinner",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "snack_am",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [
+     "snack_am"
+    ],
+    "plats": "2/2",
+    "ecart_pct": -3.8,
+    "classe": "conformant",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Ilan Surplus",
+    "day": "fri",
+    "servi": 3142,
+    "cible_couverte": 3810,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_am",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "snack_am",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "4/5",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Ilan Surplus",
+    "day": "sat",
+    "servi": 2964,
+    "cible_couverte": 3810,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_am",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "snack_am",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "4/5",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "conformant": 1,
+   "unmeasurable": 2
+  },
+  "conformite_pct": 100.0,
+  "axes": {
+   "calorique": "conforme",
+   "masse": "non_conforme",
+   "couverture": "non_conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S3",
+  "gen": 2,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "bf7d39be-dfe1-4b3f-91c9-0c3d34c4e04d",
+  "wall_s": 50.4,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 41276,
+    "tokens": 17256
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2271,
+    "tokens": 598
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 275,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:13:15Z",
+   "termes_demandes_au_sas": 3,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 8155,
+    "model": 0,
+    "table": 0.986,
+    "promoted": 0,
+    "group_bounds": 0.014
+   },
+   "part_non_restaurable_pct": 1.4,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 3040,
+   "attributedGrams": 3545,
+   "ratio": 0.86,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 3
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 13,
+   "livrees": 12,
+   "manquants": [
+    {
+     "memberId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+     "date": "2026-09-10",
+     "day": "thu",
+     "slot": "snack_am",
+     "name": "Ilan Surplus"
+    }
+   ]
+  },
+  "violations_grammes": [],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 12,
+   "in_bounds": 5,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 7
+  },
+  "cibles": [
+   {
+    "memberId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+    "name": "Ilan Surplus",
+    "ageYears": 27,
+    "minor": false,
+    "goal": "muscle_gain",
+    "targetKcal": 3810,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 3810
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Ilan Surplus",
+    "day": "thu",
+    "servi": 1279,
+    "cible_couverte": 1429,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "dinner",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "snack_am",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [
+     "snack_am"
+    ],
+    "plats": "2/2",
+    "ecart_pct": -10.5,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Ilan Surplus",
+    "day": "fri",
+    "servi": 1483,
+    "cible_couverte": 3810,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_am",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "snack_am",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/5",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Ilan Surplus",
+    "day": "sat",
+    "servi": 1586,
+    "cible_couverte": 3810,
+    "cible_jour": 3810,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_am",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "snack_am",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/5",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "residual_gap": 1,
+   "unmeasurable": 2
+  },
+  "conformite_pct": 0.0,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "conforme",
+   "couverture": "non_conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S4",
+  "gen": 1,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "5c86208a-40b0-4fad-9a94-c29fee89cd61",
+  "wall_s": 103.7,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 3,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 51125,
+    "tokens": 19285
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 1932,
+    "tokens": 632
+   },
+   {
+    "source": "generate-meal-v1.empty_slots_retry",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 34880,
+    "tokens": 15182
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 280,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:14:59Z",
+   "termes_demandes_au_sas": 5,
+   "lignes_retenues": 2,
+   "slugs_apres": 945,
+   "parts_declarees_par_le_produit": {
+    "kcal": 7938,
+    "model": 0.015,
+    "table": 0.869,
+    "promoted": 0,
+    "group_bounds": 0.116
+   },
+   "part_non_restaurable_pct": 11.6,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 3560,
+   "attributedGrams": 5196,
+   "ratio": 0.69,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 4
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 14,
+   "livrees": 14,
+   "manquants": []
+  },
+  "violations_grammes": [],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 14,
+   "in_bounds": 9,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 5
+  },
+  "cibles": [
+   {
+    "memberId": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+    "name": "Alba Vegane",
+    "ageYears": 29,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 2248,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 2248
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Alba Vegane",
+    "day": "thu",
+    "servi": null,
+    "cible_couverte": 920,
+    "cible_jour": 2248,
+    "slots_couverts": [
+     "dinner",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/2",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Alba Vegane",
+    "day": "fri",
+    "servi": 2573,
+    "cible_couverte": 2248,
+    "cible_jour": 2248,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "4/4",
+    "ecart_pct": 14.5,
+    "classe": "residual_gap",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Alba Vegane",
+    "day": "sat",
+    "servi": 1578,
+    "cible_couverte": 2248,
+    "cible_jour": 2248,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/4",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Alba Vegane",
+    "day": "sun",
+    "servi": 1553,
+    "cible_couverte": 2248,
+    "cible_jour": 2248,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch",
+     "snack_pm"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "snack_pm",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/4",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "unmeasurable": 3,
+   "residual_gap": 1
+  },
+  "conformite_pct": 0.0,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S4",
+  "gen": 2,
+  "lane": "solo",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 196.9,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "S5",
+  "gen": 1,
+  "lane": "solo",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "baaa6354-4859-43a9-8e1d-9ea365d75c6a",
+  "wall_s": 65.3,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 43682,
+    "tokens": 17170
+   },
+   {
+    "source": "generate-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2485,
+    "tokens": 693
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "aucune_trace_solo_absence_indistincte_de_rien_a_controler"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 284,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:23:58Z",
+   "termes_demandes_au_sas": 4,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 13626,
+    "model": 0,
+    "table": 0.905,
+    "promoted": 0,
+    "group_bounds": 0.095
+   },
+   "part_non_restaurable_pct": 9.5,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 6240,
+   "attributedGrams": 8706,
+   "ratio": 0.72,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-12",
+    "days": 7
+   },
+   "jour_de_cuisson": "2026-09-12",
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 18,
+   "livrees": 18,
+   "manquants": []
+  },
+  "violations_grammes": [
+   {
+    "day": "wed",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Bruno Batch"
+    ],
+    "titles": [
+     "Lentil, potato, cauliflower and spinach curry"
+    ],
+    "grams": 800,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 14.3
+   },
+   {
+    "day": "thu",
+    "slot": "lunch",
+    "kind": "own",
+    "mouths": [
+     "Bruno Batch"
+    ],
+    "titles": [
+     "Lentil, potato, cauliflower and spinach curry"
+    ],
+    "grams": 800,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 14.3
+   },
+   {
+    "day": "fri",
+    "slot": "dinner",
+    "kind": "own",
+    "mouths": [
+     "Bruno Batch"
+    ],
+    "titles": [
+     "Lentil, potato, cauliflower and spinach curry"
+    ],
+    "grams": 800,
+    "min": 250,
+    "max": 700,
+    "verdict": "over_max",
+    "ecart_pct": 14.3
+   }
+  ],
+  "bacs_communs": [],
+  "controles_grammes": {
+   "total": 18,
+   "in_bounds": 6,
+   "over_max": 3,
+   "under_min": 0,
+   "unmeasurable": 9
+  },
+  "cibles": [
+   {
+    "memberId": "f1c5ee11-2113-4824-9ed8-300b687a2a3e",
+    "name": "Bruno Batch",
+    "ageYears": 45,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 2094,
+    "targetReason": "journal_du_produit",
+    "targetKcalRecalcule": 2094
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Bruno Batch",
+    "day": "sun",
+    "servi": 1666,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Bruno Batch",
+    "day": "mon",
+    "servi": 1498,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Bruno Batch",
+    "day": "tue",
+    "servi": 1801,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Bruno Batch",
+    "day": "wed",
+    "servi": 2510,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Bruno Batch",
+    "day": "thu",
+    "servi": 2610,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "2/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   },
+   {
+    "qui": "Bruno Batch",
+    "day": "fri",
+    "servi": 1685,
+    "cible_couverte": 2094,
+    "cible_jour": 2094,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "journee_du_plan"
+   }
+  ],
+  "classement": {
+   "unmeasurable": 6
+  },
+  "conformite_pct": "inconnu",
+  "axes": {
+   "calorique": "inconnu",
+   "masse": "non_conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "S5",
+  "gen": 2,
+  "lane": "solo",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 220.3,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F1",
+  "gen": 1,
+  "lane": "household",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "ed11b1d4-bd13-440c-b89f-95eefc5b778f",
+  "wall_s": 107.5,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-household-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 89592,
+    "tokens": 23750
+   },
+   {
+    "source": "generate-household-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2152,
+    "tokens": 584
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures_finales": 0
+   },
+   "regime": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures": 0,
+    "separees": 0,
+    "non_separees": 0
+   },
+   "etat": "rien_a_controler",
+   "morsures_finales": 0,
+   "raison": "keel.household_meal.box_counts"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 286,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:31:07Z",
+   "termes_demandes_au_sas": 3,
+   "lignes_retenues": 1,
+   "slugs_apres": 944,
+   "parts_declarees_par_le_produit": {
+    "kcal": 4530,
+    "model": 0,
+    "table": 0.932,
+    "promoted": 0,
+    "group_bounds": 0.068
+   },
+   "part_non_restaurable_pct": 6.8,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 3998,
+   "attributedGrams": 3839,
+   "ratio": 1.04,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 2
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 16,
+   "livrees": 16,
+   "manquants": []
+  },
+  "violations_grammes": [],
+  "bacs_communs": [
+   {
+    "day": "thu",
+    "slot": "dinner",
+    "titles": [
+     "Chicken, pitta, hummus, avocado, feta and salad"
+    ],
+    "grams": 1489,
+    "kcal": 3240,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3239,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Nina",
+      "kcal": 757,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Claire",
+      "kcal": 708,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Hugo",
+      "kcal": 861,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Paul",
+      "kcal": 914,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "breakfast",
+    "titles": [
+     "Greek yoghurt, oats, blackberries and almond butter"
+    ],
+    "grams": 1523,
+    "kcal": null,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 2313,
+    "ecart_pct": null,
+    "parts_internes": null
+   },
+   {
+    "day": "fri",
+    "slot": "lunch",
+    "titles": [
+     "Chicken, wholemeal wrap, yoghurt, salad and seeds"
+    ],
+    "grams": 2092,
+    "kcal": 3702,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3701,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Nina",
+      "kcal": 865,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Claire",
+      "kcal": 809,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Hugo",
+      "kcal": 984,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Paul",
+      "kcal": 1045,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "dinner",
+    "titles": [
+     "Beef, pasta, tomato, mascarpone, parmesan and walnuts"
+    ],
+    "grams": 1581,
+    "kcal": null,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3239,
+    "ecart_pct": null,
+    "parts_internes": null
+   }
+  ],
+  "controles_grammes": {
+   "total": 4,
+   "in_bounds": 4,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 0
+  },
+  "cibles": [
+   {
+    "memberId": "91a10d8a-f7e0-4b00-9f7c-9afb1a3fcfd0",
+    "name": "Paul",
+    "ageYears": 40,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2611,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2611
+   },
+   {
+    "memberId": "78c29399-26a6-47bf-9207-51f216b53654",
+    "name": "Claire",
+    "ageYears": 38,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2022,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2022
+   },
+   {
+    "memberId": "7e305317-8a2c-4273-a789-61799aaf5545",
+    "name": "Hugo",
+    "ageYears": 34,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2458,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2458
+   },
+   {
+    "memberId": "096534ee-e142-450d-862a-c06a9c2f690f",
+    "name": "Nina",
+    "ageYears": 31,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2162,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2162
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Nina",
+    "day": "thu",
+    "servi": 757,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 757,
+    "cible_couverte": 757,
+    "cible_jour": 2162,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Claire",
+    "day": "thu",
+    "servi": 708,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 708,
+    "cible_couverte": 708,
+    "cible_jour": 2022,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Hugo",
+    "day": "thu",
+    "servi": 861,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 861,
+    "cible_couverte": 860,
+    "cible_jour": 2458,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Paul",
+    "day": "thu",
+    "servi": 914,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 914,
+    "cible_couverte": 914,
+    "cible_jour": 2611,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Nina",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2162,
+    "cible_jour": 2162,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Claire",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2022,
+    "cible_jour": 2022,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Hugo",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2458,
+    "cible_jour": 2458,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Paul",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2611,
+    "cible_jour": 2611,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   }
+  ],
+  "classement": {
+   "conformant": 4,
+   "unmeasurable": 4
+  },
+  "conformite_pct": 100.0,
+  "axes": {
+   "calorique": "conforme",
+   "masse": "conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": true
+ },
+ {
+  "cas": "F1",
+  "gen": 2,
+  "lane": "household",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "b4e93442-f1f8-4655-a070-838b45ee9aac",
+  "wall_s": 98.3,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-household-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 82361,
+    "tokens": 23995
+   },
+   {
+    "source": "generate-household-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 1632,
+    "tokens": 485
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures_finales": 0
+   },
+   "regime": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures": 0,
+    "separees": 0,
+    "non_separees": 0
+   },
+   "etat": "rien_a_controler",
+   "morsures_finales": 0,
+   "raison": "keel.household_meal.box_counts"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 287,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:32:48Z",
+   "termes_demandes_au_sas": 1,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 4946,
+    "model": 0,
+    "table": 0.907,
+    "promoted": 0,
+    "group_bounds": 0.093
+   },
+   "part_non_restaurable_pct": 9.3,
+   "exact": false
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 5846,
+   "attributedGrams": 5154,
+   "ratio": 1.13,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 2
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 16,
+   "livrees": 16,
+   "manquants": []
+  },
+  "violations_grammes": [],
+  "bacs_communs": [
+   {
+    "day": "thu",
+    "slot": "dinner",
+    "titles": [
+     "Chicken, wholewheat pasta, peppers, walnuts and Parmesan"
+    ],
+    "grams": 1896,
+    "kcal": 3238,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3239,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Nina",
+      "kcal": 756,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Claire",
+      "kcal": 707,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Hugo",
+      "kcal": 860,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Paul",
+      "kcal": 914,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "breakfast",
+    "titles": [
+     "Greek yoghurt, oats, berries, walnuts and honey"
+    ],
+    "grams": 1631,
+    "kcal": 2312,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 2313,
+    "ecart_pct": -0.1,
+    "parts_internes": [
+     {
+      "name": "Nina",
+      "kcal": 540,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Claire",
+      "kcal": 505,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Hugo",
+      "kcal": 614,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Paul",
+      "kcal": 652,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "lunch",
+    "titles": [
+     "Chicken, pearl barley, tomato, cucumber, feta and parsley"
+    ],
+    "grams": 2436,
+    "kcal": 3701,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3701,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Nina",
+      "kcal": 865,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Claire",
+      "kcal": 809,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Hugo",
+      "kcal": 983,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Paul",
+      "kcal": 1044,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "dinner",
+    "titles": [
+     "Mackerel, roast potatoes, green beans, walnuts and Parmesan"
+    ],
+    "grams": 2022,
+    "kcal": null,
+    "mouths": [
+     "Nina",
+     "Claire",
+     "Hugo",
+     "Paul"
+    ],
+    "somme_cibles_du_moment": 3239,
+    "ecart_pct": null,
+    "parts_internes": null
+   }
+  ],
+  "controles_grammes": {
+   "total": 4,
+   "in_bounds": 4,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 0
+  },
+  "cibles": [
+   {
+    "memberId": "91a10d8a-f7e0-4b00-9f7c-9afb1a3fcfd0",
+    "name": "Paul",
+    "ageYears": 40,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2611,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2611
+   },
+   {
+    "memberId": "78c29399-26a6-47bf-9207-51f216b53654",
+    "name": "Claire",
+    "ageYears": 38,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2022,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2022
+   },
+   {
+    "memberId": "7e305317-8a2c-4273-a789-61799aaf5545",
+    "name": "Hugo",
+    "ageYears": 34,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2458,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2458
+   },
+   {
+    "memberId": "096534ee-e142-450d-862a-c06a9c2f690f",
+    "name": "Nina",
+    "ageYears": 31,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2162,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2162
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Nina",
+    "day": "thu",
+    "servi": 756,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 756,
+    "cible_couverte": 757,
+    "cible_jour": 2162,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Claire",
+    "day": "thu",
+    "servi": 707,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 707,
+    "cible_couverte": 708,
+    "cible_jour": 2022,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Hugo",
+    "day": "thu",
+    "servi": 860,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 860,
+    "cible_couverte": 860,
+    "cible_jour": 2458,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Paul",
+    "day": "thu",
+    "servi": 914,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 914,
+    "cible_couverte": 914,
+    "cible_jour": 2611,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Nina",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2162,
+    "cible_jour": 2162,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Claire",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2022,
+    "cible_jour": 2022,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Hugo",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2458,
+    "cible_jour": 2458,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Paul",
+    "day": "fri",
+    "servi": null,
+    "base_de_mesure": "aucune",
+    "servi_assiette": null,
+    "servi_interne": null,
+    "cible_couverte": 2611,
+    "cible_jour": 2611,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": "inconnu",
+    "classe": "unmeasurable",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   }
+  ],
+  "classement": {
+   "conformant": 4,
+   "unmeasurable": 4
+  },
+  "conformite_pct": 100.0,
+  "axes": {
+   "calorique": "conforme",
+   "masse": "conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": true
+ },
+ {
+  "cas": "F2",
+  "gen": 1,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 180.7,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F2",
+  "gen": 2,
+  "lane": "household",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "523a1ccf-02e5-4865-8bbb-28abc015dd8b",
+  "wall_s": 211.9,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 1,
+   "transmissions_fournisseur": 2,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-household-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 113769,
+    "tokens": 23955
+   },
+   {
+    "source": "generate-household-meal-v1.dedicated_repair",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 88041,
+    "tokens": 25724
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures_finales": 0
+   },
+   "regime": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures": 0,
+    "separees": 0,
+    "non_separees": 0
+   },
+   "etat": "rien_a_controler",
+   "morsures_finales": 0,
+   "raison": "keel.household_meal.box_counts"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 289,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T12:41:42Z",
+   "termes_demandes_au_sas": 0,
+   "lignes_retenues": 0,
+   "slugs_apres": 943,
+   "parts_declarees_par_le_produit": {
+    "kcal": 3893,
+    "model": 0,
+    "table": 1,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 6414,
+   "attributedGrams": 6415,
+   "ratio": 1,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-10",
+    "days": 2
+   },
+   "jour_de_cuisson": null,
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 16,
+   "livrees": 16,
+   "manquants": []
+  },
+  "violations_grammes": [],
+  "bacs_communs": [
+   {
+    "day": "thu",
+    "slot": "dinner",
+    "titles": [
+     "Chicken, rice, peppers, feta and walnuts"
+    ],
+    "grams": 1431,
+    "kcal": 2602,
+    "mouths": [
+     "Tom",
+     "Lise",
+     "Sarah"
+    ],
+    "somme_cibles_du_moment": 2605,
+    "ecart_pct": -0.1,
+    "parts_internes": [
+     {
+      "name": "Tom",
+      "kcal": 1226,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Lise",
+      "kcal": 619,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Sarah",
+      "kcal": 758,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "breakfast",
+    "titles": [
+     "Egg and oat bake with yoghurt and raspberries"
+    ],
+    "grams": 1144,
+    "kcal": 1860,
+    "mouths": [
+     "Tom",
+     "Lise",
+     "Sarah"
+    ],
+    "somme_cibles_du_moment": 1861,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Tom",
+      "kcal": 876,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Lise",
+      "kcal": 442,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Sarah",
+      "kcal": 542,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "lunch",
+    "titles": [
+     "Chicken, rice, peppers, spinach, feta and walnuts"
+    ],
+    "grams": 1652,
+    "kcal": 2975,
+    "mouths": [
+     "Tom",
+     "Lise",
+     "Sarah"
+    ],
+    "somme_cibles_du_moment": 2977,
+    "ecart_pct": -0.1,
+    "parts_internes": [
+     {
+      "name": "Tom",
+      "kcal": 1401,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Lise",
+      "kcal": 707,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Sarah",
+      "kcal": 866,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "fri",
+    "slot": "dinner",
+    "titles": [
+     "Beef, pasta, tomato, onion and parmesan"
+    ],
+    "grams": 1159,
+    "kcal": 2605,
+    "mouths": [
+     "Tom",
+     "Lise",
+     "Sarah"
+    ],
+    "somme_cibles_du_moment": 2605,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Tom",
+      "kcal": 1227,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Lise",
+      "kcal": 619,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Sarah",
+      "kcal": 758,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   }
+  ],
+  "controles_grammes": {
+   "total": 8,
+   "in_bounds": 8,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 0
+  },
+  "cibles": [
+   {
+    "memberId": "920ab7f2-c1df-4ccc-9732-1df35284bfe9",
+    "name": "Yann",
+    "ageYears": 39,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 2304,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2304
+   },
+   {
+    "memberId": "ccb39151-c468-4ba2-9914-7b098787210e",
+    "name": "Sarah",
+    "ageYears": 37,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2167,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2167
+   },
+   {
+    "memberId": "aa7c2fa9-52ec-4b41-a4c0-1797aeabdc0f",
+    "name": "Lise",
+    "ageYears": 7,
+    "minor": true,
+    "goal": null,
+    "targetKcal": 1770,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 1770
+   },
+   {
+    "memberId": "27c9d523-f09b-4b2e-aa8e-6468dd5b9788",
+    "name": "Tom",
+    "ageYears": 14,
+    "minor": true,
+    "goal": null,
+    "targetKcal": 3506,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 3506
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Yann",
+    "day": "thu",
+    "servi": 729,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 729,
+    "servi_interne": 729,
+    "cible_couverte": 806,
+    "cible_jour": 2304,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [
+     "dinner"
+    ],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "1/1",
+    "ecart_pct": -9.6,
+    "classe": "residual_gap",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 400,
+    "max_meal_grams": 400
+   },
+   {
+    "qui": "Tom",
+    "day": "thu",
+    "servi": 1226,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 1226,
+    "cible_couverte": 1227,
+    "cible_jour": 3506,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Lise",
+    "day": "thu",
+    "servi": 619,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 619,
+    "cible_couverte": 620,
+    "cible_jour": 1770,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": -0.2,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Sarah",
+    "day": "thu",
+    "servi": 758,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 758,
+    "cible_couverte": 758,
+    "cible_jour": 2167,
+    "slots_couverts": [
+     "dinner"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/1",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Yann",
+    "day": "fri",
+    "servi": 2080,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 2080,
+    "servi_interne": 2080,
+    "cible_couverte": 2304,
+    "cible_jour": 2304,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": -9.7,
+    "classe": "residual_gap",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 1105,
+    "max_meal_grams": 462
+   },
+   {
+    "qui": "Tom",
+    "day": "fri",
+    "servi": 3504,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 3504,
+    "cible_couverte": 3506,
+    "cible_jour": 3506,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Lise",
+    "day": "fri",
+    "servi": 1769,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 1769,
+    "cible_couverte": 1770,
+    "cible_jour": 1770,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Sarah",
+    "day": "fri",
+    "servi": 2166,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 2166,
+    "cible_couverte": 2167,
+    "cible_jour": 2167,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": -0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   }
+  ],
+  "classement": {
+   "residual_gap": 2,
+   "conformant": 6
+  },
+  "conformite_pct": 75.0,
+  "axes": {
+   "calorique": "non_conforme",
+   "masse": "conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": false
+ },
+ {
+  "cas": "F3",
+  "gen": 1,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 107.1,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F3",
+  "gen": 2,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 55.6,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F4",
+  "gen": 1,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 211.5,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F4",
+  "gen": 2,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 244.4,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ },
+ {
+  "cas": "F5",
+  "gen": 1,
+  "lane": "household",
+  "http": 200,
+  "etat": "mesure",
+  "request_id": "36f1f096-b71c-4702-945a-ac24af965e04",
+  "wall_s": 255.2,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": 3,
+   "erreur_plateforme": false
+  },
+  "appels": [
+   {
+    "source": "generate-household-meal-v1",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 121934,
+    "tokens": 35850
+   },
+   {
+    "source": "generate-household-meal-v1.composition_fill",
+    "model": "gpt-5.4-nano",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": null,
+    "tier_echoed": "default",
+    "latency_ms": 2087,
+    "tokens": 545
+   },
+   {
+    "source": "generate-household-meal-v1.dedicated_repair",
+    "model": "gpt-5.6-luna",
+    "kind": "generate",
+    "status": "success",
+    "tier_sent": "fast",
+    "tier_echoed": "priority",
+    "latency_ms": 121341,
+    "tokens": 34475
+   }
+  ],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "rien_a_controler",
+    "mouths": 0,
+    "checked": 0,
+    "morsures_finales": 0
+   },
+   "regime": {
+    "etat": "rien_a_controler",
+    "mouths": 1,
+    "checked": 0,
+    "morsures": 4,
+    "separees": 4,
+    "non_separees": 0
+   },
+   "etat": "rien_a_controler",
+   "morsures_finales": 0,
+   "raison": "keel.household_meal.box_counts"
+  },
+  "empreinte_code": {
+   "avant": "4619ed297f76",
+   "apres": "4619ed297f76",
+   "stable": true
+  },
+  "index": {
+   "base_slugs": 943,
+   "sas_lignes_admises": 291,
+   "sas_lignes_totales": 291,
+   "coupure": "2026-09-10T13:15:37Z",
+   "termes_demandes_au_sas": 2,
+   "lignes_retenues": 2,
+   "slugs_apres": 945,
+   "parts_declarees_par_le_produit": {
+    "kcal": 14745,
+    "model": 0.064,
+    "table": 0.936,
+    "promoted": 0,
+    "group_bounds": 0
+   },
+   "part_non_restaurable_pct": 0.0,
+   "exact": true
+  },
+  "attribution_casseroles": {
+   "drawnGrams": 9393,
+   "attributedGrams": 9397,
+   "ratio": 1,
+   "potsUnreadable": 0
+  },
+  "couverture": {
+   "fenetre": {
+    "starts_on": "2026-09-12",
+    "days": 3
+   },
+   "jour_de_cuisson": "2026-09-12",
+   "moments_passes_aujourdhui": [
+    "breakfast",
+    "lunch"
+   ],
+   "attendues": 24,
+   "livrees": 24,
+   "manquants": []
+  },
+  "violations_grammes": [],
+  "bacs_communs": [
+   {
+    "day": "sun",
+    "slot": "breakfast",
+    "titles": [
+     "Potato, courgette, spinach and cheddar frittata"
+    ],
+    "grams": 1007,
+    "kcal": 1363,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 1366,
+    "ecart_pct": -0.3,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 739,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 623,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "sun",
+    "slot": "lunch",
+    "titles": [
+     "Wholewheat pasta with courgette, parmesan and protein"
+    ],
+    "grams": 993,
+    "kcal": 2183,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 2186,
+    "ecart_pct": -0.1,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 1184,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 999,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "sun",
+    "slot": "dinner",
+    "titles": [
+     "Polenta, tomatoes, peppers, cheddar and protein"
+    ],
+    "grams": 783,
+    "kcal": 1914,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 1913,
+    "ecart_pct": 0.1,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 1038,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 876,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "mon",
+    "slot": "breakfast",
+    "titles": [
+     "Eggs, potatoes, tomatoes, peppers and feta"
+    ],
+    "grams": 1072,
+    "kcal": 1368,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 1366,
+    "ecart_pct": 0.1,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 742,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 626,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "mon",
+    "slot": "lunch",
+    "titles": [
+     "Couscous, aubergine, tomato, feta and protein"
+    ],
+    "grams": 931,
+    "kcal": 2186,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 2186,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 1186,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 1000,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   },
+   {
+    "day": "mon",
+    "slot": "dinner",
+    "titles": [
+     "Potatoes, green beans, cheddar and protein"
+    ],
+    "grams": 831,
+    "kcal": 1912,
+    "mouths": [
+     "Jules",
+     "Georges"
+    ],
+    "somme_cibles_du_moment": 1913,
+    "ecart_pct": 0,
+    "parts_internes": [
+     {
+      "name": "Jules",
+      "kcal": 1037,
+      "provenance": "derivee_prorata_cible"
+     },
+     {
+      "name": "Georges",
+      "kcal": 875,
+      "provenance": "derivee_prorata_cible"
+     }
+    ]
+   }
+  ],
+  "controles_grammes": {
+   "total": 18,
+   "in_bounds": 18,
+   "over_max": 0,
+   "under_min": 0,
+   "unmeasurable": 0
+  },
+  "cibles": [
+   {
+    "memberId": "f984852d-d23d-4f64-93ec-ab2704eeb186",
+    "name": "Theo",
+    "ageYears": 32,
+    "minor": false,
+    "goal": "muscle_gain",
+    "targetKcal": 4229,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 4229
+   },
+   {
+    "memberId": "2ec570e3-a68f-49a0-9ea0-67909a71f7b8",
+    "name": "Maya",
+    "ageYears": 35,
+    "minor": false,
+    "goal": "fat_loss",
+    "targetKcal": 1934,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 1934
+   },
+   {
+    "memberId": "c391e4b2-31da-4acf-86d6-359a658b97c4",
+    "name": "Georges",
+    "ageYears": 68,
+    "minor": false,
+    "goal": "maintenance",
+    "targetKcal": 2500,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2500
+   },
+   {
+    "memberId": "be3a635e-3ea5-4c0f-86b1-dd0262c50d1a",
+    "name": "Jules",
+    "ageYears": 15,
+    "minor": true,
+    "goal": null,
+    "targetKcal": 2965,
+    "targetReason": "anchored",
+    "targetKcalRecalcule": 2965
+   }
+  ],
+  "jours": [
+   {
+    "qui": "Theo",
+    "day": "sun",
+    "servi": 4227,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 4227,
+    "servi_interne": 4227,
+    "cible_couverte": 4229,
+    "cible_jour": 4229,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "5/5",
+    "ecart_pct": -0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 2006,
+    "max_meal_grams": 651
+   },
+   {
+    "qui": "Jules",
+    "day": "sun",
+    "servi": 2962,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 2962,
+    "cible_couverte": 2965,
+    "cible_jour": 2965,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Georges",
+    "day": "sun",
+    "servi": 2497,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 2497,
+    "cible_couverte": 2500,
+    "cible_jour": 2500,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": -0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Maya",
+    "day": "sun",
+    "servi": 1935,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 1935,
+    "servi_interne": 1935,
+    "cible_couverte": 1934,
+    "cible_jour": 1934,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 0.1,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 1300,
+    "max_meal_grams": 545
+   },
+   {
+    "qui": "Theo",
+    "day": "mon",
+    "servi": 4230,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 4230,
+    "servi_interne": 4230,
+    "cible_couverte": 4229,
+    "cible_jour": 4229,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "5/5",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 2042,
+    "max_meal_grams": 662
+   },
+   {
+    "qui": "Jules",
+    "day": "mon",
+    "servi": 2966,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 2966,
+    "cible_couverte": 2965,
+    "cible_jour": 2965,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Georges",
+    "day": "mon",
+    "servi": 2501,
+    "base_de_mesure": "service_collectif",
+    "servi_assiette": null,
+    "servi_interne": 2501,
+    "cible_couverte": 2500,
+    "cible_jour": 2500,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "0/3",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [
+     "common_pot"
+    ],
+    "grams": 0,
+    "max_meal_grams": 0
+   },
+   {
+    "qui": "Maya",
+    "day": "mon",
+    "servi": 1934,
+    "base_de_mesure": "assiette_nominative",
+    "servi_assiette": 1934,
+    "servi_interne": 1934,
+    "cible_couverte": 1934,
+    "cible_jour": 1934,
+    "slots_couverts": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "own_slots": [
+     "breakfast",
+     "dinner",
+     "lunch"
+    ],
+    "slots_attendus": [
+     "breakfast",
+     "lunch",
+     "dinner"
+    ],
+    "manquants": [],
+    "plats": "3/3",
+    "ecart_pct": 0.0,
+    "classe": "conformant",
+    "mesure": "the_day",
+    "gaps": [],
+    "grams": 1339,
+    "max_meal_grams": 466
+   }
+  ],
+  "classement": {
+   "conformant": 8
+  },
+  "conformite_pct": 100.0,
+  "axes": {
+   "calorique": "conforme",
+   "masse": "conforme",
+   "couverture": "conforme",
+   "securite": "inconnu",
+   "proteique": "inconnu",
+   "densite": "inconnu"
+  },
+  "conformant": true
+ },
+ {
+  "cas": "F5",
+  "gen": 2,
+  "lane": "household",
+  "http": 546,
+  "etat": "non_teste",
+  "request_id": null,
+  "wall_s": 136.0,
+  "compteurs": {
+   "generations_demandees": 1,
+   "tentatives_http": 2,
+   "transmissions_fournisseur": "inconnu",
+   "erreur_plateforme": true
+  },
+  "appels": [],
+  "refus_budget": [],
+  "securite": {
+   "exclusion": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures_finales": "inconnu"
+   },
+   "regime": {
+    "etat": "controle_absent",
+    "mouths": "inconnu",
+    "checked": "inconnu",
+    "morsures": "inconnu"
+   },
+   "etat": "controle_absent",
+   "morsures_finales": "inconnu",
+   "raison": "requete_non_identifiee"
+  },
+  "classement": {},
+  "raison_non_teste": "WORKER_LIMIT (546) \u2014 limite CPU de l'isolat, \u00a7 10 hors p\u00e9rim\u00e8tre"
+ }
+]

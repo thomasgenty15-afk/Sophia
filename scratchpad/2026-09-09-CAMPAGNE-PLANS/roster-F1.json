@@ -1,0 +1,62 @@
+[
+ {
+  "member_id": "91a10d8a-f7e0-4b00-9f7c-9afb1a3fcfd0",
+  "first_name": "Paul",
+  "goal": "maintenance",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 177,
+  "weight_kg": 78,
+  "gender": "male",
+  "activity_level": "on_feet",
+  "day_activity": "seated",
+  "sport_frequency": "1_2",
+  "appetite": "average",
+  "age_years": 40
+ },
+ {
+  "member_id": "78c29399-26a6-47bf-9207-51f216b53654",
+  "first_name": "Claire",
+  "goal": "maintenance",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 166,
+  "weight_kg": 63,
+  "gender": "female",
+  "activity_level": "on_feet",
+  "day_activity": "seated",
+  "sport_frequency": "1_2",
+  "appetite": "average",
+  "age_years": 38
+ },
+ {
+  "member_id": "7e305317-8a2c-4273-a789-61799aaf5545",
+  "first_name": "Hugo",
+  "goal": "maintenance",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 180,
+  "weight_kg": 75,
+  "gender": "male",
+  "activity_level": "sedentary",
+  "day_activity": "seated",
+  "sport_frequency": "none",
+  "appetite": "average",
+  "age_years": 34
+ },
+ {
+  "member_id": "096534ee-e142-450d-862a-c06a9c2f690f",
+  "first_name": "Nina",
+  "goal": "maintenance",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 170,
+  "weight_kg": 61,
+  "gender": "female",
+  "activity_level": "trains_some",
+  "day_activity": "seated",
+  "sport_frequency": "3_4",
+  "appetite": "average",
+  "age_years": 31
+ }
+]

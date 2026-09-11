@@ -27,6 +27,7 @@ vérifiés.
 | [FF-054 · Le retour de fin de plan](FF-054-le-retour-de-fin-de-plan.md) | 🟠 Noyau livré | Le moteur sait ce qu'il a composé, pas ce qui a suffi. Trois questions et une par dynamique, chacune avec son lecteur nommé — la garde qui empêche de refaire le point du dimanche. |
 | [FF-055 · Les recommandations d'activité](FF-055-les-recommandations-d-activite.md) | 🟠 Noyau livré | Deux versions : le plancher public sans coach, sa posture avec. Et la ligne qui tient dans les deux — même un coach ne fait pas programmer Sophia. |
 | [FF-057 · La procédure accident](FF-057-la-procedure-accident.md) | 🟡 Spécifiée | « J'ai pas suivi » ne mène nulle part : le fait est capté, personne ne répond à « qu'est-ce que ça change pour la suite ». Trois entrées, un formulaire à trois boutons, quatre actions de réalignement — dont la session de cuisine sautée, qui fait disparaître des repas sans que l'écran s'en aperçoive. |
+| [FF-065 · Le plancher du budget](FF-065-le-plancher-du-budget.md) | 🟢 Livrée | Sept jours pour quatre à 1 € partaient au modèle comme un plafond : il ne refuse jamais, il coupe. Deux seuils mesurés sur la grille de prix — l'un refuse, l'autre dit seulement ce que ce budget va changer. |
 
 ## Le chantier des unités de composition
 

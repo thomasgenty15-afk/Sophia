@@ -367,38 +367,15 @@ export function runConversationRouters(input: {
     });
   }
 
-  // ── REPRISE APRÈS RELANCE KEEL (phase B) ────────────────────────────────
-  // Placée ICI, et cette place est le fond du lot : SOUS les trois branches
-  // safety et SOUS le plancher TCA — un cadre de reprise ne parle jamais
-  // par-dessus une détresse ni par-dessus une restriction. AU-DESSUS du reste
-  // parce qu'elle est armée hors conversation et n'a qu'un tour pour exister.
+  // ── REPRISE APRÈS RELANCE KEEL : LA BRANCHE EST PARTIE LE 2026-09-09 ────
   //
-  // CONTINUATION SEULE, comme le winback qu'elle remplace : aucun signal du
-  // dispatcher n'ouvre ce flow. Il s'arme à la fermeture de l'épisode de
-  // décrochage, dans `chat-inbound-v1`, et nulle part ailleurs.
-  //
-  // Les effets directs passent SANS fermer le flow : un élève qui revient en
-  // rapportant un fait (« j'ai repris le magnésium hier ») doit voir sa ligne
-  // écrite ET son retour accueilli. Fermer sur l'effet perdrait le cadre.
-  if (
-    isActiveConversationSkill(
-      input.active_skill_state,
-      "keel_reengagement_resume_v1",
-    )
-  ) {
-    return buildRouteDecision({
-      response_owner: "keel_reengagement_resume_v1",
-      selected_handler: "keel_reengagement_resume_v1",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "keel_reengagement_resume_v1",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_keel_reengagement_resume_with_direct_effects"
-        : "active_keel_reengagement_resume",
-    });
-  }
+  // Elle rendait `keel_reengagement_resume_v1` propriétaire du prochain tour
+  // dès que l'état était actif. Son ÉCRIVAIN a été retiré de `chat-inbound-v1`
+  // le même jour (le pavé y est, avec le cas mesuré sur poul); cette branche
+  // part avec lui, et pas seulement par propreté: un état résiduel — écrit
+  // avant le retrait, chez n'importe quel élève — aurait encore avalé un tour.
+  // Un lecteur qui survit à son écrivain n'est pas du code mort, c'est une
+  // trappe.
 
   // Entrée : UNIQUEMENT le plancher déterministe. Aucun signal du dispatcher
   // n'ouvre ce flow — il n'existe volontairement pas de

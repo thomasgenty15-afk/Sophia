@@ -1,0 +1,12 @@
+{"tag":"keel.meal.retained_items","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","composition":0,"portion":0,"rhythm":0,"logistics":0,"craving":0,"unrouted":0,"portion_excluded":[],"refused":0,"legacy_notes":0,"other_subjects":0,"rhythm_served":0,"logistics_served":0}
+{"tag":"keel.age_gate","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","age_population":"adult","age_reason":"adult","number_allowed":true,"age":36}
+{"tag":"keel.meal.notes","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","subject":"household","lines":0,"served":0}
+{"tag":"keel.meal.condition_gate","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","population":"none","goal":"fat_loss","served_goal":"fat_loss","cancelled":false}
+{"tag":"keel.meal.portion_adjust","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","age_state":"adult","retained":0,"answers":0,"position":0,"raw":0,"factor":1,"applied":0,"composition":0,"portion":0,"rhythm":0,"logistics":0,"craving":0,"unrouted":0,"portion_excluded":[]}
+{"tag":"keel.meal.envelope","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","intent":"draft","mode":"per_kg","energy_low":2059,"energy_high":2175,"unadjusted_low":2059,"unadjusted_high":2175}
+{"tag":"keel.meal.regrammed","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","lines":1}
+{"tag":"keel.meal.composition_fill","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","measured":true,"unknowns":2,"requested":2,"answered":2,"model":1,"group_bounds":1,"over_cap":0,"no_group":0,"no_band":0,"already_resolved":0,"unreachable":0,"implausible":0,"kept":2,"sas_group_armed":2,"sas_write_skipped_reused_group":1,"sas_written":1,"sas_failed":0,"shares":{"kcal":11213,"table":0.997,"promoted":0,"model":0,"group_bounds":0.003}}
+{"tag":"keel.meal.composition_correction","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","tokens":[],"suppressed":[],"retried":false,"coverage_flag":"unverified"}
+{"tag":"keel.meal.portion_scaling","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","intent":"draft","applied":false,"abstained":"unweighed_dense","protein_factor":null,"other_factor":null,"lines_changed":0,"capped":0,"shopping_changed":0,"shopping_unrewritable":0,"verdict_energy":"not_computable","verdict_protein":"not_computable"}
+{"tag":"keel.meal.fridge_window","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","dishes":17,"violations":0,"within":15,"not_evaluated":0,"routed":37,"unknown_group":2}
+{"tag":"keel.meal.food_groups","user_id":"8eb029b7-19ae-4184-bcf0-1e62646e319d","intent":"draft","declared":0,"valid":0,"refused":0,"persisted":0,"lines":76}

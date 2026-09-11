@@ -145,6 +145,7 @@ const REFUSED_BY: Record<DietaryRegime, string> = {
   vegetarian: "meat, poultry and fish",
   vegan: "meat, poultry, fish, eggs and dairy",
   pescatarian: "meat and poultry",
+  gluten_free: "wheat, barley, rye and anything made from them",
 };
 
 /**

@@ -26,7 +26,9 @@ import {
   sentinelGroupsOf,
   verdictFor,
 } from "./meal_verdict.ts";
-import { envelopeFor } from "./meal_envelope.ts";
+import { envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 import {
   buildCompositionIndex,
   type CompositionRef,
@@ -61,6 +63,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -102,8 +105,8 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
   };
 }
 
-const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
-const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null);
+const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
+const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
 
 // ---------------------------------------------------------------------------
 // L'ABSTENTION AVANT L'ERREUR
@@ -383,7 +386,7 @@ Deno.test("per_portion et corps inconnu rendent le MÊME verdict", () => {
  windowDays: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   const unknownBody = verdictFor({
     dishes,
-    envelope: envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null),
+    envelope: envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION),
     index: INDEX,
     daysCovered: 1,
     windowDays: 1,
@@ -609,6 +612,7 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   };

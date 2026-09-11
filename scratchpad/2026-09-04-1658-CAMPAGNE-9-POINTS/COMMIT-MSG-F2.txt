@@ -1,0 +1,39 @@
+la décision par boîte devient pure et mutée, et les courses rabotées se disent
+
+Deux lots dans un commit, parce que le second est petit et que les deux
+touchent les mêmes lanes.
+
+RELECTURE CROISÉE DE `fc1642f0` (lot F) — quatre mutations restées vertes,
+toutes réparées par la structure, pas par une chaîne de plus :
+
+  · `box_energy_decision.ts` (pur, 10 tests, 5 mutations rouges) porte la
+    décision qui vivait dans `meal-energy-v1/index.ts` sans qu'aucun test ne
+    l'exécute : le plancher en dur à `false`, `emitted++` retiré, les motifs à
+    zéro non écrits, tout passait. La lane lit (roster, planchers, interrupteurs
+    en cache) et appelle ; le module décide.
+  · le lecteur doit être MEMBRE du foyer du plan : un lecteur sorti du foyer
+    avec une ligne non retirée recevait les kcal de ses anciens co-membres.
+    Trois états comptés à part — `member`, `not_member`, `unattached` — parce
+    que deux défauts fondus dans un compteur ressemblent à un compteur qui marche.
+  · `boxes_gate` est journalisé (`keel.meal_energy.box_gate`) : un champ déclaré
+    a besoin d'un compteur, et un compteur a besoin d'un lecteur.
+  · un solo en maintenance sans plan garde `student_off` (et donc l'interrupteur
+    à l'écran) au lieu de `no_plan` : le réordonnancement du lot F le lui
+    retirait en silence.
+  · deux propriétés de `keel_properties/` adaptées à ce que le code fait :
+    la réduction hissée de l'interrupteur (vérifiée venir de `energySwitchFrom`),
+    et la fermeture douce gardée à part — aucun nombre hors `plans[].boxes[]`,
+    et jamais sur un lecteur qui a EXPLICITEMENT éteint (R7, épinglé par
+    l'ABSENCE d'`explicit_off` dans la condition).
+
+RESTE DU LOT C — la phrase de rabotage des courses : « tu avais prévu 3 courses ;
+le plan n'en organise que 2, une par session de cuisine ». Dite seulement quand
+c'est la FENÊTRE qui borne ; quand c'est le style, `styleCapsSessions` le disait
+déjà. `CookingPlan.runs` atteint la rationale (fait REQUIS, les deux lanes).
+
+Ce que ce commit ne prouve pas : l'écran (personne n'a ouvert `/app/plan` comme
+Julie), et `keel_properties/` reste hors du filet du gate — la suite ne
+typecheck pas sur l'arbre pour une raison étrangère à ce lot
+(`no_food_solicitation_property_test.ts:351`, `PulseDecisionInput`).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>

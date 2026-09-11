@@ -23,6 +23,8 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -38,7 +40,7 @@ const PROMPT_BASE = {
   boxMemberExclusions: [],
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -49,6 +51,7 @@ const PROMPT_BASE = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
 };
 
@@ -83,7 +86,7 @@ const PEANUT: StudentSafetyConstraint = {
 // ---------------------------------------------------------------------------
 
 Deno.test("une allergie déclarée apparaît dans la consigne, AVANT la méthode", () => {
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     safetyConstraints: [PEANUT],
   });
@@ -104,8 +107,8 @@ Deno.test("une allergie déclarée apparaît dans la consigne, AVANT la méthode
 });
 
 Deno.test("sans contrainte, aucun bloc de contraintes — et pas un en-tête vide", () => {
-  const none = buildMealPrompt({ ...PROMPT_BASE, safetyConstraints: [] });
-  const unreadable = buildMealPrompt({ ...PROMPT_BASE, safetyConstraints: null });
+  const none = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, safetyConstraints: [] });
+  const unreadable = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, safetyConstraints: null });
   assert(!none.userMessage.includes("HARD CONSTRAINTS"), none.userMessage);
   // `[]` (aucune contrainte) et `null` (lecture en panne) rendent la MÊME
   // consigne. C'est voulu: la distinction est une information d'exploitation,
@@ -147,6 +150,7 @@ Deno.test("le VERROU DE SORTIE mord toujours — la consigne ne l'a pas remplac�
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   });
@@ -159,7 +163,7 @@ Deno.test("le VERROU DE SORTIE mord toujours — la consigne ne l'a pas remplac�
 // ---------------------------------------------------------------------------
 
 Deno.test("sous restriction_flag, ni taille ni poids ne partent — âge et sexe restent", () => {
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     body: { ...KNOWN_BODY, restrictionFlag: true },
   });
@@ -176,7 +180,7 @@ Deno.test("sous restriction_flag, ni taille ni poids ne partent — âge et sexe
 });
 
 Deno.test("plancher levé: la taille et les mesures arrivent, avec leur date", () => {
-  const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, body: KNOWN_BODY });
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, body: KNOWN_BODY });
 
   assertStringIncludes(userMessage, "height: 172 cm");
   assertStringIncludes(userMessage, "weight: 74 kg, measured week of 2026-08-03");
@@ -211,7 +215,7 @@ Deno.test("le plancher est DANS la fonction pure, pas chez l'appelant", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("l'axe entre dans la consigne, en toutes lettres", () => {
-  const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, focusAxis: "energy" });
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, focusAxis: "energy" });
   assertStringIncludes(userMessage, "Day-to-day energy");
   // Le garde-fou voyage avec l'axe: un axe que le coach n'a jamais traité ne
   // donne pas le droit d'inventer un conseil dessus.
@@ -219,8 +223,8 @@ Deno.test("l'axe entre dans la consigne, en toutes lettres", () => {
 });
 
 Deno.test("sans axe, aucune ligne d'axe — et pas « aucun axe choisi »", () => {
-  const withAxis = buildMealPrompt({ ...PROMPT_BASE, focusAxis: "sleep" });
-  const without = buildMealPrompt({ ...PROMPT_BASE, focusAxis: null });
+  const withAxis = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, focusAxis: "sleep" });
+  const without = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, focusAxis: null });
   assertStringIncludes(withAxis.userMessage, "Sleep quality");
   assert(!without.userMessage.includes("want to see improve"), without.userMessage);
 });
@@ -235,7 +239,7 @@ Deno.test("la CIBLE CHIFFRÉE n'a aucun chemin jusqu'à la consigne", () => {
   // de tester une absence d'entrée: une fois la colonne dans le `select`, plus
   // rien n'empêcherait quelqu'un de la passer.
   const caller = Deno.readTextFileSync(
-    new URL("../../generate-meal-v1/index.ts", import.meta.url),
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(!caller.includes("target_weight_kg"), "target_weight_kg a été ajouté au lecteur");
   assert(!caller.includes("target_waist_cm"), "target_waist_cm a été ajouté au lecteur");
@@ -263,7 +267,7 @@ Deno.test("l'âge est dérivé de birth_date, et part en BANDE", () => {
   const context = mealBodyContextFrom(snapshot, false);
   assertEquals(context.ageBand, "30_44");
 
-  const { userMessage } = buildMealPrompt({ ...PROMPT_BASE, body: context });
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, body: context });
   assertStringIncludes(userMessage, "30 to 44");
   // LE NOMBRE NE SORT PAS. Une bande ne peut pas ressortir telle quelle dans
   // une prose (« à 36 ans, vous… »), ce qu'un nombre exact finit par faire —
@@ -279,6 +283,7 @@ Deno.test("une date de naissance absente ou aberrante ne fabrique pas de bande",
       heightCm: null,
       gender: null,
       activityLevel: null,
+      activityAxes: { day: null, sport: null, asked: false },
       weights: [],
       waists: [],
     }, false);
@@ -296,6 +301,7 @@ Deno.test("« le dernier poids » est bien le DERNIER, pas le premier", () => {
     heightCm: null,
     gender: null,
     activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
     weights: [
       { weekStart: "2026-06-15", value: 81 },
       { weekStart: "2026-08-03", value: 74 },
@@ -314,8 +320,8 @@ Deno.test("un élève dont on ne sait rien reçoit la même consigne qu'un corps
   // le lot additif. Par égalité de chaînes, pas par inspection: un test qui
   // vérifie « il n'y a pas de ligne de taille » laisserait passer un en-tête
   // vide, un saut de ligne de plus, ou un « not stated » ajouté plus tard.
-  const absent = buildMealPrompt({ ...PROMPT_BASE, body: null });
-  const empty = buildMealPrompt({
+  const absent = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, body: null });
+  const empty = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     body: {
       heightCm: null,
@@ -336,7 +342,7 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
   // La garde ne doit pas produire une consigne différente pour quelqu'un dont
   // on ne sait rien: sinon le plancher devient observable dans le prompt, et un
   // modèle qui remarque une absence la commente.
-  const open = buildMealPrompt({
+  const open = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     body: {
       heightCm: null,
@@ -348,7 +354,7 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
       restrictionFlag: false,
     },
   });
-  const closed = buildMealPrompt({
+  const closed = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     body: {
       heightCm: null,

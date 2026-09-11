@@ -38,6 +38,9 @@ import { describeMissedSlot } from "../_shared/keel/tracking_describe_io.ts";
 // atteignable sans jeton. `keel-auth-in-function` est pour celles qui doivent
 // être atteintes SANS — un webhook, un cron à secret interne.
 
+import { loadJournal } from "../_shared/keel/tracking_v2_io.ts";
+import { mutateJournal } from "../_shared/keel/tracking_mutations_io.ts";
+
 const FN_NAME = "keel-tracking-v1";
 
 function requireEnv(name: string): string {
@@ -83,6 +86,19 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
 
+    if (String(body.action ?? "").startsWith("journal_")) {
+      try {
+        return jsonResponse(req, await mutateJournal(admin, userId, body, requestId));
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "journal_unavailable";
+        if (reason.startsWith("journal_")) return jsonResponse(req, {ok:false, reason});
+        throw error;
+      }
+    }
+    if (body.version === 2) {
+      return jsonResponse(req, await loadJournal(admin, {userId, from:String(body.from ?? ""), to:String(body.to ?? ""), requestId}));
+    }
+
     // ══ ② « DÉCRIRE » UN CRÉNEAU LOUPÉ ════════════════════════════════════
     if (String(body.action ?? "") === "describe") {
       const result = await describeMissedSlot(admin, {
@@ -90,6 +106,7 @@ Deno.serve(async (req) => {
         localDate: String(body.local_date ?? ""),
         slot: String(body.slot ?? ""),
         text: String(body.text ?? ""),
+        requestId,
       });
       // ⚠️ UN REFUS NOMMÉ SORT EN 200. C'est la convention du dépôt
       // (`planFeedback.ts`): un refus métier n'est pas une panne de la

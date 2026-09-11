@@ -1,0 +1,77 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 8,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Skyr, flocons d'avoine, raisin et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 759,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 385,
+      "density_kcal_per_100g": 197.1,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, semoule, courgette, aubergine et poivron",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au paprika ÷2",
+        "Semoule moelleuse à l'huile d'olive ÷2",
+        "Légumes d'été rôtis ÷2"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 781,
+      "density_kcal_per_100g": null,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 126,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 170,
+      "density_kcal_per_100g": 74.1,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet rôti, semoule, légumes rôtis et yaourt citronné",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au paprika ÷2",
+        "Semoule moelleuse à l'huile d'olive ÷2",
+        "Légumes d'été rôtis ÷2"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 831,
+      "density_kcal_per_100g": null,
+      "boxes": 0
+    }
+  ]
+}

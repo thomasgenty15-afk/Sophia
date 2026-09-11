@@ -1,0 +1,52 @@
+[
+  {
+    "term": "lait de vache",
+    "expected_reject": true,
+    "dishes_kept": 0,
+    "shopping_kept": 0,
+    "issues": [
+      "dishes[0]: protein_source_missing -- breakfast carries no protein food",
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "lait sans lactose",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "dishes[0]: protein_source_missing -- breakfast carries no protein food",
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "lactose-free milk",
+    "expected_reject": true,
+    "dishes_kept": 0,
+    "shopping_kept": 0,
+    "issues": [
+      "dishes[0]: protein_source_missing -- breakfast carries no protein food",
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "boisson de riz",
+    "expected_reject": false,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "dishes[0]: protein_source_missing -- breakfast carries no protein food",
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "lait sans lactose de vache",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "dishes[0]: protein_source_missing -- breakfast carries no protein food",
+      "composition_index_unavailable: grams not computed"
+    ]
+  }
+]

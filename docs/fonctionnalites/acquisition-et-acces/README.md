@@ -4,7 +4,7 @@ Comment on entre. Pages de vente, inscription coach, inscription libre, `/join`,
 essai, rôles et paywall — puis **le parcours qui mène du compte au premier
 plan**.
 
-`coach-signup-v1` · `send-welcome-email` · `trigger-retention-emails` ·
+`coach-signup-v1` · `send-welcome-email` · `keel-lifecycle-email-v1` ·
 `LandingPage` · `GymsLandingPage` · `CommunitiesPage` · `StartPage` · `JoinPage` ·
 `SetupPage` · `keel/api/onboarding.ts`
 

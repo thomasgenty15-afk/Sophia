@@ -174,7 +174,13 @@ Deno.test("A7 io — une fenêtre trop large est refusée, et la borne est celle
 // ══════════════════════════════════════════════════════════════════════════
 
 Deno.test("A7 décrire — un créneau, une date et un texte sont validés sans base", async () => {
-  const ok = { userId: "u1", localDate: "2026-09-02", slot: "lunch", text: "une salade" };
+  const ok = {
+    userId: "u1",
+    localDate: "2026-09-02",
+    slot: "lunch",
+    text: "une salade",
+    requestId: "test",
+  };
 
   assertEquals(
     (await describeMissedSlot(NO_DB, { ...ok, slot: "brunch" })).reason,
@@ -215,14 +221,24 @@ Deno.test("A7 décrire — aucun refus ne rend un chiffre, et la porte précède
     ),
   );
   const gateAt = source.indexOf("loadEnergyGate(");
-  const insertAt = source.indexOf(".insert(");
+  const writeAt = source.indexOf("mutateJournal(");
   assert(gateAt > 0, "la porte a disparu du chemin `décrire`");
-  assert(insertAt > gateAt, "on écrit avant d'avoir résolu le jour de la personne");
-  // ⛔ AUCUN CHIFFRE STOCKÉ (FF-059 R5). Ce chemin n'écrit pas d'énergie, et le
-  // seul champ `energy` qu'il rend est `null`.
+  assert(writeAt > gateAt, "on écrit avant d'avoir résolu le jour de la personne");
+  // ⛔ UN SEUL ÉCRIVAIN (2026-09-09). Ce module VALIDE et délègue; il n'insère
+  // plus lui-même dans `protocol_events`. Deux écrivains sur cette table
+  // divergent au premier correctif, et c'est celui qu'on relit le moins qui
+  // écrit le fait faux. La seule écriture directe qui reste est le `.update()`
+  // qui repose `plan_relation` et `food_group_ref` sur la ligne déjà écrite.
   assert(
-    !source.includes("energy_estimate"),
-    "le chemin `décrire` écrit une estimation d'énergie — un chiffre stocké",
+    !source.includes(".insert("),
+    "le chemin `décrire` a repris une écriture directe — il y a deux écrivains",
+  );
+  // ⛔ L'IDEMPOTENCE LIT LES DEUX CLÉS. La neuve (`journal:…`) et l'ANCIENNE
+  // (`slot_meal:<date>:<slot>`, écrite jusqu'au 2026-09-09 et par le canal C1):
+  // n'en relire qu'une ferait redemander un créneau déjà couvert.
+  assert(
+    source.includes("slotMealFactKey(") && source.includes("`journal:${"),
+    "l'idempotence ne lit plus les deux clés de fait",
   );
   // ⛔ ET JAMAIS `as_planned`: le plancher ne produit que `off_plan` ou `null`,
   // et le compléter fabriquerait de l'adhérence à partir d'un silence.

@@ -164,6 +164,9 @@ const SIGN_RATE_WINDOWS = [
   { limit: 1000, windowSeconds: 86_400 },
 ];
 
+import { resolveJournalContext } from "../_shared/keel/tracking_mutations_io.ts";
+import { editableJournalDate } from "../_shared/keel/tracking_v2.ts";
+
 const UPLOAD_SCHEMA = z.object({
   /**
    * Absent sur le chemin historique, et c'est voulu: le client d'upload n'a
@@ -171,6 +174,9 @@ const UPLOAD_SCHEMA = z.object({
    * casserait l'écriture. L'absence vaut « upload ».
    */
   action: z.literal("upload").optional(),
+  local_date: z.string().optional(),
+  journal_meal_id: z.string().max(200).optional(),
+  journal_relation: z.enum(["planned","replacement","outside","extra"]).optional(),
   mime_type: z.string().trim().min(1).max(80),
   base64: z.string().min(1).max(12_000_000),
   slot_key: z.string().trim().min(1).max(40).nullable().optional(),
@@ -392,7 +398,7 @@ const EVENT_COLUMNS =
   // donc TOUJOURS « pas encore analysée ». Le rattachement ne s'est jamais
   // produit en run réel: 1 → 2 lignes sur le cas nominal, le double comptage
   // que R4 interdit, obtenu par une colonne absente d'un SELECT.
-  "analyzed_at, disqualified_reason, media_sha256, source_message_id";
+  "analyzed_at, disqualified_reason, media_sha256, source_message_id, meal_context";
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   // La copie n'est pas décorative: `crypto.subtle` n'accepte pas une vue dont
@@ -607,7 +613,26 @@ Deno.serve(async (req) => {
       }));
       timezone = "UTC";
     }
-    const localDate = localDateInZone(timezone, new Date());
+    const todayForUpload = localDateInZone(timezone, new Date());
+    const localDate = body.local_date ?? todayForUpload;
+    if (body.local_date && !editableJournalDate(localDate, todayForUpload)) {
+      return jsonResponse(req, {error:"journal_date_readonly"}, {status:400});
+    }
+    let journalContext: Awaited<ReturnType<typeof resolveJournalContext>> | null = null;
+    if (body.journal_meal_id) {
+      try {
+        journalContext = await resolveJournalContext(admin, {
+          userId, date:localDate, slot:String(body.slot_key ?? ""), mealId:body.journal_meal_id,
+          relation:body.journal_relation ?? "outside", requestId,
+        });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "journal_unavailable";
+        if (reason.startsWith("journal_")) {
+          return jsonResponse(req, { error: reason, request_id: requestId }, { status: 400 });
+        }
+        throw error;
+      }
+    }
 
     // ---- 5. the two client-supplied tokens, both verified ------------------
     let slotKey: string | null = null;
@@ -636,6 +661,12 @@ Deno.serve(async (req) => {
     // cette règle interdit est la déduction SILENCIEUSE. La marque
     // `slot_inferred` voyage sur la ligne, l'accusé la prononce, et la porte de
     // correction est dans la même phrase.
+    //
+    // ⟳ 2026-09-09 — LA RÈGLE EST UNE FENÊTRE, PLUS « LE DERNIER CRÉNEAU
+    // ÉCOULÉ ». Une assiette photographiée à midi partait au petit-déjeuner,
+    // parce que le déjeuner n'était réputé passé qu'à 14 h. Tout le
+    // renversement est dans `photo_slot_inference.ts`; ici, rien ne change:
+    // l'appel est le même, et la marque aussi.
     //
     // ── ET SEULEMENT QUAND L'APPELANT SE TAIT. Un `slot_key` fourni est un
     // fait de l'élève: rien ici ne le remplace, ni ne le « corrige ».
@@ -679,10 +710,10 @@ Deno.serve(async (req) => {
             from_declared_rhythm: rhythm !== null,
           }));
         }
-        // `inferred === null` — avant le premier créneau de la journée — laisse
-        // `slot_key: null`, exactement comme avant. Une photo à 7 h n'a aucun
-        // créneau écoulé derrière elle, et lui en coller un serait la
-        // déduction silencieuse qu'on vient de refuser.
+        // `inferred === null` — la photo ne tombe dans aucune fenêtre de repas
+        // et rien n'est écoulé derrière elle (la nuit, entre 0 h et 5 h) —
+        // laisse `slot_key: null`, exactement comme avant. Lui coller un
+        // créneau serait la déduction sans fondement qu'on vient de refuser.
       }
     }
 
@@ -933,6 +964,7 @@ Deno.serve(async (req) => {
       media_sha256: mediaSha256,
       source_message_id: sourceMessageId,
     };
+    if (journalContext) insertPayload.meal_context = journalContext;
     if (slotInferred) {
       // LA MARQUE, ÉCRITE AVEC LE SLOT ET JAMAIS APRÈS. Un créneau déduit qui
       // ne porte pas sa marque est indiscernable d'un créneau déclaré — pour
@@ -1028,6 +1060,27 @@ Deno.serve(async (req) => {
       throw new Error("protocol_events returned no readable id");
     }
     const photoRowId = eventId;
+
+    // A replay or byte-identical photo may resolve to an older row. The user's
+    // explicit journal target still wins, without creating a second fact, and
+    // the correction RPC preserves the former attachment in its audit trail.
+    if (
+      journalContext &&
+      JSON.stringify(eventRow.meal_context ?? null) !== JSON.stringify(journalContext)
+    ) {
+      const attached = await admin.rpc("correct_nutrition_journal", {
+        p_user_id: userId,
+        p_event_ids: [eventId],
+        p_date: localDate,
+        p_slot: slotKey,
+        p_context: journalContext,
+        p_mutation_id: `photo:${body.client_upload_id}`,
+      });
+      if (attached.error) {
+        throw new Error(`journal photo attachment failed: ${attached.error.message}`);
+      }
+      eventRow.meal_context = journalContext;
+    }
 
     // ---- 8. the analysis. Its failure costs the verdict, never the fact ----
     let analysis: Record<string, unknown> = {

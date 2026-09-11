@@ -1,0 +1,1512 @@
+{
+  "genere_le": "2026-09-11",
+  "lignes": 943,
+  "par_source": {
+    "ciqual": 881,
+    "manual": 44,
+    "sas": 18
+  },
+  "a_codes_ciqual_en_double": [],
+  "b_nom_francais_designe_une_autre_ligne": {
+    "total": 18,
+    "dont_valeurs_identiques": 1,
+    "lignes": [
+      {
+        "slug": "beef_mince",
+        "label": "Beef mince (5%)",
+        "ciqual_code": "6250",
+        "ciqual_name": "Boeuf, steak haché 5% MG, cru",
+        "tete": "boeuf",
+        "designe": "beef_braising",
+        "energie_ligne": 130,
+        "energie_designee": 144,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "beef_steak",
+        "label": "Beef steak",
+        "ciqual_code": "6201",
+        "ciqual_name": "Boeuf, steak ou bifteck, cru",
+        "tete": "boeuf",
+        "designe": "beef_braising",
+        "energie_ligne": 223,
+        "energie_designee": 144,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "chicken_breast",
+        "label": "Chicken breast",
+        "ciqual_code": "36017",
+        "ciqual_name": "Poulet, filet, sans peau, cru",
+        "tete": "poulet",
+        "designe": "chicken_free_range_meat",
+        "energie_ligne": 110,
+        "energie_designee": 135,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "chicken_thigh",
+        "label": "Chicken thigh",
+        "ciqual_code": "36024",
+        "ciqual_name": "Poulet, cuisse, viande, cru",
+        "tete": "poulet",
+        "designe": "chicken_free_range_meat",
+        "energie_ligne": 114,
+        "energie_designee": 135,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "chickpeas_dry",
+        "label": "Chickpeas (dry)",
+        "ciqual_code": "20516",
+        "ciqual_name": "Pois chiche, sec",
+        "tete": "pois chiche",
+        "designe": "chickpeas_tinned",
+        "energie_ligne": 351.2,
+        "energie_designee": 122,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "cooked_rice",
+        "label": "Cooked rice",
+        "ciqual_code": "9104",
+        "ciqual_name": "Riz blanc, cuit, non salé",
+        "tete": "riz blanc",
+        "designe": "white_rice",
+        "energie_ligne": 145,
+        "energie_designee": 352,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "egg_white",
+        "label": "Egg white",
+        "ciqual_code": "22001",
+        "ciqual_name": "Oeuf, blanc (blanc d'oeuf), cru",
+        "tete": "oeuf",
+        "designe": "whole_eggs",
+        "energie_ligne": 48.1,
+        "energie_designee": 140,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "egg_yolk",
+        "label": "Egg yolk",
+        "ciqual_code": "22002",
+        "ciqual_name": "Oeuf, jaune (jaune d'oeuf), cru",
+        "tete": "oeuf",
+        "designe": "whole_eggs",
+        "energie_ligne": 307,
+        "energie_designee": 140,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "grapes",
+        "label": "Grapes",
+        "ciqual_code": "13112",
+        "ciqual_name": "Raisin, cru",
+        "tete": "raisin",
+        "designe": "raisin",
+        "energie_ligne": 68.9,
+        "energie_designee": 321,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "lentils_cooked",
+        "label": "Lentils (cooked)",
+        "ciqual_code": "20505",
+        "ciqual_name": "Lentille, bouillie/cuite à l'eau",
+        "tete": "lentille",
+        "designe": "lentils_dry",
+        "energie_ligne": 104.1,
+        "energie_designee": 331.3,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "passata",
+        "label": "Passata",
+        "ciqual_code": "20170",
+        "ciqual_name": "Tomate, purée, appertisée",
+        "tete": "tomate",
+        "designe": "tomato",
+        "energie_ligne": 47.1,
+        "energie_designee": 19.3,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "raisins",
+        "label": "Raisins",
+        "ciqual_code": "13046",
+        "ciqual_name": "Raisin, sec",
+        "tete": "raisin",
+        "designe": "raisin",
+        "energie_ligne": 321,
+        "energie_designee": 321,
+        "valeurs_identiques": true,
+        "meme_groupe": true
+      },
+      {
+        "slug": "tinned_tomatoes",
+        "label": "Tinned tomatoes",
+        "ciqual_code": "20048",
+        "ciqual_name": "Tomate, pelée, appertisée, égouttée",
+        "tete": "tomate",
+        "designe": "tomato",
+        "energie_ligne": 18.3,
+        "energie_designee": 19.3,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "tomato_puree",
+        "label": "Tomato purée",
+        "ciqual_code": "20068",
+        "ciqual_name": "Tomate, concentré, appertisé",
+        "tete": "tomate",
+        "designe": "tomato",
+        "energie_ligne": 99.2,
+        "energie_designee": 19.3,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "tuna_fresh",
+        "label": "Tuna steak",
+        "ciqual_code": "26053",
+        "ciqual_name": "Thon, cru",
+        "tete": "thon",
+        "designe": "tuna_tinned",
+        "energie_ligne": 144,
+        "energie_designee": 111,
+        "valeurs_identiques": false,
+        "meme_groupe": true
+      },
+      {
+        "slug": "turkey_mince",
+        "label": "Turkey mince",
+        "ciqual_code": "36301",
+        "ciqual_name": "Dinde, viande, crue",
+        "tete": "dinde",
+        "designe": "turkey_breast",
+        "energie_ligne": 110,
+        "energie_designee": 109,
+        "valeurs_identiques": false,
+        "meme_groupe": false
+      },
+      {
+        "slug": "wholemeal_bread",
+        "label": "Wholemeal bread",
+        "ciqual_code": "7111",
+        "ciqual_name": "Pain de mie, complet",
+        "tete": "pain de mie",
+        "designe": "white_bread",
+        "energie_ligne": 262,
+        "energie_designee": 278,
+        "valeurs_identiques": false,
+        "meme_groupe": false
+      },
+      {
+        "slug": "wholewheat_pasta",
+        "label": "Wholewheat pasta",
+        "ciqual_code": "9870",
+        "ciqual_name": "Pâtes sèches, au blé complet, crues",
+        "tete": "pates seches",
+        "designe": "white_pasta",
+        "energie_ligne": 353,
+        "energie_designee": 336,
+        "valeurs_identiques": false,
+        "meme_groupe": false
+      }
+    ]
+  },
+  "c_non_tracables": {
+    "ciqual_sans_code": 690,
+    "ciqual_avec_code": 191,
+    "note": "Non traçables, pas fausses: aucune confrontation à la source ANSES n'est possible. Arbitrage ① du socle: le seul champ source='ciqual' ne donne pas `verifie`, mais l'absence de code ne le retire pas non plus — l'exiger supprimerait 689 lignes sur 881."
+  },
+  "d_fruits_a_energie_de_fruit_sec": [
+    {
+      "slug": "avocado",
+      "label": "Avocado",
+      "ciqual_name": "Avocat, pulpe, cru",
+      "energy_kcal": 205,
+      "yield_class": "neutral",
+      "nom_avoue": false
+    },
+    {
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual_name": null,
+      "energy_kcal": 229,
+      "yield_class": "neutral",
+      "nom_avoue": false
+    }
+  ],
+  "e_alias_captures_par_un_slug": {
+    "total": 191,
+    "contradictoires": 0,
+    "lignes": []
+  },
+  "f_usage_des_deux_plans": {
+    "termes": 50,
+    "non_resolus": 0,
+    "ciqual_sans_code": 4,
+    "lignes": [
+      {
+        "terme": "huile d'olive",
+        "occurrences": 25,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "olive_oil",
+        "label": "Olive oil",
+        "source": "ciqual",
+        "ciqual_code": "17270",
+        "ciqual_name": "Huile d'olive vierge extra",
+        "energy_kcal": 900,
+        "food_group_ref": "olive_oil"
+      },
+      {
+        "terme": "pain complet",
+        "occurrences": 14,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "wholemeal_bread",
+        "label": "Wholemeal bread",
+        "source": "ciqual",
+        "ciqual_code": "7111",
+        "ciqual_name": "Pain de mie, complet",
+        "energy_kcal": 262,
+        "food_group_ref": "whole_grain"
+      },
+      {
+        "terme": "amandes",
+        "occurrences": 10,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "almonds",
+        "label": "Almonds",
+        "source": "ciqual",
+        "ciqual_code": "15000",
+        "ciqual_name": "Amande (avec peau)",
+        "energy_kcal": 599.9,
+        "food_group_ref": "nuts_seeds"
+      },
+      {
+        "terme": "feta",
+        "occurrences": 10,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "feta",
+        "label": "Feta",
+        "source": "ciqual",
+        "ciqual_code": "12066",
+        "ciqual_name": "Feta AOP",
+        "energy_kcal": 285,
+        "food_group_ref": "dairy_cheese"
+      },
+      {
+        "terme": "citron",
+        "occurrences": 9,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "lemon",
+        "label": "Lemon",
+        "source": "ciqual",
+        "ciqual_code": "13009",
+        "ciqual_name": "Citron, pulpe, cru",
+        "energy_kcal": 27.6,
+        "food_group_ref": "citrus"
+      },
+      {
+        "terme": "flocons d'avoine",
+        "occurrences": 8,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "oats",
+        "label": "Oats",
+        "source": "ciqual",
+        "ciqual_code": "9311",
+        "ciqual_name": "Flocon d'avoine",
+        "energy_kcal": 367,
+        "food_group_ref": "whole_grain"
+      },
+      {
+        "terme": "tomate",
+        "occurrences": 8,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "tomato",
+        "label": "Tomato",
+        "source": "ciqual",
+        "ciqual_code": "20047",
+        "ciqual_name": "Tomate, crue",
+        "energy_kcal": 19.3,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "sel",
+        "occurrences": 8,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "salt",
+        "label": "Salt",
+        "source": "ciqual",
+        "ciqual_code": "11058",
+        "ciqual_name": "Sel blanc alimentaire, iodé, non fluoré (marin, ignigène ou gemme)",
+        "energy_kcal": 0,
+        "food_group_ref": "sauce_dressing"
+      },
+      {
+        "terme": "salade verte",
+        "occurrences": 6,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "lettuce",
+        "label": "Lettuce",
+        "source": "ciqual",
+        "ciqual_code": "20031",
+        "ciqual_name": "Laitue, crue",
+        "energy_kcal": 14.7,
+        "food_group_ref": "leafy_greens"
+      },
+      {
+        "terme": "poivre noir",
+        "occurrences": 5,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "black_pepper",
+        "label": "Black pepper",
+        "source": "ciqual",
+        "ciqual_code": "11015",
+        "ciqual_name": "Poivre noir, poudre",
+        "energy_kcal": 330,
+        "food_group_ref": "sauce_dressing"
+      },
+      {
+        "terme": "skyr",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "skyr",
+        "label": "Skyr",
+        "source": "manual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 63,
+        "food_group_ref": "dairy_yogurt"
+      },
+      {
+        "terme": "noix",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "walnuts",
+        "label": "Walnuts",
+        "source": "ciqual",
+        "ciqual_code": "15023",
+        "ciqual_name": "Noix, fraîche",
+        "energy_kcal": 377.8,
+        "food_group_ref": "nuts_seeds"
+      },
+      {
+        "terme": "miel",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "honey",
+        "label": "Honey",
+        "source": "ciqual",
+        "ciqual_code": "31008",
+        "ciqual_name": "Miel",
+        "energy_kcal": 329,
+        "food_group_ref": "sugar_sweets"
+      },
+      {
+        "terme": "yaourt nature",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "plain_yogurt",
+        "label": "Plain yogurt",
+        "source": "manual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 59,
+        "food_group_ref": "dairy_yogurt"
+      },
+      {
+        "terme": "fromage blanc",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "fromage_blanc",
+        "label": "Fromage blanc",
+        "source": "ciqual",
+        "ciqual_code": "19646",
+        "ciqual_name": "Fromage blanc nature, 3% MG environ",
+        "energy_kcal": 76.9,
+        "food_group_ref": "dairy_yogurt"
+      },
+      {
+        "terme": "graines de courge",
+        "occurrences": 4,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "pumpkin_seeds",
+        "label": "Pumpkin seeds",
+        "source": "manual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 559,
+        "food_group_ref": "nuts_seeds"
+      },
+      {
+        "terme": "oignon",
+        "occurrences": 3,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "onion",
+        "label": "Onion",
+        "source": "ciqual",
+        "ciqual_code": "20034",
+        "ciqual_name": "Oignon, cru",
+        "energy_kcal": 38.4,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "eau",
+        "occurrences": 3,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "water",
+        "label": "Water",
+        "source": "ciqual",
+        "ciqual_code": "18066",
+        "ciqual_name": "Eau du robinet",
+        "energy_kcal": 0,
+        "food_group_ref": "water"
+      },
+      {
+        "terme": "peche",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "peach",
+        "label": "Peach",
+        "source": "ciqual",
+        "ciqual_code": "13195",
+        "ciqual_name": "Pêche jaune, pulpe, crue",
+        "energy_kcal": 46.3,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "concombre",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "cucumber",
+        "label": "Cucumber",
+        "source": "ciqual",
+        "ciqual_code": "20210",
+        "ciqual_name": "Concombre, pulpe, cru",
+        "energy_kcal": 14.7,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "thon au naturel egoutte",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "tuna_tinned",
+        "label": "Tinned tuna",
+        "source": "ciqual",
+        "ciqual_code": "26039",
+        "ciqual_name": "Thon, au naturel, appertisé, égoutté",
+        "energy_kcal": 111,
+        "food_group_ref": "white_fish"
+      },
+      {
+        "terme": "olives",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "olives",
+        "label": "Olives",
+        "source": "ciqual",
+        "ciqual_code": "13186",
+        "ciqual_name": "Olive noire (aliment moyen)",
+        "energy_kcal": 195.6,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "prune",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "prune",
+        "label": "Prune",
+        "source": "ciqual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 229,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "yaourt grec",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "greek_yogurt",
+        "label": "Greek yogurt",
+        "source": "ciqual",
+        "ciqual_code": "19860",
+        "ciqual_name": "Yaourt à la grecque, nature",
+        "energy_kcal": 113.1,
+        "food_group_ref": "dairy_yogurt"
+      },
+      {
+        "terme": "raisin",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "raisin",
+        "label": "Raisin",
+        "source": "ciqual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 321,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "cuisses de poulet desossees",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "chicken_thigh",
+        "label": "Chicken thigh",
+        "source": "ciqual",
+        "ciqual_code": "36024",
+        "ciqual_name": "Poulet, cuisse, viande, cru",
+        "energy_kcal": 114,
+        "food_group_ref": "poultry"
+      },
+      {
+        "terme": "courgette",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "courgette",
+        "label": "Courgette",
+        "source": "ciqual",
+        "ciqual_code": "20020",
+        "ciqual_name": "Courgette, pulpe et peau, crue",
+        "energy_kcal": 16.5,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "paprika",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "paprika",
+        "label": "Paprika",
+        "source": "ciqual",
+        "ciqual_code": "11049",
+        "ciqual_name": "Paprika",
+        "energy_kcal": 319,
+        "food_group_ref": "sauce_dressing"
+      },
+      {
+        "terme": "aneth",
+        "occurrences": 2,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "herbs_dill",
+        "label": "Dill",
+        "source": "manual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 43,
+        "food_group_ref": "leafy_greens"
+      },
+      {
+        "terme": "poire",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "pear",
+        "label": "Pear",
+        "source": "ciqual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 53.1,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "raisins",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "raisins",
+        "label": "Raisins",
+        "source": "ciqual",
+        "ciqual_code": "13046",
+        "ciqual_name": "Raisin, sec",
+        "energy_kcal": 321,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "cottage cheese",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "cottage_cheese",
+        "label": "Cottage cheese",
+        "source": "manual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 98,
+        "food_group_ref": "dairy_yogurt"
+      },
+      {
+        "terme": "muesli",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "granola",
+        "label": "Granola",
+        "source": "ciqual",
+        "ciqual_code": "32004",
+        "ciqual_name": "Muesli (aliment moyen)",
+        "energy_kcal": 418,
+        "food_group_ref": "refined_grain"
+      },
+      {
+        "terme": "prunes",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "prune",
+        "label": "Prune",
+        "source": "ciqual",
+        "ciqual_code": null,
+        "ciqual_name": null,
+        "energy_kcal": 229,
+        "food_group_ref": "other_fruit"
+      },
+      {
+        "terme": "houmous",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "hummus",
+        "label": "Hummus",
+        "source": "ciqual",
+        "ciqual_code": "25621",
+        "ciqual_name": "Houmous, préemballé",
+        "energy_kcal": 288.3,
+        "food_group_ref": "legumes"
+      },
+      {
+        "terme": "tahini",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "tahini",
+        "label": "Tahini",
+        "source": "ciqual",
+        "ciqual_code": "15203",
+        "ciqual_name": "Tahin ou Purée de sésame",
+        "energy_kcal": 620.6,
+        "food_group_ref": "nuts_seeds"
+      },
+      {
+        "terme": "tomates",
+        "occurrences": 2,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "tomato",
+        "label": "Tomato",
+        "source": "ciqual",
+        "ciqual_code": "20047",
+        "ciqual_name": "Tomate, crue",
+        "energy_kcal": 19.3,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "quinoa",
+        "occurrences": 1,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "quinoa",
+        "label": "Quinoa",
+        "source": "ciqual",
+        "ciqual_code": "9340",
+        "ciqual_name": "Quinoa, cru",
+        "energy_kcal": 358,
+        "food_group_ref": "whole_grain"
+      },
+      {
+        "terme": "poivron rouge",
+        "occurrences": 1,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "bell_pepper",
+        "label": "Bell pepper",
+        "source": "ciqual",
+        "ciqual_code": "20085",
+        "ciqual_name": "Poivron vert, cru",
+        "energy_kcal": 26,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "filet de saumon",
+        "occurrences": 1,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "salmon",
+        "label": "Salmon",
+        "source": "ciqual",
+        "ciqual_code": "26036",
+        "ciqual_name": "Saumon, cru, élevage",
+        "energy_kcal": 194,
+        "food_group_ref": "fatty_fish"
+      },
+      {
+        "terme": "pomme de terre",
+        "occurrences": 1,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "potato",
+        "label": "Potato",
+        "source": "ciqual",
+        "ciqual_code": "4023",
+        "ciqual_name": "Pomme de terre nouvelle, crue",
+        "energy_kcal": 76.4,
+        "food_group_ref": "starchy_veg"
+      },
+      {
+        "terme": "haricots verts",
+        "occurrences": 1,
+        "plans": [
+          "5fad22ce-d181-4a0c-b0b5-77caf65092b5"
+        ],
+        "slug": "green_beans",
+        "label": "Green beans",
+        "source": "ciqual",
+        "ciqual_code": "20061",
+        "ciqual_name": "Haricot vert, cru",
+        "energy_kcal": 31.6,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "ail",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "garlic",
+        "label": "Garlic",
+        "source": "ciqual",
+        "ciqual_code": "11000",
+        "ciqual_name": "Ail, cru",
+        "energy_kcal": 111,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "quinoa sec",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "quinoa",
+        "label": "Quinoa",
+        "source": "ciqual",
+        "ciqual_code": "9340",
+        "ciqual_name": "Quinoa, cru",
+        "energy_kcal": 358,
+        "food_group_ref": "whole_grain"
+      },
+      {
+        "terme": "lentilles vertes seches",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "lentils_dry",
+        "label": "Lentils (dry)",
+        "source": "ciqual",
+        "ciqual_code": "20504",
+        "ciqual_name": "Lentille, sèche",
+        "energy_kcal": 331.3,
+        "food_group_ref": "legumes"
+      },
+      {
+        "terme": "filets de saumon",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "salmon",
+        "label": "Salmon",
+        "source": "ciqual",
+        "ciqual_code": "26036",
+        "ciqual_name": "Saumon, cru, élevage",
+        "energy_kcal": 194,
+        "food_group_ref": "fatty_fish"
+      },
+      {
+        "terme": "couscous sec",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "couscous",
+        "label": "Couscous",
+        "source": "ciqual",
+        "ciqual_code": "9610",
+        "ciqual_name": "Semoule de blé dur, crue",
+        "energy_kcal": 352,
+        "food_group_ref": "refined_grain"
+      },
+      {
+        "terme": "persil",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "herbs_parsley",
+        "label": "Parsley",
+        "source": "ciqual",
+        "ciqual_code": "11014",
+        "ciqual_name": "Persil, frais",
+        "energy_kcal": 43,
+        "food_group_ref": "leafy_greens"
+      },
+      {
+        "terme": "aubergine",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "aubergine",
+        "label": "Aubergine",
+        "source": "ciqual",
+        "ciqual_code": "20053",
+        "ciqual_name": "Aubergine, crue",
+        "energy_kcal": 20.7,
+        "food_group_ref": "non_starchy_veg"
+      },
+      {
+        "terme": "poivron",
+        "occurrences": 1,
+        "plans": [
+          "a18f522e-41f9-469e-9c50-1d693d892ce6"
+        ],
+        "slug": "bell_pepper",
+        "label": "Bell pepper",
+        "source": "ciqual",
+        "ciqual_code": "20085",
+        "ciqual_name": "Poivron vert, cru",
+        "energy_kcal": 26,
+        "food_group_ref": "non_starchy_veg"
+      }
+    ]
+  },
+  "g_cas_nommes_par_l_enquete": [
+    {
+      "terme": "raisin",
+      "slug": "grapes",
+      "label": "Grapes",
+      "ciqual_code": "13112",
+      "ciqual_name": "Raisin, cru",
+      "energy_kcal": 68.9,
+      "slug_en": "raisin",
+      "energy_kcal_en": 321,
+      "porte": "falseFriends"
+    },
+    {
+      "terme": "raisins",
+      "slug": "grapes",
+      "label": "Grapes",
+      "ciqual_code": "13112",
+      "ciqual_name": "Raisin, cru",
+      "energy_kcal": 68.9,
+      "slug_en": "raisins",
+      "energy_kcal_en": 321,
+      "porte": "falseFriends"
+    },
+    {
+      "terme": "raisin sec",
+      "slug": "raisins",
+      "label": "Raisins",
+      "ciqual_code": "13046",
+      "ciqual_name": "Raisin, sec",
+      "energy_kcal": 321,
+      "slug_en": "raisins",
+      "energy_kcal_en": 321,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "raisins secs",
+      "slug": "raisins",
+      "label": "Raisins",
+      "ciqual_code": "13046",
+      "ciqual_name": "Raisin, sec",
+      "energy_kcal": 321,
+      "slug_en": "raisins",
+      "energy_kcal_en": 321,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "raisins frais",
+      "slug": "grapes",
+      "label": "Grapes",
+      "ciqual_code": "13112",
+      "ciqual_name": "Raisin, cru",
+      "energy_kcal": 68.9,
+      "slug_en": "grapes",
+      "energy_kcal_en": 68.9,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "prune",
+      "slug": "plum",
+      "label": "Plum, raw",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 46,
+      "slug_en": "prune",
+      "energy_kcal_en": 229,
+      "porte": "falseFriends"
+    },
+    {
+      "terme": "prunes",
+      "slug": "plum",
+      "label": "Plum, raw",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 46,
+      "slug_en": "prune",
+      "energy_kcal_en": 229,
+      "porte": "falseFriends"
+    },
+    {
+      "terme": "prunes sechees",
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 229,
+      "slug_en": "prune",
+      "energy_kcal_en": 229,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "pruneau",
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 229,
+      "slug_en": "prune",
+      "energy_kcal_en": 229,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "pruneaux",
+      "slug": "prune",
+      "label": "Prune",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 229,
+      "slug_en": "prune",
+      "energy_kcal_en": 229,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "poire",
+      "slug": "pear",
+      "label": "Pear",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 53.1,
+      "slug_en": "pear",
+      "energy_kcal_en": 53.1,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "poires",
+      "slug": "pear",
+      "label": "Pear",
+      "ciqual_code": null,
+      "ciqual_name": null,
+      "energy_kcal": 53.1,
+      "slug_en": "pear",
+      "energy_kcal_en": 53.1,
+      "porte": "byAlias"
+    },
+    {
+      "terme": "poireau",
+      "slug": "leek",
+      "label": "Leek",
+      "ciqual_code": "20039",
+      "ciqual_name": "Poireau, cru",
+      "energy_kcal": 32.3,
+      "slug_en": "leek",
+      "energy_kcal_en": 32.3,
+      "porte": "byAlias"
+    }
+  ],
+  "h_doublons_de_fait": {
+    "total": 12,
+    "un_seul_code": 5,
+    "groupes_differents": 2,
+    "lignes": [
+      {
+        "nombres": "223/19.2/0/16.2/0",
+        "slugs": [
+          "beef_steak",
+          "beef_steak_beef_steak"
+        ],
+        "lignes": [
+          {
+            "slug": "beef_steak",
+            "label": "Beef steak",
+            "ciqual_code": "6201",
+            "ciqual_name": "Boeuf, steak ou bifteck, cru",
+            "food_group_ref": "red_meat"
+          },
+          {
+            "slug": "beef_steak_beef_steak",
+            "label": "Beef, steak or beef steak, raw",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          }
+        ],
+        "un_seul_code": true,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "753/0.7/0.9/82.9/0",
+        "slugs": [
+          "butter",
+          "butter_82_fat"
+        ],
+        "lignes": [
+          {
+            "slug": "butter",
+            "label": "Butter",
+            "ciqual_code": "16400",
+            "ciqual_name": "Beurre à 82% MG, doux",
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "butter_82_fat",
+            "label": "Butter, 82% fat, unsalted",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          }
+        ],
+        "un_seul_code": true,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "898/0/0/99.8/0",
+        "slugs": [
+          "chicken_fat",
+          "duck_fat",
+          "goose_fat",
+          "turkey_fat"
+        ],
+        "lignes": [
+          {
+            "slug": "chicken_fat",
+            "label": "Chicken fat",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "duck_fat",
+            "label": "Duck fat",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "goose_fat",
+            "label": "Goose fat",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "turkey_fat",
+            "label": "Turkey fat",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "900/0/0/100/0",
+        "slugs": [
+          "cod_liver_oil",
+          "herring_oil",
+          "rapeseed_oil",
+          "salmon_oil",
+          "sardine_oil",
+          "sesame_oil"
+        ],
+        "lignes": [
+          {
+            "slug": "cod_liver_oil",
+            "label": "Cod liver oil",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "herring_oil",
+            "label": "Herring oil",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "rapeseed_oil",
+            "label": "Rapeseed oil",
+            "ciqual_code": "17130",
+            "ciqual_name": "Huile de colza",
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "salmon_oil",
+            "label": "Salmon oil",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "sardine_oil",
+            "label": "Sardine oil",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "sesame_oil",
+            "label": "Sesame oil",
+            "ciqual_code": "17400",
+            "ciqual_name": "Huile de sésame",
+            "food_group_ref": "other_added_fat"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "489/6.88/2.43/50.1/0",
+        "slugs": [
+          "foie_gras_block",
+          "foie_gras_duck_s"
+        ],
+        "lignes": [
+          {
+            "slug": "foie_gras_block",
+            "label": "Foie gras, block (average)",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          },
+          {
+            "slug": "foie_gras_duck_s",
+            "label": "Foie gras, duck's liver, 30% pieces",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "poultry"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": true
+      },
+      {
+        "nombres": "153/26.1/0/5.45/0",
+        "slugs": [
+          "lamb_saddle_lean",
+          "lamb_saddle_pan"
+        ],
+        "lignes": [
+          {
+            "slug": "lamb_saddle_lean",
+            "label": "Lamb, saddle, lean, roasted/baked",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          },
+          {
+            "slug": "lamb_saddle_pan",
+            "label": "Lamb, saddle, grilled/pan-fried",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "27.6/0.4/1.6/0.3/2.8",
+        "slugs": [
+          "lemon",
+          "lemon_wedge"
+        ],
+        "lignes": [
+          {
+            "slug": "lemon",
+            "label": "Lemon",
+            "ciqual_code": "13009",
+            "ciqual_name": "Citron, pulpe, cru",
+            "food_group_ref": "citrus"
+          },
+          {
+            "slug": "lemon_wedge",
+            "label": "Lemon wedge",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "citrus"
+          }
+        ],
+        "un_seul_code": true,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "0/0/0/0/0",
+        "slugs": [
+          "paraffin_oil",
+          "salt",
+          "water"
+        ],
+        "lignes": [
+          {
+            "slug": "paraffin_oil",
+            "label": "Paraffin oil",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_added_fat"
+          },
+          {
+            "slug": "salt",
+            "label": "Salt",
+            "ciqual_code": "11058",
+            "ciqual_name": "Sel blanc alimentaire, iodé, non fluoré (marin, ignigène ou gemme)",
+            "food_group_ref": "sauce_dressing"
+          },
+          {
+            "slug": "water",
+            "label": "Water",
+            "ciqual_code": "18066",
+            "ciqual_name": "Eau du robinet",
+            "food_group_ref": "water"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": true
+      },
+      {
+        "nombres": "53.1/0.5/11.4/0.5/3.1",
+        "slugs": [
+          "pear",
+          "pear_var_conference_pulp"
+        ],
+        "lignes": [
+          {
+            "slug": "pear",
+            "label": "Pear",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_fruit"
+          },
+          {
+            "slug": "pear_var_conference_pulp",
+            "label": "Pear, var. Conférence, pulp, raw",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_fruit"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "321/3/73.2/0.9/4.2",
+        "slugs": [
+          "raisin",
+          "raisins"
+        ],
+        "lignes": [
+          {
+            "slug": "raisin",
+            "label": "Raisin",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "other_fruit"
+          },
+          {
+            "slug": "raisins",
+            "label": "Raisins",
+            "ciqual_code": "13046",
+            "ciqual_name": "Raisin, sec",
+            "food_group_ref": "other_fruit"
+          }
+        ],
+        "un_seul_code": true,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "327/13.2/1/30/0",
+        "slugs": [
+          "sausage",
+          "toulouse_sausage"
+        ],
+        "lignes": [
+          {
+            "slug": "sausage",
+            "label": "Sausage",
+            "ciqual_code": "30110",
+            "ciqual_name": "Saucisse de Toulouse, crue",
+            "food_group_ref": "red_meat"
+          },
+          {
+            "slug": "toulouse_sausage",
+            "label": "Toulouse sausage, raw",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          }
+        ],
+        "un_seul_code": true,
+        "groupes_differents": false
+      },
+      {
+        "nombres": "204/18.1/0/14.6/0",
+        "slugs": [
+          "sheep_foot",
+          "sheep_head"
+        ],
+        "lignes": [
+          {
+            "slug": "sheep_foot",
+            "label": "Sheep, foot, raw",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          },
+          {
+            "slug": "sheep_head",
+            "label": "Sheep, head, raw",
+            "ciqual_code": null,
+            "ciqual_name": null,
+            "food_group_ref": "red_meat"
+          }
+        ],
+        "un_seul_code": false,
+        "groupes_differents": false
+      }
+    ]
+  },
+  "i_classe_absorbante_sur_energie_cuite": [
+    {
+      "slug": "lentilles_mijotees",
+      "label": "lentilles mijotees",
+      "ciqual_name": null,
+      "energy_kcal": 116,
+      "yield_class": "legume_absorbs",
+      "source": "sas",
+      "facteur": 2.4
+    },
+    {
+      "slug": "pois_chiches_cuits_egouttes",
+      "label": "pois chiches cuits egouttes",
+      "ciqual_name": null,
+      "energy_kcal": 164,
+      "yield_class": "legume_absorbs",
+      "source": "sas",
+      "facteur": 2.4
+    }
+  ]
+}

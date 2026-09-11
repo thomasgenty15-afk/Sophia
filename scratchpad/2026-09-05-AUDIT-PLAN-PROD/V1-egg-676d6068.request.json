@@ -1,0 +1,11 @@
+{
+  "operation": "compose",
+  "window": {
+    "kind": "days",
+    "count": 3
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": "Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea.",
+  "one_cooking_session": false
+}

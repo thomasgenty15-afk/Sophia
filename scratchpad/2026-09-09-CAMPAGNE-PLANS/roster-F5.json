@@ -1,0 +1,62 @@
+[
+ {
+  "member_id": "f984852d-d23d-4f64-93ec-ab2704eeb186",
+  "first_name": "Theo",
+  "goal": "muscle_gain",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 185,
+  "weight_kg": 88,
+  "gender": "male",
+  "activity_level": "trains_hard",
+  "day_activity": "physical_job",
+  "sport_frequency": "5_plus",
+  "appetite": "large",
+  "age_years": 32
+ },
+ {
+  "member_id": "2ec570e3-a68f-49a0-9ea0-67909a71f7b8",
+  "first_name": "Maya",
+  "goal": "fat_loss",
+  "diet": "vegetarian",
+  "away_days": [],
+  "height_cm": 168,
+  "weight_kg": 74,
+  "gender": "female",
+  "activity_level": "sedentary",
+  "day_activity": "seated",
+  "sport_frequency": "1_2",
+  "appetite": "small",
+  "age_years": 35
+ },
+ {
+  "member_id": "c391e4b2-31da-4acf-86d6-359a658b97c4",
+  "first_name": "Georges",
+  "goal": "maintenance",
+  "diet": null,
+  "away_days": [],
+  "height_cm": 172,
+  "weight_kg": 70,
+  "gender": "male",
+  "activity_level": "on_feet",
+  "day_activity": "on_feet",
+  "sport_frequency": "1_2",
+  "appetite": "small",
+  "age_years": 68
+ },
+ {
+  "member_id": "be3a635e-3ea5-4c0f-86b1-dd0262c50d1a",
+  "first_name": "Jules",
+  "goal": null,
+  "diet": null,
+  "away_days": [],
+  "height_cm": 170,
+  "weight_kg": 55,
+  "gender": "male",
+  "activity_level": "trains_some",
+  "day_activity": null,
+  "sport_frequency": "3_4",
+  "appetite": "average",
+  "age_years": 15
+ }
+]

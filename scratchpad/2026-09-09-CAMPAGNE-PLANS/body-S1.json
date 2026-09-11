@@ -1,0 +1,15 @@
+{
+ "case": "S1",
+ "goal": "maintenance",
+ "weightKg": 82.0,
+ "heightCm": 178,
+ "gender": "male",
+ "ageBand": "30_44",
+ "ageYears": 36,
+ "activityLevel": "sedentary",
+ "servings": 1,
+ "regime": null,
+ "pace": null,
+ "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+ "email": "camp0909.s1@keeltest.dev"
+}

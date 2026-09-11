@@ -12,12 +12,22 @@
 // correction soit une édition, pas un travail d'archéologie.
 //
 // ── CE QUE LA PLANCHE DOIT DIRE, ET DANS QUEL ORDRE ────────────────────────
-// Le titre du hall MOT POUR MOT (`home.hero.title` / `home.hero.lede` de
-// `i18n/fr.ts`), puis la figure « une cuisson, la part de chacun » — la seule
-// image que les concurrents ne peuvent pas produire (BRIEF-LANDING-FOYER §6).
-// ⚠️ Si la copie du hall change, cette planche ET les balises `og:`/`twitter:`
-// d'`index.html` changent avec elle: trois rédactions du même hall divergent
-// en silence, c'est exactement le défaut mesuré le 2026-09-01.
+// Le titre du hall MOT POUR MOT, puis la figure « une cuisson, la part de
+// chacun » — la seule image que les concurrents ne peuvent pas produire
+// (BRIEF-LANDING-FOYER §6).
+//
+// ⚠️ LA COPIE EST LUE DANS `i18n/fr.ts`, PLUS RECOPIÉE ICI — ET C'EST LA
+// CORRECTION DU 2026-09-10. Recopiée, elle a divergé exactement comme prévu:
+// la planche servie annonçait encore « Une semaine de repas, décidée. / Ce
+// qu'on mange, quand on cuisine, ce qu'il faut acheter. », c'est-à-dire le
+// hall d'AVANT la refonte du 2026-09-08, en vouvoiement, sur un site qui
+// tutoie et qui vend un objectif individuel. Personne ne l'a vu: un aperçu de
+// lien ne se regarde que depuis WhatsApp.
+//
+// Les clés sont extraites du fichier EN TEXTE (une expression régulière), et
+// non importées: `fr.ts` est du TypeScript, et ce script tourne sous un `node`
+// nu. Une clé renommée fait échouer le script au lieu de le laisser écrire une
+// planche périmée.
 //
 // ── LES CONTRAINTES DE LA CHARTE QUI S'APPLIQUENT ICI ──────────────────────
 // `docs/keel/CHARTE-VITRINE.md` §5: deux épaisseurs de trait (2 pour le
@@ -47,6 +57,23 @@ const FRONTEND = path.resolve(HERE, "..");
 const FONT_DIR = path.join(FRONTEND, "src/assets/fonts");
 const OUT = path.join(FRONTEND, "public/og-image.png");
 
+// ── LA COPIE, LUE DE `i18n/fr.ts` ──────────────────────────────────────────
+const FR = fs.readFileSync(path.join(FRONTEND, "src/keel/i18n/fr.ts"), "utf8");
+/** La valeur d'une clé du pack français, ou un échec bruyant. */
+function message(key) {
+  const m = FR.match(new RegExp(`"${key.replace(/\./g, "\\.")}":\\s*\n?\\s*"([^"]*)"`));
+  if (!m) throw new Error(`clé absente de i18n/fr.ts: ${key}`);
+  return m[1];
+}
+const TITLE_1 = message("home.hero.title_1");
+const TITLE_2 = message("home.hero.title_2");
+const LEDE = message("home.hero.lede");
+
+/** Le symbole de la marque — le MÊME tracé que `public/brand/sophia-mark.svg`. */
+const MARK = fs.readFileSync(path.join(FRONTEND, "public/brand/sophia-mark.svg"), "utf8")
+  .replace(/<\?xml[^>]*\?>/, "")
+  .replace(/style="color:[^"]*"/, 'style="color:#632C4C"');
+
 /** 1.91:1, le rapport qu'attendent les aperçus. Rendu à 2× pour la netteté. */
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -72,9 +99,11 @@ const html = `<!doctype html>
     border-bottom:10px solid var(--fig-700);
   }
   .left { min-width:0; }
-  /* L'équerre (\`tokens.css\` .eq) ne flotte jamais seule: un mot à sa droite. */
-  .brand { display:inline-flex; align-items:center; gap:14px; margin-bottom:40px; }
-  .eq { width:18px; height:18px; border-left:3px solid var(--fig-700); border-top:3px solid var(--fig-700); }
+  /* LE SYMBOLE DE LA MARQUE, ET PLUS L'ÉQUERRE. Même arbitrage que
+     \`PublicHeader\`: le logo occupe la place que tenait la signature, et deux
+     signatures collées au même mot en feraient une de trop. */
+  .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:40px; }
+  .brand svg { width:36px; height:36px; display:block; }
   .wordmark { font-family:"Young Serif", Georgia, serif; font-size:34px; letter-spacing:-0.01em; }
   h1 { font-family:"Young Serif", Georgia, serif; font-weight:400; font-size:78px;
        line-height:0.99; letter-spacing:-0.015em; max-width:15ch; text-wrap:balance; }
@@ -83,9 +112,9 @@ const html = `<!doctype html>
 </style></head>
 <body>
   <div class="left">
-    <div class="brand"><span class="eq"></span><span class="wordmark">Sophia</span></div>
-    <h1>Une semaine de repas, décidée.</h1>
-    <p class="lede">Ce qu’on mange, quand on cuisine, ce qu’il faut acheter.</p>
+    <div class="brand">${MARK}<span class="wordmark">Sophia</span></div>
+    <h1>${TITLE_1}<br />${TITLE_2}</h1>
+    <p class="lede">${LEDE}</p>
   </div>
   <svg class="fig" viewBox="0 0 400 330" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Les anses D'ABORD, la casserole PAR-DESSUS: son remplissage masque la
@@ -110,7 +139,7 @@ const html = `<!doctype html>
       <circle cx="248" cy="196" r="7"/><circle cx="344" cy="196" r="12"/>
     </g>
     <g fill="var(--ink-soft)" font-family="Public Sans, sans-serif" font-size="13" text-anchor="middle">
-      <text x="56" y="252">Vous</text><text x="152" y="252">Sami</text>
+      <text x="56" y="252">Toi</text><text x="152" y="252">Sami</text>
       <text x="248" y="252">Inès</text><text x="344" y="252">Jo</text>
     </g>
     <text x="200" y="300" fill="var(--ink)" font-family="Public Sans, sans-serif"

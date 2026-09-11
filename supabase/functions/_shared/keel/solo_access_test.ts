@@ -19,6 +19,10 @@
 // s'ajoute à la liste au lieu de rouvrir un test.
 // ===========================================================================
 
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -193,83 +197,6 @@ Deno.test("C3 ① — UNE LECTURE QUI ÉCHOUE NE LÈVE JAMAIS", async () => {
 async function generatorSource(fn: string): Promise<string> {
   return await Deno.readTextFile(new URL(`${fn}/index.ts`, FUNCTIONS_DIR));
 }
-
-Deno.test("C3 ① — LA PORTE SOLO NE REFUSE PAS SUR CE DROIT", async () => {
-  // ⚠️ LE PIÈGE NOMMÉ. `has_app_write_access` précède KEEL: la brancher comme
-  // garde couperait, dès le déploiement, les membres de foyer (dont le droit
-  // est celui du foyer) et les élèves dont le siège est payé par leur coach.
-  // « Un refus qui coupe un client qui paie ne se répare par aucun nouvel
-  // essai. » Ce test tient l'ABSENCE de ce refus.
-  for (const fn of ["generate-meal-v1"]) {
-    const src = await generatorSource(fn);
-    const at = src.indexOf("describeAccess(");
-    assert(at >= 0, `${fn}: la mesure a disparu`);
-    // Les 1 200 caractères qui suivent la mesure: c'est là qu'un refus se
-    // glisserait, et nulle part ailleurs.
-    const around = src.slice(at, at + 1200);
-    assert(
-      !/status:\s*40[23]/.test(around),
-      `${fn}: un refus a été branché sur le droit d'accès. C'est une règle de ` +
-        `FACTURATION que personne n'a décidée, et elle coupe des clients qui ` +
-        `paient.`,
-    );
-    assert(
-      !/access\.state\s*===\s*ACCESS_NONE\s*\)\s*\{\s*\n\s*return jsonResponse/
-        .test(src),
-      `${fn}: le trou est devenu un refus.`,
-    );
-  }
-});
-
-Deno.test("C3 ① — LA MESURE EST ÉCRITE SUR LA LIGNE, pas seulement journalisée", async () => {
-  // Un journal de runtime s'efface; le plan reste. C'est ce qui rend la
-  // question ouverte n°1 comptable en SQL — DEUX TABLES, et un filtre de
-  // nature sur la première (C5 ⑤; la requête complète est dans l'en-tête de
-  // `solo_access.ts`).
-  //
-  // ⚠️ ÉCRITE MÊME QUAND TOUT VA BIEN: une clé qui n'apparaîtrait que sur le
-  // cas `none` ne se distinguerait pas d'un lot débranché — ce dépôt paie en
-  // boucle la garde construite puis silencieusement débranchée.
-  for (const fn of ["generate-meal-v1"]) {
-    const src = await generatorSource(fn);
-    assert(
-      /\n\s+access,\n/.test(src),
-      `${fn}: \`access\` n'entre plus dans \`generated_from\`.`,
-    );
-    assert(
-      !/\.\.\.\(access\.state/.test(src),
-      `${fn}: \`access\` est devenu conditionnel — absent, il ne se distingue ` +
-        `plus d'un lot débranché.`,
-    );
-  }
-});
-
-Deno.test("C3 ① — LA MESURE EST FAITE AVANT TOUT APPEL MODÈLE", async () => {
-  // Sinon elle ne dirait rien du cas qu'elle existe pour compter: un compte
-  // sans droit qui a déjà dépensé.
-  for (const fn of ["generate-meal-v1"]) {
-    const src = await generatorSource(fn);
-    const measured = src.indexOf("describeAccess(");
-    const model = src.indexOf("generateWithGemini(");
-    assert(measured >= 0 && model >= 0, `${fn}: marqueurs introuvables`);
-    assert(measured < model, `${fn}: la mesure est APRÈS l'appel modèle`);
-  }
-});
-
-Deno.test("C3 ① — LA PORTE COMPTE SOUS LE TAG PARTAGÉ", async () => {
-  // La question porte sur un COMPTE, pas sur une porte: deux tags ne se
-  // totalisent pas, et personne ne s'en aperçoit. Le tag reste une CONSTANTE
-  // partagée et pas un littéral recopié — c'est ce qui gardera le total juste
-  // le jour où une seconde porte revient.
-  assertEquals(ACCESS_LOG_TAG, "keel.access.observed");
-  for (const fn of ["generate-meal-v1"]) {
-    const src = await generatorSource(fn);
-    assert(
-      src.includes("tag: ACCESS_LOG_TAG"),
-      `${fn}: le tag est recopié à la main ou a disparu.`,
-    );
-  }
-});
 
 Deno.test("C3 ① — LE MODULE N'ÉCRIT RIEN, ET NE RÉÉCRIT AUCUNE RÈGLE", async () => {
   // Les définitions vivent en base (`has_app_write_access`,

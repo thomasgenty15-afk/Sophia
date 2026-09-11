@@ -585,6 +585,7 @@ function w7Blocks(over: {
 }) {
   const restrictions: HouseholdRestriction[] = [];
   return buildHouseholdPromptBlocks({
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     traditions: [],
     daysInWindow: ["mon", "tue"],
@@ -595,9 +596,11 @@ function w7Blocks(over: {
         goal: "maintenance",
         ageState: "adult",
         body: null,
+        lightSlots: [],
         eatingSlots: null,
         habits: [],
         habitNote: null,
+        requiredDensity: null,
       },
       {
         memberId: "m-kid",
@@ -605,9 +608,11 @@ function w7Blocks(over: {
         goal: null,
         ageState: "minor",
         body: null,
+        lightSlots: [],
         eatingSlots: null,
         habits: [],
         habitNote: null,
+        requiredDensity: null,
       },
     ],
     envyLine: null,

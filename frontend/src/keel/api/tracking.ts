@@ -38,6 +38,168 @@ import { readEdgeRefusal } from "./edgeErrors";
 /** Le nom de la fonction edge. Une seule définition. */
 export const TRACKING_FUNCTION = "keel-tracking-v1";
 
+export type JournalEnergyBasis =
+  | "plan_quantities"
+  | "declared_quantities"
+  | "photo_estimate"
+  | "text_estimate";
+
+export interface JournalEnergy {
+  kcal: number;
+  basis: JournalEnergyBasis;
+}
+
+export interface JournalEvent {
+  id: string;
+  date: string;
+  slot: string | null;
+  note: string | null;
+  mediaPath: string | null;
+  energy: JournalEnergy | null;
+  analysis: "ready" | "unavailable" | "pending";
+}
+
+export interface JournalMeal {
+  id: string;
+  date: string;
+  slot: string | null;
+  title: string;
+  origin: "planned" | "outside" | "extra" | "fixed" | "leftovers" | "unattached";
+  state: "planned" | "future" | "missing" | "reported" | "skipped" | "unattached";
+  planRefs: Array<{ planId: string; dishIndex: number }>;
+  events: JournalEvent[];
+  plannedEnergy: JournalEnergy | null;
+  reportedEnergy: JournalEnergy | null;
+  editable: boolean;
+  actions: { photo: boolean; describe: boolean; skip: boolean; correct: boolean; retry: boolean };
+}
+
+export interface JournalDay {
+  date: string;
+  meals: JournalMeal[];
+  plannedKcal: number | null;
+  reportedKcal: number | null;
+  estimated: boolean;
+  state: "future" | "in_progress" | "incomplete" | "complete";
+}
+
+export interface JournalTarget {
+  low: number | null;
+  high: number | null;
+  basis: string;
+  gap: string | null;
+  direction: string | null;
+  weight_week_start: string | null;
+}
+
+export interface JournalReport {
+  version: 2;
+  today: string;
+  window: { from: string; to: string };
+  floor: boolean;
+  energy: { open: boolean; reason: string };
+  target: JournalTarget | null;
+  days: JournalDay[];
+  weight: TrackingWeightPoint[] | null;
+}
+
+function asJournalReport(raw: unknown): JournalReport {
+  const report = raw as Partial<JournalReport> | null;
+  if (
+    !report || report.version !== 2 || typeof report.today !== "string" ||
+    typeof report.floor !== "boolean" || !report.energy ||
+    typeof report.energy.open !== "boolean" || !Array.isArray(report.days) ||
+    !report.window || typeof report.window.from !== "string" ||
+    typeof report.window.to !== "string"
+  ) {
+    throw new Error("keel_tracking_unreadable");
+  }
+  return report as JournalReport;
+}
+
+export async function loadJournalTracking(window: {
+  from: string;
+  to: string;
+}): Promise<JournalReport> {
+  const { data, error } = await supabase.functions.invoke(TRACKING_FUNCTION, {
+    body: { version: 2, ...window },
+  });
+  if (error) {
+    const refusal = await readEdgeRefusal(error);
+    throw new Error(refusal?.token ?? (error as Error).message);
+  }
+  return asJournalReport(data);
+}
+
+async function journalMutation(body: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke(TRACKING_FUNCTION, { body });
+  if (error) {
+    const refusal = await readEdgeRefusal(error);
+    throw new Error(refusal?.token ?? (error as Error).message);
+  }
+  const result = data as { ok?: boolean; reason?: string } | null;
+  if (!result?.ok) throw new Error(result?.reason ?? "journal_unavailable");
+}
+
+export async function describeJournalMeal(args: {
+  date: string;
+  slot: string;
+  mealId: string;
+  text: string;
+  relation: "planned" | "replacement" | "outside" | "extra";
+  mutationId: string;
+}): Promise<void> {
+  await journalMutation({
+    action: "journal_describe",
+    local_date: args.date,
+    slot: args.slot,
+    meal_id: args.mealId,
+    text: args.text,
+    relation: args.relation,
+    mutation_id: args.mutationId,
+  });
+}
+
+export async function skipJournalMeal(args: {
+  date: string;
+  slot: string;
+  mealId: string;
+  mutationId: string;
+}): Promise<void> {
+  await journalMutation({
+    action: "journal_skip",
+    local_date: args.date,
+    slot: args.slot,
+    meal_id: args.mealId,
+    mutation_id: args.mutationId,
+  });
+}
+
+export async function retryJournalMeal(eventId: string): Promise<void> {
+  await journalMutation({ action: "journal_retry", event_id: eventId });
+}
+
+export async function correctJournalMeal(args: {
+  sourceDate: string;
+  sourceMealId: string;
+  date: string;
+  slot: string;
+  mealId: string;
+  relation: "planned" | "replacement" | "outside" | "extra";
+  mutationId: string;
+}): Promise<void> {
+  await journalMutation({
+    action: "journal_correct",
+    source_date: args.sourceDate,
+    source_meal_id: args.sourceMealId,
+    local_date: args.date,
+    slot: args.slot,
+    meal_id: args.mealId,
+    relation: args.relation,
+    mutation_id: args.mutationId,
+  });
+}
+
 /**
  * LES CINQ BASES, DANS L'ORDRE DU SERVEUR (de la plus forte à la plus faible).
  * L'ordre est le contrat: `weakestBasis` s'en sert pour choisir la base d'une
@@ -209,12 +371,16 @@ export async function loadTracking(
  * ⚠️ `meal_precision.ts` INTERDIT de DEMANDER une quantité: le contrat
  * (`CONTRACT.md`, non-input #4) refuse toute mesure d'énergie ou de masse posée
  * en question, et ses gabarits sont fermés pour que la garde ne puisse pas
- * dériver. Ce chemin-ci ne demande RIEN: il ouvre un champ libre. Si la
- * personne y écrit « 150 g de riz », c'est ELLE qui a mesuré, et
- * `quantity_from_prose.ts` sait relire un nombre écrit — la lecture porte alors
- * la base `declared_quantities` (MAPE 2,3 %). Sinon, elle porte
- * `photo_estimate` comme n'importe quelle lecture sans quantité. D7.7: le
+ * dériver. Ce chemin-ci ne demande RIEN: il ouvre un champ libre. D7.7: le
  * contournement est EXPRÈS, et il est nommé.
+ *
+ * ⟳ 2026-09-09 — IL REND UN CHIFFRE. Le serveur délègue désormais l'écriture à
+ * l'écrivain du journal, qui lit la description avec le modèle et en tire une
+ * énergie de base `text_estimate`. `null` reste la réponse normale: porte
+ * d'énergie fermée, description trop vague, ou lecture en panne.
+ *
+ * ⛔ CE N'EST PAS `declared_quantities`. Personne n'a pesé quoi que ce soit —
+ * et l'écran doit le dire, d'où la base DANS la clé i18n de la phrase.
  *
  * ⛔ Aucun `user_id` dans le corps: l'identité vient du JWT.
  */
@@ -222,7 +388,7 @@ export interface DescribeResult {
   ok: boolean;
   /** Le jeton d'un refus nommé, ou `null` si la déclaration est passée. */
   reason: string | null;
-  energy: TrackedEnergy | null;
+  energy: JournalEnergy | null;
 }
 
 export async function describeMissedMeal(args: {

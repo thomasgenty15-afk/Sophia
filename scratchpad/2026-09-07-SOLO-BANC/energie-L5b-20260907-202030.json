@@ -1,0 +1,72 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 9,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Yaourt grec, flocons d’avoine, pomme et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 637,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 483,
+      "density_kcal_per_100g": 131.9,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, quinoa, légumes rôtis et feta",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux herbes ÷2",
+        "Quinoa nature ÷1",
+        "Légumes rôtis de septembre ÷2"
+      ],
+      "standard_kcal": 783,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 641,
+      "density_kcal_per_100g": 122.2,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Banane et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 97,
+      "density_kcal_per_100g": 139.4,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet rôti, pita complète, avocat et salade",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux herbes ÷2",
+        "Légumes rôtis de septembre ÷2"
+      ],
+      "standard_kcal": 476,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 450,
+      "density_kcal_per_100g": 105.8,
+      "boxes": 1
+    }
+  ]
+}

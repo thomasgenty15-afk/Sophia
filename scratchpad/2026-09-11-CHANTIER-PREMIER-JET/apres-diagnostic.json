@@ -1,0 +1,383 @@
+{
+  "water": {
+    "components": [
+      {
+        "id": "fresh",
+        "grams": 150,
+        "items": [
+          {
+            "term": "Feta",
+            "slug": "feta",
+            "gramsRaw": 80,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 285
+          },
+          {
+            "term": "Almonds",
+            "slug": "almonds",
+            "gramsRaw": 15,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 599.9
+          },
+          {
+            "term": "Olive oil",
+            "slug": "olive_oil",
+            "gramsRaw": 15,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 900
+          },
+          {
+            "term": "Wholemeal bread",
+            "slug": "wholemeal_bread",
+            "gramsRaw": 40,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 262
+          }
+        ]
+      },
+      {
+        "id": "prep_lentil_ratatouille",
+        "grams": 548.5,
+        "items": [
+          {
+            "term": "Lentils (dry)",
+            "slug": "lentils_dry",
+            "gramsRaw": 120,
+            "yield": null,
+            "yieldClass": "legume_absorbs",
+            "kcal100": 331.3
+          },
+          {
+            "term": "Tomato",
+            "slug": "tomato",
+            "gramsRaw": 60,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 19.3
+          },
+          {
+            "term": "Courgette",
+            "slug": "courgette",
+            "gramsRaw": 50,
+            "yield": null,
+            "yieldClass": "veg_shrinks",
+            "kcal100": 16.5
+          },
+          {
+            "term": "Onion",
+            "slug": "onion",
+            "gramsRaw": 30,
+            "yield": null,
+            "yieldClass": "veg_shrinks",
+            "kcal100": 38.4
+          },
+          {
+            "term": "Olive oil",
+            "slug": "olive_oil",
+            "gramsRaw": 37.5,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 900
+          },
+          {
+            "term": "Water",
+            "slug": "water",
+            "gramsRaw": 90,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 0
+          },
+          {
+            "term": "Salt",
+            "slug": "salt",
+            "gramsRaw": 0.5,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 0
+          },
+          {
+            "term": "Black pepper",
+            "slug": "black_pepper",
+            "gramsRaw": 0.5,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 330
+          }
+        ]
+      },
+      {
+        "id": "prep_couscous",
+        "grams": 332.5,
+        "items": [
+          {
+            "term": "Couscous",
+            "slug": "couscous",
+            "gramsRaw": 120,
+            "yield": null,
+            "yieldClass": "grain_absorbs",
+            "kcal100": 352
+          },
+          {
+            "term": "Water",
+            "slug": "water",
+            "gramsRaw": 150,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 0
+          },
+          {
+            "term": "Olive oil",
+            "slug": "olive_oil",
+            "gramsRaw": 15,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 900
+          },
+          {
+            "term": "Parsley",
+            "slug": "herbs_parsley",
+            "gramsRaw": 5,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 43
+          },
+          {
+            "term": "Salt",
+            "slug": "salt",
+            "gramsRaw": 0.5,
+            "yield": null,
+            "yieldClass": "neutral",
+            "kcal100": 0
+          }
+        ]
+      }
+    ],
+    "together": 941,
+    "separate": 1031,
+    "factor": 0.6269106566200215
+  },
+  "food": [
+    {
+      "name": "perte",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "Skyr",
+          "slug": "skyr",
+          "gramsRaw": 200,
+          "kcal100": 63,
+          "source": "manual"
+        },
+        {
+          "term": "Oats",
+          "slug": "oats",
+          "gramsRaw": 45,
+          "kcal100": 367,
+          "source": "ciqual"
+        },
+        {
+          "term": "Peach",
+          "slug": "peach",
+          "gramsRaw": 150,
+          "kcal100": 46.3,
+          "source": "ciqual"
+        },
+        {
+          "term": "Walnuts",
+          "slug": "walnuts",
+          "gramsRaw": 15,
+          "kcal100": 377.8,
+          "source": "ciqual"
+        },
+        {
+          "term": "Honey",
+          "slug": "honey",
+          "gramsRaw": 5,
+          "kcal100": 329,
+          "source": "ciqual"
+        }
+      ]
+    },
+    {
+      "name": "perte",
+      "day": "sat",
+      "ingredients": [
+        {
+          "term": "Fromage blanc",
+          "slug": "fromage_blanc",
+          "gramsRaw": 180,
+          "kcal100": 76.9,
+          "source": "ciqual"
+        },
+        {
+          "term": "Wholemeal bread",
+          "slug": "wholemeal_bread",
+          "gramsRaw": 80,
+          "kcal100": 262,
+          "source": "ciqual"
+        },
+        {
+          "term": "Prune",
+          "slug": "prune",
+          "gramsRaw": 150,
+          "kcal100": 229,
+          "source": "ciqual"
+        },
+        {
+          "term": "Pumpkin seeds",
+          "slug": "pumpkin_seeds",
+          "gramsRaw": 10,
+          "kcal100": 559,
+          "source": "manual"
+        }
+      ]
+    },
+    {
+      "name": "perte",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "Greek yogurt",
+          "slug": "greek_yogurt",
+          "gramsRaw": 200,
+          "kcal100": 113.1,
+          "source": "ciqual"
+        },
+        {
+          "term": "Oats",
+          "slug": "oats",
+          "gramsRaw": 35,
+          "kcal100": 367,
+          "source": "ciqual"
+        },
+        {
+          "term": "Raisin",
+          "slug": "raisin",
+          "gramsRaw": 150,
+          "kcal100": 321,
+          "source": "ciqual"
+        },
+        {
+          "term": "Almonds",
+          "slug": "almonds",
+          "gramsRaw": 15,
+          "kcal100": 599.9,
+          "source": "ciqual"
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "Fromage blanc",
+          "slug": "fromage_blanc",
+          "gramsRaw": 200,
+          "kcal100": 76.9,
+          "source": "ciqual"
+        },
+        {
+          "term": "Oats",
+          "slug": "oats",
+          "gramsRaw": 40,
+          "kcal100": 367,
+          "source": "ciqual"
+        },
+        {
+          "term": "Pear",
+          "slug": "pear",
+          "gramsRaw": 120,
+          "kcal100": 32.3,
+          "source": "ciqual"
+        },
+        {
+          "term": "Almonds",
+          "slug": "almonds",
+          "gramsRaw": 15,
+          "kcal100": 599.9,
+          "source": "ciqual"
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "day": "sat",
+      "ingredients": [
+        {
+          "term": "Skyr",
+          "slug": "skyr",
+          "gramsRaw": 200,
+          "kcal100": 63,
+          "source": "manual"
+        },
+        {
+          "term": "Oats",
+          "slug": "oats",
+          "gramsRaw": 40,
+          "kcal100": 367,
+          "source": "ciqual"
+        },
+        {
+          "term": "Raisins",
+          "slug": "raisins",
+          "gramsRaw": 120,
+          "kcal100": 321,
+          "source": "ciqual"
+        },
+        {
+          "term": "Walnuts",
+          "slug": "walnuts",
+          "gramsRaw": 15,
+          "kcal100": 377.8,
+          "source": "ciqual"
+        },
+        {
+          "term": "Honey",
+          "slug": "honey",
+          "gramsRaw": 10,
+          "kcal100": 329,
+          "source": "ciqual"
+        }
+      ]
+    },
+    {
+      "name": "gain",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "Cottage cheese",
+          "slug": "cottage_cheese",
+          "gramsRaw": 200,
+          "kcal100": 98,
+          "source": "manual"
+        },
+        {
+          "term": "Granola",
+          "slug": "granola",
+          "gramsRaw": 40,
+          "kcal100": 418,
+          "source": "ciqual"
+        },
+        {
+          "term": "Prune",
+          "slug": "prune",
+          "gramsRaw": 150,
+          "kcal100": 229,
+          "source": "ciqual"
+        },
+        {
+          "term": "Pumpkin seeds",
+          "slug": "pumpkin_seeds",
+          "gramsRaw": 15,
+          "kcal100": 559,
+          "source": "manual"
+        }
+      ]
+    }
+  ]
+}

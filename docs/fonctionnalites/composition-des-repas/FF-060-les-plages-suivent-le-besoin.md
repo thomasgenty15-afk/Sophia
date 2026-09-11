@@ -24,6 +24,11 @@ supposé qui vivait là (58 % de la cible, retiré le même jour — voir
 `meal_extras.ts`) ne corrigeait rien : il **baissait la barre** pour que l'échec
 passe inaperçu. Le supprimer n'a rien cassé ; il a découvert ce qu'il cachait.
 
+> ⟳ 2026-09-10 — **le retrait d'extras DÉCLARÉ a suivi le retrait supposé.** Le
+> plan dimensionne les aliments qu'il prévoit et ne réserve plus d'énergie pour
+> un accompagnement personnel hors plan. Il ne reste qu'un retrait par créneau,
+> celui des apports fixes prévus, et il n'a plus de plancher.
+
 ### Pourquoi ni le plafond de l'ancre ni la densité ne réparent
 
 `MEAL_MAX_GRAMS_PER_KG = 8` borne un repas à 8 g par kilo de corps. Son pavé
@@ -148,5 +153,6 @@ jamais comparer à l'ancienne.
 
 Deux lecteurs changent aussi de population quand une plage ouverte est
 persistée : `tracking_window.ts` (la part du jour d'un moment) et
-`householdHabits.ts` (les extras demandés par plage déclarée). Les deux sont
+`householdHabits.ts` (le « + repas léger » demandé par plage déclarée — les
+extras qui vivaient là ont été supprimés le 2026-09-10). Les deux sont
 souhaitables.

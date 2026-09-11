@@ -1,5 +1,6 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { loadDailyEnergyTarget, readViewerAddons, readViewerMealsOut, readViewerAway, type PlanRow } from "../_shared/keel/meal_energy_shared.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
@@ -38,6 +39,12 @@ import {
 import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
+// ⟳ 2026-09-09 — LE SAS EST RELU POUR LES TERMES DE CE PLAN-LÀ. Sans ça, un
+// plan était COMPOSÉ sur l'index augmenté et RELU sur l'index nu: le même plan
+// rendait deux nombres, et c'est celui de la lecture — « un ingrédient ne
+// figure pas dans notre table » — qui gagnait à l'écran. Voir l'en-tête de
+// `indexForReading`, qui dit pourquoi ce n'est pas une promotion.
+import { indexForReading } from "../_shared/keel/composition_fill_io.ts";
 // ⟳ A7 (2026-09-03) — LES QUATRE LECTEURS DE PAYLOAD ONT DESCENDU DANS
 // `_shared/keel/plan_energy_read.ts`. Ce n'est pas un rangement:
 // `keel-tracking-v1` calcule lui aussi une part `plan_quantities`, et une
@@ -79,6 +86,15 @@ import {
   type MemberAway,
   presenceStateFor,
 } from "../_shared/keel/household_presence.ts";
+// ① bis — LA PRÉSENCE DU TITULAIRE QUAND AUCUN PLAN NE L'A ARCHIVÉE. L'en-tête
+// du module dit pourquoi elle ne peut pas se lire dans `generated_from`, et
+// pourquoi la garde des cases composées ne vaut QUE sur un plan personnel.
+import {
+  cellKey,
+  composedCells,
+  selfMealsOutByDay,
+  selfPresenceFrom,
+} from "../_shared/keel/self_presence.ts";
 import { ageStateFromVerdict } from "../_shared/keel/household.ts";
 import type { MouthBody } from "../_shared/keel/meal_envelope.ts";
 import { effectiveRhythm } from "../_shared/keel/daily_recommendation.ts";
@@ -211,176 +227,33 @@ function closed(
 }
 
 
-interface PlanRow {
-  id: string;
-  plan_kind: string | null;
-  servings: number | null;
-  dishes: unknown;
-  preparations: unknown;
-  household_id: string | null;
-  generated_from: unknown;
-}
-
-/**
- * LES ADD-ONS DU LECTEUR, tels que le plan les a GELÉS à la composition.
- *
- * `null` = **on ne sait pas**, et c'est distinct de `[]` = **rien à ajouter**.
- * La distinction porte tout le comportement du foyer :
- *
- *   `[]`   — le tronc EST l'assiette de cette bouche (elle a le plus petit
- *            besoin de la table, ou le foyer n'a aucune enveloppe calculable).
- *            Le chiffre est exact, on l'affiche.
- *   `null` — la trace `member_deltas` n'est pas là (plan composé avant qu'elle
- *            existe), ou le lecteur n'a pas de `member_id`. Le tronc seul
- *            serait un plancher faux vers le bas. On s'abstient.
- *
- * ⚠️ UN PLAN PERSONNEL N'A PAS D'ADD-ON, et ce n'est pas une ignorance: il n'y
- * a pas de tronc partagé, donc rien à combler. Il rend `[]`.
- */
-function readViewerAddons(
-  row: PlanRow,
-  viewerMemberId: string | null,
-): MemberAddon[] | null {
-  if (row.plan_kind !== "household") return [];
-  if (!viewerMemberId) return null;
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const household = (gf.household ?? {}) as Record<string, unknown>;
-  // ⚠️ `in` ET PAS UN `?? []`. Un repli sur le tableau vide ferait passer un
-  // plan d'AVANT la trace pour un plan sans add-ons — c'est-à-dire qu'il
-  // afficherait le tronc seul comme s'il était l'assiette entière, sur la
-  // population où l'écart est le plus grand.
-  if (!("member_deltas" in household)) return null;
-  const raw = household.member_deltas;
-  if (!Array.isArray(raw)) return null;
-  const out: MemberAddon[] = [];
-  for (const entry of raw) {
-    if (!entry || typeof entry !== "object") continue;
-    const d = entry as Record<string, unknown>;
-    if (String(d.member_id ?? "").trim() !== viewerMemberId) continue;
-    const foodRef = String(d.food_ref ?? "").trim();
-    const grams = Number(d.grams);
-    if (!foodRef || !Number.isFinite(grams) || grams <= 0) continue;
-    out.push({ foodRef, grams });
-  }
-  return out;
-}
-
-/**
- * ══════════════════════════════════════════════════════════════════════════
- * L8 ③ — LES REPAS QUE **CE LECTEUR** PREND DEHORS, PAR JOUR.
- * ══════════════════════════════════════════════════════════════════════════
- *
- * ⛔ POURQUOI CE NOMBRE EXISTE. Si un repas sur trois est pris dehors, « ta
- * journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX, et faux dans le sens
- * qui décourage: la personne lit un déficit alors qu'elle a peut-être mangé un
- * burger. Le total ne change pas de valeur, il change de SUJET — il parle de ce
- * que le plan a produit, et il le dit.
- *
- * ── LA SOURCE, ET C'EST LA MÊME QUE `member_deltas` ───────────────────────
- * `generated_from.household.presence.members[].eating_out`, filtré sur la bouche
- * DU LECTEUR. C'est l'arbitrage déjà fait entre la déclaration de la personne et
- * la marque du maître (`presenceStateFor`); relire `away_days` ici ferait un
- * second avis sur qui est dehors.
- *
- * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS — même règle que les add-ons. Le jeudi midi
- * de sa mère ne change rien à ce que SON assiette a reçu, et le compter ferait
- * lire à table la semaine de quelqu'un d'autre.
- *
- * ⚠️ `slots: []` VEUT DIRE « TOUTE LA JOURNÉE » (FF-002 §5), et on le compte
- * comme les six moments. Le compter `0` dirait « rien ne manque » sur la journée
- * où TOUT manque — l'erreur exactement inverse, et silencieuse.
- *
- * ⚠️ UN PLAN D'AVANT CETTE TRACE REND UNE TABLE VIDE, donc `subject: "the_day"`,
- * c'est-à-dire EXACTEMENT le comportement d'hier. C'est une dégradation
- * gracieuse assumée: la trace de présence existe depuis le pivot foyer, mais la
- * clé `eating_out` n'y est que depuis le 2026-08-18.
- */
-function readViewerMealsOut(
-  row: PlanRow,
-  viewerMemberId: string | null,
-): Map<string | null, number> {
-  const out = new Map<string | null, number>();
-  if (row.plan_kind !== "household" || !viewerMemberId) return out;
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const household = (gf.household ?? {}) as Record<string, unknown>;
-  const presence = (household.presence ?? {}) as Record<string, unknown>;
-  const members = presence.members;
-  if (!Array.isArray(members)) return out;
-  for (const entry of members) {
-    if (!entry || typeof entry !== "object") continue;
-    const m = entry as Record<string, unknown>;
-    if (String(m.member_id ?? "").trim() !== viewerMemberId) continue;
-    const cells = m.eating_out;
-    if (!Array.isArray(cells)) continue;
-    for (const cell of cells) {
-      if (!cell || typeof cell !== "object") continue;
-      const c = cell as Record<string, unknown>;
-      const day = String(c.day ?? "").trim();
-      if (!day) continue;
-      const slots = Array.isArray(c.slots) ? c.slots.length : 0;
-      out.set(day, (out.get(day) ?? 0) + (slots > 0 ? slots : EATING_OCCASIONS.length));
-    }
-  }
-  return out;
-}
-
-/**
- * ══════════════════════════════════════════════════════════════════════════
- * ① — LA PRÉSENCE DU LECTEUR, RECONSTRUITE POUR ÊTRE ARBITRÉE.
- * ══════════════════════════════════════════════════════════════════════════
- *
- * ⚠️ ON NE LIT PAS `eating_out` DIRECTEMENT POUR DÉCIDER, et c'est la
- * consigne de `MemberAway.eatingOut` mot pour mot: « `presenceStateFor` est la
- * lecture, parce qu'elle porte l'arbitrage entre les deux sources; lire ce
- * champ seul ferait un second avis sur qui est dehors. »
- *
- * Concrètement, l'arbitrage qu'on récupère est celui-ci: une case n'est
- * « dehors » que si elle est D'ABORD absente de `effective`. Une case marquée
- * dehors que le moteur ne compte pas absente serait un conseil chiffré sur un
- * repas que le plan compose QUAND MÊME — deux nourritures pour un seul midi.
- *
- * `self` et `household` restent vides: `presenceStateFor` ne les lit pas, et
- * les remplir ici donnerait l'illusion qu'une décision s'y prend.
- *
- * `null` = ce lecteur n'a aucune trace de présence dans ce plan (plan
- * personnel, bouche introuvable, ou plan composé avant la trace). Pas de
- * trace, pas de « dehors », donc pas de conseil — jamais un repli sur
- * `at_table` inventé, qui serait le même geste dans l'autre sens.
- */
-function readViewerAway(
-  row: PlanRow,
-  viewerMemberId: string | null,
-): MemberAway | null {
-  if (row.plan_kind !== "household" || !viewerMemberId) return null;
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const household = (gf.household ?? {}) as Record<string, unknown>;
-  const presence = (household.presence ?? {}) as Record<string, unknown>;
-  const members = presence.members;
-  if (!Array.isArray(members)) return null;
-  for (const entry of members) {
-    if (!entry || typeof entry !== "object") continue;
-    const m = entry as Record<string, unknown>;
-    if (String(m.member_id ?? "").trim() !== viewerMemberId) continue;
-    return {
-      effective: parseAwayDays(m.away),
-      self: [],
-      household: [],
-      eatingOut: parseAwayDays(m.eating_out),
-    };
-  }
-  return null;
-}
-
-/**
- * CE QUE LE CONSEIL DU MIDI A BESOIN DE SAVOIR DU LECTEUR, une fois pour tous
- * ses plans. Tout est REQUIS: une entrée absente n'est jamais devinée.
- */
 interface AdviceContext {
   reader: { show: boolean; reason: string };
   ageVerdict: BirthDateVerdict;
   slots: readonly EatingOccasionSlot[];
-  executed: ReturnType<typeof executedPaceFor>;
-  direction: ReturnType<typeof scaleDirectionOf>;
+  /**
+   * ⟳ 2026-09-09 — LA JOURNÉE **AFFICHÉE**, ET PAS UNE SECONDE ESTIMATION.
+   *
+   * C'est le milieu de la fourchette que `EnergyTargetNote` imprime sous les
+   * plats (`directedRange`), déficit et plancher compris. Le conseil du midi
+   * est une PART de la journée que le produit annonce à cette personne — s'il
+   * descendait d'un autre calcul, l'écran porterait deux journées.
+   *
+   * ⛔ MESURÉ EN RUN RÉEL LE 2026-09-09, ET C'EST LE DÉFAUT QUE ÇA FERME:
+   * l'ancienne entrée était `ExecutedPace.maintenanceKcal` (métabolisme de base
+   * × facteur d'activité, 3 177) là où la fourchette imprimée descendait de
+   * `maintenanceRange` (poids × kcal/kg, 2 450–2 700). Le même écran disait
+   * « ta journée: 1 950–2 200 » et « au déjeuner, vise autour de 900 » —
+   * 900 × 3 = 2 700, cinq cents kcal au-dessus de sa propre borne haute.
+   */
+  dayKcal: number | null;
+  /**
+   * ① bis — SA PRÉSENCE VIVANTE, pour les plans qui n'en archivent aucune.
+   * Construite UNE fois pour tous ses plans, par le même parseur que la lane
+   * foyer (`parseMemberAway`), sur les deux mêmes colonnes que le moteur unit
+   * pour décider ce qu'il compose.
+   */
+  selfAway: MemberAway;
 }
 
 /**
@@ -428,12 +301,34 @@ function adviceForPlan(
   days: readonly (string | null)[],
 ): Array<{ day: string; slot: string; kcal: number }> {
   if (ctx === null) return [];
-  const away = readViewerAway(row, viewerMemberId);
+  // ══ ① bis · LA TRACE D'ABORD, SA DÉCLARATION VIVANTE ENSUITE ═════════════
+  //
+  // ⛔ L'ORDRE N'EST PAS INDIFFÉRENT, ET LA TRACE NE SE FAIT JAMAIS DOUBLER.
+  // Quand elle existe, elle dit la présence TELLE QU'ELLE ÉTAIT à la
+  // composition — c'est-à-dire la seule lecture qui ne puisse pas contredire
+  // l'assiette servie. On ne la relit pas « au cas où ».
+  //
+  // ⚠️ ET LE REPLI EST FERMÉ AUX PLANS DE FOYER. Un plat composé au déjeuner
+  // du mardi peut appartenir à une AUTRE bouche pendant que le lecteur déjeune
+  // dehors: la garde des cases composées y supprimerait un conseil juste, et
+  // sans elle la lecture vivante en inventerait un faux. Un plan de foyer sans
+  // trace reste donc muet — c'est le comportement d'hier, nommé.
+  const traced = readViewerAway(row, viewerMemberId);
+  const away = traced ?? (row.plan_kind === "household" ? null : ctx.selfAway);
   if (away === null) return [];
+  // LA CEINTURE DE LA LECTURE VIVANTE, ET ELLE NE SERT QU'À ELLE. Les colonnes
+  // bougent après la composition; l'assiette, non. Une case que ce plan a
+  // composée ne reçoit aucun conseil, quoi que dise la déclaration du jour —
+  // « deux nourritures pour un seul midi » est le défaut que `presenceStateFor`
+  // nomme, et ici c'est le plan lui-même qui l'interdit.
+  const composed = traced === null
+    ? composedCells(readEnergyBoxDishes(row.dishes))
+    : null;
   const out: Array<{ day: string; slot: string; kcal: number }> = [];
   for (const day of days) {
     if (!day) continue;
     for (const occasion of ctx.slots) {
+      if (composed !== null && composed.has(cellKey(day, occasion.slot))) continue;
       const advice = eatingOutAdvice({
         // C9.b — LE JETON BRUT, jamais un littéral `"eating_out"` écrit ici.
         // La garde est typée `string` exprès: si l'arbitre rendait un jour un
@@ -447,8 +342,7 @@ function adviceForPlan(
         mouthAgeState: ageStateFromVerdict(ctx.ageVerdict),
         slots: ctx.slots,
         occasion,
-        executed: ctx.executed,
-        direction: ctx.direction,
+        dayKcal: ctx.dayKcal,
       });
       if (advice.reason !== "advised" || advice.kcal === null) continue;
       out.push({ day, slot: occasion.slot, kcal: advice.kcal });
@@ -644,7 +538,30 @@ Deno.serve(async (req) => {
       // le recalcul de toute l'histoire d'un compte en une requête.
       ? [...new Set(body.plan_ids.map((v) => String(v).trim()).filter(Boolean))].slice(0, 4)
       : [];
-    if (planIds.length === 0) return closed(req, requestId, "no_plan");
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-08 — UN BROUILLON SE CHIFFRE COMME UN PLAN
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE N'EST PAS UN CALCULATEUR DE CALORIES, ET LA DIFFÉRENCE EST L'ENTRÉE.
+    // On lit une LIGNE que le serveur a écrite (`student_meal_drafts`), jamais
+    // des grammes qu'un client enverrait: `food_composition_refs` est révoqué
+    // pour `anon` et `authenticated` exprès — un client ne peut pas convertir
+    // des grammes en kilocalories, même s'il le voulait, et cette fonction ne
+    // doit pas devenir le service qui le fait pour lui.
+    //
+    // ⛔ LES QUATRE PORTES NE BOUGENT PAS D'UN OCTET. Elles portent sur le
+    // LECTEUR (plancher TCA, âge, doctrine du coach, interrupteur), pas sur la
+    // ligne lue: un brouillon n'ouvre donc rien que le plan écrit n'ouvrirait.
+    //
+    // ⚠️ LE PLAFOND EST COMMUN AUX DEUX. Quatre objets à chiffrer, plans et
+    // brouillons confondus — deux plafonds de quatre en feraient huit.
+    const draftIds = Array.isArray(body.draft_ids)
+      ? [...new Set(body.draft_ids.map((v) => String(v).trim()).filter(Boolean))]
+        .slice(0, Math.max(0, 4 - planIds.length))
+      : [];
+    if (planIds.length === 0 && draftIds.length === 0) {
+      return closed(req, requestId, "no_plan");
+    }
 
     // ── LES QUATRE PORTES, DANS L'ORDRE, AVANT TOUTE LECTURE DE PLAT ──────
     //
@@ -656,6 +573,7 @@ Deno.serve(async (req) => {
     // finissent par diverger, et celui-ci porte la garde la plus sensible du
     // produit. On lit les quatre entrées, on décide une fois. Le coût est une
     // requête de doctrine pour un élève qui n'aura pas de chiffre.
+    let loadedForTarget: Awaited<ReturnType<typeof loadEnergyGate>>;
     let gate: ReturnType<typeof canShowEnergy>;
     let targetGate: ReturnType<typeof canShowTarget> | null = null;
     // Le jour LOCAL de l'élève, résolu une fois avec son fuseau et réutilisé
@@ -696,6 +614,7 @@ Deno.serve(async (req) => {
       // assembleur, deux lecteurs — et `canShowEnergy` garde son appelant
       // unique, ce que la propriété du harnais assertait déjà.
       const loadedGate = await loadEnergyGate(admin, { userId });
+      loadedForTarget = loadedGate;
       today = loadedGate.today;
       ageVerdict = loadedGate.ageVerdict;
       direction = loadedGate.direction;
@@ -749,14 +668,59 @@ Deno.serve(async (req) => {
     // rendrait l'assiette d'un autre. Cicatrice
     // `rls-is-not-a-substitute-for-eq-user-id`, et ici il n'y a même pas de RLS
     // pour rattraper l'oubli.
-    const plansRes = await admin
-      .from("student_generated_meals")
-      .select("id, plan_kind, servings, dishes, preparations, household_id, generated_from")
-      .eq("user_id", userId)
-      .is("retired_at", null)
-      .in("id", planIds);
+    const plansRes = planIds.length === 0
+      ? { data: [] as unknown[], error: null }
+      : await admin
+        .from("student_generated_meals")
+        .select("id, plan_kind, servings, dishes, preparations, household_id, generated_from")
+        .eq("user_id", userId)
+        .is("retired_at", null)
+        .in("id", planIds);
     if (plansRes.error) throw plansRes.error;
     const rows = (plansRes.data ?? []) as PlanRow[];
+
+    // ── LES BROUILLONS, SOUS EXACTEMENT LES MÊMES CONTRAINTES ─────────────
+    //
+    // ⛔ `.eq("user_id", userId)` EST OBLIGATOIRE, ET CE N'EST PAS UNE
+    // PRÉCAUTION. Le client `admin` est en `service_role`: RLS ne le contraint
+    // PAS, et la policy propriétaire de la migration ne protège que le port
+    // `authenticated`. Charger par l'identifiant reçu du client sans le
+    // propriétaire rendrait le brouillon de quelqu'un d'autre — la cicatrice
+    // `rls-is-not-a-substitute-for-eq-user-id`, et ici il n'y a même pas de RLS
+    // pour rattraper l'oubli.
+    //
+    // ⛔ `status = 'done'` ET `expires_at > maintenant`. Une ligne `pending` n'a
+    // pas encore de plan (`write_payload` est nul), une ligne expirée décrit un
+    // plan que la balayeuse va effacer — chiffrer l'une ou l'autre rendrait un
+    // nombre pour un plan que personne ne pourra plus adopter.
+    const draftsRes = draftIds.length === 0
+      ? { data: [] as unknown[], error: null }
+      : await admin
+        .from("student_meal_drafts")
+        .select("id, plan_kind, write_payload, household_id")
+        .eq("user_id", userId)
+        .eq("status", "done")
+        .gt("expires_at", new Date().toISOString())
+        .in("id", draftIds);
+    if (draftsRes.error) throw draftsRes.error;
+    for (const raw of (draftsRes.data ?? []) as Record<string, unknown>[]) {
+      const payload = (raw.write_payload ?? {}) as Record<string, unknown>;
+      // ⚠️ `write_payload` EST LE `p_payload` DE `write_student_meal_plan`: ses
+      // clés SONT celles de la ligne écrite (`dishes`, `preparations`,
+      // `servings`, `plan_kind`, `household_id`, `generated_from`). C'est ce qui
+      // permet de le lire comme un `PlanRow` sans traduire — et une traduction
+      // serait précisément l'endroit où l'aperçu et le plan se mettraient à
+      // diverger.
+      rows.push({
+        id: String(raw.id ?? ""),
+        plan_kind: (payload.plan_kind ?? raw.plan_kind ?? null) as string | null,
+        servings: (payload.servings ?? null) as number | null,
+        dishes: payload.dishes,
+        preparations: payload.preparations,
+        household_id: (payload.household_id ?? raw.household_id ?? null) as string | null,
+        generated_from: payload.generated_from,
+      });
+    }
     // ⟳ RELECTURE — SANS PLAN, LE MOTIF DU LECTEUR SURVIT. Avant le lot F, un
     // lecteur fermé par défaut rendait `student_off` AVANT la lecture des plans,
     // donc `switch_offerable: true`, et l'écran lui offrait l'interrupteur.
@@ -767,27 +731,100 @@ Deno.serve(async (req) => {
 
     // ── QUELLE BOUCHE EST LE LECTEUR, DANS SON FOYER ──────────────────────
     //
-    // Une seule lecture, et seulement s'il y a un plan de foyer à calculer. Un
-    // `member_id` est nécessaire pour retrouver SES add-ons: le lecteur d'un
-    // plan de foyer est le compte MAÎTRE, et ses deltas sont une ligne parmi
-    // N dans la trace.
+    // Une seule lecture, et elle sert DEUX choses. Un `member_id` retrouve SES
+    // add-ons sur un plan de foyer (le lecteur en est le compte MAÎTRE, et ses
+    // deltas sont une ligne parmi N dans la trace). Sa colonne `away_days`,
+    // elle, porte les cinq midis que la porte du « déjeuner au bureau » pose —
+    // c'est la seconde source de sa présence, celle que `generate-meal-v1`
+    // unit déjà à la sienne (D6.1) pour décider ce qu'il compose.
+    //
+    // ⟳ 2026-09-09 — ELLE NE SE LIT PLUS SEULEMENT POUR UN PLAN DE FOYER, et
+    // c'est le lot: un plan PERSONNEL n'archive aucune présence, donc sans
+    // cette colonne le conseil du midi n'avait aucune entrée à lire pour la
+    // personne à qui il s'adresse le plus — celle qui déjeune dehors et dont
+    // le plan ne compose que le matin et le soir.
     let viewerMemberId: string | null = null;
-    if (rows.some((r) => r.plan_kind === "household")) {
+    let viewerRosterAway: unknown = null;
+    {
       const meRes = await admin
         .from("household_members")
-        .select("member_id")
+        .select("member_id, away_days")
         .eq("user_id", userId)
         .maybeSingle();
       // Une lecture EN PANNE laisse `null` — donc l'abstention nommée, jamais
-      // une part attribuée au hasard.
+      // une part attribuée au hasard, et jamais un « dehors » inventé.
       if (!meRes.error) {
-        viewerMemberId =
-          String((meRes.data as Record<string, unknown> | null)?.member_id ?? "").trim() ||
-          null;
+        const me = meRes.data as Record<string, unknown> | null;
+        viewerMemberId = String(me?.member_id ?? "").trim() || null;
+        viewerRosterAway = me?.away_days ?? null;
       }
     }
 
-    const index = await loadCompositionIndex(admin);
+    // ── ① bis · SA PRÉSENCE ET SA JOURNÉE, HORS DE TOUTE PORTE ────────────
+    //
+    // ⛔ ICI, ET PAS DERRIÈRE LA PORTE ⑤, PARCE QU'IL N'Y A AUCUN kcal. Deux
+    // lecteurs s'en servent, et ils n'ont pas le même droit d'entrée:
+    //
+    //   · `mealsOut` / `subject` — un COMPTE DE REPAS. Il dit « il manquait des
+    //     plats à lire », pas un nombre sur un corps. Son jumeau du foyer
+    //     (`readViewerMealsOut`) se calcule lui aussi sans porte, et il le doit:
+    //     quelqu'un qui a ÉTEINT les calories doit quand même lire « sur les 2
+    //     repas que j'ai composés » plutôt que « sur la journée ».
+    //   · le CONSEIL du midi — un kcal, lui, et il reste derrière la porte ⑤.
+    //     Il réutilise cet objet, il ne le rend pas plus permissif.
+    const viewerSelfAway = selfPresenceFrom({
+      declared: (goalsRow?.practical_constraints as Record<string, unknown> | null)
+        ?.away_days,
+      roster: viewerRosterAway,
+    });
+    // Le rythme EFFECTIF: celui contre lequel le plan a été composé. Une journée
+    // non déclarée reçoit le défaut du produit, pas un silence — sinon on
+    // compterait des repas dehors sur une journée qui n'existe pas.
+    const viewerRhythm = effectiveRhythm(
+      parseEatingRhythm(
+        (goalsRow?.practical_constraints as Record<string, unknown> | null)
+          ?.eating_rhythm,
+      ),
+    );
+
+    const baseIndex = await loadCompositionIndex(admin);
+    // ══════════════════════════════════════════════════════════════════════
+    // L'INDEX DE LA LECTURE — le référentiel, plus ce que le sas sait des
+    // termes DE CES PLANS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ IL NE PEUT PAS FAIRE TOMBER LA LECTURE: `indexForReading` n'a aucun
+    // chemin qui lève, et rend l'index de base à l'identité près sur tout
+    // échec — c'est-à-dire le comportement d'avant cette ligne.
+    //
+    // ⚠️ AVANT `boxEnergyByPlan`, ET C'EST LA RAISON DE L'ORDRE. Les deux
+    // lecteurs d'énergie de cette fonction (les couvercles, puis les plats et
+    // les jours) partagent CET objet. Augmenter l'un et pas l'autre ferait
+    // dire à la boîte et au plat deux masses différentes pour la même
+    // casserole — la cicatrice `regramMeal`, dans l'autre sens.
+    const reading = await indexForReading({
+      db: admin,
+      baseIndex,
+      inputs: rows.flatMap((row) => [
+        ...readDishes(row.dishes).flatMap((d) => d.ingredients),
+        ...readPreparations(row.preparations).flatMap((p) => p.ingredients),
+      ]),
+    });
+    const index = reading.index;
+    if (reading.asked > 0) {
+      // ⛔ JOURNALISÉ MÊME À ZÉRO REPRISE. `asked` sans `kept` est le seul
+      // signal qui dise « le référentiel a un trou que le sas ne comble pas
+      // non plus » — c'est-à-dire la file à curer. Un compteur qui ne s'écrit
+      // que quand il réussit ressemble à un mécanisme qui marche.
+      console.log(JSON.stringify({
+        tag: "keel.meal_energy.reading_index",
+        user_id: userId,
+        plans: rows.length,
+        asked: reading.asked,
+        kept: reading.kept,
+        request_id: requestId,
+      }));
+    }
 
     // ⟳ LOT F — LES BOÎTES À UN NOM, jugées bouche par bouche. Calculées AVANT
     // la cible et le conseil, qui appartiennent au lecteur et ne sortent pas
@@ -835,207 +872,7 @@ Deno.serve(async (req) => {
     let advice: AdviceContext | null = null;
     if (targetGate?.show === true && ageVerdict !== null) {
       try {
-        const body = await loadStudentBody(admin as never, userId, today);
-        const last = latest(body.weights);
-        // ⚠️ CE PARAMÈTRE MANQUAIT, ET LE FICHIER NE COMPILAIT PLUS. Le lot L0
-        // du 2026-08-18 a rendu `activityLevel` REQUIS dans `maintenanceRange`
-        // (c'est le point: le compilateur recense les lecteurs) et a livré les
-        // deux ÉCRIVAINS — `profiles.activity_level` et la porte de la fiche —
-        // sans reprendre ce lecteur-ci. `deno check` de cette fonction était
-        // donc rouge à HEAD, et `agent-gate` ne le voit pas: il ne vérifie que
-        // trois points d'entrée de `sophia-brain`.
-        //
-        // ⛔ ON LIT LA COLONNE PLUTÔT QUE DE PASSER `null`. `null` aurait
-        // recompilé en servant 28-33 à quelqu'un qui a répondu — c'est-à-dire un
-        // écrivain sans lecteur, la moitié débranchée que ce dépôt paie en
-        // boucle. La lecture est fail-soft: en panne ou hors vocabulaire, on
-        // retombe sur `null`, qui est EXACTEMENT le comportement d'avant L0.
-        const activityRes = await admin
-          .from("profiles")
-          .select("activity_level")
-          .eq("id", userId)
-          .maybeSingle();
-        const rawActivity = String(
-          (activityRes.data as Record<string, unknown> | null)?.activity_level ?? "",
-        ).trim();
-        const activityLevel: ActivityLevel | null =
-          (ACTIVITY_LEVELS as readonly string[]).includes(rawActivity)
-            ? (rawActivity as ActivityLevel)
-            : null;
-        const range = maintenanceRange({
-          weightKg: last?.value ?? null,
-          weightWeekStart: last?.weekStart ?? null,
-          activityLevel,
-        });
-
-        // ── ① LE CONTEXTE DU CONSEIL DU MIDI ─────────────────────────────
-        //
-        // ⟳ LOT 4 — `goalsRow` ET `direction` SONT DÉJÀ LUS, plus haut, parce
-        // que la porte ④ en a besoin. La seconde requête qui vivait ici a
-        // disparu: deux lectures de la même table divergent, et c'est celle
-        // qu'on regarde le moins qui garde l'ancien comportement.
-        const pc = (goalsRow?.practical_constraints ?? null) as
-          | Record<string, unknown>
-          | null;
-        const mouthBody: MouthBody = {
-          heightCm: body.heightCm,
-          weightKg: last?.value ?? null,
-          gender: body.gender,
-          // ⚠️ L'ÂGE VIENT DU VERDICT, PAS D'UNE SOUSTRACTION DE DATES ÉCRITE
-          // ICI. `usableAge` rend `null` sur tout ce qui n'est pas un âge
-          // lisible, et l'équation pédiatrique ne se choisit PAS dessus — elle
-          // se choisit sur `isMinor`, juste en dessous.
-          ageYears: usableAge(ageVerdict),
-          activityLevel,
-          // ── ⚠️ LES DEUX AXES NE SONT PAS COLLECTÉS SUR CETTE LANE ────────
-          // Le lot du 2026-08-20 pose la journée et le sport sur la FICHE d'une
-          // bouche de foyer (`household_member_bodies`). Cette lane-ci lit
-          // `profiles.activity_level` — le cran mélangé —, et l'entonnoir solo
-          // ne pose pas encore les deux questions. `asked: false` est donc la
-          // vérité: personne n'a rien demandé ici.
-          //
-          // ⛔ ET ON NE DÉRIVE RIEN DEPUIS LE CRAN. `activityFactorOf` retombe
-          // sur `activityLevel`, ce qui rend EXACTEMENT le nombre d'avant ce
-          // lot. Fabriquer une journée et un sport à partir de `trains_some`
-          // serait écrire un fait que personne n'a dit — la limite est nommée
-          // ici plutôt que comblée par une invention.
-          activityAxes: { day: null, sport: null, asked: false },
-          // ⑤ — pas collecté sur cette lane. `null` = x1,00, neutre vrai.
-          appetite: null,
-        };
-        const subject = {
-          body: mouthBody,
-          isMinor: ageVerdict.status === "minor",
-        };
-        const pace = Number(goalsRow?.target_pace_kg_per_week);
-
-        // ── ⟳ LOT 4 · LES CONDITIONS DÉCLARÉES DU LECTEUR ────────────────
-        //
-        // ⛔ LUES ICI, ET PAS PLUS HAUT. Elles ne décident aucune PORTE — une
-        // grossesse n'a jamais fermé le chiffre, et ce lot ne le lui fait pas
-        // dire. Elles décident si un ÉCART a le droit d'exister, ce qui est une
-        // question qui ne se pose que derrière la porte ⑤.
-        //
-        // ⚠️ FAIL-CLOSED SUR LA LECTURE: une panne annule l'écart plutôt que de
-        // le laisser passer. Une fourchette d'entretien servie à quelqu'un qui
-        // vise une perte est décevante; un déficit servi à une femme enceinte
-        // qu'on n'a pas su lire est le défaut que `condition_energy_gate.ts`
-        // existe pour empêcher, et il est décrit là-bas avec sa mesure.
-        //
-        // ⚠️ UNE SEULE PROVENANCE, et elle exclut une population entière:
-        // `student_safety_constraints.condition_ref` est clée sur `user_id`. Ce
-        // n'est pas un trou de CE lot — le lecteur d'une réponse `meal-energy`
-        // a toujours un compte, par construction (le JWT).
-        let conditionCancelled: TargetDirectionGap | null = null;
-        try {
-          const condRes = await admin
-            .from("student_safety_constraints")
-            .select("condition_ref")
-            .eq("user_id", userId)
-            .not("condition_ref", "is", null);
-          if (condRes.error) throw condRes.error;
-          const refs = ((condRes.data ?? []) as Record<string, unknown>[])
-            .map((row) => String(row.condition_ref ?? "").trim())
-            .filter((ref) => ref !== "");
-          conditionCancelled =
-            cancelsEnergyDeficit(conditionGatePopulationOf(refs)) &&
-              direction === "down"
-              // ⛔ `direction === "down"` ET RIEN D'AUTRE, même règle qu'à
-              // l'octet près dans `mouthTargetKcal`: rabattre un SURPLUS
-              // retirerait de l'énergie à une femme enceinte qui en demande,
-              // sous le nom d'une protection. Ce garde retire des déficits.
-              ? "condition_cancelled"
-              : null;
-        } catch (condError) {
-          await logEdgeFunctionError({
-            functionName: FN_NAME,
-            requestId,
-            error: condError,
-            metadata: { source: "condition_gate" },
-          });
-          conditionCancelled = direction === "down" ? "condition_cancelled" : null;
-        }
-
-        // ── ⟳ LOT 4 · L'ÉCART QUE LE MOTEUR EXÉCUTE, ET RIEN D'AUTRE ─────
-        //
-        // ⚠️ CALCULÉ UNE FOIS, LU DEUX FOIS. La fourchette affichée et le
-        // conseil du midi descendent du MÊME `ExecutedPace`. Les calculer
-        // séparément ferait, sur le même écran, une fourchette qui suit un
-        // déficit et un conseil de déjeuner qui n'en suit pas.
-        //
-        // ⛔ ── LE DÉFAUT DE RYTHME, ET IL FERME UN ÉCART MESURÉ ────────────
-        //
-        // Cette ligne testait `pace > 0` et retombait sinon sur l'ENTRETIEN.
-        // Le moteur qui pèse les grammes, lui, applique
-        // `DEFAULT_PACE_KG_PER_WEEK` (`household_portions.ts`, « LOT B ① »)
-        // quand personne n'a réglé le curseur. Les deux ne parlaient donc pas
-        // de la même personne.
-        //
-        // MESURÉ SUR LA BASE LOCALE LE 2026-09-01: sur 47 comptes `fat_loss`,
-        // **7** ont un rythme; sur 18 `muscle_gain`, **6**. Autrement dit
-        // **87 %** des gens qui ont déclaré une direction avaient leurs
-        // portions dimensionnées en déficit pendant que cette lane-ci les
-        // traitait comme des gens qui ne visent rien. Sans cette correction, le
-        // lot 4 se serait appliqué à 13 % de sa population — c'est-à-dire un
-        // lot désarmé qui ressemble trait pour trait à un lot qui marche.
-        //
-        // ⚠️ CE N'EST PAS UN DÉFAUT INVENTÉ ICI. On lit celui du moteur, on ne
-        // le choisit pas — et une direction sans curseur n'est pas une absence
-        // de projet: c'est quelqu'un qui n'a pas touché un réglage optionnel.
-        const paceIsSet = Number.isFinite(pace) && pace > 0;
-        const executed = direction !== null
-          ? executedPaceFor(
-            direction,
-            subject,
-            paceIsSet ? pace : DEFAULT_PACE_KG_PER_WEEK,
-          )
-          : maintenancePaceFor(subject);
-        // ⛔ L'ANNULATION DE CONDITION S'APPLIQUE AUSSI AU CONSEIL DU MIDI, et
-        // c'est un défaut PRÉEXISTANT qu'on ferme en passant plutôt que de le
-        // dupliquer: cette lane appelait `executedPaceFor` sans jamais consulter
-        // le garde de grossesse, donc « au déjeuner, vise autour de 600 » était
-        // déjà posé sur un déficit pour une femme enceinte. Le laisser tel quel
-        // pendant qu'on retire ce même déficit de la fourchette produirait deux
-        // nombres contraires, à trois centimètres l'un de l'autre.
-        const executedForReading = conditionCancelled === null
-          ? executed
-          : (executed === null ? null : { ...executed, dailyDeltaKcal: 0, kgPerWeek: 0 });
-
-        // ── ⟳ LOT 4 · LA FOURCHETTE SUIT LA DIRECTION ────────────────────
-        //
-        // `directedRange` prend la maintenance en ENTRÉE et ne la recalcule
-        // pas: il n'existe donc qu'un seul endroit où « ce que ce corps
-        // dépense » se calcule, et un seul autre où un écart s'y ajoute.
-        const directed = directedRange({
-          maintenance: range,
-          direction,
-          // L'écart EXÉCUTÉ, jamais le cran choisi (cicatrice L8): le curseur
-          // d'une prise monte plus haut que ce que la casserole livre.
-          dailyDeltaKcal: executedForReading?.dailyDeltaKcal ?? 0,
-          energyFloorKcal: energyFloorFor(body.gender),
-          cancelled: conditionCancelled,
-        });
-        target = {
-          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
-          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
-          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
-          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
-          // chemin de ce produit.
-          low: directed.range?.low ?? null,
-          high: directed.range?.high ?? null,
-          // ⟳ LOT 4 — LA BASE DIT LAQUELLE DES DEUX FOURCHETTES C'EST, et
-          // l'écran en dépend pour choisir sa phrase. Un nombre sans sa base
-          // est très exactement ce que `CALORIE_REVERSAL` interdit.
-          basis: directed.basis,
-          gap: directed.gap,
-          direction: directed.direction,
-          direction_gap: directed.directionGap,
-          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
-          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
-          // plus sur son corps.
-          weight_week_start: directed.weightWeekStart,
-        };
-
+        target = await loadDailyEnergyTarget(admin, userId, loadedForTarget!, requestId);
         advice = {
           // LA CHAÎNE DU LECTEUR, TELLE QUELLE. `canShowTarget` a déjà tranché
           // les cinq portes; la repasser ici en ferait un second point de
@@ -1045,18 +882,29 @@ Deno.serve(async (req) => {
           // Le rythme EFFECTIF: celui contre lequel le plan a été composé. Une
           // journée non déclarée reçoit le défaut du produit, pas un silence —
           // sinon on répartirait une journée sur zéro repas.
-          slots: effectiveRhythm(parseEatingRhythm(pc?.eating_rhythm)),
-          // ⚠️ LE RYTHME **EXÉCUTÉ**, JAMAIS LE CRAN CHOISI (cicatrice L8): le
-          // curseur d'une prise monte plus haut que ce que la casserole livre.
-          // Et sans direction ni cran, c'est l'entretien NU — « la cible EST
-          // l'entretien », le cas de la majorité de la base.
+          // ⟳ 2026-09-09 — LE MÊME OBJET QUE CELUI DU COMPTE DE REPAS DEHORS.
+          // Deux lectures du rythme feraient compter un repas dehors sans lui
+          // donner de conseil, ou l'inverse.
+          slots: viewerRhythm,
+          // ⟳ 2026-09-09 — LA MÊME FOURCHETTE QUE CELLE QUI S'IMPRIME, ET SON
+          // MILIEU. `directed` porte déjà le déficit exécuté (garde de
+          // grossesse comprise, via `executedForReading`), le plancher
+          // d'énergie et l'annulation de condition: le conseil hérite des
+          // quatre sans en recopier un seul.
           //
-          // ⟳ LOT 4 — C'EST LE MÊME OBJET QUE CELUI DE LA FOURCHETTE, garde de
-          // grossesse comprise. Voir `executedForReading` plus haut: deux
-          // calculs séparés poseraient sur le même écran une fourchette qui a
-          // perdu son déficit et un conseil de déjeuner qui l'a gardé.
-          executed: executedForReading,
-          direction,
+          // ⛔ `null` QUAND LA FOURCHETTE N'EXISTE PAS (pas de pesée, pesée
+          // invraisemblable). Pas de journée annoncée ⇒ pas de part à
+          // conseiller: le module rend `no_body`, motif nommé.
+          dayKcal: target?.low == null || target?.high == null
+            ? null
+            : Math.round((Number(target.low) + Number(target.high)) / 2),
+          // ① bis — SA PRÉSENCE, DEPUIS SES DEUX COLONNES, PAR LE PARSEUR DU
+          // FOYER. Les mêmes que celles que `generate-meal-v1` unit pour
+          // décider ce qu'il compose (D6.1): la grille qu'il remplit pour
+          // lui-même, et les midis que la porte du « déjeuner au bureau » pose
+          // sur sa ligne de roster. Une troisième idée de « qui est dehors »
+          // finirait par ne plus dire la même chose que le moteur.
+          selfAway: viewerSelfAway,
         };
       } catch (error) {
         // FAIL-CLOSED, comme partout ici: pas de cible plutôt qu'une cible sur
@@ -1103,7 +951,21 @@ Deno.serve(async (req) => {
         addons: addons ?? [],
         // L8 ③ — REQUIS, jamais optionnel. Une table vide est une valeur PLEINE
         // (« cette personne mange tous ses repas ici »), pas une ignorance.
-        mealsOutByDay: readViewerMealsOut(row, viewerMemberId),
+        //
+        // ⟳ 2026-09-09 — ET SUR UN PLAN PERSONNEL, ELLE ÉTAIT VIDE PAR DÉFAUT
+        // DE LECTEUR, pas par absence de repas dehors. `readViewerMealsOut` ne
+        // lit que la trace de la lane foyer: l'en-tête d'un jour disait donc
+        // « 2 385 kcal sur la journée » au-dessus d'un « au déjeuner, vise
+        // autour de 700 » — la journée entière revendiquée, et un repas annoncé
+        // hors d'elle. Même cause et même repli que le conseil, à la même
+        // ceinture près (une case composée n'est pas un repas dehors).
+        mealsOutByDay: row.plan_kind === "household"
+          ? readViewerMealsOut(row, viewerMemberId)
+          : selfMealsOutByDay({
+            away: viewerSelfAway,
+            slots: viewerRhythm,
+            dishes: readEnergyBoxDishes(row.dishes),
+          }),
       });
       return {
         plan_id: row.id,

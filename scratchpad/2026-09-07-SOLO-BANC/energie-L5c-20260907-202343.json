@@ -1,0 +1,69 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 4,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Œufs, pain complet et raisins",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 638,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 258,
+      "density_kcal_per_100g": 247.2,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet, riz, tomate et concombre",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au citron ÷2"
+      ],
+      "standard_kcal": 799,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 673,
+      "density_kcal_per_100g": 118.8,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 145,
+      "density_kcal_per_100g": 93.1,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Pita, poulet, laitue, tomate et yaourt",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au citron ÷2"
+      ],
+      "standard_kcal": 462,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 371,
+      "density_kcal_per_100g": 124.6,
+      "boxes": 1
+    }
+  ]
+}

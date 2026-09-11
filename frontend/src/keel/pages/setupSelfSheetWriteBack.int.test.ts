@@ -73,7 +73,7 @@ describe("la fenêtre du titulaire ne perd aucun de ses champs", () => {
    * ⚠️ LES CAS CI-DESSUS NE PEUVENT PAS RÉPONDRE, ET C'EST UN DÉFAUT QUI A ÉTÉ
    * MESURÉ LE 2026-09-01. Ils ITÈRENT `SELF_SHEET_FIELDS`: retirer un champ de
    * la liste retire son cas, et la suite reste verte pendant que le champ cesse
-   * de remonter. Vérifié en retirant `extras` — 0 rouge, sur 1 839 tests.
+   * de remonter. Vérifié en retirant `light` — 0 rouge, sur 1 839 tests.
    * C'est la cicatrice `test-parameterized-by-its-own-constant`, et la seule
    * sortie est de comparer la liste à quelque chose qu'elle ne fabrique pas.
    *
@@ -82,13 +82,13 @@ describe("la fenêtre du titulaire ne perd aucun de ses champs", () => {
    * rendu suivant et le contrôle a l'air mort.
    *
    * ⛔ L'INCLUSION EST DANS UN SEUL SENS, ET C'EST VOULU. La liste porte AUSSI
-   * `takesDessert / takesCheese / takesBread` et `appetite`, qu'aucun `set({…})`
-   * ne nomme: les trois premiers ne sont plus édités nulle part depuis le
-   * retrait de « ce qu'il y a d'autre dans l'assiette » (2026-09-01), mais ils
-   * sont encore RELUS et RÉÉCRITS en base — les faire tomber de la remontée les
-   * effacerait à la première fermeture de fenêtre. `appetite`, lui, passe par
+   * `appetite`, qu'aucun `set({…})` ne nomme: il passe par
    * `onChange={(patch) => set(patch)}`, un patch dont aucune clé n'est
-   * littérale. Exiger l'égalité ferait rougir sur des champs sains.
+   * littérale. Exiger l'égalité ferait rougir sur un champ sain.
+   *
+   * ⟳ 2026-09-10 — `takesDessert / takesCheese / takesBread` ONT QUITTÉ la
+   * liste avec les extras qu'ils portaient. Ils ne sont plus ni lus, ni écrits;
+   * les colonnes restent en base et personne n'y touche.
    */
   it("⛔ LA LISTE COUVRE TOUT CE QUE LA FENÊTRE ÉCRIT", () => {
     const dialog = readFileSync(

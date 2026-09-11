@@ -40,11 +40,11 @@ import type { UiLocale } from "./catalog";
 // ⚠️ N'AJOUTE PAS `/start`, `/auth` NI `/join` ICI. Ce sont des portes
 // fonctionnelles, pas des surfaces indexées; elles suivent le visiteur, et les
 // pages anglaises les atteignent en portant `?lang=en` sur leur lien.
+// ⚠️ UNE SEULE ENTRÉE DEPUIS LE 2026-09-08: les trois pages de vente sont
+// retirées. Le mécanisme reste (l'URL décide la langue du hall), et une
+// page indexée qui naîtrait demain s'ajoute ici ET dans `INDEXED_PAGES`.
 export const LOCALE_ROUTED_PATHS = [
   "/",
-  "/meal-prep",
-  "/couples",
-  "/families",
 ] as const;
 
 /** Le segment qui porte l'anglais. Le français est le chemin nu. */

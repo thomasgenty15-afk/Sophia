@@ -1,0 +1,59 @@
+[
+  {
+    "request_id": "4831f2e5-c03f-4a7d-93b5-8c5343756f13",
+    "source": "generate-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 64983,
+    "prompt_tokens": 7162,
+    "output_tokens": 7682,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_021051d8389c108f006a9c5d23269487d2a6eaf82bad0e3186",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "4831f2e5-c03f-4a7d-93b5-8c5343756f13",
+    "source": "generate-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 1632,
+    "prompt_tokens": 409,
+    "output_tokens": 70,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_01a4169159de0202006a9c5d6362dc87d2bcbfa19149873b56",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "4831f2e5-c03f-4a7d-93b5-8c5343756f13",
+    "source": "generate-meal-v1.composition_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 57199,
+    "prompt_tokens": 7199,
+    "output_tokens": 6403,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_07159679cb73b3d4006a9c5d65192487d28152de90bf399546",
+      "user_id_resolution": "provided"
+    }
+  }
+]

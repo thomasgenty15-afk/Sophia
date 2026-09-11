@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { normalizeAccessTierValue } from '../lib/entitlements';
 import { reconcileUiLocaleWithProfile } from '../keel/i18n/reconcile';
+import { touchLastSeen } from '../keel/api/presence';
 import {
   chosenUiLocale,
   forgetUiLocaleDecision,
@@ -332,6 +333,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => data.subscription.unsubscribe();
   }, []);
+
+  // FF-063 — LE TÉMOIN DE PRÉSENCE.
+  //
+  // Un effet À PART, et surtout PAS un appel dans le rappel de
+  // `onAuthStateChange`: celui-ci tourne pendant que supabase-js tient le
+  // verrou d'auth, et tout appel `supabase.*` attendu dedans se bloque (c'est
+  // le bug d'écran blanc après connexion, documenté au-dessus). Ici on est
+  // hors du verrou, déclenché par le seul changement qui compte — l'identité.
+  //
+  // `touchLastSeen` se freine lui-même à une fois par jour et par navigateur,
+  // et n'attend jamais: rien de ce que rend cette page ne dépend du résultat.
+  useEffect(() => {
+    if (!user?.id) return;
+    touchLastSeen();
+  }, [user?.id]);
 
   const signOut = async () => {
     try {

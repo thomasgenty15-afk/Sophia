@@ -1,7 +1,18 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { loadStudentGoal } from "../api/chat";
+import { loadKeelRole } from "../api/keelClient";
+import { ACCEPTED_PHOTO_MIME_TYPES } from "../api/mealPhoto";
+import {
+  forcedSlotLabel,
+  SLOT_ORDER,
+  slotMealSwitchOfferable,
+} from "../api/slotMeal";
+import { armQuickAdd } from "../lib/quickAdd";
 import { t } from "../i18n/t";
+import { TrialEndingBanner } from "./TrialEndingBanner";
+import { BrandMark } from "./BrandMark";
 import {
   getUnreadCount,
   startUnreadTracking,
@@ -71,9 +82,29 @@ import { Page, PageHeader, type PageWidth } from "./ui/Page";
 //   Le bouton Menu, lui, n'a PLUS de seuil: il est là partout, parce qu'il est
 //   le seul chemin vers le compte, les mentions légales et la déconnexion.
 
+// ── LE « + » AU MILIEU DE LA BARRE, ET POURQUOI IL EST LÀ ──────────────────
+// Le seul chemin pour déclarer un repas non prévu, une photo ou un poids était
+// le « + » DU COMPOSEUR de `/app/chat`: il fallait donc savoir qu'on déclare un
+// repas en ouvrant une conversation, puis trouver un bouton à côté du champ de
+// saisie. Sur un téléphone, le geste le plus courant du produit était le plus
+// caché.
+//
+// Il prend la colonne CENTRALE de la barre d'onglets — la seule que le pouce
+// atteint sans déplacer la main — et il se déplie vers le haut. Les trois
+// gestes sont les MÊMES qu'au composeur, dans le même ordre et avec les mêmes
+// libellés: photographier, décrire, se peser.
+//
+// ⛔ IL N'EXÉCUTE AUCUN DES TROIS. Il ARME l'intention (`lib/quickAdd.ts`) et
+// va sur `/app/chat`, qui les porte déjà en entier — l'aperçu avant envoi et sa
+// légende, le créneau choisi avant le champ, le jeton de pesée et sa garde de
+// montage. Les réécrire ici ferait une deuxième implémentation de chacun.
+//
+// ⚠️ IL N'EXISTE PAS AU-DESSUS DE `xl`: la barre du bas non plus. Le composeur
+// garde son « + » sur grand écran, et c'est le même geste.
+
 export type ShellVariant = "student" | "coach";
 
-type NavItem = {
+export type NavItem = {
   to: string;
   label: () => string;
   /**
@@ -83,11 +114,33 @@ type NavItem = {
   short?: () => string;
   end?: boolean;
   /**
-   * Dans la barre d'onglets du téléphone. Au plus CINQ — au-delà, les colonnes
-   * deviennent trop étroites pour être visées au pouce. Le reste vit dans le
-   * menu, qui lui est complet.
+   * Dans la barre d'onglets du téléphone. Au plus QUATRE — la CINQUIÈME colonne
+   * est celle du « + », et au-delà de cinq les colonnes deviennent trop
+   * étroites pour être visées au pouce. Le reste vit dans le menu, qui lui est
+   * complet.
+   *
+   * ⚠️ LE PLAFOND ÉTAIT DE CINQ ET IL EST DESCENDU À QUATRE le jour où le « + »
+   * a pris sa colonne. Une entrée de plus ne casserait rien de visible: elle
+   * rétrécirait les six colonnes ensemble, et c'est le « + » — au milieu, donc
+   * le plus visé — qui perdrait sa cible en premier.
    */
   bottom?: boolean;
+  /**
+   * ⚠️ CETTE ENTRÉE MÈNE À UN ÉCRAN QUI REFUSE QUI N'EST PAS ÉLÈVE.
+   *
+   * `/app/today` est derrière `KeelStudentRoute`, qui exige
+   * `profiles.keel_role = 'student'`. La réclamation d'un profil de foyer
+   * n'écrit JAMAIS ce rôle (`20260811060000`, en toutes lettres) — un compte
+   * supplémentaire voyait donc, EN PREMIÈRE POSITION de sa barre d'onglets, le
+   * seul lien de tout son espace qui lui réponde « tu n'es pas un élève ».
+   *
+   * ⛔ C'EST L'INVERSE DE LA RÈGLE EN TÊTE DE CE FICHIER, ET ÇA COÛTE PLUS
+   * CHER. « Une route sans lien est une fonctionnalité que personne n'a »; un
+   * lien vers un refus est pire — il apprend que le produit est cassé, sur le
+   * premier geste. La règle et son inverse se tiennent ensemble: le lien existe
+   * pour qui l'écran accepte, et pour personne d'autre.
+   */
+  needsStudentRole?: boolean;
 };
 
 // A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS.
@@ -99,13 +152,35 @@ type NavItem = {
 // that closed that gap was itself REMOVED on 2026-09-03 (P4): the coach's
 // library has no student reader any more, and the bottom bar has four tabs.
 // The rule outlives the screen that taught it.
-const NAV: Record<ShellVariant, NavItem[]> = {
+// ⚠️ TROIS EXPORTS NON-COMPOSANTS DANS UN FICHIER DE COMPOSANTS, ET LA RÈGLE
+// `react-refresh/only-export-components` MORD SUR LES TROIS. Ils sont ici parce
+// que la suite front tourne en `node` et ne monte AUCUN composant: une règle
+// enfermée dans le rendu n'aurait pas d'épreuve, et les trois décident de ce
+// que quelqu'un voit sur son premier écran. Le remède propre est un module à
+// part; c'est un lot en soi, et `ui/Button.tsx` porte la même dérogation pour
+// la même raison. Ce qu'on perd est le rafraîchissement à chaud DE CE FICHIER,
+// en développement, rien d'autre.
+// eslint-disable-next-line react-refresh/only-export-components
+export const NAV: Record<ShellVariant, NavItem[]> = {
   student: [
-    { to: "/app/today", label: () => t("app.nav.today"), bottom: true },
+    {
+      to: "/app/today",
+      label: () => t("app.nav.today"),
+      short: () => t("app.nav.today.short"),
+      bottom: true,
+      // Voir `needsStudentRole`: `/app/today` est le SEUL écran de l'espace
+      // qui refuse un profil réclamé, et il était son premier onglet.
+      needsStudentRole: true,
+    },
     // DE-WHATSAPP — la conversation doit être à ≤1 tap depuis tout l'espace
     // élève. Elle est en deuxième position, pas en dernière: c'est le canal,
     // pas une annexe.
-    { to: "/app/chat", label: () => t("app.nav.chat"), bottom: true },
+    {
+      to: "/app/chat",
+      label: () => t("app.nav.chat"),
+      short: () => t("app.nav.chat.short"),
+      bottom: true,
+    },
     // PIVOT N3 — une route sans lien est une fonctionnalité que personne n'a
     // (voir la note en tête de ce fichier): l'écran plan arrive avec son
     // entrée de nav dans le même changement.
@@ -116,11 +191,6 @@ const NAV: Record<ShellVariant, NavItem[]> = {
       bottom: true,
     },
     { to: "/app/progress", label: () => t("app.nav.progress"), bottom: true },
-    // UNE ROUTE SANS LIEN EST UNE FONCTIONNALITÉ QUE PERSONNE N'A (voir la note
-    // en tête de ce fichier). L'écran santé arrive avec son entrée de nav dans
-    // le même changement — et il compte double: une allergie que l'élève ne
-    // trouve pas où déclarer est une allergie que le produit ne connaît pas.
-    { to: "/app/health", label: () => t("app.nav.health") },
     // LE FOYER. Il arrive avec son entrée dans le même changement, pour la
     // règle en tête de ce fichier: une route sans lien est une fonctionnalité
     // que personne n'a. Et elle compte double ici — sans cette page, un
@@ -209,6 +279,158 @@ function useChatUnread(userId: string | null): number {
   return count;
 }
 
+/**
+ * LE RÔLE, MÉMORISÉ POUR LA DURÉE DE L'ONGLET — ET SEULEMENT POUR LA NAV.
+ *
+ * ⛔ CE N'EST PAS UNE SECONDE SOURCE DE VÉRITÉ SUR L'ACCÈS. `KeelStudentRoute`
+ * relit la ligne à chaque montage et reste seul à décider; RLS reste la vraie
+ * frontière. Ce cache-ci répond à UNE question de dessin: faut-il peindre un
+ * onglet. Le tenir en mémoire évite qu'un membre voie l'onglet « Aujourd'hui »
+ * apparaître puis disparaître à CHAQUE navigation — un scintillement qui, lui,
+ * se remarque.
+ *
+ * ⚠️ IL MEURT AVEC L'ONGLET. Pas de `sessionStorage`: un rôle qui survit à un
+ * rechargement survivrait aussi à un changement de compte mal nettoyé, et on
+ * peindrait la nav de quelqu'un d'autre. La clé est l'identifiant, et la carte
+ * se vide au rechargement.
+ */
+const roleMemo = new Map<string, string | null>();
+
+/**
+ * LA RÈGLE, PURE — et elle est ici pour avoir une épreuve à sa taille.
+ *
+ * La suite front tourne en environnement `node` et ne monte pas de composant.
+ * Une règle enfermée dans un hook n'aurait donc AUCUN test, et celle-ci décide
+ * ce que quelqu'un voit sur son premier écran.
+ *
+ * ⚠️ `role === undefined` VEUT DIRE « PAS ENCORE LU », ET L'ONGLET RESTE. C'est
+ * un arbitrage, pas un oubli. Les deux scintillements possibles ne coûtent pas
+ * la même chose: cacher puis montrer fait sauter la barre de TOUT LE MONDE (les
+ * élèves sont le cas courant), montrer puis cacher ne la fait sauter que pour un
+ * profil réclamé — une fois par onglet, grâce au mémo. Une lecture EN PANNE
+ * laisse donc l'onglet, et la garde de route refuse proprement, comme
+ * aujourd'hui.
+ *
+ * ⛔ ET `null` N'EST PAS `undefined`. `keel_role` NULL est la valeur RÉELLE d'un
+ * profil réclamé — c'est le cas que cette règle existe pour servir. Les fondre
+ * en un seul « pas de rôle » rendrait l'onglet à qui il refuse.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function visibleNavFor(
+  items: readonly NavItem[],
+  role: string | null | undefined,
+): NavItem[] {
+  return items.filter((i) =>
+    !i.needsStudentRole || role === undefined || role === "student"
+  );
+}
+
+/** Les entrées que CE compte peut réellement ouvrir. */
+function useVisibleNav(items: NavItem[], userId: string | null): NavItem[] {
+  const needsRole = items.some((i) => i.needsStudentRole);
+  const [role, setRole] = React.useState<string | null | undefined>(() =>
+    userId !== null && roleMemo.has(userId) ? roleMemo.get(userId) : undefined
+  );
+
+  React.useEffect(() => {
+    if (!needsRole || userId === null) return;
+    if (roleMemo.has(userId)) {
+      setRole(roleMemo.get(userId));
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const got = await loadKeelRole(userId);
+        roleMemo.set(userId, got);
+        if (!cancelled) setRole(got);
+      } catch {
+        // Fail-open sur la NAVIGATION: on laisse l'onglet, la route refuse.
+        // L'inverse retirerait un onglet légitime à un élève sur un hoquet
+        // de réseau, et il ne reviendrait qu'au rechargement.
+        if (!cancelled) setRole("student");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [needsRole, userId]);
+
+  return React.useMemo(() => visibleNavFor(items, role), [items, role]);
+}
+
+/**
+ * L'OBJECTIF, MÉMORISÉ POUR LA DURÉE DE L'ONGLET — et pour peindre UN bouton.
+ *
+ * Même forme et mêmes raisons que `roleMemo` ci-dessus: la barre se démonte et
+ * se remonte à CHAQUE navigation, et relire `student_goals` à chaque écran
+ * ferait clignoter le « + » sur tout le parcours. La carte se vide au
+ * rechargement, et la clé est l'identifiant.
+ */
+const goalMemo = new Map<string, string | null>();
+
+/**
+ * LE « + » A-T-IL LIEU D'ÊTRE ? `undefined` tant qu'on ne le sait pas.
+ *
+ * ⛔ LA MÊME GARDE QUE LE COMPOSEUR, ET C'EST DÉLIBÉRÉ: `slotMealSwitchOfferable`
+ * n'ouvre les trois gestes qu'aux objectifs de poids (`fat_loss`,
+ * `muscle_gain`). Peindre le « + » à tout le monde ici pendant que le composeur
+ * le refuse donnerait deux réponses au même geste selon l'endroit où on le
+ * cherche. Si un jour la règle change, elle change dans `slotMeal.ts` — pas
+ * ici.
+ *
+ * ⚠️ « PAS ENCORE LU » NE PEINT RIEN, et c'est l'inverse de l'arbitrage de
+ * `visibleNavFor`. Là-bas il s'agissait de GARDER un onglet (une route qui
+ * refuse proprement); ici il s'agit d'un BOUTON D'ACTION: le montrer puis le
+ * retirer sous le pouce est le pire des deux scintillements, et il peut se
+ * produire pendant que le panneau est ouvert. Il apparaît donc une fois par
+ * onglet, à la première lecture, et ne bouge plus.
+ */
+function useQuickAddOfferable(userId: string | null): boolean {
+  const [goal, setGoal] = React.useState<string | null | undefined>(() =>
+    userId !== null && goalMemo.has(userId) ? goalMemo.get(userId) : undefined
+  );
+
+  React.useEffect(() => {
+    if (userId === null) return;
+    if (goalMemo.has(userId)) {
+      setGoal(goalMemo.get(userId));
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      // `loadStudentGoal` ne lève jamais: `null` couvre « pas de ligne » ET
+      // « lecture en panne », et les deux ne peignent rien.
+      const got = await loadStudentGoal(userId);
+      goalMemo.set(userId, got);
+      if (!cancelled) setGoal(got);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  return goal === undefined ? false : slotMealSwitchOfferable(goal);
+}
+
+/**
+ * LES ONGLETS À GAUCHE ET À DROITE DU « + ».
+ *
+ * Exportée pour avoir une épreuve à sa taille: la suite front tourne en `node`
+ * et ne monte aucun composant, donc une règle enfermée dans le rendu ne serait
+ * jamais vérifiée — et celle-ci décide de la POSITION du bouton le plus visé de
+ * l'écran.
+ *
+ * ⚠️ SUR UN NOMBRE IMPAIR, LA GAUCHE PREND LA PLUS GROSSE MOITIÉ. Le « + »
+ * n'est alors plus au centre géométrique, et c'est le bon compromis: le
+ * déséquilibre se voit, un bouton décalé d'une demi-colonne se rate.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function splitAroundQuickAdd<T>(items: readonly T[]): [T[], T[]] {
+  const cut = Math.ceil(items.length / 2);
+  return [items.slice(0, cut), items.slice(cut)];
+}
+
 /** The top bar alone — for pages whose header is custom (student space). */
 export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }) {
   const { signOut, user } = useAuth();
@@ -220,7 +442,10 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
   const unread = useChatUnread(
     variant === "student" ? user?.id ?? null : null,
   );
-  const items = NAV[variant];
+  const items = useVisibleNav(
+    NAV[variant],
+    variant === "student" ? user?.id ?? null : null,
+  );
 
   // Un menu qui survit à la navigation recouvre l'écran qu'on vient d'ouvrir.
   // Il se referme donc sur le chemin, pas sur le clic: une entrée qui mène à la
@@ -278,9 +503,7 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
       <div className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <div className="flex min-w-0 items-center gap-4">
-            {/* LE NOM PORTE L'ÉQUERRE, comme sur la vitrine: elle marque
-                l'origine de ce qui est spécifié, et elle a toujours un mot à sa
-                droite (charte §4).
+            {/* LE NOM PORTE LE SYMBOLE, comme sur la vitrine.
                 ⚠️ `text-lg` = 18 px, donc SOUS le plancher de 20 px que la
                 charte §3 pose pour Young Serif — et c'est un écart ASSUMÉ, pas
                 un oubli. La valeur est celle de `PublicHeader`: un logotype
@@ -290,7 +513,18 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
                 2 px de pureté sur la seule couture que ce chantier existe pour
                 effacer. Si un jour la vitrine remonte son nom à 20 px, cette
                 ligne la suit — elle ne décide pas. */}
-            <span className="eq shrink-0 font-display text-lg leading-none text-ink">
+            {/* ── LE SYMBOLE DE LA MARQUE, ET PLUS L'ÉQUERRE ───────────────
+                Le logo (`BrandMark`) prend la place que tenait `.eq`. Deux
+                signatures collées au même mot en feraient une de trop, et
+                c'est le logo qui gagne: l'équerre garde son rôle d'ouverture
+                de SECTION (charte §4), elle ne fait plus office de marque.
+                ⚠️ ET ÇA RÈGLE LE PIÈGE DU `padding-left`: `.eq` posait son
+                retrait hors de toute couche CSS, donc il battait un
+                utilitaire de même spécificité. Un `flex` + `gap` n'a pas ce
+                défaut — les avertissements « pas de `px-*` sur ce nœud »
+                tombent avec lui. */}
+            <span className="flex shrink-0 items-center gap-1.5 font-display text-lg leading-none text-ink">
+              <BrandMark className="h-6 w-6 shrink-0 text-fig-700" />
               {t("brand.wordmark")}
             </span>
             <nav className="hidden gap-2 text-sm xl:flex">
@@ -373,6 +607,19 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
               ))}
               <div className="my-1 h-px bg-line" />
               <MenuLink to="/account" label={t("shell.nav.account")} />
+              {/* FF-063 — L'ABONNEMENT, SOUS « COMPTE » ET SEULEMENT CÔTÉ
+                  ÉLÈVE. Le groupe secondaire est rendu pour les DEUX variantes,
+                  et un coach a déjà sa propre facturation (`/coach/billing`,
+                  dans `NAV.coach`): deux entrées « abonnement » dans le même
+                  menu, ce sont deux produits, et celle du foyer lui répondrait
+                  « tu n'es dans aucun foyer ».
+                  ⛔ PAS DANS `NAV`, et ce n'est pas un détail de rangement: y
+                  entrer la mettrait AU-DESSUS du séparateur (donc dans la
+                  rangée du haut), alors que sa place est avec le compte et les
+                  mentions légales — ce qu'on consulte, pas ce qu'on habite. */}
+              {variant === "student" && (
+                <MenuLink to="/app/billing" label={t("shell.nav.billing")} />
+              )}
               <MenuLink to="/legal" label={t("shell.nav.legal")} muted />
               <button
                 type="button"
@@ -390,79 +637,345 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
           téléphone; le coach travaille sur un écran large et son espace tient
           dans le menu. Le pouce atteint le bas de l'écran, pas le haut. */}
       {variant === "student" && (
-        <ShellBottomBar items={items} unread={unread} />
+        <ShellBottomBar
+          items={items}
+          unread={unread}
+          userId={user?.id ?? null}
+        />
       )}
     </>
   );
 }
 
-/** La barre d'onglets du téléphone: les destinations quotidiennes, à un tap. */
+/**
+ * La barre d'onglets du téléphone: les destinations quotidiennes, à un tap —
+ * et, au milieu, le « + » qui déclare ce qui n'était pas prévu.
+ */
 function ShellBottomBar({
   items,
   unread,
+  userId,
 }: {
   items: NavItem[];
   unread: number;
+  userId: string | null;
 }) {
   const bottom = items.filter((item) => item.bottom);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const offerable = useQuickAddOfferable(userId);
+  const [addOpen, setAddOpen] = React.useState(false);
+  /**
+   * LE SECOND TEMPS DE « DÉCRIRE », ET IL EST OBLIGATOIRE.
+   *
+   * La barre ne peut pas deviner de quel repas on parle: sans choix de moment,
+   * la déclaration tomberait au dernier créneau écoulé — juste par accident, et
+   * faux dès qu'on répond le soir. C'est la même raison qui met le créneau DANS
+   * le jeton de la question, et c'est déjà le second temps du composeur.
+   */
+  const [slotPicker, setSlotPicker] = React.useState(false);
+  const photoInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Le panneau ne survit pas à la navigation, comme le menu du haut: rester
+  // ouvert par-dessus l'écran qu'on vient d'ouvrir est un panneau qu'on referme
+  // par erreur au geste suivant.
+  React.useEffect(() => {
+    setAddOpen(false);
+    setSlotPicker(false);
+  }, [location.pathname]);
+
+  // Échap referme. Un panneau sans sortie au clavier est un piège pour qui ne
+  // vise pas au doigt — la même règle que le menu.
+  React.useEffect(() => {
+    if (!addOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setAddOpen(false);
+        setSlotPicker(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [addOpen]);
+
+  /**
+   * ARMER, PUIS ALLER À LA CONVERSATION. C'est tout ce que ce bouton fait.
+   *
+   * ⚠️ `navigate` MÊME QUAND ON Y EST DÉJÀ. `/app/chat` ne se remonte pas dans
+   * ce cas — et il n'a pas à le faire: l'écran est abonné aux armements
+   * (`subscribeQuickAdd`), donc il consomme l'intention sur place.
+   */
+  const armAndGo = React.useCallback(
+    (intent: Parameters<typeof armQuickAdd>[0]) => {
+      setAddOpen(false);
+      setSlotPicker(false);
+      armQuickAdd(intent);
+      navigate("/app/chat");
+    },
+    [navigate],
+  );
+
+  const [left, right] = splitAroundQuickAdd(bottom);
+
   return (
-    <nav
-      data-testid="shell-bottom-nav"
-      aria-label={t("shell.nav.primary")}
-      // `pb-[env(safe-area-inset-bottom)]`: sur un iPhone la barre gestuelle
-      // mange les derniers 34 px. Sans ça, le dernier onglet est sous le trait
-      // du système — visible, et intappable.
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] xl:hidden"
-    >
-      <div className="flex items-stretch">
-        {bottom.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            // `py-3`: 49 px de haut. Une cible tactile sous ~44 px se rate au
-            // pouce, et c'est la barre qu'on vise le plus souvent.
-            //
-            // ⚠️ `min-w-0` ARME LE `truncate` DE L'ENFANT, et sans lui il ne
-            // sert à rien. Un enfant de flex a `min-width: auto`: il refuse
-            // d'être plus étroit que son contenu, donc la colonne s'élargissait
-            // au lieu de couper, et le dernier onglet sortait de l'écran.
-            // MESURÉ en français à 320 px: « Progression » débordait de 32 px,
-            // sans ellipse et sans défilement — 1.4.10 Reflow. En anglais le
-            // libellé est plus court et le défaut ne se voyait pas: c'est le
-            // piège de la garde vérifiée dans une seule langue, que ce dépôt a
-            // déjà payé.
-            className="relative flex min-w-0 flex-1 items-center justify-center px-0.5 py-3"
+    <>
+      {/* LE VOILE, ET IL SERT À FERMER. Un panneau qui ne se referme qu'au
+          bouton « Fermer » se laisse ouvert; sur un téléphone, le geste qu'on
+          essaie en premier est de taper à côté.
+          `aria-hidden` + `tabIndex={-1}`: la sortie clavier est Échap, et un
+          second arrêt de tabulation sans nom n'en serait pas une. */}
+      {addOpen && (
+        <div
+          aria-hidden="true"
+          tabIndex={-1}
+          data-testid="shell-quick-add-scrim"
+          onClick={() => {
+            setAddOpen(false);
+            setSlotPicker(false);
+          }}
+          className="fixed inset-0 z-30 bg-ink/20 xl:hidden"
+        />
+      )}
+      <nav
+        data-testid="shell-bottom-nav"
+        aria-label={t("shell.nav.primary")}
+        // `pb-[env(safe-area-inset-bottom)]`: sur un iPhone la barre gestuelle
+        // mange les derniers 34 px. Sans ça, le dernier onglet est sous le trait
+        // du système — visible, et intappable.
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] xl:hidden"
+      >
+        {/* ══════════════════════════════════════════════════════════════════
+            LE PANNEAU DU « + » — IL SE DÉPLIE AU-DESSUS DE LA BARRE.
+
+            Il vit DANS la barre (donc au-dessus du voile, et au-dessus de la
+            réserve de `safe-area`), et il porte la grammaire du menu du haut:
+            des lignes pleine largeur, `py-3`, visables au pouce. Pas un
+            `Modal` — c'est un tiroir, pas une page.
+            ═══════════════════════════════════════════════════════════════ */}
+        {addOpen && (
+          <div
+            role="menu"
+            id="shell-quick-add"
+            aria-label={t("chat.compose.add")}
+            data-testid="shell-quick-add-panel"
+            className="animate-unfold-up border-b border-line px-3 pb-2 pt-3"
           >
-            {({ isActive }) => (
-              <>
+            <div className="mx-auto flex max-w-6xl flex-col gap-1">
+              {!slotPicker
+                ? (
+                  <>
+                    <QuickAddItem
+                      testId="shell-quick-add-photo"
+                      label={t("chat.compose.add.photo")}
+                      // ⚠️ LE SÉLECTEUR DE FICHIER S'OUVRE DANS LE GESTE, ET
+                      // C'EST LA RAISON POUR LAQUELLE LA PHOTO NE PASSE PAS
+                      // PAR UNE NAVIGATION D'ABORD. Un `click()` programmé
+                      // après un changement d'écran n'a plus l'activation de
+                      // l'utilisateur: Safari refuse alors d'ouvrir l'appareil
+                      // photo, sans rien dire. On choisit ici, on navigue après.
+                      onSelect={() => {
+                        setAddOpen(false);
+                        photoInputRef.current?.click();
+                      }}
+                    />
+                    <QuickAddItem
+                      testId="shell-quick-add-describe"
+                      label={t("chat.compose.add.describe")}
+                      onSelect={() => setSlotPicker(true)}
+                    />
+                    <QuickAddItem
+                      testId="shell-quick-add-weight"
+                      label={t("chat.compose.add.weight")}
+                      onSelect={() => armAndGo({ kind: "weight" })}
+                    />
+                  </>
+                )
+                : (
+                  SLOT_ORDER.map((slot) => (
+                    <QuickAddItem
+                      key={slot}
+                      testId={`shell-quick-add-describe-${slot}`}
+                      label={forcedSlotLabel(slot) ?? slot}
+                      onSelect={() => armAndGo({ kind: "describe", slot })}
+                    />
+                  ))
+                )}
+              <QuickAddItem
+                testId="shell-quick-add-close"
+                label={t("chat.compose.add.close")}
+                muted
+                onSelect={() => {
+                  setAddOpen(false);
+                  setSlotPicker(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {/* ⚠️ LE CHAMP DE FICHIER RESTE DANS LE DOM, hors du panneau: le panneau
+            se ferme au tap qui ouvre le sélecteur, et un champ démonté au
+            moment où le système l'ouvre ne rend jamais son `change`.
+            Il ne VALIDE rien ici — ni le type, ni la taille. `/app/chat` porte
+            déjà les deux refus, avec leurs phrases; les recopier ferait deux
+            gardes à tenir d'accord. */}
+        {/* ⛔ ET IL SUIT LA MÊME GARDE QUE LE BOUTON. Un champ de fichier qu'AUCUN
+            geste ne peut atteindre — le tiroir qui l'ouvre n'existe pas quand
+            l'objectif ne consomme pas la photo — est du balisage mort dans la
+            coquille de TOUTES les pages élève. L'absence est totale ou elle
+            n'est pas une absence. */}
+        {offerable && (
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
+          className="hidden"
+          data-testid="shell-quick-add-photo-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            // Remis à zéro pour que RE-choisir le même fichier redéclenche
+            // `change`: sans ça, une photo retirée puis reprise resterait sans
+            // effet.
+            e.target.value = "";
+            if (file) armAndGo({ kind: "photo", file });
+          }}
+        />
+        )}
+        <div className="flex items-stretch">
+          {left.map((item) => (
+            <BottomTab key={item.to} item={item} unread={unread} />
+          ))}
+          {/* ══════════════════════════════════════════════════════════════
+              LE « + », ET IL PORTE LA MARQUE.
+
+              La règle de couleur de l'app: la teinte de marque marque la
+              NAVIGATION et l'ACTION (charte §2). C'en est une — la seule de
+              cette barre. `paper` sur `fig-700` = 9,98:1.
+
+              ⛔ ET IL NE SE PEINT QUE QUAND L'OBJECTIF LE CONSOMME. Voir
+              `useQuickAddOfferable`: la colonne disparaît alors et les quatre
+              onglets se repartagent la largeur — pas de trou au milieu.
+              ═════════════════════════════════════════════════════════════ */}
+          {offerable && (
+            <div className="flex min-w-0 flex-1 items-center justify-center px-0.5 py-3">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={addOpen}
+                aria-controls="shell-quick-add"
+                aria-label={t("chat.compose.add")}
+                data-testid="shell-quick-add"
+                onClick={() => {
+                  setAddOpen((open) => !open);
+                  setSlotPicker(false);
+                }}
+                // 44 px de côté: le plancher d'une cible tactile, et c'est la
+                // cible la plus visée de la barre.
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-fig-700 text-paper transition-colors hover:bg-fig-800"
+              >
+                {/* LE SIGNE TOURNE EN CROIX QUAND LE TIROIR EST OUVERT: c'est
+                    la même touche qui ouvre et qui ferme, et elle le dit.
+                    `aria-hidden`: le nom du bouton est son `aria-label`, un
+                    « + » annoncé par-dessus ne dirait rien de plus.
+                    `motion-reduce:transition-none` — une rotation n'est pas de
+                    l'information, elle ne doit pas s'imposer. */}
                 <span
-                  // L'ONGLET ACTIF PORTE LA MARQUE: la teinte de marque marque
-                  // la NAVIGATION et l'ACTION (charte §2). `paper` sur
-                  // `fig-700` = 9,98:1; `ink-soft` sur `paper` = 6,11:1.
-                  className={`inline-flex max-w-full items-center truncate rounded-full px-2 py-1 text-[0.6875rem] font-medium ${
-                    isActive
-                      ? "bg-fig-700 text-paper"
-                      : "text-ink-soft"
+                  aria-hidden="true"
+                  className={`text-2xl leading-none transition-transform duration-150 motion-reduce:transition-none ${
+                    addOpen ? "rotate-45" : ""
                   }`}
                 >
-                  {(item.short ?? item.label)()}
+                  +
                 </span>
-                {item.to === "/app/chat" && unread > 0 && (
-                  // En pastille d'icône d'application, pas dans le libellé: une
-                  // colonne fait 75 px et « Chat 3 » en pilule la ferait
-                  // déborder sur ses voisines.
-                  <UnreadBadge
-                    count={unread}
-                    className="absolute right-1.5 top-0.5 bg-ink text-paper ring-2 ring-paper"
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </div>
-    </nav>
+              </button>
+            </div>
+          )}
+          {right.map((item) => (
+            <BottomTab key={item.to} item={item} unread={unread} />
+          ))}
+        </div>
+      </nav>
+    </>
+  );
+}
+
+/** Une ligne du tiroir du « + »: pleine largeur, visable au pouce. */
+function QuickAddItem({
+  testId,
+  label,
+  onSelect,
+  muted = false,
+}: {
+  testId: string;
+  label: string;
+  onSelect: () => void;
+  muted?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      data-testid={testId}
+      onClick={onSelect}
+      className={`w-full rounded-card px-3 py-3 text-left text-sm transition-colors ${
+        muted
+          ? "text-ink-soft hover:bg-fig-50 hover:text-ink"
+          : "text-ink hover:bg-fig-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Un onglet de la barre du bas. */
+function BottomTab({ item, unread }: { item: NavItem; unread: number }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.end}
+      // `py-3`: 49 px de haut. Une cible tactile sous ~44 px se rate au
+      // pouce, et c'est la barre qu'on vise le plus souvent.
+      //
+      // ⚠️ `min-w-0` ARME LE `truncate` DE L'ENFANT, et sans lui il ne
+      // sert à rien. Un enfant de flex a `min-width: auto`: il refuse
+      // d'être plus étroit que son contenu, donc la colonne s'élargissait
+      // au lieu de couper, et le dernier onglet sortait de l'écran.
+      // MESURÉ en français à 320 px: « Progression » débordait de 32 px,
+      // sans ellipse et sans défilement — 1.4.10 Reflow. En anglais le
+      // libellé est plus court et le défaut ne se voyait pas: c'est le
+      // piège de la garde vérifiée dans une seule langue, que ce dépôt a
+      // déjà payé.
+      className="relative flex min-w-0 flex-1 items-center justify-center px-0.5 py-3"
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            // L'ONGLET ACTIF PORTE LA MARQUE: la teinte de marque marque
+            // la NAVIGATION et l'ACTION (charte §2). `paper` sur
+            // `fig-700` = 9,98:1; `ink-soft` sur `paper` = 6,11:1.
+            // `px-1.5` ET PAS `px-2`: quatre pixels de texte en plus par
+            // colonne, et ils sont comptés — à 320 px, « Dialogue » réclame
+            // 45 px pour 44 px de texte disponibles avec `px-2`. La pastille de
+            // l'onglet actif reste lisible: c'est la RÉSERVE autour du mot qui
+            // maigrit, pas le mot.
+            className={`inline-flex max-w-full items-center truncate rounded-full px-1.5 py-1 text-[0.6875rem] font-medium ${
+              isActive ? "bg-fig-700 text-paper" : "text-ink-soft"
+            }`}
+          >
+            {(item.short ?? item.label)()}
+          </span>
+          {item.to === "/app/chat" && unread > 0 && (
+            // En pastille d'icône d'application, pas dans le libellé: une
+            // colonne fait 75 px et « Chat 3 » en pilule la ferait
+            // déborder sur ses voisines.
+            <UnreadBadge
+              count={unread}
+              className="absolute right-1.5 top-0.5 bg-ink text-paper ring-2 ring-paper"
+            />
+          )}
+        </>
+      )}
+    </NavLink>
   );
 }
 
@@ -593,12 +1106,46 @@ export function KeelAppShell({
       }`}
     >
       <KeelShellBar variant={variant} />
+      {/* FF-064 — L'AVERTISSEMENT AVANT LA COUPURE, ENTRE LA BARRE ET LA PAGE.
+          Il se rend lui-même invisible sauf à J-2 et J-1 (voir
+          `trialBannerDecision`), et il ne coûte AUCUNE lecture: c'est la même
+          réponse de couverture que le mur, obtenue une fois par session.
+          ⚠️ Il porte `shrink-0`. En mode `fill` (`/app/chat`), ce conteneur est
+          `flex h-[100dvh] flex-col overflow-hidden`: sans cette classe il se
+          fait écraser ou il pousse le composeur hors de l'écran. */}
+      <TrialEndingBanner />
       <Page
         width={width}
         fullHeight={false}
         className={fill ? "flex min-h-0 flex-1 flex-col" : ""}
       >
-        <PageHeader title={title} subtitle={subtitle} actions={actions} />
+        {/* ══════════════════════════════════════════════════════════════
+            L'ÉCRAN ÉLÈVE N'A PLUS D'EN-TÊTE VISIBLE (2026-09-09, sur demande).
+
+            « Aujourd'hui », « Sophia », « Le plan de ma semaine », « Mes
+            progrès »: quatre titres qui répètent l'onglet actif — lequel est
+            déjà peint en figue, en haut sur grand écran et sous le pouce sur
+            téléphone. Le chapô en dessous décrivait l'écran au-dessus de
+            l'écran. Sur un téléphone, ces deux blocs poussaient le premier
+            contenu réel sous la ligne de flottaison.
+
+            ⛔ LE `h1` RESTE, EN `sr-only`. Le retirer ferait des pages d'app
+            des documents SANS TITRE: un lecteur d'écran qui liste les en-têtes
+            n'aurait plus rien à annoncer, et la nav ne dit pas où on est à
+            quelqu'un qui ne la voit pas. Ce qui part est la PLACE qu'il prenait,
+            pas le titre.
+
+            ⚠️ `actions` N'EST PLUS RENDU CÔTÉ ÉLÈVE — et aucun écran élève n'en
+            passe (vérifié: `Today`, `Chat`, `Plan`, `Progress`, `Household`,
+            `Billing`, `Known`). Si un jour l'un en passe, il faudra lui donner
+            une place DANS son corps, pas ressusciter l'en-tête.
+
+            Le coach garde le sien: ses écrans sont des écrans de TRAVAIL, sans
+            barre du bas, et plusieurs portent des actions dans leur en-tête.
+            ══════════════════════════════════════════════════════════════ */}
+        {variant === "student"
+          ? <h1 className="sr-only">{title}</h1>
+          : <PageHeader title={title} subtitle={subtitle} actions={actions} />}
         {children}
       </Page>
     </div>

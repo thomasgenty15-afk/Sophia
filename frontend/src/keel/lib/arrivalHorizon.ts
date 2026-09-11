@@ -42,7 +42,7 @@
 //      `household_member_bodies.weight_kg`. Ce serait remplacer une promesse
 //      fausse par une autre. « Seule la balance dira le rythme réel » parle
 //      de ce que la personne verra, pas de ce que le produit fera.
-//   ③ DES kcal — clause C5, même raison que `PACE_SATURATION_LABELS`: une
+//   ③ DES kcal — clause C5, même raison que `PACE_WARNING_LABELS`: une
 //      grandeur d'énergie PAR BOUCHE sortirait ici sans avoir traversé la
 //      moindre porte, à côté d'un curseur que le compte maître règle POUR
 //      QUELQU'UN D'AUTRE.
@@ -66,8 +66,7 @@
 // lue. `en.ts`/`fr.ts` sont interdits de commit sur cette campagne.
 //
 // ── ⚠️ LE MODULE PORTE SON PROPRE CATALOGUE DE LANGUE ─────────────────────
-// Comme `PACE_WARNING_LABELS` et `PACE_SATURATION_LABELS` dans
-// `weight_pace.ts`. La phrase et sa décision sont un seul objet: les séparer
+// Comme `PACE_WARNING_LABELS` dans `weight_pace.ts`. La phrase et sa décision sont un seul objet: les séparer
 // laisse l'une bouger sans l'autre, et c'est toujours la phrase qui bouge.
 //
 // PURE MODULE: no I/O, no clock, no randomness.

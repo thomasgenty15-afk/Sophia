@@ -14,15 +14,94 @@
 #
 # Format: <chemin relatif à frontend/> :: <fullName du test>
 
-# src/edge/coverage-guard.int.test.ts
-#    ⛔ PAS CE LOT. Une autre session a ajouté des fonctions edge et des triggers
-#    (`household_member_bodies_touch`, `student_daily_recommendations_set_updated_at`)
-#    sans les inscrire dans la liste connue. Le fichier est `M` dans l’arbre.
-src/edge/coverage-guard.int.test.ts :: coverage guard: new triggers/functions must be acknowledged all Edge Functions (supabase/functions/*/index.ts) are in the known list
-src/edge/coverage-guard.int.test.ts :: coverage guard: new triggers/functions must be acknowledged all DB triggers are in the known list (migrations + squashed_schema, excluding *_OLD.sql)
+# ═══════════════════════════════════════════════════════════════════════════
+# ⟳ 2026-09-04 — TROIS DES QUATRE LIGNES DU 22/08 SONT PARTIES, RÉPARÉES.
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# ⛔ CE QUI S’ÉTAIT PASSÉ, ET C’EST LA CICATRICE QUE CE FICHIER DOIT PORTER.
+#    Les quatre motifs du 22/08 décrivaient un état TRANSITOIRE — « lot en vol »,
+#    « le fichier est `M` dans l’arbre ». Cet état a pris fin le jour où ces lots
+#    ont été commités; les rouges, eux, sont restés DEUX SEMAINES. Une tolérance
+#    écrite pour un état qui dure une journée survit à sa cause, et un rouge dont
+#    la cause est commitée cesse d’être « celui de quelqu’un d’autre »: il
+#    devient celui du dépôt, et la règle du haut de ce fichier s’applique — un
+#    rouge à soi se répare.
+#
+# ⚠️ CE FICHIER PRÉVOYAIT LE CAS INVERSE (« quand un rouge listé redevient vert,
+#    retire la ligne ») ET PAS CELUI-LÀ. Le gate ne peut pas le détecter: le test
+#    rougit toujours, la ligne n’est donc jamais « périmée » à ses yeux. La seule
+#    garde possible est humaine — RELIRE LE MOTIF, pas seulement la ligne. Si le
+#    motif parle d’un arbre sale, vérifier `git status` avant de le croire.
+#
+# CE QUI A ÉTÉ RÉPARÉ le 2026-09-04:
+#    · les deux `awayFrom` — le lot L3 a fait de `awayFrom` un lecteur à trois
+#      états (`AwayMark.kind`); les attendus le NOMMENT maintenant, et un cas qui
+#      passe pour `eating_out` a été ajouté pour que ce ne soit pas une constante
+#      recopiée;
+#    · les triggers — `household_member_bodies_touch` et
+#      `student_daily_recommendations_set_updated_at` sont acquittés dans
+#      `coverage-guard.int.test.ts`, avec ce qu’ils font (deux horodatages
+#      d’`updated_at`, aucune règle métier).
+#    Les deux fonctions edge qui manquaient (`household-merge-notices-v1`,
+#    `keel-plan-feedback-v1`) y sont aussi, avec leur couverture nommée.
 
-# src/keel/api/household.int.test.ts
-#    ⛔ PAS CE LOT. Le fichier de test est PROPRE à HEAD; c’est `api/household.ts`
-#    (`M`, +264 lignes, lot D14/FF-002 en vol) qui ajoute une clé `kind` à `awayFrom`.
-src/keel/api/household.int.test.ts :: awayFrom — les deux sources d'une absence, séparées (D14) ne rend que la source demandée
-src/keel/api/household.int.test.ts :: awayFrom — les deux sources d'une absence, séparées (D14) un jour inconnu tombe sans emporter les autres (FF-002 §7)
+# ═══════════════════════════════════════════════════════════════════════════
+# AUCUN ROUGE TOLÉRÉ — 2026-09-04 14:52.
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# La liste est VIDE, et c'est l'état normal. Elle a porté quatre lignes du
+# 22/08 au 04/09 — voir au-dessus ce que ça a coûté.
+#
+# ⛔ LA DERNIÈRE LIGNE RETIRÉE MÉRITE SON HISTOIRE, PARCE QU'ELLE DIT COMBIEN
+#    CE FICHIER EST PÉRISSABLE. Elle tolérait `coverage-guard` au motif que
+#    `eating-structure-v1` était UNTRACKED — mesuré, daté, propriétaire nommé,
+#    tout ce que ce fichier demande. Elle est devenue fausse SIX MINUTES plus
+#    tard: la fonction a été commitée (`8534b355`, 14:45) pendant que la ligne
+#    s'écrivait, et sa session l'a acquittée elle-même dans la liste connue de
+#    `coverage-guard.int.test.ts` — c'est SON entrée qui y est, pas la mienne:
+#    la sienne nomme la vraie couverture (33 cas) et dit juste ce que la
+#    fonction fait des portes d'`energy_gate`, là où la mienne se trompait.
+#    Deux sessions ont écrit le même acquittement à quelques minutes d'écart;
+#    j'ai retiré le doublon, le mien.
+#
+#    Une tolérance justifiée par « c'est en vol » a la durée de vie d'un vol.
+#    Écris-en une si tu dois, mais relis le MOTIF avant de la croire — le gate,
+#    lui, ne peut pas: tant que le test rougit, la ligne n'est jamais périmée à
+#    ses yeux.
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ⟳ 2026-09-11 21:10 — DEUX ROUGES DU LOT A7, chantier-0903/SUIVI
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# PROPRIÉTAIRE: la lane `chantier-0903/SUIVI` (worktree
+# `/Users/ahmedamara/Dev/Sophia-2-chantiers/SUIVI`), lot A7 — « la page de
+# suivi: le bloc permanent, l'objectif jour par jour, et la courbe »
+# (`fd47c04c`). Ces deux rouges sont entrés avec la réécriture de
+# `StudentProgressPage.tsx`, pas avec le commit qui les tolère ici.
+#
+# CE QU'ILS DISENT, ET ILS DISENT VRAI TOUS LES DEUX :
+#
+# ① `energyBasis` — cinq clés neuves écrivent un kcal sans nommer leur base
+#    (`student_progress.journal.planned_kcal`, `.reported_kcal`,
+#    `.reported_estimated`, `.subtotal`, `.total`). L'inventaire ne les
+#    connaît pas, ce qui est exactement ce qu'il existe pour forcer: il faut
+#    dire À QUELLE BASE elles appartiennent. Le lot A7 a déjà fait ce geste
+#    pour ses six clés `tracking.*`; ces cinq-là ne l'ont pas eu.
+#
+# ② `mouthProfileReaders` — `<ActivitySessionsCard>` n'est plus monté par
+#    `StudentProgressPage.tsx`. Le composant existe toujours
+#    (`components/ActivitySessionsCard.tsx`), c'est la page réécrite qui ne
+#    l'appelle plus: la seule surface vivante des séances a disparu.
+#
+# ⛔ POURQUOI TOLÉRÉS ICI PLUTÔT QUE RÉPARÉS: ce commit remet la production à
+#    niveau du poste de travail (elle servait encore le build du 1er
+#    septembre). Nommer la base de cinq phrases et remonter une carte sur un
+#    écran en cours de réécriture sont deux décisions produit qui appartiennent
+#    à la lane A7 — les prendre ici les lui volerait, et un écran refait deux
+#    fois vaut moins qu'un écran refait une fois.
+#
+#    Une tolérance justifiée par « c'est en vol » a la durée de vie d'un vol.
+#    Ces deux lignes se retirent dès qu'A7 atterrit.
+
+src/keel/i18n/energyBasis.int.test.ts :: un kcal affiché porte sa base l'inventaire des clés qui écrivent un kcal est CLOS
+src/keel/api/mouthProfileReaders.int.test.ts :: les séances d'activité — un fait, jamais une énergie `/app/progress` monte bien la carte des séances

@@ -35,7 +35,7 @@ import type { TrackingWeightPoint } from "../api/tracking";
 const BOX = { width: 320, height: 120, padding: 12 };
 
 export function WeightCurveCard(
-  { points, today }: { points: TrackingWeightPoint[]; today: string },
+  { points, today, label }: { points: TrackingWeightPoint[]; today: string; label?: string },
 ) {
   const [period, setPeriod] = React.useState<WeightPeriod>("1m");
   const shown = pointsInPeriod(points, period, today);
@@ -44,7 +44,7 @@ export function WeightCurveCard(
 
   return (
     <Card>
-      <SectionLabel>{t("tracking.weight.label")}</SectionLabel>
+      <SectionLabel>{label ?? t("tracking.weight.label")}</SectionLabel>
 
       {/* Les six fenêtres sont de la NAVIGATION — même forme que les onglets du
           shell et que le sélecteur semaine/mois de cette page. Elles ne

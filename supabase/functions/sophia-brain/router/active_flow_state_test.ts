@@ -42,10 +42,19 @@ const FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER:
  * D'où DEUX listes et une assertion d'exhaustivité: un flow neuf tombe en rouge
  * tant que quelqu'un ne l'a pas rangé, explicitement, dans l'une des deux.
  */
+/**
+ * ⟳ 2026-09-09 — CETTE LISTE EST VIDE, et il faut le dire plutôt que de la
+ * supprimer. Son seul membre était `keel_reengagement_resume_v1`, dont le flow
+ * ne possède plus aucun tour (voir `chat-inbound-v1`). La liste RESTE parce
+ * que c'est elle qui met un flow neuf en rouge tant que personne n'a tranché.
+ *
+ * ⚠️ ET SA VACUITÉ DÉSARME LA BOUCLE QU'ELLE ARMAIT: un `shouldSkip` qui
+ * renverrait TOUJOURS `true` passerait de nouveau, exactement le défaut décrit
+ * au-dessus. Le cas négatif est donc réarmé autrement, plus bas, sur un id qui
+ * n'est PAS au registre.
+ */
 const FLOWS_THAT_NEED_THE_GLOBAL_DISPATCHER:
-  ActiveLocalConversationFlowSkillId[] = [
-    "keel_reengagement_resume_v1",
-  ];
+  ActiveLocalConversationFlowSkillId[] = [];
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   ...FLOWS_THAT_SKIP_THE_GLOBAL_DISPATCHER,
@@ -107,6 +116,24 @@ Deno.test("active_flow_state skips the global dispatcher ONLY for flows that cla
   for (const skillId of FLOWS_THAT_NEED_THE_GLOBAL_DISPATCHER) {
     assertEquals(skipFor(skillId), false, `${skillId} ne doit PAS sauter`);
   }
+  // ⟳ 2026-09-09 — LE CAS NÉGATIF, RÉARMÉ SUR UN NON-MEMBRE. La liste
+  // ci-dessus est vide depuis le retrait du réengagement; sans cette ligne, la
+  // boucle du dessus redevient la tautologie que ce fichier existe pour
+  // empêcher — un `shouldSkip` qui renvoie TOUJOURS `true` la passerait.
+  //
+  // ⚠️ IL NE PASSE PAS PAR `skipFor`, ET C'EST LE POINT. `readActiveFlowState`
+  // ne RETIENT que les flows du registre: un non-membre en ressort à `null`, et
+  // l'assertion interne de `skipFor` rougirait avant d'avoir rien prouvé sur le
+  // saut. On interroge donc directement la fonction sous test, avec un état
+  // brut — c'est le seul moyen de lui poser la question « et pour un id que tu
+  // ne connais pas ? ».
+  const skipForRaw = (skillId: string) =>
+    shouldSkipGlobalDispatcherForActiveLocalFlow({
+      activeSkillState: { skill_id: skillId, status: "active" },
+    });
+  assertEquals(skipForRaw("keel_reengagement_resume_v1"), false);
+  assertEquals(skipForRaw("weight_divergence"), false);
+  assertEquals(skipForRaw(""), false);
 });
 
 Deno.test("active_flow_state: tout flow local retenu est range dans exactement une des deux listes", () => {
@@ -115,7 +142,6 @@ Deno.test("active_flow_state: tout flow local retenu est range dans exactement u
   // Source de vérité: l'union de types du module, pas une copie locale.
   const declared: ActiveLocalConversationFlowSkillId[] = [
     "safety_crisis",
-    "keel_reengagement_resume_v1",
   ];
   assertEquals(
     [...RETAINED_LOCAL_FLOW_IDS].sort(),

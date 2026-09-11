@@ -350,6 +350,35 @@ export type ChatSettings = {
   goal: string | null;
 };
 
+/**
+ * L'OBJECTIF, SEUL — et c'est le MÊME lecteur que `loadChatSettings`.
+ *
+ * ⚠️ IL EST EXTRAIT PARCE QU'UN SECOND APPELANT EST ARRIVÉ, PAS PAR GOÛT.
+ * La barre d'onglets du téléphone peint son « + » sur la même règle que le
+ * composeur (`slotMealSwitchOfferable`), et elle n'a besoin que de ça: lui
+ * faire appeler `loadChatSettings` lirait `profiles` à chaque navigation pour
+ * jeter trois champs sur quatre. Recopier la requête ferait un SECOND lecteur
+ * de `student_goals`, et c'est celui qu'on relit le moins qui finit par lire
+ * une autre colonne.
+ *
+ * ⛔ IL NE LÈVE JAMAIS. `null` veut dire « pas de ligne, ou lecture en panne »,
+ * et les deux se traitent pareil en aval: on n'offre pas. Un `throw` ici ferait
+ * tomber le panneau de réglages entier pour un champ facultatif.
+ */
+export async function loadStudentGoal(userId: string): Promise<string | null> {
+  try {
+    const g = await supabase
+      .from("student_goals")
+      .select("goal")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return String((g.data as { goal?: unknown } | null)?.goal ?? "").trim() ||
+      null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadChatSettings(userId: string): Promise<ChatSettings> {
   const { data, error } = await supabase
     .from("profiles")
@@ -367,18 +396,7 @@ export async function loadChatSettings(userId: string): Promise<ChatSettings> {
   // objectif on ne sait pas si l'interrupteur a lieu d'être offert — mais un
   // échec ici ne doit pas faire disparaître le panneau de réglages entier. Il
   // rend `null`, l'interrupteur ne s'offre pas, et le reste marche.
-  let goal: string | null = null;
-  try {
-    const g = await supabase
-      .from("student_goals")
-      .select("goal")
-      .eq("user_id", userId)
-      .maybeSingle();
-    goal = String((g.data as { goal?: unknown } | null)?.goal ?? "").trim() ||
-      null;
-  } catch {
-    goal = null;
-  }
+  const goal = await loadStudentGoal(userId);
 
   return {
     muted: Boolean(row.proactive_muted_at),

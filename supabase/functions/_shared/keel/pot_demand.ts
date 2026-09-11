@@ -41,6 +41,7 @@ import {
   type MealCapBit,
   mouthTargetKcal,
   slotPlanTargets,
+  wholeDaySlots,
 } from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
 import type { CountingStance } from "./energy_gate.ts";
@@ -301,8 +302,19 @@ export function potFactorFor(args: {
     const shared = slotPlanTargets({
       targetKcal: target.kcal,
       coveredSlots: [args.slot],
-      wholeSlots: [...eater.mouth.declaredSlots, ...eater.daySlots],
-      slotExtraKcal: eater.mouth.slotExtraKcal,
+      // ⟳ 2026-09-11 · LOT B — LE REPLI DES TROIS REPAS MANQUAIT ICI. Une
+      // bouche qui n'a RIEN déclaré et dont la table ne sert qu'un moment ce
+      // jour-là voyait sa journée entière ramenée sur ce seul moment: `whole`
+      // valait le poids de ce moment, la part valait 1. C'est le défaut mesuré
+      // du lot B (facteur 2,86 sur un dîner de vendredi), par un autre chemin.
+      wholeSlots: wholeDaySlots(eater.mouth.declaredSlots, eater.daySlots),
+      // ⛔ LA DEMANDE D'UNE CASSEROLE EST UN CALCUL DE TABLE, pas de personne
+      // seule: elle additionne les parts de TOUS ses mangeurs. Le « repas
+      // léger » n'est collecté qu'à une bouche (chemin `portion_v1`) et sa
+      // généralisation est un chantier à part — voir `slotPlanTargets`.
+      // `[]` + `null` rendent ce calcul octet-identique à celui d'avant le lot.
+      lightSlots: [],
+      slotFixedKcal: null,
     });
     const mealKcal = shared.bySlot.get(args.slot);
     // Un moment sans poids reconnu ne se réduit pas: on ne sait pas ce qu'il
@@ -477,8 +489,11 @@ export function lostSlotEnergy(args: {
   const shared = slotPlanTargets({
     targetKcal: target,
     coveredSlots: lostSlots,
-    wholeSlots: [...args.mouth.declaredSlots, ...args.tableSlots],
-    slotExtraKcal: args.mouth.slotExtraKcal,
+    wholeSlots: wholeDaySlots(args.mouth.declaredSlots, args.tableSlots),
+    // Idem: l'énergie des moments que la table ne sert PAS à cette bouche se
+    // compte sur le chemin legacy, octet-identique.
+    lightSlots: [],
+    slotFixedKcal: null,
   });
   return { lostSlots, kcal: Math.round(shared.total) };
 }

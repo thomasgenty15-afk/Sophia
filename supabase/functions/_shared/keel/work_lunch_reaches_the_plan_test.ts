@@ -1,3 +1,7 @@
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 
 import { workLunchBlock } from "./household_meal_generation.ts";
@@ -28,7 +32,6 @@ import { parseWorkLunch } from "./household_presence.ts";
  */
 
 const LANES: readonly [string, string][] = [
-  ["solo", "../../generate-meal-v1/index.ts"],
   ["foyer", "../../generate-household-meal-v1/index.ts"],
 ];
 
@@ -47,32 +50,12 @@ async function codeOf(rel: string): Promise<string> {
     .join("\n");
 }
 
-// ---------------------------------------------------------------------------
-// D6.1 — LE ROSTER ATTEINT LES DEUX LANES
-// ---------------------------------------------------------------------------
-
-Deno.test("D6.1 — la lane SOLO lit `household_members.away_days`, en union", () => {
-  // ⚠️ UNION, PAS REMPLACEMENT. Les deux sources disent des choses
-  // différentes: la colonne du profil porte ce que la personne a écrit pour
-  // elle-même, la ligne de membre ce que le foyer a posé. En préférer une
-  // effacerait l'autre en silence.
-  return codeOf(LANES[0][1]).then((code) => {
-    assertStringIncludes(code, '.from("household_members")');
-    assertStringIncludes(code, '.select("away_days")');
-    assertStringIncludes(code, "const declaredAway = parseAwayDays([");
-    assertStringIncludes(code, "...rosterAway,");
-    // ⛔ ET LA PANNE EST NOMMÉE. Un fail-open muet serait indiscernable d'une
-    // personne qui n'a rien déclaré.
-    assertStringIncludes(code, "roster_away_days_unreadable");
-  });
-});
-
 Deno.test("D6.1 — la lane FOYER lisait déjà le roster, et ça n'a pas bougé", () => {
   // La lane foyer résout la présence par `parseMemberAway`, sur le roster, et
   // son commentaire dit que « le roster a déjà concaténé les deux sources ».
   // Ce cas existe pour que le câblage solo ne puisse pas être « réparé » en
   // débranchant celui du foyer.
-  return codeOf(LANES[1][1]).then((code) => {
+  return codeOf(LANES[0][1]).then((code) => {
     assertStringIncludes(code, "away: parseMemberAway(r.away_days),");
   });
 });
@@ -139,7 +122,7 @@ Deno.test("D6.2 — le bloc NE RETIRE aucun repas, et il le dit", () => {
 });
 
 Deno.test("D6.2 — la lane FOYER passe le champ, et compte ce qu'il a donné", async () => {
-  const code = await codeOf(LANES[1][1]);
+  const code = await codeOf(LANES[0][1]);
   // ⛔ LE CÂBLAGE, LU DANS LA SOURCE. `workLunch` est OPTIONNEL sur
   // `HouseholdPromptInput` (65 littéraux le construisent, et un lot en vol y
   // ajoute déjà un champ requis): c'est ce test-ci et le compteur qui
@@ -223,8 +206,13 @@ Deno.test("A2 — les deux lanes lisent la MÊME cuisine, et la DÉRIVENT au mê
   // ⚠️ ON COMPARE LES CLÉS LUES, PAS LE TEXTE. Les deux fonctions n'écrivent
   // pas leurs commentaires pareil et l'une déclare son type de retour: exiger
   // l'égalité des octets ferait rougir ce test sur une reformulation.
-  const [solo, foyer] = await Promise.all(LANES.map(([, rel]) => codeOf(rel)));
-  for (const [name, code] of [["solo", solo], ["foyer", foyer]] as const) {
+  // ⟳ 2026-09-11 · LOT 7 — IL N'Y A PLUS DEUX LANES À COMPARER. Le titre de ce
+  // cas garde son « les deux » parce que la propriété, elle, est toujours la
+  // même: la cuisine se LIT et se DÉRIVE au même endroit, jamais réécrite dans
+  // un `index.ts`. C'est ce que `cooking_plan.ts` existe pour empêcher, et ça
+  // vaut pour une lane comme pour dix.
+  const [foyer] = await Promise.all(LANES.map(([, rel]) => codeOf(rel)));
+  for (const [name, code] of [["foyer", foyer]] as const) {
     for (
       const key of [
         "cookingStyle: readCookingStyle(pc),",

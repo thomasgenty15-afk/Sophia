@@ -1,0 +1,73 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 6,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Yaourt, flocons d’avoine, pomme et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 637,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 507,
+      "density_kcal_per_100g": 125.8,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, courgette, aubergine, poivron et couscous",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux épices ÷1",
+        "Légumes d’été rôtis ÷1",
+        "Couscous nature ÷1"
+      ],
+      "standard_kcal": 907,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 701,
+      "density_kcal_per_100g": 129.4,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 164,
+      "density_kcal_per_100g": 82.5,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Ragoût de pois chiches, épinards et pain complet",
+      "member_id": null,
+      "pots": [
+        "Ragoût de pois chiches aux épinards ÷1"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 357,
+      "density_kcal_per_100g": null,
+      "boxes": 1
+    }
+  ]
+}

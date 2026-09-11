@@ -254,7 +254,7 @@ export function countShiftTraces(
 
 const PLAN_COLUMNS =
   "id, user_id, plan_kind, household_id, servings, dishes, preparations, " +
-  "cooking_sessions, starts_on, duration_days, retired_at, generated_from";
+  "cooking_sessions, starts_on, duration_days, retired_at, generated_from, created_at";
 
 /**
  * LES PLANS DE LA PERSONNE, dans la fenêtre — les siens, plus, pour un membre
@@ -264,7 +264,7 @@ const PLAN_COLUMNS =
  * avant la fenêtre et qui la déborde compte: c'est le cas nominal d'un plan de
  * sept jours qu'on regarde le quatrième.
  */
-async function loadPlans(
+export async function loadPlans(
   db: Db,
   args: { userId: string; from: string; to: string },
 ): Promise<Array<Record<string, unknown>>> {
@@ -315,7 +315,7 @@ async function loadPlans(
  * C'est le comportement que `meal-energy-v1` choisit lui-même quand la trace
  * lui manque (`HOUSEHOLD_ABSTENTION`).
  */
-function toTrackingPlan(
+export function toTrackingPlan(
   row: Record<string, unknown>,
   index: Parameters<typeof planEnergy>[0]["index"] | null,
 ): TrackingPlan {

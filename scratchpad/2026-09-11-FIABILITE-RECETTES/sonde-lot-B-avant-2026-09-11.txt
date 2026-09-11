@@ -1,0 +1,50 @@
+
+═══ FAT_LOSS — Paul · cible du jour 2454 kcal
+    grille : {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+    rythme déclaré : []
+    fri dinner    dimensionnement   858.90   prompt  2454.00   ⛔ FACTEUR 2.86
+    sat breakfast dimensionnement   613.50   prompt   613.50
+    sat lunch     dimensionnement   981.60   prompt   981.60
+    sat dinner    dimensionnement   858.90   prompt   858.90
+    sun breakfast dimensionnement   613.50   prompt   613.50
+    sun lunch     dimensionnement   981.60   prompt   981.60
+    sun dinner    dimensionnement   858.90   prompt   858.90
+    ── couloirs transmis, AVEC le vendredi ──
+       breakfast [100–245] visée 110 
+       lunch     [141–250] visée 154 
+       dinner    [250–250] visée 250 above_askable_cap
+    ── couloirs transmis, SANS le vendredi ──
+       breakfast [100–245] visée 110 
+       lunch     [141–250] visée 154 
+       dinner    [123–250] visée 135 
+    ⛔ 1 couloir(s) de samedi/dimanche DÉPLACÉ(S) par le vendredi :
+       dinner: [250–250] visée 250 above_askable_cap  ≠  [123–250] visée 135 —
+    ── A15 : visée du couloir contre 100 × E / Gpréf ──
+       breakfast E=  613.50  Gpréf= 432  visée= 110  ancrée= 142
+       lunch     E=  981.60  Gpréf= 475  visée= 154  ancrée= 207
+       dinner    E=  858.90  Gpréf= 475  visée= 135  ancrée= 181
+
+═══ MUSCLE_GAIN — Max · cible du jour 2912 kcal
+    grille : {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+    rythme déclaré : []
+    fri dinner    dimensionnement  1019.20   prompt  2912.00   ⛔ FACTEUR 2.86
+    sat breakfast dimensionnement   728.00   prompt   728.00
+    sat lunch     dimensionnement  1164.80   prompt  1164.80
+    sat dinner    dimensionnement  1019.20   prompt  1019.20
+    sun breakfast dimensionnement   728.00   prompt   728.00
+    sun lunch     dimensionnement  1164.80   prompt  1164.80
+    sun dinner    dimensionnement  1019.20   prompt  1019.20
+    ── couloirs transmis, AVEC le vendredi ──
+       breakfast [104–250] visée 114 
+       lunch     [167–250] visée 183 
+       dinner    [250–250] visée 250 above_askable_cap
+    ── couloirs transmis, SANS le vendredi ──
+       breakfast [104–250] visée 114 
+       lunch     [167–250] visée 183 
+       dinner    [146–250] visée 160 
+    ⛔ 1 couloir(s) de samedi/dimanche DÉPLACÉ(S) par le vendredi :
+       dinner: [250–250] visée 250 above_askable_cap  ≠  [146–250] visée 160 —
+    ── A15 : visée du couloir contre 100 × E / Gpréf ──
+       breakfast E=  728.00  Gpréf= 475  visée= 114  ancrée= 153
+       lunch     E= 1164.80  Gpréf= 475  visée= 183  ancrée= 245
+       dinner    E= 1019.20  Gpréf= 475  visée= 160  ancrée= 215

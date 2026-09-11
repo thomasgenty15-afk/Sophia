@@ -130,7 +130,7 @@ relance, la synthèse de cohorte.
 Comment on entre. Pages de vente, inscription coach, inscription libre, `/join`,
 essai, rôles et paywall.
 
-`coach-signup-v1` · `send-welcome-email` · `trigger-retention-emails` ·
+`coach-signup-v1` · `send-welcome-email` · `keel-lifecycle-email-v1` ·
 `LandingPage` · `GymsLandingPage` · `CommunitiesPage` · `StartPage` · `JoinPage` ·
 `SetupPage` · `onboarding.ts`
 

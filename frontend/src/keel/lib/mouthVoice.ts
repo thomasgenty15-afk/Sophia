@@ -46,7 +46,7 @@ export type MouthVoice = "self" | "other";
 export type VoicedKey =
   | "household.mouth.identity_hint"
   | "household.mouth.body"
-  | "household.mouth.activity"
+  | "household.mouth.direction"
   | "household.mouth.day_activity"
   | "household.mouth.sport"
   | "household.mouth.meal_structure"
@@ -59,6 +59,10 @@ export type VoicedKey =
   | "household.mouth.eating_hint"
   // ── chantier-0904/FF-060 ──
   | "household.mouth.rhythm_derived"
+  // ⟳ 2026-09-08 — LE VERROU SE VOIT AUSSI, ET IL SE DISAIT EN « TU » MÊME SUR
+  // LA FICHE D'UN TIERS: « Tu en as coché 4 » sous le prénom de quelqu'un
+  // d'autre. Il prend donc une voix, comme les onze clés au-dessus.
+  | "household.mouth.rhythm_floor_locked"
   | "household.mouth.shake_composed"
   | "household.mouth.habit_shaker_here"
   | "household.mouth.shaker_at"
@@ -78,7 +82,7 @@ export type VoicedKey =
 const YOU: Record<VoicedKey, MessageKey> = {
   "household.mouth.identity_hint": "household.mouth.identity_hint_you",
   "household.mouth.body": "household.mouth.body_you",
-  "household.mouth.activity": "household.mouth.activity_you",
+  "household.mouth.direction": "household.mouth.direction_you",
   "household.mouth.day_activity": "household.mouth.day_activity_you",
   "household.mouth.sport": "household.mouth.sport_you",
   "household.mouth.meal_structure": "household.mouth.meal_structure_you",
@@ -93,6 +97,7 @@ const YOU: Record<VoicedKey, MessageKey> = {
   "household.mouth.eating": "household.mouth.eating_you",
   "household.mouth.eating_hint": "household.mouth.eating_hint_you",
   "household.mouth.rhythm_derived": "household.mouth.rhythm_derived_you",
+  "household.mouth.rhythm_floor_locked": "household.mouth.rhythm_floor_locked_you",
   "household.mouth.shake_composed": "household.mouth.shake_composed_you",
   "household.mouth.habit_shaker_here": "household.mouth.habit_shaker_here_you",
   "household.mouth.shaker_at": "household.mouth.shaker_at_you",

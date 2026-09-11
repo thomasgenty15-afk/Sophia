@@ -6,6 +6,10 @@ import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
 import { type BoxLine } from "../lib/mealBoxes";
+// ⟳ LOT C (2026-09-11) — la quantité vient de la donnée structurée finale.
+// Ici le périmètre est le PLAT: ce sont les lignes fraîches de l'assiette,
+// pas le lot d'une casserole. Voir `lib/ingredientQuantity.ts`.
+import { ingredientQuantityText } from "../lib/ingredientQuantity";
 import { type DishTick, type UntickPrompt } from "../lib/useMealTicks";
 import { BoxTable } from "./plan/BoxTable";
 import { DishEnergyLine } from "./plan/EnergyReadout";
@@ -492,18 +496,21 @@ export default function DishCard(
             </p>
           )}
           <ul className="mt-1 space-y-1">
-            {dish.ingredients.map((ing, i) => (
-              <li
-                key={`${ing.term}-${i}`}
-                className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
-              >
-                <span>{ing.term}</span>
-                {ing.quantity && <span className="text-ink-soft">{ing.quantity}</span>}
-                {ing.in_pantry && (
-                  <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
-                )}
-              </li>
-            ))}
+            {dish.ingredients.map((ing, i) => {
+              const quantity = ingredientQuantityText(ing);
+              return (
+                <li
+                  key={`${ing.term}-${i}`}
+                  className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
+                >
+                  <span>{ing.term}</span>
+                  {quantity && <span className="text-ink-soft">{quantity}</span>}
+                  {ing.in_pantry && (
+                    <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

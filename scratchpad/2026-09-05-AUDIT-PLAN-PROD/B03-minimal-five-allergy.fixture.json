@@ -1,0 +1,143 @@
+{
+  "profile": [
+    {
+      "id": "2076c2b3-fddc-48af-a0a5-65d5d49a51d7",
+      "full_name": "Alice Audit",
+      "birth_date": "1988-05-12",
+      "gender": "female",
+      "height_cm": 168,
+      "activity_level": "trains_some",
+      "timezone": "Europe/Paris",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "89514d02-0ac3-4197-a914-79a06d51dd68",
+      "user_id": "2076c2b3-fddc-48af-a0a5-65d5d49a51d7",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "grocery_runs": 1,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "cooking_style": "minimal",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "retained_items": [
+          {
+            "at": "2026-09-05",
+            "item": "",
+            "kind": "food.exclude",
+            "text": "lentilles",
+            "quote": null,
+            "scope": "durable",
+            "value": null,
+            "source": "written",
+            "subject": "member:e16f3532-afcd-482d-b9df-d9cddcbf3bbe",
+            "confidence": null
+          }
+        ],
+        "kitchen_equipment": [
+          "oven",
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-05T18:22:38.91521+00:00",
+      "updated_at": "2026-09-05T18:22:39.074475+00:00",
+      "target_weight_kg": 62,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ],
+  "roster": [
+    {
+      "member_id": "2781319d-a900-4bb2-a0c2-eb267fad032b",
+      "user_id": "2076c2b3-fddc-48af-a0a5-65d5d49a51d7",
+      "first_name": "Alice",
+      "age_state": "adult",
+      "role": "owner",
+      "goal": "fat_loss",
+      "away_days": [],
+      "eating_rhythm": [
+        {
+          "size": "medium",
+          "slot": "breakfast"
+        },
+        {
+          "size": "medium",
+          "slot": "lunch"
+        },
+        {
+          "size": "medium",
+          "slot": "dinner"
+        }
+      ],
+      "diet": "omnivore"
+    },
+    {
+      "member_id": "e16f3532-afcd-482d-b9df-d9cddcbf3bbe",
+      "user_id": null,
+      "first_name": "Marc",
+      "age_state": "adult",
+      "role": "member",
+      "goal": "muscle_gain",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "45301083-5765-4e81-bc9e-c04b0002f60f",
+      "user_id": null,
+      "first_name": "Lea",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": "vegetarian"
+    },
+    {
+      "member_id": "2de56f32-f4de-43d8-a9c7-36bc1f190a7e",
+      "user_id": null,
+      "first_name": "Tom",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "e635f02f-4ea8-4e36-9d78-080715ed2619",
+      "user_id": null,
+      "first_name": "Zoe",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    }
+  ]
+}

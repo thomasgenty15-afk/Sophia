@@ -1,0 +1,13 @@
+{
+  "id": "A02-duo7",
+  "uid": "91cf3cb5-5300-4521-adcf-fda85232f386",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T18:21:18.355Z",
+  "end": "2026-09-05T18:21:18.852Z",
+  "http": 409,
+  "seconds": 0.45713675000000514,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "request_id": "258710ec-7f5e-48e3-a6af-7ca3feacd2d7",
+  "error": "plan_overlaps_existing"
+}

@@ -40,8 +40,16 @@
  */
 
 import { evaluateRestrictionForStudent } from "./restriction_runtime.ts";
-import { loadStudentBody, mealBodyContextFrom } from "./student_body_io.ts";
+import { latest, loadStudentBody, mealBodyContextFrom } from "./student_body_io.ts";
 import type { MealBodyContext } from "./meal_body.ts";
+// ⟳ 2026-09-10 · LOT 3 — LE MOTEUR A BESOIN DE PLUS QUE LE BRIEF.
+// `MealBodyContext` rend une BANDE d'âge (mineur / adulte) et jette l'âge en
+// années, et il ne porte pas les deux axes d'activité. Le dimensionnement a
+// besoin des deux. On rend donc, à côté, la forme plate que
+// `resolved_mouth.ts` consomme — SANS UNE SEULE LECTURE DE PLUS: tout sort du
+// même `loadStudentBody`.
+import type { PersonalMouthFacts } from "./resolved_mouth.ts";
+import { usableAge } from "./student_age.ts";
 
 /** La tranche de client que ce module utilise. Structurelle: un faux suffit. */
 export interface HouseholdBodyDb {
@@ -66,6 +74,16 @@ export interface HouseholdBodyMember {
 export interface HouseholdBodies {
   /** Clé: `member_id`. Absent = aucun fait corporel pour cette bouche. */
   byMember: Map<string, MealBodyContext>;
+  /**
+   * ⟳ 2026-09-10 · LOT 3 — LES MÊMES FAITS, POUR LE MOTEUR.
+   *
+   * Clé: `member_id`, et **présent pour toute bouche AYANT UN COMPTE**, y
+   * compris quand la lecture est tombée (`read: "failed"`). C'est la
+   * différence qui compte: une entrée absente veut dire « pas de compte »,
+   * une entrée `failed` veut dire « on n'a pas su lire » — et le résolveur ne
+   * doit pas confondre les deux avec « la personne n'a rien saisi ».
+   */
+  personalByMember: Map<string, PersonalMouthFacts>;
   /** Ce qui a échoué, nommément. Tracé sur la ligne, jamais silencieux. */
   issues: string[];
   /**
@@ -127,7 +145,12 @@ export async function loadHouseholdMemberBodies(
       const issues: string[] = [];
       // ⛔ PLUS DE `return null` ICI. La fiche est lue en bloc après cette
       // boucle: une bouche sans compte n'a pas de PROFIL, mais elle a un CORPS.
-      if (!member.userId) return { member, body: null, issues };
+      // ⚠️ `personal: null` VEUT DIRE « PAS DE COMPTE », et c'est distinct de
+      // `read: "failed"`. Le résolveur traite la fiche comme AUTORITÉ dans ce
+      // cas-là, pas comme un repli.
+      if (!member.userId) {
+        return { member, body: null, personal: null, issues };
+      }
 
       // FAIL-CLOSED. `true` tant qu'une lecture réussie ne l'a pas abaissé.
       let restrictionFlag = true;
@@ -151,11 +174,30 @@ export async function loadHouseholdMemberBodies(
       }
 
       try {
-        const body = mealBodyContextFrom(
-          await loadStudentBody(counted, member.userId, params.todayLocalDate),
-          restrictionFlag,
+        const snapshot = await loadStudentBody(
+          counted,
+          member.userId,
+          params.todayLocalDate,
         );
-        return { member, body, issues };
+        const body = mealBodyContextFrom(snapshot, restrictionFlag);
+        // ⟳ 2026-09-10 · LOT 3 — LA MÊME LECTURE, MISE À PLAT POUR LE MOTEUR.
+        // ⚠️ LE POIDS PORTE SA DATE. « 78 kg » ne dit rien, « 78 kg, semaine du
+        // 7 septembre » dit quelque chose — et c'est ce qui permet, plus tard,
+        // de savoir si un grammage a été calculé sur une pesée fraîche.
+        const derniere = latest(snapshot.weights);
+        const personal: PersonalMouthFacts = {
+          read: "ok",
+          heightCm: snapshot.heightCm,
+          weightKg: derniere?.value ?? null,
+          weightAsOf: derniere?.weekStart ?? null,
+          gender: snapshot.gender,
+          // ⛔ L'ÂGE SE DÉRIVE DE LA DATE, JAMAIS D'UNE BANDE. `usableAge` rend
+          // `null` sur une date illisible ou aberrante: on n'en invente pas.
+          ageYears: usableAge(snapshot.verdict),
+          activityLevel: snapshot.activityLevel,
+          activityAxes: snapshot.activityAxes,
+        };
+        return { member, body, personal, issues };
       } catch (error) {
         console.warn(JSON.stringify({
           tag: "keel.household_meal.member_body_unreadable",
@@ -164,7 +206,24 @@ export async function loadHouseholdMemberBodies(
           effect: "portion composée sans corps (comportement d'avant le lot 3B)",
         }));
         issues.push(`body_unreadable:${member.memberId}`);
-        return { member, body: null, issues };
+        // ⛔ `read: "failed"` ET PAS UNE ABSENCE. Le résolveur du lot 3 refuse
+        // de se replier sur la fiche dans ce cas: un chiffre périmé servi sous
+        // les traits d'un chiffre à jour est pire qu'un chiffre manquant.
+        return {
+          member,
+          body: null,
+          personal: {
+            read: "failed",
+            heightCm: null,
+            weightKg: null,
+            weightAsOf: null,
+            gender: null,
+            ageYears: null,
+            activityLevel: null,
+            activityAxes: { day: null, sport: null, asked: false },
+          } satisfies PersonalMouthFacts,
+          issues,
+        };
       }
     }),
   );
@@ -239,6 +298,10 @@ export async function loadHouseholdMemberBodies(
   }
 
   const byMember = new Map<string, MealBodyContext>();
+  // ⟳ 2026-09-10 · LOT 3 — REMPLIE POUR TOUTE BOUCHE AYANT UN COMPTE, y compris
+  // celles dont la lecture est tombée. Absent ⇒ pas de compte, et le résolveur
+  // traite alors la fiche comme AUTORITÉ.
+  const personalByMember = new Map<string, PersonalMouthFacts>();
   const issues: string[] = [];
   // L'ORDRE SUIT LES MEMBRES, pas l'ordre d'arrivée des promesses. Deux
   // générations du même foyer doivent produire la même ligne `issues`, sinon
@@ -246,6 +309,9 @@ export async function loadHouseholdMemberBodies(
   // tard dépend de qui a répondu le premier ce soir-là.
   if (fichesEnEchec) issues.push("sheet_bodies_unreadable");
   for (const entry of loaded) {
+    if (entry.personal !== null) {
+      personalByMember.set(entry.member.memberId, entry.personal);
+    }
     if (entry.body) {
       let body = entry.body;
       if (entry.member.userId && body.latestWeight === null) {
@@ -294,5 +360,5 @@ export async function loadHouseholdMemberBodies(
       activityLevel: null,
     });
   }
-  return { byMember, issues, reads: tally.reads };
+  return { byMember, personalByMember, issues, reads: tally.reads };
 }

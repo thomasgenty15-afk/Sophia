@@ -1,5 +1,28 @@
 # Nomenclature — ce que Sophia retient, et sous quelle forme
 
+> ### ⛔ 2026-09-09 — LE CANAL SÉCURITÉ DU RETOUR DE PLAN EST SUPPRIMÉ
+>
+> Décision du propriétaire : **une allergie ou un régime dits dans une note sur un plan
+> n'écrivent plus rien en table de sécurité.** Les préférences alimentaires les portent —
+> au plus une `food.exclude`, comme n'importe quelle exclusion.
+>
+> Supprimés : `draft_note_safety.ts`, `draft_note_safety_io.ts` et leurs tests, la liste
+> `safety` du prompt de `draft_note_classify.ts`, la question de **portée** (`scope`) qui
+> n'existait que pour la porter, la déclaration en attente (`pending.safety`), la ligne de
+> récap `safety` de l'accusé du classifieur et la bulle d'échec
+> (`notifySafetyNotWritten` / `buildSafetyNotWrittenNotice`).
+>
+> **Ce qui reste, et ce n'est pas un oubli :** la table `student_safety_constraints` et
+> `household_member_allergies` (elles portent l'allergie **cochée dans le formulaire**, la
+> sienne comme celle d'une bouche), leurs ceintures de sortie, le récap du soir
+> (`memory_recap_io.ts` lit toujours les deux tables), et l'outil de conversation
+> `declare_safety_constraint`.
+>
+> **Périmées de ce fait** : dans §2.2 l'alinéa « LA SÉCURITÉ N'EST AUCUNE DES TROIS » (sa
+> règle tient, son câblage non), le bloc `scope` de §2.5, les lignes 8/9 de §8 et SC1/SC3
+> de la campagne SC, et l'encadré « arbitrage du 2026-09-01 » en A.1 — chacun porte sa
+> marque ci-dessous.
+
 > ### ⛔ MODÈLE À TROIS DESTINATIONS — 2026-09-03 — remplace « 8 familles → 6 sections »
 >
 > Ce document a été **réécrit le 2026-09-03** (lot 0 du chantier « la mémoire à trois
@@ -90,11 +113,15 @@ Plus **un encart**, qui n'est pas une quatrième destination mais une **durée**
 prochain plan » (§2.5).
 
 ⛔ **LA SÉCURITÉ N'EST AUCUNE DES TROIS.** Allergie, intolérance, régime, condition médicale
-vont dans `student_safety_constraints` / `household_member_allergies` / `household_members.diet`
-par le canal sécurité du lot ① de la campagne précédente (`draft_note_safety*.ts`), avec le
-récap du soir (`memory_recap*.ts`) et la rétractation en un geste. **Rien ne change.**
-L'arbitrage du 2026-09-01 (« si une personne parle d'une allergie, c'est une allergie »)
-reste en vigueur ; son texte est en annexe A.1.
+vont dans `student_safety_constraints` / `household_member_allergies` / `household_members.diet`,
+avec le récap du soir (`memory_recap*.ts`) et la rétractation en un geste.
+
+⟳ **2026-09-09 — mais elles n'y vont plus DEPUIS UNE NOTE.** Le canal sécurité du classifieur
+(`draft_note_safety*.ts`) est supprimé : une allergie écrite sur un retour de plan est au plus
+une `food.exclude`, et le prompt le dit. Les deux surfaces qui écrivent encore en sécurité sont
+le **formulaire** (l'entonnoir pour la sienne, la fiche d'une bouche pour les autres) et l'outil
+de **conversation** `declare_safety_constraint`. L'arbitrage du 2026-09-01 est donc renversé
+pour le retour de plan ; son texte reste en annexe A.1, marqué.
 
 ### 2.3 La règle anti-doublon
 
@@ -244,6 +271,11 @@ prénoms (ou les aliments) en boutons, plus un échappement (« Personne de la l
 | **un tap** | la ligne s'écrit, avec le producteur `draft_note` et **la phrase de la personne** en citation |
 | **l'échappement** | rien n'est écrit, et la ligne passe `declined` — ce qui la **distingue du silence** |
 | **le silence** | rien n'est écrit ; la ligne expire à 48 h, comptée par la balayeuse du pouls |
+
+> ⛔ **PÉRIMÉ — 2026-09-09.** La question `scope` est supprimée avec le canal sécurité :
+> il n'y a plus de destination « toujours ». Une phrase de régime est une note (avec son
+> `when` si elle en porte un) ou une préférence. Le texte ci-dessous est conservé pour la
+> mesure qu'il porte, pas pour la conduite qu'il décrit.
 
 ⟳ **2026-09-05 — la portée (`scope`).** « On mange végétarien le lundi soir » avait été rangé en
 régime **strict** de la titulaire, qui gouverne tout le foyer : quatre omnivores ont mangé
@@ -1111,6 +1143,12 @@ sans ranking. La carte filtre déjà `sensitive`/`safety` **dans la requête**.
 Quelqu'un qui coche « plus jamais » sur un plat aux arachides n'a pas déclaré une
 allergie.
 
+> ### ⛔ RENVERSÉ POUR LE RETOUR DE PLAN — 2026-09-09
+>
+> L'arbitrage ci-dessous ne vaut plus que pour la **conversation**. Le canal sécurité du
+> classifieur de notes est supprimé : une allergie dite sur un retour de plan est une
+> préférence alimentaire, et rien d'autre.
+>
 > ### ⚠️ CE QUE CETTE RÈGLE NE DIT PLUS — arbitrage du 2026-09-01
 >
 > Elle disait aussi : « … ne peuvent jamais naître d'un retour **ou d'une

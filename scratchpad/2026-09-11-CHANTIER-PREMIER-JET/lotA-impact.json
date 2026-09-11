@@ -1,0 +1,297 @@
+{
+  "genere_le": "2026-09-11",
+  "methode": "Rejeu hors ligne. Mêmes grammes, mêmes termes, deux référentiels: celui d'avant la migration 20260911040000 et celui d'après, avec les quatre faux amis en langue fr. Aucune écriture, aucune génération.",
+  "par_plan": {
+    "5fad22ce-d181-4a0c-b0b5-77caf65092b5": {
+      "lignes": 80,
+      "changees": 4,
+      "termes": [
+        "prune",
+        "raisin"
+      ]
+    },
+    "a18f522e-41f9-469e-9c50-1d693d892ce6": {
+      "lignes": 104,
+      "changees": 6,
+      "termes": [
+        "poire",
+        "prunes",
+        "raisins"
+      ]
+    }
+  },
+  "changements": [
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "terme": "prune",
+      "ou": "ingredient",
+      "avant_slug": "prune",
+      "avant_kcal": 229,
+      "apres_slug": "plum",
+      "apres_kcal": 46
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "terme": "prune",
+      "ou": "box_item",
+      "avant_slug": "prune",
+      "avant_kcal": 229,
+      "apres_slug": "plum",
+      "apres_kcal": 46
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "terme": "raisin",
+      "ou": "ingredient",
+      "avant_slug": "raisin",
+      "avant_kcal": 321,
+      "apres_slug": "grapes",
+      "apres_kcal": 68.9
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "terme": "raisin",
+      "ou": "box_item",
+      "avant_slug": "raisin",
+      "avant_kcal": 321,
+      "apres_slug": "grapes",
+      "apres_kcal": 68.9
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "poire",
+      "ou": "ingredient",
+      "avant_slug": "pear",
+      "avant_kcal": 32.3,
+      "apres_slug": "pear",
+      "apres_kcal": 53.1
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "poire",
+      "ou": "box_item",
+      "avant_slug": "pear",
+      "avant_kcal": 32.3,
+      "apres_slug": "pear",
+      "apres_kcal": 53.1
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "raisins",
+      "ou": "ingredient",
+      "avant_slug": "raisins",
+      "avant_kcal": 321,
+      "apres_slug": "grapes",
+      "apres_kcal": 68.9
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "raisins",
+      "ou": "box_item",
+      "avant_slug": "raisins",
+      "avant_kcal": 321,
+      "apres_slug": "grapes",
+      "apres_kcal": 68.9
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "prunes",
+      "ou": "ingredient",
+      "avant_slug": "prune",
+      "avant_kcal": 229,
+      "apres_slug": "plum",
+      "apres_kcal": 46
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "terme": "prunes",
+      "ou": "box_item",
+      "avant_slug": "prune",
+      "avant_kcal": 229,
+      "apres_slug": "plum",
+      "apres_kcal": 46
+    }
+  ],
+  "boites": [
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "fri",
+      "moment": "breakfast",
+      "grammes": 609,
+      "grammes_apres": 609,
+      "kcal_avant": 613,
+      "kcal_apres": 613,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "fri",
+      "moment": "lunch",
+      "grammes": 667,
+      "grammes_apres": 667,
+      "kcal_avant": 982,
+      "kcal_apres": 982,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "fri",
+      "moment": "dinner",
+      "grammes": 660,
+      "grammes_apres": 660,
+      "kcal_avant": 858,
+      "kcal_apres": 858,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sat",
+      "moment": "breakfast",
+      "grammes": 345,
+      "grammes_apres": 345,
+      "kcal_avant": 614,
+      "kcal_apres": 388,
+      "contrefactuel_enquete": 388
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sat",
+      "moment": "lunch",
+      "grammes": 625,
+      "grammes_apres": 625,
+      "kcal_avant": 982,
+      "kcal_apres": 982,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sat",
+      "moment": "dinner",
+      "grammes": 690,
+      "grammes_apres": 690,
+      "kcal_avant": 859,
+      "kcal_apres": 859,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sun",
+      "moment": "breakfast",
+      "grammes": 272,
+      "grammes_apres": 272,
+      "kcal_avant": 613,
+      "kcal_apres": 356,
+      "contrefactuel_enquete": 356
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sun",
+      "moment": "lunch",
+      "grammes": 672,
+      "grammes_apres": 672,
+      "kcal_avant": 981,
+      "kcal_apres": 981,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+      "jour": "sun",
+      "moment": "dinner",
+      "grammes": 663,
+      "grammes_apres": 663,
+      "kcal_avant": 857,
+      "kcal_apres": 857,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "fri",
+      "moment": "breakfast",
+      "grammes": 675,
+      "grammes_apres": 675,
+      "kcal_avant": 728,
+      "kcal_apres": 773,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sat",
+      "moment": "breakfast",
+      "grammes": 383,
+      "grammes_apres": 383,
+      "kcal_avant": 728,
+      "kcal_apres": 427,
+      "contrefactuel_enquete": 427
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sun",
+      "moment": "breakfast",
+      "grammes": 373,
+      "grammes_apres": 373,
+      "kcal_avant": 728,
+      "kcal_apres": 475,
+      "contrefactuel_enquete": 475
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "fri",
+      "moment": "lunch",
+      "grammes": 623,
+      "grammes_apres": 623,
+      "kcal_avant": 1163,
+      "kcal_apres": 1163,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "fri",
+      "moment": "dinner",
+      "grammes": 584,
+      "grammes_apres": 584,
+      "kcal_avant": 1019,
+      "kcal_apres": 1019,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sat",
+      "moment": "lunch",
+      "grammes": 727,
+      "grammes_apres": 727,
+      "kcal_avant": 1162,
+      "kcal_apres": 1162,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sat",
+      "moment": "dinner",
+      "grammes": 488,
+      "grammes_apres": 488,
+      "kcal_avant": 1015,
+      "kcal_apres": 1015,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sun",
+      "moment": "lunch",
+      "grammes": 677,
+      "grammes_apres": 677,
+      "kcal_avant": 1165,
+      "kcal_apres": 1165,
+      "contrefactuel_enquete": null
+    },
+    {
+      "plan": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+      "jour": "sun",
+      "moment": "dinner",
+      "grammes": 549,
+      "grammes_apres": 549,
+      "kcal_avant": 1012,
+      "kcal_apres": 1012,
+      "contrefactuel_enquete": null
+    }
+  ]
+}

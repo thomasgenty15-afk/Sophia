@@ -99,8 +99,30 @@ Deno.test("le prompt système ne parle du régime QUE pour l'interdire", () => {
   const nextSection = MEAL_SYSTEM_PROMPT.indexOf("\n== ", at + PROHIBITION.length);
   const outside = MEAL_SYSTEM_PROMPT.slice(0, at) +
     MEAL_SYSTEM_PROMPT.slice(nextSection < 0 ? MEAL_SYSTEM_PROMPT.length : nextSection);
-  const word = findDietRegisterWord(outside);
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-10 — UNE DENSITÉ N'EST PAS UN REGISTRE DE RÉGIME
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Le schéma JSON demande au modèle `"density_check": <kcal per 100 g you
+  // computed for this dish, cooked>`. C'est une propriété du PLAT, pas un
+  // nombre posé sur la personne — et c'est très exactement la règle de forme
+  // que `METHODE-GENERATION-DE-PLAN-SOLO.md` § 6 bis énonce: **tout `kcal` du
+  // brief doit être suivi de `per 100 g`**.
+  //
+  // ⛔ ON MASQUE LA FORME AUTORISÉE, ON NE RETIRE PAS LE MOT DU LEXIQUE. Le
+  // réflexe inverse — sortir « calorie » de `findDietRegisterWord` — désarmerait
+  // la garde pour toute la prose du produit afin d'arranger une constante.
+  // C'est la cicatrice « références legacy qui doivent survivre ».
+  const outsideSansDensite = outside.replace(/kcal\s*per\s*100\s*g/gi, "«densité»");
+  const word = findDietRegisterWord(outsideSansDensite);
   assertEquals(word, null, `« ${word} » hors de la section qui l'interdit`);
+  // ⛔ ET LA GARDE MORD ENCORE SUR UN KCAL NU: sans cette ligne, le masque
+  // ci-dessus pourrait s'élargir un jour jusqu'à tout laisser passer.
+  assertEquals(
+    findDietRegisterWord(outsideSansDensite + " aim for 1800 kcal a day"),
+    "kcal",
+    "le masque a désarmé la garde",
+  );
 });
 
 Deno.test("le test lexical MORD — la constante mutée le prouve", () => {

@@ -741,10 +741,10 @@ async function setBody(token: string, memberId: string, b: FixtureBody): Promise
     p_day_activity: b.dayActivity,
     p_sport_frequency: b.sportFrequency,
     p_activity_axes_asked: true,
-    p_takes_dessert: null,
-    p_takes_cheese: null,
-    p_takes_bread: null,
-    p_meal_structure_asked: false,
+    // ⟳ 2026-09-10 — `p_takes_*` et `p_meal_structure_asked` ne sont plus
+    // passés: les extras (pain / fromage / dessert pris à côté du plat) ont été
+    // supprimés du produit. Les paramètres ont un `default` en SQL, donc ne pas
+    // les nommer laisse les colonnes intactes.
     p_appetite: b.appetite,
     p_appetite_asked: true,
   });

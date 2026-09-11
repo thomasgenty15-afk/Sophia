@@ -687,9 +687,16 @@ export function buyDatesByIndex<T extends WaveItem>(args: {
   preparations: readonly WavePreparation[];
   runs: number | null;
   freezer: boolean;
-}): { buyOn: (string | null)[]; freezeOnPurchase: boolean[] } {
+}): { buyOn: (string | null)[]; freezeOnPurchase: boolean[]; keptForFreshness: boolean[] } {
   const buyOn: (string | null)[] = args.shoppingList.map(() => null);
   const freezeOnPurchase: boolean[] = args.shoppingList.map(() => false);
+  // ⟳ 2026-09-09 — CE QUI A FAIT SURVIVRE UNE VAGUE AU REPLI, par ligne. Un
+  // article incongelable acheté après la première course ouvre un déplacement
+  // à lui seul (mesuré: un bouquet de persil, le jeudi). L'appelant le COMPTE;
+  // sans ce tableau, « aucune vague survivante » et « on n'a pas regardé »
+  // rendent le même silence. Identité d'objet, comme `freezeOnPurchase`.
+  const kept = new Set<T>(planGroceryWaves(args).flatMap((w) => w.keptForFreshness));
+  const keptForFreshness: boolean[] = args.shoppingList.map((item) => kept.has(item));
   for (const wave of waveAssignments(args)) {
     for (const index of wave.indices) {
       if (index >= 0 && index < buyOn.length) buyOn[index] = wave.buyOn;
@@ -700,5 +707,150 @@ export function buyDatesByIndex<T extends WaveItem>(args: {
       if (index >= 0 && index < freezeOnPurchase.length) freezeOnPurchase[index] = true;
     }
   }
-  return { buyOn, freezeOnPurchase };
+  return { buyOn, freezeOnPurchase, keptForFreshness };
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CE QUE LES VAGUES ÉCRITES DISENT D'UN PLAN — 2026-09-09.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL (poul, brouillon du 2026-09-08) ──
+ * L'explication du plan disait « ce qui se cuisine dimanche s'achète au plus
+ * près de ce jour-là : de la viande fraîche prise à la première course ne
+ * tiendrait pas ». La dinde de dimanche était prise à la première course, et
+ * congelée en rentrant. La phrase venait de `rawKeepingBreaches`, qui compare
+ * un jour de cuisson à une fenêtre crue — et ne sait pas ce que CE module a
+ * fait ensuite de l'article (le repli congélateur du lot C). Deux morceaux de
+ * code qui ne se lisent pas, et c'est l'explication qui avait tort.
+ *
+ * ── CE QUE CETTE FONCTION LIT, ET POURQUOI C'EST ELLE ─────────────────────
+ * Elle lit les LIGNES ÉCRITES (`buy_on`, `freeze_on_purchase`) — la décision,
+ * pas la règle — et les rattache aux jours de cuisson par le même
+ * appariement terme → préparation que `planGroceryWaves`. Elle ne recalcule
+ * aucune date: une seconde date ici serait le jumeau que l'en-tête interdit.
+ *
+ *   · `frozenAtPurchase` — par jour de cuisson, ce qui a été acheté plus tôt
+ *     et congelé en rentrant. C'est la phrase « sors-la du congélateur la
+ *     veille au soir », et le compteur des sessions nourries au congélateur.
+ *   · `laterShopDays` — les jours de cuisson qu'une course APRÈS la première
+ *     sert vraiment. C'est la phrase « s'achète au plus près », et elle ne
+ *     sort plus pour un article que le congélateur a absorbé.
+ *
+ * ⚠️ UN TERME PEUT NOURRIR DEUX CUISSONS (les cuisses de poulet du mercredi
+ * ET du vendredi): on rattache la ligne à TOUTES, jamais à la première seule —
+ * c'est la leçon de `servesCookDates`.
+ *
+ * PURE: no I/O, no clock.
+ */
+export interface WrittenWaveFacts {
+  /** Par jour de cuisson, dans l'ordre de la fenêtre. */
+  frozenAtPurchase: { cookOn: string; buyOn: string; terms: string[] }[];
+  /** Jetons de jour, dans l'ordre de la fenêtre. */
+  laterShopDays: string[];
+  /** Les préparations qui puisent dans au moins une ligne congelée à l'achat. */
+  frozenPreparationIds: string[];
+}
+
+export function describeWrittenWaves(args: {
+  /** Les jetons de la fenêtre, rang 0 en tête — l'ordre est le sens. */
+  window: readonly string[];
+  shoppingList: readonly {
+    term: string;
+    buy_on?: string | null;
+    freeze_on_purchase?: boolean;
+  }[];
+  preparations: readonly WavePreparation[];
+}): WrittenWaveFacts {
+  const window = args.window ?? [];
+  const rank = new Map(window.map((d, i) => [d, i] as const));
+  // Terme normalisé → les préparations qui le consomment, situées dans la fenêtre.
+  const usedBy = new Map<string, { id: string; cookOn: string }[]>();
+  for (const prep of args.preparations ?? []) {
+    if (!prep.cookOn || !rank.has(prep.cookOn)) continue;
+    for (const raw of prep.ingredientTerms) {
+      const term = normalize(raw);
+      if (!term) continue;
+      const list = usedBy.get(term) ?? [];
+      list.push({ id: prep.id, cookOn: prep.cookOn });
+      usedBy.set(term, list);
+    }
+  }
+  const dated = (args.shoppingList ?? [])
+    .map((l) => l.buy_on)
+    .filter((d): d is string => typeof d === "string" && d !== "");
+  const firstBuyOn = dated.length > 0 ? [...dated].sort()[0] : null;
+
+  const frozen = new Map<string, { buyOn: string; terms: string[] }>();
+  const later = new Set<string>();
+  const frozenPreps = new Set<string>();
+  for (const line of args.shoppingList ?? []) {
+    const uses = usedBy.get(normalize(line.term)) ?? [];
+    if (uses.length === 0) continue;
+    const buyOn = typeof line.buy_on === "string" && line.buy_on !== "" ? line.buy_on : null;
+    if (line.freeze_on_purchase === true) {
+      for (const use of uses) {
+        frozenPreps.add(use.id);
+        const bucket = frozen.get(use.cookOn) ?? { buyOn: buyOn ?? firstBuyOn ?? "", terms: [] };
+        if (!bucket.terms.includes(line.term)) bucket.terms.push(line.term);
+        frozen.set(use.cookOn, bucket);
+      }
+      continue;
+    }
+    if (buyOn !== null && firstBuyOn !== null && buyOn > firstBuyOn) {
+      for (const use of uses) later.add(use.cookOn);
+    }
+  }
+  const byWindow = (a: string, b: string) => (rank.get(a) ?? 0) - (rank.get(b) ?? 0);
+  return {
+    frozenAtPurchase: [...frozen.entries()]
+      .sort(([a], [b]) => byWindow(a, b))
+      .map(([cookOn, v]) => ({ cookOn, buyOn: v.buyOn, terms: v.terms })),
+    laterShopDays: [...later].sort(byWindow),
+    frozenPreparationIds: [...frozenPreps],
+  };
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CE QU'UNE SESSION SORT DU CONGÉLATEUR LA VEILLE — 2026-09-09.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Les lignes de courses marquées « à congeler à l'achat » que les préparations
+ * données consomment. C'est la phrase de la carte de session (« la veille au
+ * soir, sors du congélateur : dinde hachée 450 g ») et le corps du rappel du
+ * chat, la veille d'une session. Une seule lecture, trois surfaces (écran,
+ * PDF, chat): la même liste partout, ou le rappel dirait autre chose que la
+ * carte.
+ *
+ * ⛔ LIT LA MARQUE ÉCRITE, JAMAIS LA FENÊTRE. `freeze_on_purchase` est la
+ * décision du repli (lot C); la recalculer ici depuis les groupes serait le
+ * jumeau que l'en-tête de ce fichier interdit.
+ *
+ * ⚠️ DÉDOUBLONNÉ PAR LIGNE, pas par terme: deux lignes « poulet » à des
+ * quantités différentes sont deux choses à sortir. L'ordre est celui de la
+ * liste de courses.
+ *
+ * PURE: no I/O, no clock.
+ */
+export function frozenLinesForPreparations<
+  T extends { term: string; quantity?: string | null; freeze_on_purchase?: boolean },
+>(args: {
+  shoppingList: readonly T[];
+  preparations: readonly WavePreparation[];
+  preparationIds: readonly string[];
+}): T[] {
+  const wanted = new Set(args.preparationIds ?? []);
+  const terms = new Set<string>();
+  for (const prep of args.preparations ?? []) {
+    if (!wanted.has(prep.id)) continue;
+    for (const raw of prep.ingredientTerms) {
+      const term = normalize(raw);
+      if (term) terms.add(term);
+    }
+  }
+  if (terms.size === 0) return [];
+  return (args.shoppingList ?? []).filter((line) =>
+    line.freeze_on_purchase === true && terms.has(normalize(line.term))
+  );
 }

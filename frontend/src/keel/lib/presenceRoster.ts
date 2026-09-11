@@ -69,7 +69,7 @@ export interface PresenceSelf {
  * LES BOUCHES QUI ONT UNE GRILLE, DANS L'ORDRE DE L'ÉCRAN — titulaire d'abord.
  *
  * ⚠️ IL EST EN TÊTE PARCE QU'IL EST LA PREMIÈRE BOUCHE DE SA TABLE, comme sur
- * la fiche du foyer (`MeCard`, et le roster de `MembersCard`). Trois
+ * la fiche du foyer (`MeFiche`, et le roster de `MembersCard`). Trois
  * écrans qui rangent les mêmes personnes dans trois ordres différents font
  * chercher la sienne à chaque fois.
  *
@@ -122,9 +122,6 @@ function selfAsMouth(self: PresenceSelf): FunnelMouth {
     // corps, donc elle ne peut rien dire de l'activité. `null` = pas répondu.
     dayActivity: null,
     sportFrequency: null,
-    takesDessert: null,
-    takesCheese: null,
-    takesBread: null,
     appetite: null,
   };
 }

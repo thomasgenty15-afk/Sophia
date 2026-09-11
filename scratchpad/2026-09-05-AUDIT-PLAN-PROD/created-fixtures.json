@@ -1,0 +1,27 @@
+[
+  {
+    "label": "budget",
+    "email": "qa-audit-plan-mtopn6pa-budget@keeltest.dev",
+    "uid": "c15719eb-9b13-4647-bbb2-646c27338114"
+  },
+  {
+    "label": "opposed",
+    "email": "qa-audit-plan-mtopn6pa-opposed@keeltest.dev",
+    "uid": "b5e97efb-b941-4315-a405-2b3a8a4984e0"
+  },
+  {
+    "label": "minimal-five",
+    "email": "qa-audit-plan-mtopn6pa-minimal-five@keeltest.dev",
+    "uid": "2076c2b3-fddc-48af-a0a5-65d5d49a51d7"
+  },
+  {
+    "label": "memory-owner",
+    "email": "qa-audit-plan-mtopn6pa-memory-owner@keeltest.dev",
+    "uid": "101caadd-3cf8-40f9-9108-4c4fdcae9834"
+  },
+  {
+    "label": "memory-member",
+    "email": "qa-audit-plan-mtopn6pa-memory-member@keeltest.dev",
+    "uid": "6bd2ad69-6a4e-4ca7-9240-11c5264a0716"
+  }
+]

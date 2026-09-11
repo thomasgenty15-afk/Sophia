@@ -405,7 +405,7 @@ Deno.test("le mode test du coach choisit la variante, et ça se voit dans la tra
     coach_clients: { data: { coach_id: "coach-1" } },
     coach_doctrines: { data: SCOPED_ROW },
     // Volontairement contradictoire avec l'override: c'est le coach qui décide.
-    student_goals: { data: { goal: "health" } },
+    student_goals: { data: { goal: "maintenance" } },
   };
   const chosen = await loadPublishedDoctrine(fakeDb(tables).db, "student-1", {
     goalOverride: "fat_loss",
@@ -449,7 +449,7 @@ Deno.test("une doctrine entièrement ciblée ailleurs ne dit PAS qu'elle n'a pas
         voice: {},
       },
     },
-    student_goals: { data: { goal: "health" } },
+    student_goals: { data: { goal: "maintenance" } },
   });
   const loaded = await loadPublishedDoctrine(db, "student-1");
   assertEquals(loaded.reason, "empty_for_goal");
@@ -480,13 +480,13 @@ Deno.test("les croyances RENDUES aux générateurs sont exactement celles du blo
     "Do not panic over a plateau.",
   ]);
 
-  const health = await loadPublishedDoctrine(
-    fakeDb({ ...tables, student_goals: { data: { goal: "health" } } }).db,
+  const held = await loadPublishedDoctrine(
+    fakeDb({ ...tables, student_goals: { data: { goal: "maintenance" } } }).db,
     "s",
   );
-  assertEquals(doctrineBeliefsFor(health).map((b) => b.claim), ["Protein at every meal."]);
+  assertEquals(doctrineBeliefsFor(held).map((b) => b.claim), ["Protein at every meal."]);
   // La doctrine PARSÉE, elle, reste entière — c'est elle qui arme le verrou.
-  assertEquals(health.doctrine?.beliefs.length, 2);
+  assertEquals(held.doctrine?.beliefs.length, 2);
 
   // Toute lecture ratée rend une liste vide: un générateur ne peut pas citer
   // une conviction dont on n'a pas su lire la doctrine.

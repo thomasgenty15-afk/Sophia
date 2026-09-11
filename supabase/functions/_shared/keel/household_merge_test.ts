@@ -10,6 +10,10 @@
 // section, pas ajoutés à la fin.
 // ===========================================================================
 
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { DietaryRegime } from "./dietary_regime.ts";
 
@@ -61,9 +65,11 @@ function memberOf(over: Partial<PortionMember> = {}): PortionMember {
     goal: null,
     ageState: "adult",
     body: null,
+    lightSlots: [],
     eatingSlots: null,
     habits: [],
     habitNote: null,
+    requiredDensity: null,
     ...over,
   };
 }
@@ -173,7 +179,7 @@ Deno.test("LA FUSION LIT EXACTEMENT LA DIRECTION QUE LE BRIEF ÉCRIT", () => {
       memberOf({ ageState: "unknown", goal: "maintenance" }),
     ]
   ) {
-    const brief = buildPortionBrief([member], "one_dish", 0, 1);
+    const brief = buildPortionBrief([member], "one_dish", 0, 1, "legacy_measure");
     assert(
       brief.includes(`- ${member.displayName}: ${servingDirectionFor(member)}`),
       `le brief n'écrit pas la direction que la fusion lit: ${brief}`,
@@ -1445,6 +1451,8 @@ const PARSE_BASE = {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   boxMemberDiets: [] as readonly { memberId: string; regime: DietaryRegime | null }[],
   boxMemberExclusions: [],
 };
@@ -1455,21 +1463,26 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
+  budgetFloor: null,
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
   focusAxis: null,
   dietBlock: "",
   doctrineBlock: "",
   coachNoteBlock: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health",
+  goal: "maintenance",
   situation: null,
   context: null,
   preferences: null,
@@ -2191,36 +2204,6 @@ Deno.test("AUCUN COMMENTAIRE DU GÉNÉRATEUR NE NOMME UN TEST QUI N'EXISTE PAS",
     }
     assert(found, `le générateur nomme \`${name}\`, qui n'existe pas.`);
   }
-});
-
-Deno.test("LA LANE INDIVIDUELLE NE PEUT PAS HÉRITER D'UN BUDGET DE FUSION", async () => {
-  // ⚠️ LE PARAMÈTRE EST REQUIS PRÉCISÉMENT POUR ÇA: `generate-meal-v1` doit DIRE
-  // qu'il n'a personne à reprendre. Un champ facultatif l'aurait laissé muet, et
-  // un jour quelqu'un aurait branché un `merge` sur la mauvaise lane sans que
-  // rien n'échoue — un élève seul avec un budget de deux bouches.
-  //
-  // LES DEUX BOUTS SONT VÉRIFIÉS: la consigne ET le parseur. Un seul des deux
-  // suffirait à rouvrir la divergence que ce lot ferme.
-  const src = stripComments(
-    await Deno.readTextFile(new URL("generate-meal-v1/index.ts", FUNCTIONS_DIR)),
-  );
-  assertEquals(
-    (src.match(/merge:\s*null/g) ?? []).length,
-    2,
-    "la lane individuelle ne passe plus `merge: null` aux DEUX appels " +
-      "(`buildMealPrompt` et `parseGeneratedMeal`) — ou en passe autre chose. " +
-      "Son plafond et sa garde de préparation ne doivent pas bouger d'un plat.",
-  );
-  // ⚠️ LA NÉGATION PORTE SUR TOUT L'ESPACE, PAS APRÈS LUI. Écrit
-  // `/merge:\s*(?!null)/`, le moteur fait reculer `\s*` jusqu'à zéro caractère
-  // et la sentinelle regarde « ␣null », qui ne commence pas par `null`: la
-  // garde passait sur sa propre valeur nominale. Mesuré ici même.
-  assert(
-    !/merge:(?!\s*null)/.test(src),
-    "la lane individuelle passe désormais une bouche reprise: elle n'a pas de " +
-      "table qui a dimensionné une casserole, et son plan EST celui de la " +
-      "personne. Il n'y a rien à y fusionner.",
-  );
 });
 
 // ===========================================================================
@@ -3019,7 +3002,10 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -3098,7 +3084,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v33_one_standard_recipe_the_engine_multiplies");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

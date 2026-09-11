@@ -283,6 +283,9 @@ function fileToBase64(file: File): Promise<string> {
  */
 export async function uploadMealPhoto(args: {
   file: File;
+  localDate?: string;
+  journalMealId?: string;
+  journalRelation?: "planned" | "replacement" | "outside" | "extra";
   slotKey: string | null;
   commitmentId?: string | null;
   clientUploadId: string;
@@ -325,6 +328,8 @@ export async function uploadMealPhoto(args: {
       slot_key: args.slotKey,
       commitment_id: args.commitmentId ?? null,
       client_upload_id: args.clientUploadId,
+      ...(args.localDate ? {local_date:args.localDate} : {}),
+      ...(args.journalMealId ? {journal_meal_id:args.journalMealId, journal_relation:args.journalRelation ?? "outside"} : {}),
       ...(args.chatClientMessageId
         ? { chat_client_message_id: args.chatClientMessageId }
         : {}),

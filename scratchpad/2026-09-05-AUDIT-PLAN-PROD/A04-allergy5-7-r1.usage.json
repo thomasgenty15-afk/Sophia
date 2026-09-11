@@ -1,0 +1,21 @@
+[
+  {
+    "request_id": "b50c87c2-cced-4459-ad91-1323c22c7779",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 104547,
+    "prompt_tokens": 13242,
+    "output_tokens": 17164,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0144b7abc9e8a5ff006a9c616c241c87d2a179f27ec88b884c",
+      "user_id_resolution": "provided"
+    }
+  }
+]

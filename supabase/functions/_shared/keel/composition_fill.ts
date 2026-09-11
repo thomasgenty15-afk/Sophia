@@ -9,8 +9,26 @@
  * Il transforme une liste de TEXTES que le référentiel n'a pas su lire en
  * lignes de composition utilisables, chacune portant D'OÙ ELLE VIENT.
  *
+ * ── UN ALIMENT, UN SLUG, PLUSIEURS NOMS (2026-09-10) ──────────────────────
+ * Mesuré sur les 291 lignes du sas: **chaque forme de surface devenait son
+ * propre aliment**. `puree d'amandes` (1 vue), `puree d'amande` (6) et
+ * `almond butter` (1) = trois lignes, un aliment, et aucune n'atteint jamais le
+ * seuil de trois. `yaourt au soja nature` valait 54 kcal/100 g en français et
+ * `unsweetened soya yoghurt` 63 en anglais — le même aliment, deux valeurs.
+ *
+ * L'appel de secours rend donc, en plus de la composition, le nom CANONIQUE de
+ * l'aliment et ses deux libellés. Le slug se fait sur le canonique; la forme
+ * rencontrée et les libellés deviennent des CLÉS DE PLUS vers la même ligne.
+ *
  * ── ⛔ LA RÈGLE NON NÉGOCIABLE, ET ELLE EST STRUCTURELLE ICI ───────────────
  * « IL CRÉE UN ALIMENT NEUF. JAMAIS UN ALIAS VERS UN ALIMENT EXISTANT. »
+ *
+ * Elle n'a pas bougé, et les formes de surface ne l'entament pas: une clé de
+ * `bySlug` désigne l'aliment que CE lot vient de faire naître, jamais une ligne
+ * que des humains ont écrite. Les deux gardes qui le tiennent:
+ *   · une forme qui résout DÉJÀ vers quelque chose n'est jamais reprise;
+ *   · un canonique qui désigne un aliment curé sort en `canonical_is_curated_food`,
+ *     c'est-à-dire en file humaine — même quand le modèle a raison.
  *
  * `withFilledRefs` ne touche PAS `byAlias`. Pas une fois, pas dans une branche.
  * Il ajoute des entrées dans `bySlug` sous la clé `terme.replace(/ /g, "_")`,
@@ -45,6 +63,7 @@ import {
   normalizeTerm,
   type Nutrients,
   nutrientsOf,
+  resolveCompositionLine,
   resolveIngredient,
   resolveIngredients,
   type ResolvedIngredient,
@@ -276,7 +295,26 @@ export function fillRequestsFor(
   for (const input of inputs) {
     const raw = String(input?.term ?? "").trim();
     if (!raw) continue;
-    if (resolveIngredient(index, raw) !== null) continue;
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT A (2026-09-11) — ON NE PAIE PAS UN APPEL POUR UN ALIMENT QU'ON A
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE GASPILLAGE, MESURÉ. Cette ligne testait `resolveIngredient(index,
+    // raw)` — le LIBELLÉ seul. Sur le plan GAIN du 2026-09-11, la ligne
+    // « pita complète · ref pita_wholemeal » (265 kcal/100 g, `manual`,
+    // `verifie`, `unit_grams = 60`) n'a pas d'alias français: le sas a donc
+    // inventé une entrée `whole wheat pita bread` à **258 kcal** avec
+    // `fill_source: model` — donc `a_verifier`, donc NON composable, donc
+    // inutilisable. On a payé un appel modèle pour ré-estimer une valeur qu'on
+    // avait déjà, et le résultat était moins bon que l'original.
+    //
+    // ⛔ ET UN IDENTIFIANT REFUSÉ N'EST PAS UNE WORKLIST NON PLUS. Remplir le
+    // libellé d'une ligne dont l'identifiant est inventé ne rendrait pas la
+    // ligne valide — `resolveCompositionLine` refuse d'abord sur l'identifiant,
+    // et c'est le contrat: « aucun repli silencieux vers le terme ». Seul
+    // `term_unknown` est une demande légitime.
+    const line = resolveCompositionLine(index, input);
+    if (line.refusal !== "term_unknown") continue;
     const term = normalizeTerm(raw);
     if (!term || term.length > 80) continue;
     const existing = byTerm.get(term);
@@ -331,6 +369,9 @@ export const COMPOSITION_FILL_SYSTEM_PROMPT = [
   "",
   "Return valid json, and nothing else, with exactly this shape:",
   '{"items":[{"term":"<the input term, copied verbatim>",',
+  '           "canonical":"<the plain English name of that same food>",',
+  '           "label_fr":"<the plain French name of that same food>",',
+  '           "label_en":"<the plain English name of that same food>",',
   '           "food_group_ref":"<one slug from the allowed list>",',
   '           "kcal_100g":<number>,"protein_g":<number>,"carbs_g":<number>,',
   '           "fat_g":<number>,"fiber_g":<number>,',
@@ -338,6 +379,12 @@ export const COMPOSITION_FILL_SYSTEM_PROMPT = [
   "",
   "Return one item per input term, in the same order. Never merge two terms.",
   "Never return a total, a sum, or a per-portion figure: per 100 g only.",
+  "",
+  '"canonical" IS THE NAME OF THE FOOD, NOT OF THE INPUT. Two inputs naming the',
+  'same food must get the SAME "canonical": "puree d\'amande", "puree d\'amandes"',
+  'and "almond butter" are one food, so all three return "almond butter". Drop',
+  "the plural, the brand, the packaging and the cooking method; keep whatever",
+  "changes the food itself (smoked, wholemeal, skimmed, unsweetened).",
   "",
   'If a term does not name a single food (an alternative such as "butter or oil",',
   "a brand, a whole dish, an instruction), DROP it from the list rather than",
@@ -366,6 +413,23 @@ export function compositionFillUserMessage(
 /** Une ligne de réponse, après lecture et validation de forme. */
 export interface FillAnswer {
   term: string;
+  /**
+   * LE NOM DE L'ALIMENT, ET PAS CELUI DE LA FORME RENCONTRÉE.
+   *
+   * ⚠️ C'EST LA SEULE CHOSE QUI FASSE S'ADDITIONNER LES VUES. Mesuré le
+   * 2026-09-10 sur les 291 lignes du sas: `puree d'amande` (6 vues),
+   * `puree d'amandes` (1) et `almond butter` (1) sont TROIS lignes pour UN
+   * aliment, et aucune n'atteint jamais le seuil de trois. Le compteur ne
+   * s'additionne que si les trois formes se rangent sous une même clé.
+   *
+   * `null` quand le modèle ne l'a pas écrit: on retombe alors sur la forme
+   * rencontrée, c'est-à-dire exactement le comportement d'avant ce lot.
+   */
+  canonicalTerm: string | null;
+  /** Le nom français de cet aliment. `null` s'il ne l'a pas écrit. */
+  labelFr: string | null;
+  /** Le nom anglais de cet aliment. `null` s'il ne l'a pas écrit. */
+  labelEn: string | null;
   foodGroupRef: FoodGroupRef | null;
   energyKcal: number;
   proteinG: number | null;
@@ -414,8 +478,19 @@ export function parseCompositionFillAnswers(
     const group = String(row?.food_group_ref ?? "");
     const yieldClass = String(row?.yield_class ?? "");
     seen.add(term);
+    // ⚠️ NORMALISÉS COMME LE RESTE, et bornés à 80 comme la colonne. Un nom
+    // canonique qui ne passe pas `normalizeTerm` ne serait pas la clé sous
+    // laquelle le résolveur ira le chercher — l'entrée serait morte, et une
+    // entrée morte ressemble à une couverture.
+    const readTerm = (v: unknown): string | null => {
+      const t = normalizeTerm(String(v ?? ""));
+      return t && t.length <= 80 ? t : null;
+    };
     out.push({
       term,
+      canonicalTerm: readTerm(row?.canonical),
+      labelFr: readTerm(row?.label_fr),
+      labelEn: readTerm(row?.label_en),
       foodGroupRef: (FOOD_GROUP_REFS as readonly string[]).includes(group)
         ? group as FoodGroupRef
         : null,
@@ -456,12 +531,70 @@ export const FILL_REFUSALS = Object.freeze(
     "unreachable",
     /** Valeur au-delà de toute densité alimentaire, groupe ou pas. */
     "implausible",
+    /**
+     * LE NOM CANONIQUE RENDU PAR LE MODÈLE DÉSIGNE UN ALIMENT DÉJÀ CURÉ.
+     *
+     * ⛔ C'EST LE CAS `laitue -> lait`, ET IL EST REFUSÉ MÊME QUAND IL A RAISON.
+     * Le modèle affirme alors une IDENTITÉ entre un terme inconnu et une ligne
+     * que des humains ont écrite: « purée d'amande, c'est `almond_butter` ».
+     * L'accepter écrirait une clé vers un aliment réel sur la foi d'un tirage —
+     * et un rapprochement faux ne ressemble pas à un bug, il ressemble à une
+     * donnée (12 faux positifs sur 12, `never-hand-roll-a-matcher-here`).
+     *
+     * ⚠️ CE N'EST PAS UNE PERTE, C'EST UNE FILE. Les sept lignes que la
+     * promotion refuse aujourd'hui en `alias_exists` sont exactement celles-là,
+     * et elles ont été tranchées à la main (`20260824093000`, `20260909140000`).
+     * Ce refus les nomme au lieu de les deviner.
+     */
+    "canonical_is_curated_food",
   ] as const,
 );
 export type FillRefusal = (typeof FILL_REFUSALS)[number];
 
+/**
+ * D'OÙ VIENT UN NOM DE SURFACE.
+ *
+ * ⚠️ CE CHAMP EXISTE POUR LA REVUE HUMAINE, ET IL SE LIT. `encountered` = un
+ * plan a VRAIMENT écrit ce nom · `label_fr`/`label_en` = le modèle l'a proposé
+ * en décrivant l'aliment, sans que personne l'ait jamais écrit. Les deux ne se
+ * relisent pas avec la même confiance, et la colonne
+ * `food_composition_pending_aliases.form_source` porte le même mot.
+ */
+export const SURFACE_FORM_SOURCES = ["encountered", "label_fr", "label_en"] as const;
+export type SurfaceFormSource = (typeof SURFACE_FORM_SOURCES)[number];
+
+export interface SurfaceForm {
+  /** Le nom, normalisé par `normalizeTerm`. */
+  form: string;
+  source: SurfaceFormSource;
+}
+
 export interface FilledComposition {
+  /** LA FORME RENCONTRÉE dans ce plan-ci. C'est elle qui doit se résoudre. */
   term: string;
+  /**
+   * LE TERME CANONIQUE — la clé de l'aliment, et la racine du slug.
+   *
+   * Égal à `term` quand personne ne s'est prononcé (repli par bornes, relecture
+   * d'une ligne du sas écrite avant ce lot): un aliment est alors son propre
+   * canonique, ce qui est le comportement d'avant.
+   */
+  canonicalTerm: string;
+  /**
+   * LES AUTRES NOMS DE CE MÊME ALIMENT, normalisés — la forme rencontrée et les
+   * deux libellés, quand ils diffèrent du canonique.
+   *
+   * ⛔ CE NE SONT PAS DES ALIAS AU SENS DU RÉFÉRENTIEL. `withFilledRefs` les
+   * pose dans `bySlug`, jamais dans `byAlias` — la règle 3 du lot reste
+   * structurelle. Ce qui part en base part dans une table à part
+   * (`food_composition_pending_aliases`), et n'entre dans
+   * `food_composition_aliases` qu'à la PROMOTION, c'est-à-dire hors chemin
+   * chaud et après trois observations.
+   *
+   * ⚠️ N'Y ENTRE QUE CE QUI NE RÉSOUT VERS RIEN. Une forme qui désigne déjà un
+   * aliment garde son aliment: on n'écrase jamais, on s'abstient.
+   */
+  forms: SurfaceForm[];
   ref: CompositionRef;
   source: Extract<CompositionSource, "model" | "group_bounds">;
   /**
@@ -476,6 +609,17 @@ export interface FilledComposition {
   residualKcal: number;
   /** La valeur brute du modèle quand elle a été REFUSÉE. Elle part au sas. */
   rejectedModelKcal: number | null;
+  /**
+   * POURQUOI CETTE LIGNE PART EN REVUE HUMAINE. `null` sur le chemin nominal.
+   *
+   * ⚠️ ELLE EST QUAND MÊME REMPLIE, ET C'EST L'ARBITRAGE. Le seul cas
+   * aujourd'hui est `canonical_is_curated_food`: le modèle a rendu une
+   * composition PLAUSIBLE (elle a passé la bande de son groupe) et, en plus, a
+   * affirmé une IDENTITÉ avec un aliment que des humains ont écrit. On garde ce
+   * qu'il a mesuré, on jette ce qu'il a rapproché — et la ligne entre au sas en
+   * `needs_review`, donc hors de toute promotion automatique.
+   */
+  reviewReason: FillRefusal | null;
 }
 
 export interface FillResult {
@@ -486,7 +630,10 @@ export interface FillResult {
 }
 
 function refFor(args: {
-  term: string;
+  /** LE CANONIQUE: c'est lui qui fait le slug, jamais la forme rencontrée. */
+  canonicalTerm: string;
+  /** Le libellé lisible. Défaut: le canonique. */
+  label?: string | null;
   group: FoodGroupRef;
   yieldClass: YieldClass;
   source: Extract<CompositionSource, "model" | "group_bounds">;
@@ -497,15 +644,20 @@ function refFor(args: {
   fiberG: number | null;
 }): CompositionRef {
   return {
-    slug: args.term.replace(/ /g, "_"),
+    slug: args.canonicalTerm.replace(/ /g, "_"),
     foodGroupRef: args.group,
-    label: args.term.slice(0, 80),
+    label: (args.label ?? args.canonicalTerm).slice(0, 80),
     source: args.source,
     energyKcal: args.energyKcal,
     proteinG: args.proteinG,
     carbsG: args.carbsG,
     fatG: args.fatG,
     fiberG: args.fiberG,
+    // ⛔ AUCUN RENDEMENT PAR ALIMENT. Une fiche remplie par le sas n'a jamais
+    // été PESÉE crue puis cuite: le rendement se retrouve donc sur la classe,
+    // comme avant ce lot. Y écrire un nombre serait inventer une mesure de
+    // masse à côté d'une composition déjà remplie par un modèle.
+    yieldFactor: null,
     // ⛔ AUCUN DRAPEAU DE MICRONUTRIMENT. « source de fer » est un seuil
     // réglementaire appliqué à une teneur MESURÉE; un modèle qui coche la case
     // ferait couvrir un trou de fer par un aliment que personne n'a dosé, et le
@@ -530,6 +682,41 @@ function refFor(args: {
     unitGrams: null,
     condimentGrams: null,
   };
+}
+
+/**
+ * LES NOMS SOUS LESQUELS CE MÊME ALIMENT DOIT SE LAISSER TROUVER.
+ *
+ * La forme rencontrée, plus les deux libellés du modèle. Dédoublonnés, privés
+ * du canonique (qui est déjà la clé) — et privés de tout ce qui DÉSIGNE DÉJÀ
+ * quelque chose.
+ *
+ * ⛔ LA DERNIÈRE CONDITION EST LA GARDE, ET ELLE INTERROGE LE VRAI RÉSOLVEUR.
+ * `resolveIngredient(base, form) !== null` veut dire « ce nom a déjà un
+ * aliment »: le reprendre en masquerait un que des humains ont écrit. On ne le
+ * corrige pas, on ne le compare pas, on ne le rapproche pas — on le laisse.
+ * Aucune distance, aucun préfixe, aucune ressemblance: `never-hand-roll-a-matcher-here`.
+ */
+function surfaceFormsFor(
+  base: CompositionIndex,
+  encountered: string,
+  canonicalTerm: string,
+  answer: FillAnswer | null,
+): SurfaceForm[] {
+  const out: SurfaceForm[] = [];
+  const candidates: [string, SurfaceFormSource][] = [
+    [encountered, "encountered"],
+    [answer?.labelFr ?? "", "label_fr"],
+    [answer?.labelEn ?? "", "label_en"],
+  ];
+  for (const [raw, source] of candidates) {
+    const form = normalizeTerm(String(raw ?? ""));
+    if (!form || form.length > 80) continue;
+    if (form === canonicalTerm || out.some((f) => f.form === form)) continue;
+    if (resolveIngredient(base, form) !== null) continue;
+    out.push({ form, source });
+  }
+  return out;
 }
 
 function withinBand(v: number | null, lo: number | null, hi: number | null): boolean {
@@ -563,6 +750,8 @@ export function fillCompositions(args: {
   const byTerm = new Map(args.answers.map((a) => [a.term, a]));
   const filled: FilledComposition[] = [];
   const refused: { term: string; reason: FillRefusal }[] = [];
+  /** Les termes REMPLIS mais mis en revue humaine. Comptés, jamais silencieux. */
+  const review: string[] = [];
   for (const term of args.overCap ?? []) refused.push({ term, reason: "over_cap" });
 
   for (const req of args.requests) {
@@ -595,10 +784,31 @@ export function fillCompositions(args: {
       answer !== null && answer.energyKcal <= MAX_PLAUSIBLE_KCAL_PER_100G &&
       (band === null || inBand)
     ) {
+      // ⛔ LE CANONIQUE NE DÉSIGNE JAMAIS UN ALIMENT QUE LE RÉFÉRENTIEL PORTE
+      // DÉJÀ. C'est le cas `laitue -> lait`, et il est écarté même quand le
+      // modèle a raison — on ne saurait pas faire la différence.
+      //
+      // ⚠️ LA LIGNE N'EST PAS PERDUE POUR AUTANT: elle est remplie sous SON
+      // PROPRE nom, sans aucune forme, et part au sas en `needs_review`. Le
+      // plan en cours est pesé, aucun aliment réel n'est touché, rien ne peut
+      // être promu automatiquement, et un humain voit la file. C'est très
+      // exactement ce qui s'est passé pour les sept lignes tranchées à la main
+      // en 20260824093000 et 20260909140000.
+      const claimed = answer.canonicalTerm ?? req.term;
+      const stolen = claimed !== req.term &&
+        resolveIngredient(args.index, claimed) !== null;
+      const canonicalTerm = stolen ? req.term : claimed;
+      if (stolen) review.push(req.term);
       filled.push({
         term: req.term,
+        canonicalTerm,
+        forms: stolen
+          ? []
+          : surfaceFormsFor(args.index, req.term, canonicalTerm, answer),
+        reviewReason: stolen ? "canonical_is_curated_food" : null,
         ref: refFor({
-          term: req.term,
+          canonicalTerm,
+          label: stolen ? req.term : (answer.labelEn ?? canonicalTerm),
           group,
           yieldClass: answer.yieldClass ?? band?.yieldClass ?? "neutral",
           source: "model",
@@ -624,8 +834,16 @@ export function fillCompositions(args: {
     const mid = (band.energyLow + band.energyHigh) / 2;
     filled.push({
       term: req.term,
+      // ⛔ UN MILIEU DE BANDE N'AFFIRME AUCUN NOM. Le modèle ne s'est pas
+      // prononcé sur cet aliment (ou sa valeur a été refusée): son canonique
+      // est donc la forme rencontrée, et la ligne ne fabrique AUCUNE forme.
+      // Écrire des alias depuis une convention les ferait voyager sans le
+      // résidu qui dit ce qu'elle coûte — l'interdit central de ce module.
+      canonicalTerm: req.term,
+      forms: [],
+      reviewReason: null,
       ref: refFor({
-        term: req.term,
+        canonicalTerm: req.term,
         group,
         yieldClass: band.yieldClass,
         source: "group_bounds",
@@ -655,6 +873,10 @@ export function fillCompositions(args: {
   };
   for (const reason of FILL_REFUSALS) counts[reason] = 0;
   for (const r of refused) counts[r.reason] = (counts[r.reason] ?? 0) + 1;
+  // ⚠️ COMPTÉ COMME UN REFUS, PARCE QUE C'EN EST UN: ce qui a été refusé, c'est
+  // le RAPPROCHEMENT, pas la composition. Le nombre à regarder est celui-là —
+  // s'il monte, c'est qu'il y a une file d'alias à écrire à la main.
+  counts.canonical_is_curated_food = (counts.canonical_is_curated_food ?? 0) + review.length;
   return { filled, refused, counts };
 }
 
@@ -690,13 +912,70 @@ export function withFilledRefs(
   if (filled.length === 0) return { index: base, kept, refused };
 
   const bySlug = new Map(base.bySlug);
+  // Les clés que CET appel a posées, par ligne — pour pouvoir toutes les
+  // retirer si la ceinture comportementale rejette la ligne plus bas. Une
+  // ligne à demi retirée laisserait une clé qui pointe vers un aliment que
+  // plus rien ne cite.
+  const keysOf = new Map<FilledComposition, string[]>();
+
   for (const f of filled) {
-    if (resolveIngredient(base, f.term) !== null || bySlug.has(f.ref.slug)) {
+    // ── LA CEINTURE D'ENTRÉE, SUR LES DEUX NOMS ──────────────────────────
+    // La forme rencontrée ET le canonique. Le second est nouveau: sans lui, un
+    // canonique qui désigne un aliment réel entrerait par la porte de derrière
+    // — `fillCompositions` le refuse déjà, et cette ligne est la ceinture qui
+    // tient si un appelant construit sa liste autrement (la relecture du sas).
+    if (
+      resolveIngredient(base, f.term) !== null ||
+      resolveIngredient(base, f.canonicalTerm) !== null ||
+      base.bySlug.has(f.ref.slug)
+    ) {
       refused.push({ term: f.term, reason: "already_resolved" });
       continue;
     }
-    bySlug.set(f.ref.slug, f.ref);
-    kept.push(f);
+    const keys: string[] = [];
+    // ⚠️ LE PREMIER ARRIVÉ POSE LA VALEUR. Deux formes du même aliment dans un
+    // même plan (« puree d'amande » et « puree d'amandes ») rendent le MÊME
+    // canonique: la seconde ne réécrit pas la ligne — elle ajoute sa clé, et
+    // les deux termes pèsent avec la même valeur, ce qui est le point du lot.
+    const ref = bySlug.get(f.ref.slug) ?? f.ref;
+    if (!bySlug.has(f.ref.slug)) {
+      bySlug.set(f.ref.slug, ref);
+      keys.push(f.ref.slug);
+    }
+    // ── LES FORMES DE SURFACE: D'AUTRES CLÉS, LE MÊME OBJET ──────────────
+    //
+    // ⛔ `byAlias` N'EST TOUJOURS PAS TOUCHÉ, et c'est ce qui garde la règle 3
+    // STRUCTURELLE plutôt que surveillée. Une clé de `bySlug` est une ÉGALITÉ
+    // de slug — `resolveIngredient` la retrouve par `form.replace(/ /g, "_")`,
+    // sans passer par la table des alias curés, et `resolveAlternative` ne la
+    // consulte pas (son en-tête dit pourquoi). Un alias, lui, se propagerait à
+    // travers les réductions et les alternatives.
+    //
+    // ⚠️ LA FORME RENCONTRÉE EST POSÉE MÊME QUAND `forms` EST VIDE, et c'est ce
+    // qui rend la RELECTURE du sas utilisable: une ligne relue porte le
+    // canonique de la file (`almond butter`) et le nom que CE plan écrit
+    // (`puree d'amande`). Sans cette clé-là, la ligne serait installée sous un
+    // nom que le plan ne cite pas — la ceinture comportementale la déclarerait
+    // `unreachable`, et le sas rendrait une valeur que personne n'atteint.
+    const put = (form: string): boolean => {
+      const slug = form.replace(/ /g, "_");
+      if (slug === f.ref.slug) return true;
+      // ⛔ RIEN NE SE FAIT ÉCRASER. Ni une ligne du référentiel, ni une clé
+      // qu'une autre ligne de ce même appel a déjà posée.
+      if (base.bySlug.has(slug) || resolveIngredient(base, form) !== null) return false;
+      const held = bySlug.get(slug);
+      if (held !== undefined && held !== ref) return false;
+      if (held === undefined) {
+        bySlug.set(slug, ref);
+        keys.push(slug);
+      }
+      return true;
+    };
+    put(f.term);
+    const installed = f.forms.filter((sf) => put(sf.form));
+    const line = installed.length === f.forms.length ? f : { ...f, forms: installed };
+    keysOf.set(line, keys);
+    kept.push(line);
   }
   // `byAlias` INTOUCHÉ — voir l'en-tête.
   const index: CompositionIndex = { bySlug, byAlias: base.byAlias };
@@ -705,7 +984,7 @@ export function withFilledRefs(
   const dead = kept.filter((f) => resolveIngredient(index, f.term)?.slug !== f.ref.slug);
   if (dead.length === 0) return { index, kept, refused };
   for (const f of dead) {
-    bySlug.delete(f.ref.slug);
+    for (const key of keysOf.get(f) ?? []) bySlug.delete(key);
     refused.push({ term: f.term, reason: "unreachable" });
   }
   const alive = kept.filter((f) => !dead.includes(f));
@@ -867,4 +1146,116 @@ export function promotionVerdict(args: {
     return { outcome: "review", reason: "fat_out_of_band" };
   }
   return { outcome: "promote", reason: null };
+}
+
+// ---------------------------------------------------------------------------
+// ⑧ LA RELECTURE — le même plan doit rendre le même nombre
+// ---------------------------------------------------------------------------
+
+/**
+ * UNE LIGNE DU SAS, RELUE COMME LA LIGNE REMPLIE QU'ELLE ÉTAIT.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LE DÉFAUT QUE CETTE FONCTION RÉPARE, MESURÉ LE 2026-09-09
+ * ══════════════════════════════════════════════════════════════════════════
+ * Un plan était COMPOSÉ sur l'index augmenté et RELU sur l'index nu. Mesuré
+ * sur le plan `4d78e95c` (compte réel, 2026-09-08): `emmental râpé` rempli à
+ * 353 kcal/100 g à la génération — `composition_energy_sources.model = 0,013` —
+ * et `unknown_ingredient` à chaque affichage, parce que `loadCompositionIndex`
+ * ne lit que `food_composition_refs` et `food_composition_aliases`. Le travail
+ * de réparation était refait à chaque plan et jeté à chaque lecture: **79 plans
+ * sur 116** portaient au moins un terme inconnu sur les 14 jours précédents.
+ *
+ * ⚠️ CE N'EST PAS UNE PROMOTION, ET LA DIFFÉRENCE EST TOUT LE SUJET.
+ * `composition_fill_io.ts` écrit noir sur blanc « AUCUNE VALEUR N'EST REPRISE
+ * DU SAS » — parce que reprendre la valeur d'une ligne vue une fois pour un
+ * plan qui ne l'a jamais rencontrée, c'est promouvoir sans les trois
+ * observations. Cette relecture-ci est bornée par les TERMES DU PLAN QU'ON
+ * RELIT: la valeur ne va nulle part où elle n'a pas déjà servi. Elle ne se
+ * répand pas, elle cesse d'être oubliée.
+ *
+ * ⛔ `model` SEULEMENT, JAMAIS `group_bounds`. Un milieu de bande est une
+ * convention posée pour LE plan qui l'a posée, et `residualKcal` est le nombre
+ * qui dit ce qu'elle coûte. La relire ailleurs ferait voyager une convention
+ * sans son résidu, c'est-à-dire une convention déguisée en mesure — l'interdit
+ * central de ce module.
+ *
+ * ⛔ AUCUN ALIAS, ET AUCUNE COMPARAISON AUTRE QUE `=`. La ligne repart par
+ * `withFilledRefs`, qui ne fait qu'un `bySlug.set` et rejoue ses deux
+ * ceintures. Rien n'est comparé par préfixe ni par distance:
+ * `never-hand-roll-a-matcher-here`, 12 faux positifs sur 12.
+ *
+ * Rend `null` sur toute ligne qu'on ne comprend pas — une ligne jetée coûte une
+ * abstention, exactement celle d'aujourd'hui.
+ *
+ * PURE: aucune I/O.
+ */
+export function filledFromPendingRow(
+  row: unknown,
+  /**
+   * LA FORME QUI A MATCHÉ CETTE LIGNE, quand ce n'est pas son terme même.
+   *
+   * ⚠️ ELLE VIENT DU PLAN QU'ON RELIT, jamais d'une comparaison: la vue
+   * `food_composition_pending_by_form` la rend, et la jointure y est une
+   * ÉGALITÉ. Omise, la ligne est sa propre forme — c'est-à-dire exactement le
+   * comportement d'avant les formes de surface.
+   */
+  form?: string,
+): FilledComposition | null {
+  const r = row as Record<string, unknown> | null;
+  if (!r) return null;
+  const canonicalTerm = normalizeTerm(String(r.term ?? ""));
+  if (!canonicalTerm || canonicalTerm.length > 80) return null;
+  const asked = normalizeTerm(String(form ?? ""));
+  const term = asked && asked.length <= 80 ? asked : canonicalTerm;
+  // ⛔ `model` seulement. Voir l'en-tête.
+  if (String(r.fill_source ?? "") !== "model") return null;
+  const group = String(r.food_group_ref ?? "");
+  if (!(FOOD_GROUP_REFS as readonly string[]).includes(group)) return null;
+  const yieldClass = String(r.yield_class ?? "");
+  if (!(YIELD_CLASSES as readonly string[]).includes(yieldClass)) return null;
+  const energyKcal = Number(r.energy_kcal);
+  if (!Number.isFinite(energyKcal) || energyKcal < 0) return null;
+  // La MÊME garde absolue qu'à l'aller. Une ligne du sas écrite avant qu'elle
+  // existe ne doit pas entrer par la porte de derrière.
+  if (energyKcal > MAX_PLAUSIBLE_KCAL_PER_100G) return null;
+  const macro = (v: unknown): number | null => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+  const label = String(r.label ?? "").trim();
+  return {
+    term,
+    canonicalTerm,
+    // ⛔ AUCUNE FORME NEUVE. Le lien forme -> terme existe DÉJÀ en base — c'est
+    // lui qui a rendu cette ligne. Le réécrire ne créerait rien et ferait
+    // remonter un compteur d'écriture sur une lecture.
+    forms: [],
+    // Une relecture ne met rien en revue: la ligne relue a déjà son statut.
+    reviewReason: null,
+    // ⛔ `refFor` ET PAS UNE SECONDE ÉCRITURE. Les drapeaux de micronutriment à
+    // `false`, la décote à 1,0, `unitGrams`/`condimentGrams` à `null`: une
+    // seconde copie de ces choix divergerait, et c'est celle qu'on relit le
+    // moins qui garderait l'ancienne.
+    ref: refFor({
+      canonicalTerm,
+      label: label || canonicalTerm,
+      group: group as FoodGroupRef,
+      yieldClass: yieldClass as YieldClass,
+      source: "model",
+      energyKcal,
+      proteinG: macro(r.protein_g),
+      carbsG: macro(r.carbs_g),
+      fatG: macro(r.fat_g),
+      fiberG: macro(r.fiber_g),
+    }),
+    source: "model",
+    // ⛔ ZÉRO, et ce n'est pas un défaut de renseignement: une ligne `model`
+    // acceptée porte un résidu de 0 à l'aller aussi (§ l'échelle d'acceptation,
+    // cas 1). Le seul résidu non nul appartient à `group_bounds`, qui ne passe
+    // jamais par ici.
+    residualKcal: 0,
+    rejectedModelKcal: null,
+  };
 }

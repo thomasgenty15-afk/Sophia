@@ -1,0 +1,15 @@
+{
+ "case": "F1",
+ "goal": "maintenance",
+ "weightKg": 78.0,
+ "heightCm": 177,
+ "gender": "male",
+ "ageBand": "30_44",
+ "ageYears": 40,
+ "activityLevel": "on_feet",
+ "servings": 1,
+ "regime": null,
+ "pace": null,
+ "userId": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+ "email": "camp0909.f1@keeltest.dev"
+}

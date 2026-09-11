@@ -405,9 +405,11 @@ Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la mai
       goal: "fat_loss",
       ageState: "minor",
       body: null,
+      lightSlots: [],
       eatingSlots: null,
       habits: [],
       habitNote: null,
+      requiredDensity: null,
     },
     null,
     CHILD_8,
@@ -419,9 +421,11 @@ Deno.test("un objectif posé sur un ENFANT est INERTE — l'enveloppe est la mai
       goal: null,
       ageState: "minor",
       body: null,
+      lightSlots: [],
       eatingSlots: null,
       habits: [],
       habitNote: null,
+      requiredDensity: null,
     },
     null,
     CHILD_8,
@@ -466,14 +470,16 @@ Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif
     lineBody: { appetite: null, heightCm: 162, weightKg: 55, gender: "female", ageYears: 38, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
   });
   assert(e !== null && e.mode === "per_kg" && e.energy !== null);
-  const maintenance = estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
-    activityAxes: { day: null, sport: null, asked: false },
-    weightKg: 55,
-    heightCm: 162,
-    ageBand: "30_44",
-    gender: "female",
-  });
-  assert(maintenance !== null);
+  // ⟳ 2026-09-10 — LA MAINTENANCE ATTENDUE EST ÉCRITE À LA MAIN, ET C'EST LA
+  // SEULE FORME QUI NE MENT PAS. Ce test a recopié `estimatedMaintenanceKcal`
+  // (l'instrument qu'il mesure), puis `maintenanceMidKcal` (l'instrument
+  // d'après). Les deux fois, il serait resté vert le jour où la bande aurait
+  // changé de base tout en restant fausse — c'est exactement ce qui vient
+  // d'arriver deux fois en deux jours.
+  //
+  //   BMR = 10×55 + 6,25×162 − 5×37 − 161 = 1 216,5  (bande 30_44, milieu 37)
+  //   M   = 1 216,5 × 1,5 (activité inconnue) = **1 825**
+  const maintenance = 1825;
   // La bande de maintenance encadre M; une bande de déficit serait SOUS M.
   assert(
     e.energy.low < maintenance && maintenance < e.energy.high,

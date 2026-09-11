@@ -1,0 +1,75 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 10,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Yaourt, flocons d’avoine et prunes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 511,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 281,
+      "density_kcal_per_100g": 181.9,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet, boulgour et légumes rôtis",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au paprika ÷2",
+        "Boulgour nature ÷2",
+        "Légumes rôtis de fin d’été ÷2"
+      ],
+      "standard_kcal": 644,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 543,
+      "density_kcal_per_100g": 118.7,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 179,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 175,
+      "density_kcal_per_100g": 102.3,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet, boulgour, légumes, tortillas et laitue",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti au paprika ÷2",
+        "Boulgour nature ÷2",
+        "Légumes rôtis de fin d’été ÷2"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 748,
+      "density_kcal_per_100g": null,
+      "boxes": 0
+    }
+  ]
+}

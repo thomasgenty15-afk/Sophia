@@ -40,23 +40,29 @@ const NOBODY_AWAY: WindowPresence = resolveWindowPresence({
 const DAD: PortionMember = {
   memberId: "m-dad", displayName: "Marc", goal: "fat_loss", ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 const SON: PortionMember = {
   memberId: "m-son", displayName: "Tom", goal: "muscle_gain", ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 const KID: PortionMember = {
   memberId: "m-kid", displayName: "Léa", goal: null, ageState: "minor",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 
 Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
@@ -66,6 +72,7 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -106,6 +113,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -142,6 +150,7 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -177,6 +186,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -210,6 +220,7 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -236,6 +247,7 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -266,6 +278,7 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -302,6 +315,7 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -344,6 +358,7 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -385,6 +400,7 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -473,6 +489,7 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -585,6 +602,7 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -627,6 +645,7 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -685,6 +704,7 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -752,6 +772,7 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
     buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -809,6 +830,7 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
   const plain = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -832,6 +854,7 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
   const merged = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -875,6 +898,7 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -930,6 +954,7 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -974,6 +999,7 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
   // version lisible: il ne parle QUE des foyers dont au moins une bouche parle.
   const base = {
     // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1053,6 +1079,7 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
   const { userSuffix, voicesHeard } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1123,6 +1150,7 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
   const withMerge = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1160,6 +1188,7 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
   const { userSuffix, voiceIssues } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1238,6 +1267,7 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1297,6 +1327,7 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
     buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1376,6 +1407,7 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
   // changer d'un octet pour un lot qui ne le concerne pas.
   const base = {
     // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1429,6 +1461,7 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
   const { userSuffix } = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1472,6 +1505,7 @@ Deno.test("LOT C — sans porteur, le prompt est BYTE-IDENTIQUE à v11", () => {
   // mot pour mot: on n'énonce pas une contrainte que personne n'a posée.
   const base = {
     // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1512,6 +1546,7 @@ Deno.test("LOT C — avec un porteur, le bloc nomme la bouche et SON id exact", 
   const out = buildHouseholdPromptBlocks({
     // LOT C ② — personne ne porte de règle à cette table: aucun des deux
     // blocs n'est servi, et le prompt est byte-identique à v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -1580,6 +1615,7 @@ const BEARER_BASE = {
   // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
   kitchenEquipment: null,
   // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+  sizingPath: "legacy_measure" as const,
   ruleHolders: [],
   // ③ — AUCUNE TRADITION, et c'est la prémisse de toutes les assertions
   // d'octet de ce fichier: un foyer qui n'en pose pas ne doit pas voir une
@@ -1871,7 +1907,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
   // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
   // bas tient l'identité du `userSuffix` sans les faits.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v33_one_standard_recipe_the_engine_multiplies");
 });
 
 // ===========================================================================
@@ -1903,6 +1939,7 @@ const KITCHEN_BASE = {
   voices: [],
   kitchenEquipment: null,
   // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+  sizingPath: "legacy_measure" as const,
   ruleHolders: [],
   // ③ — AUCUNE TRADITION, et c'est la prémisse de toutes les assertions
   // d'octet de ce fichier: un foyer qui n'en pose pas ne doit pas voir une
@@ -2248,6 +2285,7 @@ Deno.test("L7 ② — une bouche que le prompt ne nomme pas n'est ni écrite ni 
 
 function suffixesFor(members: PortionMember[]) {
   return buildHouseholdPromptBlocks({
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
     // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
@@ -2404,6 +2442,7 @@ Deno.test("⛔ le bloc nomme QUI a droit à une boîte, et personne d'autre", ()
 // ═══════════════════════════════════════════════════════════════════════════
 
 const BASE_BLOCKS = {
+  sizingPath: "legacy_measure" as const,
   ruleHolders: [],
   traditions: [],
   daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
@@ -2517,6 +2556,7 @@ Deno.test("préférence contre exclusion — le bloc nomme la paire et demande l
     windowDays: ["mon", "tue"],
   });
   const base = {
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     traditions: [],
     daysInWindow: ["mon", "tue"],

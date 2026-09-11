@@ -38,6 +38,7 @@ import {
 import {
   buildCompositionIndex,
   type CompositionRef,
+  resolveIngredient,
   YIELD_FACTORS,
 } from "./food_composition.ts";
 import {
@@ -60,6 +61,13 @@ import { mouthsFedByDish } from "./box_expected.ts";
 import type { MealScope } from "./meal_generation.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
 import type { CompositionIndex } from "./food_composition.ts";
+
+// ⟳ LOT C (2026-09-11) — LES LIGNES D'INGRÉDIENT PORTENT DEUX CHAMPS DE PLUS.
+// `ref` est l'identifiant de référence que le modèle a rendu, `refRefused` dit
+// qu'il en a rendu un et qu'il a été refusé. Tous les cas de ce fichier les
+// laissent à `null` / `false` EXPRÈS: ils testent la mesure par TERME LIBRE, que
+// ce lot ne change pas — il ajoute un chemin prioritaire à côté. Les cas de
+// l'identifiant vivent dans `composition_contract_test.ts`.
 
 // ---------------------------------------------------------------------------
 // LE DÉCOR
@@ -106,6 +114,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -165,6 +174,7 @@ const PARSE_BASE = {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [] as readonly { memberId: string; regime: DietaryRegime | null }[],
   boxMemberExclusions: [],
 };
@@ -180,7 +190,7 @@ function prep(over: Record<string, unknown> = {}) {
     total_minutes: 50,
     cook_on: "mon",
     ingredients: [
-      { term: "chicken breast", quantity: "1000 g", amount: 1000, unit: "g", state: "raw" },
+      { term: "chicken breast", ref: null, refRefused: false, quantity: "1000 g", amount: 1000, unit: "g", state: "raw" },
     ],
     ...over,
   };
@@ -194,7 +204,7 @@ function dish(over: Record<string, unknown> = {}) {
     method: "Take the box out and reheat it.",
     why: "Because it works.",
     ingredients: [
-      { term: "rice", quantity: "80 g dried", amount: 80, unit: "g", state: "raw" },
+      { term: "rice", ref: null, refRefused: false, quantity: "80 g dried", amount: 80, unit: "g", state: "raw" },
     ],
     uses: [{ preparation_id: "prep_chicken", servings: 1 }],
     ...over,
@@ -239,7 +249,16 @@ Deno.test("LE CAS QUI PASSE — un repas, un contenant, un groupe sur le couverc
   assertEquals(meal.dishes[0].boxes, [{
     id: "box_tue_lunch",
     memberIds: [ZOE, NINA],
-    items: [{ preparationId: "prep_chicken", term: "roast chicken", grams: 320 }],
+    // ⟳ LOT A (2026-09-11) — `ref`/`refRefused` sont ÉCRITS MÊME À `null`/`false`
+    // sur un item de contenant: le modèle n'en rend pas sur ses items, et le
+    // chemin par le terme reste celui de ces contenants-là.
+    items: [{
+      preparationId: "prep_chicken",
+      term: "roast chicken",
+      grams: 320,
+      ref: null,
+      refRefused: false,
+    }],
     legacyTotalGrams: null,
   }]);
   // ⛔ LE COMPTEUR OBLIGATOIRE (`docs/keel/BOITES-PAR-REPAS.md`): sans
@@ -545,7 +564,7 @@ Deno.test("⛔ v4 — UN `preparation_id` QUI NE DÉSIGNE AUCUNE CASSEROLE DU PL
     shopping_list: [],
   });
   assertEquals(meal.dishes[0].boxes[0]?.items, [
-    { preparationId: null, term: "wholemeal bread", grams: 60 },
+    { preparationId: null, term: "wholemeal bread", grams: 60, ref: null, refRefused: false },
   ]);
   assertEquals(meal.box_counts.items_refused, 1);
   assert(
@@ -692,7 +711,7 @@ Deno.test("⚠️ LE CAS QUI VARIE — deux ancres distinctes se comptent deux",
         day: "mon",
         uses: [],
         ingredients: [
-          { term: "lentils", quantity: "100 g", amount: 100, unit: "g", state: "raw" },
+          { term: "lentils", ref: null, refRefused: false, quantity: "100 g", amount: 100, unit: "g", state: "raw" },
         ],
       }),
     ],
@@ -842,12 +861,48 @@ Deno.test("`preparationReadyGrams` convertit dans LES DEUX SENS", () => {
   assertEquals(YIELD_FACTORS.grain_absorbs, 2.6);
   const grams = preparationReadyGrams(
     [
-      { term: "chicken", quantity: null, in_pantry: false, amount: 1000, unit: "g", state: "raw", gramsRaw: 1000, group: null, quantitySource: null },
-      { term: "rice", quantity: null, in_pantry: false, amount: 100, unit: "g", state: "raw", gramsRaw: 100, group: null, quantitySource: null },
+      { term: "chicken", ref: null, refRefused: false, quantity: null, in_pantry: false, amount: 1000, unit: "g", state: "raw", gramsRaw: 1000, group: null, quantitySource: null, part: null },
+      { term: "rice", ref: null, refRefused: false, quantity: null, in_pantry: false, amount: 100, unit: "g", state: "raw", gramsRaw: 100, group: null, quantitySource: null, part: null },
     ],
     INDEX,
   );
   assertEquals(grams, 960);
+});
+
+Deno.test("`preparationReadyGrams` suit le rendement PAR ALIMENT quand il existe", () => {
+  // ⟳ 2026-09-07 — migration `20260907160000`. Les deux épingles ci-dessus
+  // restent: elles tiennent la table de SECOURS. Celle-ci tient le chemin
+  // neuf, et les deux doivent coexister — c'est précisément parce qu'une
+  // casserole peut désormais peser deux choses différentes selon que sa fiche
+  // porte une mesure ou non que la table de secours mérite d'être épinglée.
+  //
+  // ⛔ MÊME CLASSE, FACTEUR DIFFÉRENT. `INDEX` résout « rice » sur une fiche
+  // sans mesure (2,6, par la classe); l'index local ci-dessous porte la MÊME
+  // classe avec 2,2. 1 000 g crus font 2 600 g d'un côté, 2 200 de l'autre —
+  // 400 g d'écart sur une casserole, c'est-à-dire sur ce que la personne pèse.
+  const riz = resolveIngredient(INDEX, "rice");
+  assert(riz !== null);
+  assertEquals(riz!.yieldFactor, null, "la fiche témoin ne doit PAS porter de mesure");
+  const mesure = buildCompositionIndex(
+    [{ ...riz!, slug: "rice_measured", yieldFactor: 2.2 }],
+    [{ alias: "rice", slug: "rice_measured" }],
+  );
+  const ligne = {
+    term: "rice",
+    ref: null,
+    refRefused: false,
+    quantity: null,
+    in_pantry: false,
+    amount: 1000,
+    unit: "g" as const,
+    state: "raw" as const,
+    gramsRaw: 1000,
+    group: null,
+    quantitySource: null,
+    part: null,
+  };
+  assertEquals(Math.round(preparationReadyGrams([ligne], INDEX)!), 2600);
+  assertEquals(Math.round(preparationReadyGrams([ligne], mesure)!), 2200);
 });
 
 Deno.test("un ingrédient non pesable rend la production INVÉRIFIABLE, jamais fausse", () => {
@@ -857,8 +912,8 @@ Deno.test("un ingrédient non pesable rend la production INVÉRIFIABLE, jamais f
   assertEquals(
     preparationReadyGrams(
       [
-        { term: "chicken", quantity: null, in_pantry: false, amount: 1000, unit: "g", state: "raw", gramsRaw: 1000, group: null, quantitySource: null },
-        { term: "parsley", quantity: "a bunch", in_pantry: false, amount: null, unit: null, state: null, gramsRaw: null, group: null, quantitySource: null },
+        { term: "chicken", ref: null, refRefused: false, quantity: null, in_pantry: false, amount: 1000, unit: "g", state: "raw", gramsRaw: 1000, group: null, quantitySource: null, part: null },
+        { term: "parsley", ref: null, refRefused: false, quantity: "a bunch", in_pantry: false, amount: null, unit: null, state: null, gramsRaw: null, group: null, quantitySource: null, part: null },
       ],
       INDEX,
     ),
@@ -867,7 +922,7 @@ Deno.test("un ingrédient non pesable rend la production INVÉRIFIABLE, jamais f
   assertEquals(preparationReadyGrams([], INDEX), null, "aucune ligne, rien à mesurer");
   assertEquals(
     preparationReadyGrams(
-      [{ term: "chicken", quantity: null, in_pantry: false, amount: 100, unit: "g", state: "raw", gramsRaw: 100, group: null, quantitySource: null }],
+      [{ term: "chicken", ref: null, refRefused: false, quantity: null, in_pantry: false, amount: 100, unit: "g", state: "raw", gramsRaw: 100, group: null, quantitySource: null, part: null }],
       null,
     ),
     null,
@@ -959,7 +1014,7 @@ Deno.test("⛔ UNE BOÎTE QUI MÉLANGE DEUX CASSEROLES EST RÉPARTIE AU PRORATA"
         id: "prep_rice",
         title: "Rice batch",
         ingredients: [
-          { term: "rice", quantity: "100 g", amount: 100, unit: "g", state: "raw" },
+          { term: "rice", ref: null, refRefused: false, quantity: "100 g", amount: 100, unit: "g", state: "raw" },
         ],
       }),
     ],
@@ -987,7 +1042,7 @@ Deno.test("⛔ UN REPAS DONT UNE CASSEROLE EST INCONNUE NE SE RÉPARTIT PAS", ()
       prep({
         id: "prep_soup",
         title: "Soup",
-        ingredients: [{ term: "parsley", quantity: "a bunch" }],
+        ingredients: [{ term: "parsley", ref: null, refRefused: false, quantity: "a bunch" }],
       }),
     ],
     dishes: [dish({
@@ -1116,7 +1171,10 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
   // ⚠️ D3′-c (2026-08-23) — `v22_precedence_in_tail`, ET LE BUMP EST EN RETARD
   // D'UN JOUR. `D3′` (2026-08-22 18:51) a réécrit le bloc d'arbitrage de la lane
   // foyer — passé en QUEUE du message, rang 1 qui NOMME ses trois blocs de
@@ -1136,7 +1194,7 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v33_one_standard_recipe_the_engine_multiplies");
 });
 
 // ---------------------------------------------------------------------------
@@ -1193,10 +1251,25 @@ Deno.test("le payload rend les contenants en clés ASCII snake_case", () => {
     id: "box_tue_lunch",
     member_ids: [ZOE, NINA],
     items: [
-      { preparation_id: "prep_chicken", term: "roast chicken", grams: 320 },
+      // ⟳ LOT A (2026-09-11) — `ref` ET `ref_refused` SORTENT AUSSI, ÉCRITS
+      // MÊME À `null`/`false`. Sans eux, l'identité d'un item frais mourait à
+      // la sérialisation et `densityFromComposition` repartait du libellé.
+      {
+        preparation_id: "prep_chicken",
+        term: "roast chicken",
+        grams: 320,
+        ref: null,
+        ref_refused: false,
+      },
       // ⚠️ `null` SORT TEL QUEL, et c'est une AFFIRMATION: ce composant est
       // ajouté frais le jour même, donc aucune fournée ne le tient.
-      { preparation_id: null, term: "wholemeal bread", grams: 60 },
+      {
+        preparation_id: null,
+        term: "wholemeal bread",
+        grams: 60,
+        ref: null,
+        ref_refused: false,
+      },
     ],
     // ⚠️ `null` SUR TOUT CONTENANT v4: le total se dérive des `items`. Deux
     // nombres qui doivent s'accorder finissent par diverger.
@@ -1277,7 +1350,7 @@ Deno.test("le VERROU DE SORTIE vide le plan ET remet les compteurs à zéro", ()
       preparations: [prep()],
       dishes: [dish({
         title: "Peanut noodles",
-        ingredients: [{ term: "peanut butter", quantity: "2 tbsp" }],
+        ingredients: [{ term: "peanut butter", ref: null, refRefused: false, quantity: "2 tbsp" }],
         box: { id: "b1", shares: [{ member_id: ZOE, grams: 120 }] },
       })],
       shopping_list: [],
@@ -1333,9 +1406,11 @@ function member(over: Partial<PortionMember> & { memberId: string }): PortionMem
     goal: "maintenance",
     ageState: "adult",
     body: null,
+    lightSlots: [],
     eatingSlots: null,
     habits: [],
     habitNote: null,
+    requiredDensity: null,
     ...over,
   } as PortionMember;
 }
@@ -1351,7 +1426,7 @@ const NINA_M = member({ memberId: NINA, displayName: "Nina", goal: "muscle_gain"
 const MARC_M = member({ memberId: MARC, displayName: "Marc" });
 
 Deno.test("LOT 4 — l'ordre de peser est DANS le brief, avec les prénoms", () => {
-  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure");
   assert(brief.includes("WEIGH IT ONCE, INTO BOXES NAMED BY MEAL."), brief);
   assert(brief.includes("Zoé, Nina"), brief);
   // ⛔ ET LES DEUX GRAMMES SONT DITS, C'EST TOUTE LA SPEC v4: un seul nom ⇒ une
@@ -1370,7 +1445,7 @@ Deno.test("LOT 4 — l'ordre de peser est DANS le brief, avec les prénoms", () 
 Deno.test("⛔ v4 — LE BRIEF NOMME LES BOUCHES À OBJECTIF, ET SEULEMENT ELLES", () => {
   // La règle de groupement se dit dans la consigne, avec des PRÉNOMS: sans eux,
   // « chacun le sien » n'a pas de sujet. Marc se maintient — il n'y est pas.
-  const brief = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1, "legacy_measure");
   assert(brief.includes("each get a box of their OWN, alone on the lid: Zoé, Nina"), brief);
   assert(brief.includes("Everyone else who eats that meal shares ONE box"), brief);
 });
@@ -1384,6 +1459,7 @@ Deno.test("⛔ v4 — UN FOYER SANS OBJECTIF REÇOIT QUAND MÊME SA CONSIGNE DE 
     "one_dish",
     0,
     1,
+  "legacy_measure",
   );
   assert(brief.includes("WEIGH IT ONCE, INTO BOXES NAMED BY MEAL."), brief);
   assert(brief.includes("that meal has exactly ONE"), brief);
@@ -1394,11 +1470,11 @@ Deno.test("LOT 4 — l'ordre dit COMBIEN de bouches, et le nombre suit le roster
   // ⚠️ DEUX APPELS, DEUX NOMBRES ÉCRITS EN LITTÉRAL. Un test paramétré par la
   // longueur du tableau resterait vert si le bloc écrivait toujours « 1 ».
   assert(
-    buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1)
+    buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure")
       .includes("That is 2 people to place at every such meal"),
   );
   assert(
-    buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1)
+    buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1, "legacy_measure")
       .includes("That is 3 people to place at every such meal"),
   );
 });
@@ -1408,7 +1484,7 @@ Deno.test("LOT 4 — l'ordre NOMME l'échappatoire: une note de portion n'est pa
   // qui interdit sans nommer la sortie qu'on prend à sa place est une consigne
   // qu'on reprend — mesuré le 2026-08-17, la consigne renvoyée mot pour mot
   // dans le mauvais champ.
-  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure");
   assert(brief.includes("A line in member_portions is NOT a box."), brief);
 });
 
@@ -1416,7 +1492,7 @@ Deno.test("LOT 4 — l'interdit du POURQUOI reste les TROIS DERNIÈRES lignes du
   // ⛔ POSITION LOAD-BEARING. Un modèle lit la contrainte la plus proche de la
   // fin comme la plus contraignante, et c'est précisément quand le brief se met
   // à porter des NOMBRES par personne que celle-ci doit survivre.
-  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure");
   const lines = brief.split("\n");
   assertEquals(lines.slice(-3), [
     "NEVER state a reason, a goal, a calorie count or anything about a person's",
@@ -1432,7 +1508,7 @@ Deno.test("LOT 4 — l'interdit du POURQUOI reste les TROIS DERNIÈRES lignes du
 Deno.test("LOT 4 — À UNE SEULE BOUCHE, le brief est celui d'avant, à l'octet près", () => {
   // Une boîte par personne n'a pas de sujet à une seule, et servir le bloc
   // apprendrait au modèle qu'un marquage par personne existe.
-  const brief = buildPortionBrief([ZOE_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M], "one_dish", 0, 1, "legacy_measure");
   assert(!brief.includes("WEIGH IT ONCE"), brief);
   assert(!brief.includes("boxes"), brief);
 });
@@ -1456,6 +1532,7 @@ Deno.test("LOT 4 — le SCHÉMA des boîtes est côté système, et muet à une 
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
     // ③ — aucune tradition: le prompt reste celui d'hier au caractère près.
     traditions: [],
@@ -1572,6 +1649,7 @@ Deno.test("LOT 4 — le schéma des boîtes ORDONNE, il ne permet pas", () => {
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    sizingPath: "legacy_measure" as const,
     ruleHolders: [],
   });
   assert(!out.systemSuffix.includes("may carry"), out.systemSuffix);
@@ -1639,6 +1717,7 @@ Deno.test("LOT 4 — la ceinture du flou GARDE le texte et le COMPTE", () => {
     ["prep_chicken"],
     [],
     [],
+    false,
   );
   assertEquals(
     portions[0].portionNote,
@@ -1663,6 +1742,7 @@ Deno.test("LOT 4 — une note de PART floue est comptée et nommée par sa prép
     ["prep_rice"],
     [],
     [],
+    false,
   );
   assertEquals(vagueCounts, { notes: 2, vague: 1, quantified: 1, box_ids: 0 });
   assert(
@@ -1680,6 +1760,7 @@ Deno.test("LOT 4 — une note MISE À NULL par la ceinture de corps n'entre dans
     [],
     [],
     [],
+    false,
   );
   assertEquals(portions[0].portionNote, null);
   assertEquals(vagueCounts, { notes: 0, vague: 0, quantified: 0, box_ids: 0 });
@@ -1728,6 +1809,7 @@ Deno.test("LOT 4C ① — LE CAS QUI PASSE: une part qui cite une VRAIE prépara
     ["prep_chicken"],
     [],
     [],
+    false,
   );
   assertEquals(portions[0].preparationShares, [
     { preparationId: "prep_chicken", note: "150 g de poulet" },
@@ -1759,6 +1841,7 @@ Deno.test("LOT 4C ① — une part ORPHELINE est jetée, comptée, nommée — e
     ["prep_chicken_tray"],
     [],
     [],
+    false,
   );
   // La part qui joint SURVIT; les deux orphelines tombent.
   assertEquals(portions[0].preparationShares, [
@@ -1808,6 +1891,7 @@ Deno.test("LOT 4C ① — la liste fermée est celle des préparations GARDÉES"
     meal.preparations.map((p) => p.id),
     [],
     [],
+    false,
   );
   assertEquals(shareCounts, { shares: 0, unknown: 1, regime_refused: 0 });
 });
@@ -1872,6 +1956,7 @@ Deno.test("LOT 4C ② — `quantified` compte les notes chiffrées, `vague` ne l
     [],
     [],
     [],
+    false,
   );
   assertEquals(molles.vagueCounts, { notes: 3, vague: 0, quantified: 0, box_ids: 0 });
 
@@ -1885,6 +1970,7 @@ Deno.test("LOT 4C ② — `quantified` compte les notes chiffrées, `vague` ne l
     [],
     [],
     [],
+    false,
   );
   assertEquals(chiffrees.vagueCounts, { notes: 3, vague: 0, quantified: 2, box_ids: 0 });
 });
@@ -1893,8 +1979,8 @@ Deno.test("LOT 4C ② — le brief DEMANDE le chiffre, avec le nombre et l'écha
   // ⚠️ TROIS APPELS, TROIS NOMBRES ÉCRITS EN LITTÉRAL: un test paramétré par la
   // même expression que le code resterait vert si la consigne cessait de
   // compter les bouches.
-  const deux = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1);
-  const trois = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1);
+  const deux = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure");
+  const trois = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1, "legacy_measure");
   assert(deux.includes("carries a number and a unit"), deux);
   assert(deux.includes("All 2 of them, not some."), deux);
   assert(trois.includes("All 3 of them, not some."), trois);
@@ -1917,7 +2003,7 @@ Deno.test("LOT 4C ② — un foyer d'UNE bouche voit la consigne du chiffre, PAS
   // ⚠️ LA POPULATION S'ÉLARGIT, ET C'EST ÉCRIT: « des quantités précises pour
   // chaque personne » ne s'arrête pas à deux habitants. Le protocole des
   // BOÎTES, lui, reste muet sous deux bouches — il parle d'ids à départager.
-  const solo = buildPortionBrief([ZOE_M], "one_dish", 0, 1);
+  const solo = buildPortionBrief([ZOE_M], "one_dish", 0, 1, "legacy_measure");
   assert(solo.includes("carries a number and a unit"), solo);
   assert(solo.includes("All 1 of them, not some."), solo);
   assert(!solo.includes("WEIGH IT ONCE"), solo);
@@ -1926,7 +2012,7 @@ Deno.test("LOT 4C ② — un foyer d'UNE bouche voit la consigne du chiffre, PAS
 Deno.test("LOT 4C ② — l'interdit du POURQUOI reste les TROIS DERNIÈRES lignes", () => {
   // ⛔ C'EST PRÉCISÉMENT QUAND LE BRIEF SE MET À RÉCLAMER DES NOMBRES que cette
   // phrase doit rester la dernière chose lue.
-  const brief = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M, MARC_M], "one_dish", 0, 1, "legacy_measure");
   assertEquals(brief.split("\n").slice(-3), [
     "NEVER state a reason, a goal, a calorie count or anything about a person's",
     "body in these instructions. They are read aloud at the table by the whole",
@@ -2114,7 +2200,7 @@ Deno.test("③ — LANE INDIVIDUELLE: aucun dénominateur inventé", () => {
 });
 
 Deno.test("③ — le brief dit ce que `grams` désigne, et « une part par bouche »", () => {
-  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1);
+  const brief = buildPortionBrief([ZOE_M, NINA_M], "one_dish", 0, 1, "legacy_measure");
   // ⛔ v4 — LA PHRASE v2 A DISPARU AVEC SON MODÈLE. « what THAT person takes out
   // of the box » décrivait une part par nom sur un couvercle collectif: la
   // balance de retour au service, très exactement ce qui a tué v2.
@@ -2198,6 +2284,7 @@ Deno.test("LOT E — LE CAS QUI PASSE: une note sans slug traverse intacte, FR e
     ["prep_chicken"],
     ["box_prep_chicken_shared", "box_chicken_me"],
     [],
+    false,
   );
   assertEquals(portions[0].portionNote, "Take 220 g of the chicken from your box.");
   assertEquals(portions[1].portionNote, "Prends 150 g de poulet dans ta boîte.");
@@ -2215,6 +2302,7 @@ Deno.test("LOT E — un id de boîte dans la note PRINCIPALE la met à null, com
     [],
     ["box_prep_chicken_shared"],
     [],
+    false,
   );
   assertEquals(portions[0].portionNote, null);
   assertEquals(vagueCounts.box_ids, 1);
@@ -2243,6 +2331,7 @@ Deno.test("LOT E — un id de boîte dans une note de PART la met à null: c'est
     ["prep_chicken"],
     ["box_chicken_me"],
     [],
+    false,
   );
   assertEquals(portions[0].preparationShares, []);
   // ⛔ LA CONSIGNE PRINCIPALE SURVIT: on ne perd que la ligne fautive.
@@ -2269,6 +2358,7 @@ Deno.test("LOT E — LA CEINTURE MORD DANS LES DEUX LANGUES (un id n'est jamais 
     [],
     ["box_prep_riz_zoe"],
     [],
+    false,
   );
   assertEquals(portions[0].portionNote, null, "la note FRANÇAISE doit tomber");
   assertEquals(portions[1].portionNote, null, "la note ANGLAISE doit tomber");
@@ -2284,6 +2374,7 @@ Deno.test("LOT E — un id qui n'est PAS de ce plan ne mord pas: la liste est fe
     [],
     ["box_prep_chicken_shared"],
     [],
+    false,
   );
   assertEquals(
     portions[0].portionNote,
@@ -2302,6 +2393,7 @@ Deno.test("LOT E — un id SANS souligné ne mord pas: « Zoe » est un prénom,
     [],
     ["zoe"],
     [],
+    false,
   );
   assertEquals(
     portions[0].portionNote,
@@ -2319,6 +2411,7 @@ Deno.test("LOT E — le slug doit être un JETON ENTIER, pas un morceau de mot",
     [],
     ["box_prep_riz"],
     [],
+    false,
   );
   assertEquals(portions[0].portionNote, "Sers-toi dans box_prep_riz_complet.");
   assertEquals(vagueCounts.box_ids, 0);

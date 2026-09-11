@@ -49,6 +49,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -75,6 +76,7 @@ function ing(over: Partial<DishIngredient> & { term: string }): DishIngredient {
     gramsRaw: null,
     group: null,
     quantitySource: null,
+    part: null,
     ...over,
   } as DishIngredient;
 }
@@ -88,6 +90,14 @@ function prep(ingredients: DishIngredient[]): MealPreparation {
 
 // ---------------------------------------------------------------------------
 // `gramsRawForIngredient` — la brique
+//
+// ⟳ LOT C (2026-09-11) — CHAQUE LIGNE PORTE DEUX CHAMPS DE PLUS: `ref`,
+// l'identifiant de référence rendu par le modèle, et `refRefused`, le fait
+// qu'il en ait rendu un et qu'il ait été refusé. Tous les cas ci-dessous les
+// laissent à `null`/`false` EXPRÈS: c'est le chemin par TERME LIBRE qu'ils
+// testent, et ce lot ne le change pas — il ajoute un chemin prioritaire à
+// côté. Le chemin par identifiant a ses propres cas, dans
+// `composition_contract_test.ts`.
 // ---------------------------------------------------------------------------
 
 Deno.test("un terme INCONNU de l'index ne pèse rien, quelle que soit la quantité", () => {
@@ -96,6 +106,8 @@ Deno.test("un terme INCONNU de l'index ne pèse rien, quelle que soit la quantit
   assertEquals(
     gramsRawForIngredient(BASE, {
       term: "lentils",
+      ref: null,
+      refRefused: false,
       quantity: "300 g lentils",
       amount: 300,
       unit: "g",
@@ -109,6 +121,8 @@ Deno.test("le MÊME ingrédient pèse dès que l'index le connaît", () => {
   assertEquals(
     gramsRawForIngredient(FILLED, {
       term: "lentils",
+      ref: null,
+      refRefused: false,
       quantity: "300 g lentils",
       amount: 300,
       unit: "g",
@@ -126,6 +140,8 @@ Deno.test("⚠️ LA PROSE EST RELUE, pas seulement la copie structurée", () =>
   assertEquals(
     gramsRawForIngredient(FILLED, {
       term: "lentils",
+      ref: null,
+      refRefused: false,
       quantity: "250 g",
       amount: null,
       unit: null,
@@ -140,6 +156,8 @@ Deno.test("sans index, rien ne pèse — et ce n'est pas une panne", () => {
   assertEquals(
     gramsRawForIngredient(null, {
       term: "lentils",
+      ref: null,
+      refRefused: false,
       quantity: "300 g",
       amount: 300,
       unit: "g",
@@ -200,6 +218,7 @@ Deno.test("⛔ ELLE NE TOUCHE QUE LES GRAMMES — la déclaration du modèle sur
     unit: null,
     state: "raw",
     quantitySource: "prose",
+    part: null,
   });
   const meal = { dishes: [dish([line])], preparations: [] };
   regramMeal(meal, FILLED);

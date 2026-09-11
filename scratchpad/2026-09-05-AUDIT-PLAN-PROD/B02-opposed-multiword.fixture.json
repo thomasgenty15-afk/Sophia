@@ -1,0 +1,122 @@
+{
+  "profile": [
+    {
+      "id": "b5e97efb-b941-4315-a405-2b3a8a4984e0",
+      "full_name": "Alice Audit",
+      "birth_date": "1988-05-12",
+      "gender": "female",
+      "height_cm": 168,
+      "activity_level": "trains_some",
+      "timezone": "Europe/Paris",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "480c589f-e166-4ada-9614-11cb4d8b53af",
+      "user_id": "b5e97efb-b941-4315-a405-2b3a8a4984e0",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "grocery_runs": 2,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "cooking_style": "balanced",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "retained_items": [
+          {
+            "at": "2026-09-05",
+            "item": "",
+            "kind": "food.exclude",
+            "text": "pain complet",
+            "quote": null,
+            "scope": "durable",
+            "value": null,
+            "source": "written",
+            "subject": "household",
+            "confidence": null
+          },
+          {
+            "at": "2026-09-05",
+            "item": "",
+            "kind": "food.exclude",
+            "text": "lentilles",
+            "quote": null,
+            "scope": "durable",
+            "value": null,
+            "source": "written",
+            "subject": "member:9e541380-5093-442d-ad7d-b92fffedbe7b",
+            "confidence": null
+          }
+        ],
+        "kitchen_equipment": [
+          "oven",
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-05T18:22:38.666917+00:00",
+      "updated_at": "2026-09-05T18:22:38.811455+00:00",
+      "target_weight_kg": 62,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ],
+  "roster": [
+    {
+      "member_id": "1cb1b32a-d336-4d07-9684-e82880741d5a",
+      "user_id": "b5e97efb-b941-4315-a405-2b3a8a4984e0",
+      "first_name": "Alice",
+      "age_state": "adult",
+      "role": "owner",
+      "goal": "fat_loss",
+      "away_days": [],
+      "eating_rhythm": [
+        {
+          "size": "medium",
+          "slot": "breakfast"
+        },
+        {
+          "size": "medium",
+          "slot": "lunch"
+        },
+        {
+          "size": "medium",
+          "slot": "dinner"
+        }
+      ],
+      "diet": "omnivore"
+    },
+    {
+      "member_id": "9e541380-5093-442d-ad7d-b92fffedbe7b",
+      "user_id": null,
+      "first_name": "Marc",
+      "age_state": "adult",
+      "role": "member",
+      "goal": "muscle_gain",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    }
+  ]
+}

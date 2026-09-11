@@ -1,0 +1,34 @@
+
+═══ FAT_LOSS — Paul · cible du jour 2454 kcal
+    grille : {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+    rythme déclaré : []
+    ── le contrat, case par case ──
+    2026-09-11 dinner    rythme ["breakfast","lunch","dinner"]           à composer   858.90  budget couvert   858.90  couloir [123–250] visée 135 
+    2026-09-12 breakfast rythme ["breakfast","lunch","dinner"]           à composer   613.50  budget couvert  2454.00  couloir [100–245] visée 110 
+    2026-09-12 lunch     rythme ["breakfast","lunch","dinner"]           à composer   981.60  budget couvert  2454.00  couloir [141–250] visée 154 
+    2026-09-12 dinner    rythme ["breakfast","lunch","dinner"]           à composer   858.90  budget couvert  2454.00  couloir [123–250] visée 135 
+    2026-09-13 breakfast rythme ["breakfast","lunch","dinner"]           à composer   613.50  budget couvert  2454.00  couloir [100–245] visée 110 
+    2026-09-13 lunch     rythme ["breakfast","lunch","dinner"]           à composer   981.60  budget couvert  2454.00  couloir [141–250] visée 154 
+    2026-09-13 dinner    rythme ["breakfast","lunch","dinner"]           à composer   858.90  budget couvert  2454.00  couloir [123–250] visée 135 
+    ✅ retirer le vendredi ne déplace AUCUN couloir de samedi/dimanche
+    ── A15 : visée du couloir contre 100 × E / Gpréf ──
+       breakfast E=  613.50  Gpréf= 432  visée= 110  ancrée= 142  écart=1.29×
+       lunch     E=  981.60  Gpréf= 475  visée= 154  ancrée= 207  écart=1.34×
+       dinner    E=  858.90  Gpréf= 475  visée= 135  ancrée= 181  écart=1.34×
+
+═══ MUSCLE_GAIN — Max · cible du jour 2912 kcal
+    grille : {"fri":["dinner"],"sat":["breakfast","lunch","dinner"],"sun":["breakfast","lunch","dinner"]}
+    rythme déclaré : []
+    ── le contrat, case par case ──
+    2026-09-11 dinner    rythme ["breakfast","lunch","dinner"]           à composer  1019.20  budget couvert  1019.20  couloir [146–250] visée 160 
+    2026-09-12 breakfast rythme ["breakfast","lunch","dinner"]           à composer   728.00  budget couvert  2912.00  couloir [104–250] visée 114 
+    2026-09-12 lunch     rythme ["breakfast","lunch","dinner"]           à composer  1164.80  budget couvert  2912.00  couloir [167–250] visée 183 
+    2026-09-12 dinner    rythme ["breakfast","lunch","dinner"]           à composer  1019.20  budget couvert  2912.00  couloir [146–250] visée 160 
+    2026-09-13 breakfast rythme ["breakfast","lunch","dinner"]           à composer   728.00  budget couvert  2912.00  couloir [104–250] visée 114 
+    2026-09-13 lunch     rythme ["breakfast","lunch","dinner"]           à composer  1164.80  budget couvert  2912.00  couloir [167–250] visée 183 
+    2026-09-13 dinner    rythme ["breakfast","lunch","dinner"]           à composer  1019.20  budget couvert  2912.00  couloir [146–250] visée 160 
+    ✅ retirer le vendredi ne déplace AUCUN couloir de samedi/dimanche
+    ── A15 : visée du couloir contre 100 × E / Gpréf ──
+       breakfast E=  728.00  Gpréf= 475  visée= 114  ancrée= 153  écart=1.34×
+       lunch     E= 1164.80  Gpréf= 475  visée= 183  ancrée= 245  écart=1.34×
+       dinner    E= 1019.20  Gpréf= 475  visée= 160  ancrée= 215  écart=1.34×

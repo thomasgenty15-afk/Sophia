@@ -1,0 +1,72 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 8,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Skyr, flocons d’avoine et pêche",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 395,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 405,
+      "density_kcal_per_100g": 97.5,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, riz, légumes rôtis et salade",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti paprika et ail ÷2",
+        "Riz basmati ÷2",
+        "Courgette et poivrons rôtis ÷1"
+      ],
+      "standard_kcal": 1283,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 1116,
+      "density_kcal_per_100g": 115,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 136,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 165,
+      "density_kcal_per_100g": 82.4,
+      "boxes": 0
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet rôti, riz, avocat et tomate",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti paprika et ail ÷2",
+        "Riz basmati ÷2"
+      ],
+      "standard_kcal": 872,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 615,
+      "density_kcal_per_100g": 141.9,
+      "boxes": 0
+    }
+  ]
+}

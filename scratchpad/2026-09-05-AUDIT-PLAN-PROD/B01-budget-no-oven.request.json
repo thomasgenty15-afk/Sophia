@@ -1,0 +1,11 @@
+{
+  "mode": "to_shop",
+  "window": {
+    "kind": "days",
+    "count": 7
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": "Une pizza cuite à la poêle, budget de 25 euros pour ces 7 jours. Je ne possède pas de four.",
+  "one_cooking_session": false
+}

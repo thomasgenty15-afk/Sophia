@@ -104,6 +104,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     ...over,
@@ -345,9 +346,11 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 // ---------------------------------------------------------------------------
 
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
-  const { userMessage, systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage, systemPrompt } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -386,9 +389,11 @@ Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
   //
   // MESURÉ le 2026-08-12 sur 80 générations: 82 lignes d'huile d'olive sans
   // quantité — de loin le premier poste de perte d'énergie du référentiel.
-  const { systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { systemPrompt } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -480,10 +485,13 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
     body: null,
+    lightSlots: [],
     focusAxis: null,
     dietBlock: "",
     doctrineBlock: "d",
@@ -498,18 +506,18 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
   boxMemberExclusions: [],
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     slot: null,
     servings: 1,
     pantry: [{ term: "eggs", quantity: "6" }],
   } as const;
-  const fromPantry = buildMealPrompt({ ...base, mode: "from_pantry", scope: "day" });
+  const fromPantry = buildMealPrompt({ budgetFloor: null, ...base, mode: "from_pantry", scope: "day" });
   assert(fromPantry.userMessage.includes("WHAT IS ALREADY IN THEIR CUPBOARDS"));
   assert(fromPantry.userMessage.includes("eggs (6)"));
 
-  const toShop = buildMealPrompt({ ...base, mode: "to_shop", scope: "day" });
+  const toShop = buildMealPrompt({ budgetFloor: null, ...base, mode: "to_shop", scope: "day" });
   assert(toShop.userMessage.includes("HAVE NOT SHOPPED YET"));
   assert(!toShop.userMessage.includes("WHAT IS ALREADY IN THEIR CUPBOARDS"));
 });
@@ -522,13 +530,15 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
 // de courses », l'autre « cuisine avec ». Le test qui existait ne pouvait pas
 // l'attraper: il ne montait jamais les deux en même temps.
 Deno.test("le placard et les apports fixes ne portent PAS le même en-tête", () => {
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     contentLocale: "en-US",
     firstDayCookable: true,
     hasFreezer: false,
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -555,7 +565,7 @@ Deno.test("le placard et les apports fixes ne portent PAS le même en-tête", ()
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     slot: null,
@@ -597,6 +607,7 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   }));
@@ -622,9 +633,11 @@ Deno.test("the aisle vocabulary is closed and non-empty", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("les préférences confirmées entrent dans le prompt, dans les mots de l'élève", () => {
-  const withPrefs = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const withPrefs = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -638,7 +651,7 @@ Deno.test("les préférences confirmées entrent dans le prompt, dans les mots d
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -663,10 +676,14 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
+    budgetFloor: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
     body: null,
+    lightSlots: [],
     focusAxis: null,
     dietBlock: "",
     doctrineBlock: "== MARC'S METHOD ==",
@@ -681,7 +698,7 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
   boxMemberExclusions: [],
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health" as const,
+    goal: "maintenance" as const,
     situation: null,
     context: null,
     mode: "to_shop" as const,
@@ -1398,16 +1415,43 @@ Deno.test("⚠️ LE CAS QUI PASSE — un déroulé sans chiffre ne déclenche r
   );
 });
 
-Deno.test("le prompt système dit ce que PÈSE un repas complet — plus une paume et un poing (lot G, 2026-09-05)", () => {
+Deno.test("le prompt système dit la FORME d'un repas complet — plus son POIDS (lot C, 2026-09-11)", () => {
+  // ── CE QUE CE TEST ÉPINGLAIT, ET POURQUOI LA PHRASE EST PARTIE ──────────
+  //
   // Mesuré sur C03 (quatre bouches, 7 jours): 3 192 kcal/jour servis pour une
   // table qui en demande 8 571 — la boîte de Paul, 652 g, pile au plafond de
   // masse, portait 386 kcal. « A palm of protein, a fist of starch » composait
   // un tiers de repas à 0,6 kcal/g, et aucun étage aval (ancre bornée par la
   // masse, densifieur à plancher légumes) ne répare une assiette d'eau.
-  assertStringIncludes(MEAL_SYSTEM_PROMPT, "roughly 600 to 750 g of cooked food");
-  assertStringIncludes(MEAL_SYSTEM_PROMPT, "about 200 to 250 g of cooked grains");
-  assertStringIncludes(MEAL_SYSTEM_PROMPT, "about 120 to 180 g of the protein food");
+  //
+  // ⛔ LA CORRECTION ÉTAIT JUSTE, SON UNITÉ ÉTAIT FAUSSE. « roughly 600 to
+  // 750 g of cooked food » est une MASSE D'ASSIETTE, et ce produit en a déjà
+  // une, calculée par bouche: `PLATE_MASS_BOUNDS_G` donne **250 à 700 g** pour
+  // un adulte, 250-650 pour un ado, 150-450 pour un enfant. La consigne
+  // générique avait donc son plancher au-dessus de l'assiette préférée du
+  // moteur et son plafond AU-DESSUS de son maximum — sur un plan de foyer, elle
+  // annonçait 600 g minimum pour la portion d'un enfant bornée à 450.
+  // L'enquête du 2026-09-11 la nomme parmi les « consignes concurrentes »; sa
+  // contribution chiffrée aux écarts n'est PAS démontrée, et ce n'est pas ce
+  // qu'on répare ici: on retire une consigne FAUSSE, pas une consigne chère.
+  //
+  // ⚠️ CE QUE LA PHRASE PORTAIT DE VRAI RESTE, EN PARTS. Le défaut mesuré
+  // (« une paume de poulet sur un lit de courgettes ») est un défaut de FORME,
+  // et une forme s'écrit en parts d'assiette — qui ne peuvent contredire aucune
+  // borne par bouche, puisqu'elles ne fixent aucune masse. Le moteur multiplie
+  // ensuite la recette: c'est lui qui a la masse, le modèle a la densité.
+  assert(
+    !MEAL_SYSTEM_PROMPT.includes("600 to 750 g"),
+    "la masse d'assiette générique contredisait PLATE_MASS_BOUNDS_G (250-700 g adulte)",
+  );
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "roughly a third of");
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "roughly a quarter is the");
   assertStringIncludes(MEAL_SYSTEM_PROMPT, "vegetables ON TOP of it, never instead of it");
+  // ⛔ ET LA CONSIGNE QUI GOUVERNE EST NOMMÉE PAR SON EN-TÊTE EXACT, pas par un
+  // « ci-dessous »: ce dépôt a mesuré qu'un renvoi ne traverse pas la frontière
+  // système↔utilisateur, et le bloc de recette standard vit, lui, dans le
+  // message utilisateur.
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "WRITE ONE STANDARD RECIPE PER DISH");
   // Une méthode sans féculent déplace le poids, elle ne le retire pas — sinon la
   // consigne recréerait l'assiette d'eau chez tout coach low-carb.
   assertStringIncludes(MEAL_SYSTEM_PROMPT, "it does not vanish");
@@ -1420,5 +1464,8 @@ Deno.test("le prompt système dit ce que PÈSE un repas complet — plus une pau
   assert(!/\bkcal\b|calorie/i.test(MEAL_SYSTEM_PROMPT.slice(from, to)), "un kcal dans la consigne de taille");
   // La version AVANCE avec le texte: un cache qui servirait v26 sous ce nom
   // servirait la paume à un élève de plus.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });

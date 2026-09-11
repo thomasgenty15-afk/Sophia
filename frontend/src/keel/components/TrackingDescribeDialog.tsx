@@ -5,7 +5,7 @@ import Button from "./ui/Button";
 import { Field, inputClass } from "./ui/Field";
 import { t } from "../i18n/t";
 import { slotLabel } from "../api/labels";
-import { describeMissedMeal } from "../api/tracking";
+import { describeMissedMeal, type JournalEnergy } from "../api/tracking";
 
 /**
  * « DÉCRIRE » UN CRÉNEAU LOUPÉ — un champ libre, et rien d'autre.
@@ -14,12 +14,16 @@ import { describeMissedMeal } from "../api/tracking";
  * `_shared/keel/meal_precision.ts` refuse qu'une question de précision porte
  * une mesure — ses gabarits sont FERMÉS et un test les passe au crible d'un
  * lexique de quantité, dans les deux langues. Ce chemin-ci ne pose aucune
- * question: il ouvre un champ. Si la personne y écrit « 150 g de riz », c'est
- * ELLE qui a mesuré, et `quantity_from_prose.ts` sait relire un nombre écrit —
- * la lecture porte alors `declared_quantities` au lieu de `photo_estimate`.
+ * question: il ouvre un champ.
  * D7.7: le contournement de `meal_precision.ts` est EXPRÈS. Il ne serait une
  * faute que si le placeholder ou le sous-titre RÉCLAMAIT des grammes; ils
  * disent l'inverse, en toutes lettres, dans les deux packs.
+ *
+ * ⟳ 2026-09-09 — L'ACCUSÉ PORTE UN CHIFFRE QUAND IL Y EN A UN. La base est
+ * DANS la clé (`…done.estimated`), jamais à côté: c'est la seule forme où un
+ * kcal ne peut pas s'afficher sans dire d'où il vient. Et il se dit « environ
+ * X kcal », comme dans le journal — un point sec annoncerait comme mesuré ce
+ * qui est lu dans une phrase.
  *
  * ⚠️ `Modal` rend `null` fermé SANS DÉMONTER, et passe par
  * `createPortal(document.body)`. Le corps est donc écrit ici et testé seul —
@@ -50,6 +54,14 @@ export function TrackingDescribeDialog(
    * oublié, le chiffre du jour ne bouge pas encore.
    */
   const [done, setDone] = React.useState(false);
+  /**
+   * LE CHIFFRE RENDU PAR LE SERVEUR, ou `null`.
+   *
+   * ⛔ IL N'EST PAS DÉRIVÉ DU TEXTE ICI. L'écran ne sait ni lire une assiette
+   * ni compter des calories; il affiche ce que la ligne écrite porte, et rien
+   * quand elle n'en porte pas.
+   */
+  const [energy, setEnergy] = React.useState<JournalEnergy | null>(null);
 
   // Un changement de créneau remet le champ à zéro: réutiliser le texte du
   // repas d'avant est le pire des défauts par défaut sur un formulaire de
@@ -58,6 +70,7 @@ export function TrackingDescribeDialog(
     setText("");
     setError(null);
     setDone(false);
+    setEnergy(null);
   }, [localDate, slot]);
 
   async function submit() {
@@ -77,6 +90,7 @@ export function TrackingDescribeDialog(
       // ⚠️ ON NE FERME PAS. La personne vient d'écrire; lui refermer la fenêtre
       // au visage lui laisserait croire que son texte a été compté. On rend
       // l'accusé, elle ferme quand elle l'a lu.
+      setEnergy(result.energy);
       setDone(true);
       onRecorded();
     } catch (err) {
@@ -93,11 +107,26 @@ export function TrackingDescribeDialog(
       title={t("tracking.describe.title")}
       closeLabel={t("tracking.describe.cancel")}
     >
-      {done
+      {/* ⛔ PAS DE CRÉNEAU, PAS DE CORPS — et ce n'est pas une précaution.
+          Ce dialogue est MONTÉ EN PERMANENCE par `/app/progress`, fermé par
+          `open`, avec `slot=""` tant que personne n'a cliqué « Décrire ». Or
+          les enfants d'un `Modal` sont CONSTRUITS avant que le `Modal` ne
+          décide de rendre `null`: le corps s'évaluait donc à chaque rendu de
+          la page, fermé ou non, et `slotLabel("")` levait (R7, « no message
+          key "slot." ») — la page entière tombait dans la frontière
+          d'erreur, avant même d'avoir affiché une ligne.
+          `""` n'est pas un jeton inconnu de la base: c'est l'absence de
+          sélection. Elle se garde ici, et R7 garde toujours les vrais jetons.
+          Le composant n'est pas démonté pour autant: `text` survit. */}
+      {slot === ""
+        ? null
+        : done
         ? (
           <>
             <p className="max-w-[62ch] text-sm leading-6 text-ink break-words">
-              {t("tracking.describe.done")}
+              {energy
+                ? t("tracking.describe.done.estimated", { kcal: energy.kcal })
+                : t("tracking.describe.done")}
             </p>
             <div className="mt-4">
               <Button variant="primary" onClick={onClose}>

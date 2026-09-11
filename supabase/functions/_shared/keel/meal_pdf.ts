@@ -74,6 +74,8 @@ type MealPdfPack = {
    */
   buyAllOn: (date: string) => string;
   buyOnDate: (date: string) => string;
+  /** ⟳ 2026-09-09 — le bloc « à congeler en rentrant », en tête d'une course. */
+  freezeOnPurchase: string;
 };
 
 const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
@@ -96,6 +98,7 @@ const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
     markBuy: "buy",
     buyAllOn: (date) => `Buy it all on ${date} — nothing here spoils before it is cooked.`,
     buyOnDate: (date) => `Buy on ${date}`,
+    freezeOnPurchase: "Freeze as soon as you are home:",
   },
   fr: {
     aisleLabels: {
@@ -119,6 +122,7 @@ const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
     buyAllOn: (date) =>
       `Tout est à acheter le ${date} — rien ici ne se gâte d'ici sa cuisson.`,
     buyOnDate: (date) => `À acheter le ${date}`,
+    freezeOnPurchase: "À congeler en rentrant :",
   },
 };
 
@@ -541,7 +545,22 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
   if (input.shoppingList.length > 0) {
     write(pack.listHeading(input.mode), { size: 14, font: bold, gap: 4 });
     const sections = shoppingSections(input.shoppingList);
+    // ⟳ 2026-09-09 — CE QUI PART AU CONGÉLATEUR, EN TÊTE DE LA COURSE, avant
+    // les rayons. C'est le geste du jour des courses, et la feuille est ce
+    // qu'on tient à la main en rentrant. La marque vient de la ligne
+    // (`freeze_on_purchase`), posée par les lanes; ce module ne la recalcule pas.
+    const writeFreezeBlock = (items: readonly ShoppingItem[]) => {
+      const frozen = items.filter((i) => i.freeze_on_purchase === true);
+      if (frozen.length === 0) return;
+      room(LINE * (frozen.length + 2));
+      write(pack.freezeOnPurchase, { size: 11, font: bold });
+      for (const item of frozen) {
+        write(`  ${item.quantity ? `${item.quantity}  ` : ""}${item.term}`);
+      }
+      cur.y -= 6;
+    };
     const writeAisles = (items: readonly ShoppingItem[]) => {
+      writeFreezeBlock(items);
       for (const aisle of AISLE_ORDER) {
         const inAisle = items.filter((i) => i.aisle === aisle);
         if (inAisle.length === 0) continue;

@@ -1,0 +1,65 @@
+[
+  {
+    "term": "oeuf",
+    "expected_reject": true,
+    "dishes_kept": 0,
+    "shopping_kept": 0,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "œuf",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "oeufs",
+    "expected_reject": true,
+    "dishes_kept": 0,
+    "shopping_kept": 0,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "œufs",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "œufs sans coquille",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "oeuf sans coquille",
+    "expected_reject": true,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  },
+  {
+    "term": "tofu",
+    "expected_reject": false,
+    "dishes_kept": 1,
+    "shopping_kept": 1,
+    "issues": [
+      "composition_index_unavailable: grams not computed"
+    ]
+  }
+]

@@ -222,7 +222,6 @@ describe("les montants et la prose de vente disent le même chiffre", () => {
    * n'exige pas que la prose soit interpolée, seulement qu'elle DISE le même
    * nombre quelque part.
    */
-  const seeds: Array<[string, Record<string, string>]> = [["en", en], ["fr", fr]];
 
   /**
    * ⚠️ CE TEST A CHANGÉ DE QUESTION LE 2026-09-01, ET IL FAUT LIRE POURQUOI.
@@ -248,23 +247,11 @@ describe("les montants et la prose de vente disent le même chiffre", () => {
    * tarif dans cette phrase-là serait le seul du produit que rien ne tiendrait
    * à jour. Il n'y en a pas, et il ne faut pas en ajouter.
    */
-  it("les descriptions SEO des pages de vente disent le tarif courant", () => {
-    const dot = String(PRICES.household);
-    const comma = dot.replace(".", ",");
-    for (const [name, pack] of seeds) {
-      const seoKeys = Object.keys(pack).filter((k) => /^(mealprep|couples|families)\.seo_description$/.test(k));
-      // La ceinture de la ceinture: si le filtre ne trouve plus rien, ce test
-      // verdit en ne regardant rien. Les trois pages de vente en ont une.
-      expect(seoKeys.length, `${name}: aucune description SEO de page de vente trouvée`).toBe(3);
-      for (const key of seoKeys) {
-        const value = (pack as Record<string, string>)[key];
-        expect(
-          value.includes(dot) || value.includes(comma),
-          `${name}: ${key} ne dit pas le tarif courant (${PRICES.household})`,
-        ).toBe(true);
-      }
-    }
-  });
+  // ⚠️ « les descriptions SEO des pages de vente disent le tarif courant » A
+  // ÉTÉ RETIRÉ LE 2026-09-08 avec les trois pages qu'il lisait. La description
+  // du hall ne nomme pas de tarif (brief du même jour): il n'y a plus rien à
+  // garder de ce côté, et les deux tests ci-dessous gardent toujours que la
+  // prose de `home.*` ne dise aucun montant étranger à `PRICES`.
 
   it("aucune clé du catalogue n'est un montant nu", () => {
     // La règle qui a rendu la divergence possible: une valeur de catalogue qui
@@ -303,7 +290,7 @@ describe("les montants et la prose de vente disent le même chiffre", () => {
    * de budget de courses, de montants saisis par un coach, d'exemples chiffrés
    * — des nombres qui ne sont pas nos tarifs et n'ont pas à leur ressembler.
    */
-  const SALES_NAMESPACES = /^(home|offer|mealprep|couples|families|start|pro|coaches|gyms|communities)\./;
+  const SALES_NAMESPACES = /^(home|offer|start|pro|coaches|gyms|communities)\./;
 
   /**
    * Les ARITHMÉTIQUES illustratives, exclues nommément.

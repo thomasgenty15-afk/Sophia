@@ -8,6 +8,10 @@ psqlq -c "select row_to_json(t)::text from (
   select slug, food_group_ref, label, source, energy_kcal, protein_g, carbs_g,
          fat_g, fiber_g, omega3_marine, iron_source, calcium_source,
          iodine_source, zinc_source, b12_source, folate_source, yield_class,
+         -- ⟳ 2026-09-07 — le rendement PAR ALIMENT (migration 20260907160000).
+         -- Sans ces deux colonnes, un rejeu hors ligne recompose l'index avec
+         -- le facteur de CLASSE et mesure un moteur qui n'existe plus.
+         yield_factor, yield_factor_source,
          atwater_discount, energy_dense, unit_grams, condiment_grams
   from food_composition_refs order by slug) t" > "$EVAL_DIR/ref/food_composition_refs.ndjson"
 psqlq -c "select row_to_json(t)::text from (

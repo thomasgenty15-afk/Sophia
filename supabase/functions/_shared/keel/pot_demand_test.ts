@@ -39,8 +39,6 @@ function anchor(over: Partial<AnchorFactor> = {}): AnchorFactor {
     deliveredKcal: 2000,
     capGrams: null,
     capBit: "none",
-    structureState: "not_asked",
-    extrasFloored: false,
     noteBoost: 0,
     lostLineKcal: 0,
     ...over,
@@ -255,8 +253,11 @@ function eater(over: Partial<AnchorMouth> = {}, daySlots = ["breakfast", "lunch"
       direction: null,
       paceKgPerWeek: null,
       declaredSlots: ["breakfast", "lunch", "dinner"],
-      slotExtraKcal: {} as Record<string, number>,
       conditionRefs: [],
+      // ⟳ 2026-09-08 — `null` = aucune réponse de part, donc une cible
+      // EXACTEMENT celle d'avant ce lot. C'est la propriété que ces cas
+      // mesurent, et elle doit rester vraie.
+      portionIndex: null,
       ...over,
     },
     daySlots,
@@ -352,7 +353,8 @@ Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES BESOINS, ET IL SE COM
     targetKcal: target,
     coveredSlots: ["lunch"],
     wholeSlots: [...one.mouth.declaredSlots, ...one.daySlots],
-    slotExtraKcal: one.mouth.slotExtraKcal,
+    lightSlots: [],
+    slotFixedKcal: null,
   }).bySlot.get("lunch");
   assert(lunch !== undefined && lunch > 0, "le déjeuner n'a pas de part");
   // ⟳ ARBITRAGE 1 (2026-09-06) : le plafond de chaque bouche se calcule à la
@@ -498,7 +500,7 @@ Deno.test("lostSlotEnergy — un moment que la table sert et que la bouche n'a p
   const lost = lostSlotEnergy({ mouth: e.mouth, coachCounting: "no_position", mySlots: ["breakfast", "lunch"], tableSlots: ["breakfast", "lunch", "dinner"] });
   assertEquals(lost.lostSlots, ["dinner"]);
   const target = mouthTargetKcal({ ...e.mouth, direction: null }, "no_position").kcal!;
-  const expected = slotPlanTargets({ targetKcal: target, coveredSlots: ["dinner"], wholeSlots: [...e.mouth.declaredSlots, "breakfast", "lunch", "dinner"], slotExtraKcal: e.mouth.slotExtraKcal }).total;
+  const expected = slotPlanTargets({ targetKcal: target, coveredSlots: ["dinner"], wholeSlots: [...e.mouth.declaredSlots, "breakfast", "lunch", "dinner"], lightSlots: [], slotFixedKcal: null }).total;
   assertEquals(lost.kcal, Math.round(expected));
   assert(lost.kcal! > 0);
   // Un moment que PERSONNE ne sert n'est pas perdu : rien ne le distingue d'un plat mangé à table.

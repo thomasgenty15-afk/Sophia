@@ -1,0 +1,155 @@
+{
+  "profile": [
+    {
+      "id": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+      "full_name": "Sonia Cinq",
+      "birth_date": "1985-06-11",
+      "gender": "female",
+      "height_cm": 168,
+      "activity_level": "trains_some",
+      "timezone": "Europe/Paris",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "ecacfd2e-a156-4fd9-bd5c-0b5ffcadf4b2",
+      "user_id": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "grocery_runs": 3,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "cooking_style": "keen",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "retained_items": [
+          {
+            "at": "2026-09-04",
+            "item": "",
+            "kind": "food.exclude",
+            "text": "champignons",
+            "quote": null,
+            "scope": "durable",
+            "value": null,
+            "source": "written",
+            "subject": "member:398f89f0-6d43-4f12-8065-30948ced66bc",
+            "confidence": null
+          },
+          {
+            "at": "2026-09-04",
+            "item": "",
+            "kind": "food.exclude",
+            "text": "lentilles",
+            "quote": null,
+            "scope": "durable",
+            "value": null,
+            "source": "written",
+            "subject": "member:398f89f0-6d43-4f12-8065-30948ced66bc",
+            "confidence": null
+          }
+        ],
+        "kitchen_equipment": [
+          "oven",
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-04T15:01:54.214951+00:00",
+      "updated_at": "2026-09-05T15:57:09.573188+00:00",
+      "target_weight_kg": 64,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ],
+  "roster": [
+    {
+      "member_id": "fff0cc0e-e6ab-4391-acd8-ca9cbd35a554",
+      "user_id": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+      "first_name": "Sonia",
+      "age_state": "adult",
+      "role": "owner",
+      "goal": "fat_loss",
+      "away_days": [],
+      "eating_rhythm": [
+        {
+          "size": "medium",
+          "slot": "breakfast"
+        },
+        {
+          "size": "medium",
+          "slot": "lunch"
+        },
+        {
+          "size": "medium",
+          "slot": "dinner"
+        }
+      ],
+      "diet": "omnivore"
+    },
+    {
+      "member_id": "398f89f0-6d43-4f12-8065-30948ced66bc",
+      "user_id": null,
+      "first_name": "Marc",
+      "age_state": "adult",
+      "role": "member",
+      "goal": "muscle_gain",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "38f9d4fc-ba81-4b52-b0d3-591efe83ea47",
+      "user_id": null,
+      "first_name": "Lea",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": "vegetarian"
+    },
+    {
+      "member_id": "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+      "user_id": null,
+      "first_name": "Tom",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    },
+    {
+      "member_id": "20a7dde3-b208-4567-9832-ab10ecda7eca",
+      "user_id": null,
+      "first_name": "Zoe",
+      "age_state": "minor",
+      "role": "member",
+      "goal": "maintenance",
+      "away_days": [],
+      "eating_rhythm": null,
+      "diet": null
+    }
+  ]
+}

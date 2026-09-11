@@ -279,3 +279,21 @@ Deno.test("les dix plans du 2026-08-22 se ventilent 6/2/1/1", () => {
   assertEquals(noms.filter((n) => n === "no_batch_cooking").length, 1);
   assertEquals(noms.filter((n) => n === "none_delivered").length, 1);
 });
+
+// ⟳ 2026-09-09 — LE COMPLÉMENT NE RETIRE PAS SON PORTEUR DE LA TABLE.
+Deno.test("un plat à un nom marqué complément nourrit sa bouche ET la laisse sur le plat de la table", () => {
+  const dishes = [
+    dish({ memberId: null }),
+    dish({ memberId: MALO, complementsShared: true }),
+  ];
+  const out = mouthsFedByDish(dishes, ROSTER);
+  assertEquals([...(out.fedByDish[0] ?? [])].sort(), [CAMILLE, MALO, ANOUK, YANIS].sort(), "le porteur a quitté la table");
+  assertEquals([...(out.fedByDish[1] ?? [])], [MALO]);
+  assertEquals(out.excluded, 0);
+  assertEquals(out.complements, 1);
+  // ⛔ ET SANS LE DRAPEAU, LA RÈGLE D'AVANT TIENT : le dédié remplace.
+  const before = mouthsFedByDish([dish({ memberId: null }), dish({ memberId: MALO })], ROSTER);
+  assertEquals([...(before.fedByDish[0] ?? [])].sort(), [CAMILLE, ANOUK, YANIS].sort());
+  assertEquals(before.excluded, 1);
+  assertEquals(before.complements, 0);
+});

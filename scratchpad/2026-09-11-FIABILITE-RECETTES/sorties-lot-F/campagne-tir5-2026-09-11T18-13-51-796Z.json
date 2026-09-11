@@ -1,0 +1,3858 @@
+{
+  "cas": "perte",
+  "tir": 5,
+  "titre": "PERTE · repas léger déclaré et apport fixe · sans réintroduire d'extra",
+  "reel": true,
+  "lance_le": "2026-09-11T18:13:51.796Z",
+  "jour_local": "2026-09-11",
+  "heure_locale": "20:13",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "duree_ms": 134101,
+  "plafond_heberge_ms": 150000,
+  "statut": 200,
+  "erreur_reseau": null,
+  "reponse": {
+    "ok": true,
+    "meal": {
+      "id": "dae703eb-6077-42a4-abee-7aa8cfe8d390"
+    },
+    "window": {
+      "starts_on": "2026-09-12",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "suggested_window": {
+      "starts_on": "2026-09-12",
+      "shifted": "shopping_cutoff"
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+        "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Chaque personne a chacun de ses repas."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "0d68e7a8-27c8-49ea-87c5-69b0f31beed4",
+      "member_count": 1
+    },
+    "dishes": [
+      {
+        "name": "Bol pêche et yaourt",
+        "title": "Yaourt grec, flocons d’avoine, pêche et amandes",
+        "slot": "breakfast",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "yaourt grec nature",
+            "ref": "greek_yogurt",
+            "ref_refused": false,
+            "quantity": "284,96 g",
+            "in_pantry": false,
+            "amount": 284.95901639344265,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 284.95901639344265,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "flocons d’avoine",
+            "ref": "oats",
+            "ref_refused": false,
+            "quantity": "41,91 g",
+            "in_pantry": false,
+            "amount": 41.90573770491803,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 41.90573770491803,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "pêche",
+            "ref": "peach",
+            "ref_refused": false,
+            "quantity": "217,91 g",
+            "in_pantry": false,
+            "amount": 217.90983606557378,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 217.90983606557378,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "amandes",
+            "ref": "almonds",
+            "ref_refused": false,
+            "quantity": "8,38 g",
+            "in_pantry": false,
+            "amount": 8.381147540983607,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 8.381147540983607,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "almond_finish"
+          }
+        ],
+        "method": "Mélanger le yaourt grec et les flocons d’avoine, puis ajouter la pêche et les amandes.",
+        "why": "Le yaourt grec ancre ce petit-déjeuner simple avec un aliment protéiné et des produits facilement reconnaissables.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "yaourt grec nature",
+                "grams": 285,
+                "ref": "greek_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "flocons d’avoine",
+                "grams": 42,
+                "ref": "oats",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pêche",
+                "grams": 218,
+                "ref": "peach",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "amandes",
+                "grams": 8,
+                "ref": "almonds",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "almond_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Pita de poulet citronné",
+        "title": "Poulet rôti, pains pita complets, salade, yaourt, feta et citron",
+        "slot": "lunch",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "pains pita complets",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "1,86 pains pita complets",
+            "in_pantry": false,
+            "amount": 1.8555765595463138,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 111.33459357277883,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "pita_side"
+          },
+          {
+            "term": "yaourt grec nature",
+            "ref": "greek_yogurt",
+            "ref_refused": false,
+            "quantity": "37,11 g",
+            "in_pantry": false,
+            "amount": 37.11153119092628,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 37.11153119092628,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "yogurt_sauce"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,46",
+            "in_pantry": false,
+            "amount": 0.46389413988657846,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 27.833648393194707,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "yogurt_sauce"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "37,11 g",
+            "in_pantry": false,
+            "amount": 37.11153119092628,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 37.11153119092628,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "46,39 g",
+            "in_pantry": false,
+            "amount": 46.38941398865784,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 46.38941398865784,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "9,28 ml",
+            "in_pantry": false,
+            "amount": 9.27788279773157,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 9.27788279773157,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "yogurt_sauce"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "55,67 g",
+            "in_pantry": false,
+            "amount": 55.667296786389414,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 55.667296786389414,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          }
+        ],
+        "method": "Ouvrir les pains pita et les garnir avec le poulet rôti et la salade. Mélanger le yaourt, le citron et l’huile, puis ajouter la sauce et la feta.",
+        "why": "Cette pita transforme la préparation en un déjeuner frais, complet et facile à manger à heure régulière.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_roast_chicken",
+                "term": "Poulet rôti aux légumes",
+                "grams": 297,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pains pita complets",
+                "grams": 111,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt grec nature",
+                "grams": 37,
+                "ref": "greek_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 28,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 37,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 46,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref": "olive_oil",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 56,
+                "ref": "feta",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Pois chiches au chou",
+        "title": "Pois chiches mijotés, pain complet, chou, feta et citron",
+        "slot": "dinner",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "2,23 tranches de pain complet",
+            "in_pantry": false,
+            "amount": 2.225129533678756,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 89.00518134715026,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "chou rouge",
+            "ref": "red_cabbage",
+            "ref_refused": false,
+            "quantity": "66,75 g",
+            "in_pantry": false,
+            "amount": 66.75388601036269,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 66.75388601036269,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "cabbage_side"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "44,5 g",
+            "in_pantry": false,
+            "amount": 44.50259067357513,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 44.50259067357513,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "5,56 ml",
+            "in_pantry": false,
+            "amount": 5.562823834196891,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 5.562823834196891,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "lemon_oil"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,56",
+            "in_pantry": false,
+            "amount": 0.556282383419689,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 33.376943005181346,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "lemon_oil"
+          }
+        ],
+        "method": "Répartir la base de pois chiches avec le chou et la feta. Servir avec le pain, puis assaisonner le chou avec le citron et l’huile.",
+        "why": "La base de pois chiches donne un dîner végétal nourrissant, avec du pain et une garniture fraîche plutôt qu’un plat lourd.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chickpea_base",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chickpea_base",
+                "term": "Base de pois chiches à la tomate",
+                "grams": 456,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 89,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "chou rouge",
+                "grams": 60,
+                "ref": "red_cabbage",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 45,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 6,
+                "ref": "olive_oil",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 33,
+                "ref": "lemon",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cabbage_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "lemon_oil",
+            "role": "seasoning",
+            "part_of": "cabbage_side"
+          }
+        ]
+      },
+      {
+        "name": "Œufs brouillés au pain",
+        "title": "Œufs brouillés, pain complet, tomate et huile d’olive",
+        "slot": "breakfast",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "œufs",
+            "ref": "whole_eggs",
+            "ref_refused": false,
+            "quantity": "3,73 œufs",
+            "in_pantry": false,
+            "amount": 3.729483282674772,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 205.12158054711247,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "scrambled_eggs"
+          },
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "1,86 tranche de pain complet",
+            "in_pantry": false,
+            "amount": 1.864741641337386,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 74.58966565349544,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "242,42 g",
+            "in_pantry": false,
+            "amount": 242.4164133738602,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 242.4164133738602,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "tomato_side"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "9,32 ml",
+            "in_pantry": false,
+            "amount": 9.32370820668693,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 9.32370820668693,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "cooking_fat"
+          }
+        ],
+        "method": "Faire brouiller les œufs dans l’huile, puis servir avec le pain et la tomate crue.",
+        "why": "Les œufs offrent un ancrage protéiné chaud pour un petit-déjeuner simple, tandis que la tomate apporte une note fraîche.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "œufs",
+                "grams": 205,
+                "ref": "whole_eggs",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 75,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 242,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "scrambled_eggs",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "scrambled_eggs"
+          }
+        ]
+      },
+      {
+        "name": "Pita de pois chiches",
+        "title": "Pois chiches mijotés, pains pita complets, salade, feta, amandes et citron",
+        "slot": "lunch",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pains pita complets",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "1,78 pains pita complets",
+            "in_pantry": false,
+            "amount": 1.7847272727272727,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 107.08363636363636,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "pita_side"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "62,47 g",
+            "in_pantry": false,
+            "amount": 62.46545454545455,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 62.46545454545455,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "8,92 ml",
+            "in_pantry": false,
+            "amount": 8.923636363636364,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 8.923636363636364,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "lemon_dressing"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "35,69 g",
+            "in_pantry": false,
+            "amount": 35.694545454545455,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 35.694545454545455,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "71,39 g",
+            "in_pantry": false,
+            "amount": 71.38909090909091,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 71.38909090909091,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,45",
+            "in_pantry": false,
+            "amount": 0.4461818181818182,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 26.77090909090909,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "lemon_dressing"
+          },
+          {
+            "term": "amandes",
+            "ref": "almonds",
+            "ref_refused": false,
+            "quantity": "17,85 g",
+            "in_pantry": false,
+            "amount": 17.847272727272728,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 17.847272727272728,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "almond_finish"
+          }
+        ],
+        "method": "Garnir les pains pita avec les pois chiches et la salade. Ajouter la feta et les amandes, puis assaisonner avec le citron et l’huile.",
+        "why": "Cette version fraîche de la préparation change le déjeuner tout en gardant les pois chiches comme aliment protéiné principal.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chickpea_base",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chickpea_base",
+                "term": "Base de pois chiches à la tomate",
+                "grams": 366,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pains pita complets",
+                "grams": 107,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 62,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref": "olive_oil",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 36,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 71,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 27,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "amandes",
+                "grams": 18,
+                "ref": "almonds",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "lemon_dressing",
+            "role": "seasoning",
+            "part_of": "main"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "almond_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Poulet rôti, pomme et chou",
+        "title": "Poulet rôti, pain complet, chou rouge, tomate, pomme et chèvre",
+        "slot": "dinner",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "3,13 tranches de pain complet",
+            "in_pantry": false,
+            "amount": 3.131814038286235,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 125.2725615314494,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "fromage de chèvre",
+            "ref": "goat_cheese",
+            "ref_refused": false,
+            "quantity": "39,15 g",
+            "in_pantry": false,
+            "amount": 39.14767547857794,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 39.14767547857794,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "goat_cheese_finish"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "62,64 g",
+            "in_pantry": false,
+            "amount": 62.6362807657247,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 62.6362807657247,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "apple_cabbage_side"
+          },
+          {
+            "term": "chou rouge",
+            "ref": "red_cabbage",
+            "ref_refused": false,
+            "quantity": "62,64 g",
+            "in_pantry": false,
+            "amount": 62.6362807657247,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 62.6362807657247,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "apple_cabbage_side"
+          },
+          {
+            "term": "pomme",
+            "ref": "apple",
+            "ref_refused": false,
+            "quantity": "62,64 g",
+            "in_pantry": false,
+            "amount": 62.6362807657247,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 62.6362807657247,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "apple_cabbage_side"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "11,74 ml",
+            "in_pantry": false,
+            "amount": 11.74430264357338,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 11.74430264357338,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "vinaigrette"
+          },
+          {
+            "term": "vinaigre",
+            "ref": "vinegar",
+            "ref_refused": false,
+            "quantity": "11,74 ml",
+            "in_pantry": false,
+            "amount": 11.74430264357338,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 11.74430264357338,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "vinaigrette"
+          }
+        ],
+        "method": "Servir le poulet rôti avec le pain et la salade de chou, de tomate et de pomme. Ajouter le fromage de chèvre et assaisonner la salade avec l’huile et le vinaigre.",
+        "why": "Le poulet rôti revient sous une forme de salade croquante pour terminer la semaine avec un dîner différent et régulier.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_roast_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5",
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_roast_chicken",
+                "term": "Poulet rôti aux légumes",
+                "grams": 250,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 125,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "fromage de chèvre",
+                "grams": 39,
+                "ref": "goat_cheese",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 63,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "chou rouge",
+                "grams": 56,
+                "ref": "red_cabbage",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pomme",
+                "grams": 63,
+                "ref": "apple",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d’olive",
+                "grams": 12,
+                "ref": "olive_oil",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "vinaigre",
+                "grams": 12,
+                "ref": "vinegar",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "apple_cabbage_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "goat_cheese_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "vinaigrette",
+            "role": "seasoning",
+            "part_of": "apple_cabbage_side"
+          }
+        ]
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_roast_chicken",
+        "title": "Poulet rôti aux légumes",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "cuisses de poulet",
+            "ref": "chicken_thigh",
+            "ref_refused": false,
+            "quantity": "307,93 g",
+            "in_pantry": false,
+            "amount": 307.9335220820488,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 307.9335220820488,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "oignon",
+            "ref": "onion",
+            "ref_refused": false,
+            "quantity": "94,09 g",
+            "in_pantry": false,
+            "amount": 94.09079841395936,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 94.09079841395936,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "carotte",
+            "ref": "carrot",
+            "ref_refused": false,
+            "quantity": "119,75 g",
+            "in_pantry": false,
+            "amount": 119.7519252541301,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 119.7519252541301,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "poivron",
+            "ref": "bell_pepper",
+            "ref_refused": false,
+            "quantity": "128,31 g",
+            "in_pantry": false,
+            "amount": 128.30563420085366,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 128.30563420085366,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "25,66 ml",
+            "in_pantry": false,
+            "amount": 25.661126840170734,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 25.661126840170734,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasting_fat"
+          },
+          {
+            "term": "sel",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "une pincée",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null,
+            "group": null,
+            "quantity_source": null,
+            "part": "main"
+          },
+          {
+            "term": "poivre noir",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "une pincée",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null,
+            "group": null,
+            "quantity_source": null,
+            "part": "main"
+          }
+        ],
+        "method": "Préchauffer le four. Assaisonner le poulet, l’oignon, la carotte et le poivron, puis les enrober d’huile. Rôtir jusqu’à cuisson complète, laisser refroidir et répartir au réfrigérateur.",
+        "active_minutes": 15,
+        "total_minutes": 50,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "id": "prep_chickpea_base",
+        "title": "Base de pois chiches à la tomate",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "pois chiches en conserve égouttés",
+            "ref": "chickpeas_tinned",
+            "ref_refused": false,
+            "quantity": "440,81 g",
+            "in_pantry": false,
+            "amount": 440.81358337023084,
+            "unit": "g",
+            "state": "cooked",
+            "grams_raw": 440.81358337023084,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "oignon",
+            "ref": "onion",
+            "ref_refused": false,
+            "quantity": "101,02 g",
+            "in_pantry": false,
+            "amount": 101.01831759538389,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 101.01831759538389,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "275,51 g",
+            "in_pantry": false,
+            "amount": 275.5072365261422,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 275.5072365261422,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "huile d’olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "13,77 ml",
+            "in_pantry": false,
+            "amount": 13.77385813000471,
+            "unit": "ml",
+            "state": "raw",
+            "grams_raw": 13.77385813000471,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "cooking_fat"
+          },
+          {
+            "term": "sel",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "une pincée",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null,
+            "group": null,
+            "quantity_source": null,
+            "part": "main"
+          },
+          {
+            "term": "poivre noir",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "une pincée",
+            "in_pantry": false,
+            "amount": null,
+            "unit": null,
+            "state": "raw",
+            "grams_raw": null,
+            "group": null,
+            "quantity_source": null,
+            "part": "main"
+          }
+        ],
+        "method": "Faire revenir l’oignon dans l’huile, ajouter la tomate et les pois chiches, puis laisser mijoter jusqu’à obtenir une base épaisse. Refroidir et répartir au réfrigérateur.",
+        "active_minutes": 10,
+        "total_minutes": 30,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "preparation_ids": [
+          "prep_roast_chicken",
+          "prep_chickpea_base"
+        ],
+        "run_through": "Mettre le four en marche et préparer le poulet avec l’oignon, la carotte, le poivron et l’huile. Enfourner, puis faire revenir l’oignon de la base de pois chiches dans une autre casserole. Ajouter la tomate et les pois chiches pendant que le poulet rôtit. Laisser refroidir les deux préparations, les répartir au réfrigérateur et garder les portions pour le lendemain.",
+        "total_minutes": 55
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "cuisses de poulet",
+        "quantity": "310 g",
+        "aisle": "protein",
+        "food_group": "poultry",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pois chiches en conserve",
+        "quantity": "480 g égouttés",
+        "aisle": "pantry",
+        "food_group": "legumes",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "œufs",
+        "quantity": "4 œufs",
+        "aisle": "protein",
+        "food_group": "eggs",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt grec nature",
+        "quantity": "320 g",
+        "aisle": "dairy",
+        "food_group": "dairy_yogurt",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "quantity": "165 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fromage de chèvre",
+        "quantity": "40 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pains pita complets",
+        "quantity": "4 pains pita complets",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "quantity": "5 tranches",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d’avoine",
+        "quantity": "40 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "quantity": "195 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carotte",
+        "quantity": "120 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivron",
+        "quantity": "130 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomates",
+        "quantity": "640 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "quantity": "75 g",
+        "aisle": "produce",
+        "food_group": "leafy_greens",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "chou rouge",
+        "quantity": "130 g",
+        "aisle": "produce",
+        "food_group": "cruciferous_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêche",
+        "quantity": "220 g",
+        "aisle": "produce",
+        "food_group": "other_fruit",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pomme",
+        "quantity": "65 g",
+        "aisle": "produce",
+        "food_group": "other_fruit",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "citrons",
+        "quantity": "2 citrons",
+        "aisle": "produce",
+        "food_group": "citrus",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "amandes",
+        "quantity": "25 g",
+        "aisle": "pantry",
+        "food_group": "nuts_seeds",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d’olive",
+        "quantity": "85 ml",
+        "aisle": "pantry",
+        "food_group": "olive_oil",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "vinaigre",
+        "quantity": "12 ml",
+        "aisle": "pantry",
+        "food_group": "sauce_dressing",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "sel",
+        "quantity": "1 paquet",
+        "aisle": "pantry",
+        "food_group": "sauce_dressing",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivre noir",
+        "quantity": "1 moulin",
+        "aisle": "pantry",
+        "food_group": "sauce_dressing",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "863e9f5f-3bca-4a6a-9af5-ba554126550b",
+        "display_name": "Paul",
+        "portion_note": null,
+        "eating_slots": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "preparation_shares": []
+      }
+    ],
+    "member_deltas": [],
+    "merged_members": [],
+    "issues": [
+      "spent_first_day_dropped: fri (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-12)",
+      "freeze_on_purchase: 0/23",
+      "raw_keeping_needs_later_shop: 0/2 preparations",
+      "waves_kept_for_freshness: 0/23",
+      "sessions_fed_from_freezer: 0/0 name the freezer",
+      "quantity_prose_stale:43",
+      "final_gate_flagged:3",
+      "final_gate_delivery:deliverable_with_gaps",
+      "shopping_list_unattributed: 3/23 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "ref_absent: 4/47 ingredients",
+      "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/4"
+    ],
+    "request_id": "1cd2e81b-f1c5-4968-b6c8-54d2a2289426"
+  },
+  "reponse_brute": "{\n  \"dishes\": [\n    {\n      \"name\": \"Bol pêche et yaourt\",\n      \"title\": \"Yaourt grec, flocons d’avoine, pêche et amandes\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"yaourt grec nature\",\n          \"quantity\": \"170 g\",\n          \"amount\": 170,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"greek_yogurt\"\n        },\n        {\n          \"term\": \"flocons d’avoine\",\n          \"quantity\": \"25 g\",\n          \"amount\": 25,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"oats\"\n        },\n        {\n          \"term\": \"pêche\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"peach\"\n        },\n        {\n          \"term\": \"amandes\",\n          \"quantity\": \"5 g\",\n          \"amount\": 5,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"almond_finish\",\n          \"ref\": \"almonds\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"almond_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Mélanger le yaourt grec et les flocons d’avoine, puis ajouter la pêche et les amandes.\",\n      \"why\": \"Le yaourt grec ancre ce petit-déjeuner simple avec un aliment protéiné et des produits facilement reconnaissables.\",\n      \"density_check\": 113,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pita de poulet citronné\",\n      \"title\": \"Poulet rôti, pains pita complets, salade, yaourt, feta et citron\",\n      \"slot\": \"lunch\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"pains pita complets\",\n          \"quantity\": \"2 pains pita complets\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"pita_side\",\n          \"ref\": \"pita_wholemeal\"\n        },\n        {\n          \"term\": \"yaourt grec nature\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"yogurt_sauce\",\n          \"ref\": \"greek_yogurt\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"un demi-citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"yogurt_sauce\",\n          \"ref\": \"lemon\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"10 ml\",\n          \"amount\": 10,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"yogurt_sauce\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"feta_finish\",\n          \"ref\": \"feta\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"pita_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"yogurt_sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"feta_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Ouvrir les pains pita et les garnir avec le poulet rôti et la salade. Mélanger le yaourt, le citron et l’huile, puis ajouter la sauce et la feta.\",\n      \"why\": \"Cette pita transforme la préparation en un déjeuner frais, complet et facile à manger à heure régulière.\",\n      \"density_check\": 158,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pois chiches au chou\",\n      \"title\": \"Pois chiches mijotés, pain complet, chou, feta et citron\",\n      \"slot\": \"dinner\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"2 tranches de pain complet\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"chou rouge\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"cabbage_side\",\n          \"ref\": \"red_cabbage\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"feta_finish\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"5 ml\",\n          \"amount\": 5,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"lemon_oil\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"un demi-citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"lemon_oil\",\n          \"ref\": \"lemon\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"cabbage_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"feta_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"lemon_oil\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"cabbage_side\"\n        }\n      ],\n      \"method\": \"Répartir la base de pois chiches avec le chou et la feta. Servir avec le pain, puis assaisonner le chou avec le citron et l’huile.\",\n      \"why\": \"La base de pois chiches donne un dîner végétal nourrissant, avec du pain et une garniture fraîche plutôt qu’un plat lourd.\",\n      \"density_check\": 124,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_base\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Œufs brouillés au pain\",\n      \"title\": \"Œufs brouillés, pain complet, tomate et huile d’olive\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"œufs\",\n          \"quantity\": \"2 œufs\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"scrambled_eggs\",\n          \"ref\": \"whole_eggs\"\n        },\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"1 tranche de pain complet\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"tomato_side\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"5 ml\",\n          \"amount\": 5,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"cooking_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"scrambled_eggs\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"tomato_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"cooking_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"scrambled_eggs\"\n        }\n      ],\n      \"method\": \"Faire brouiller les œufs dans l’huile, puis servir avec le pain et la tomate crue.\",\n      \"why\": \"Les œufs offrent un ancrage protéiné chaud pour un petit-déjeuner simple, tandis que la tomate apporte une note fraîche.\",\n      \"density_check\": 115,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pita de pois chiches\",\n      \"title\": \"Pois chiches mijotés, pains pita complets, salade, feta, amandes et citron\",\n      \"slot\": \"lunch\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pains pita complets\",\n          \"quantity\": \"2 pains pita complets\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"pita_side\",\n          \"ref\": \"pita_wholemeal\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"70 g\",\n          \"amount\": 70,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"feta_finish\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"10 ml\",\n          \"amount\": 10,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"lemon_dressing\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"un demi-citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"lemon_dressing\",\n          \"ref\": \"lemon\"\n        },\n        {\n          \"term\": \"amandes\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"almond_finish\",\n          \"ref\": \"almonds\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"pita_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"lemon_dressing\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"feta_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"almond_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Garnir les pains pita avec les pois chiches et la salade. Ajouter la feta et les amandes, puis assaisonner avec le citron et l’huile.\",\n      \"why\": \"Cette version fraîche de la préparation change le déjeuner tout en gardant les pois chiches comme aliment protéiné principal.\",\n      \"density_check\": 145,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_base\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Poulet rôti, pomme et chou\",\n      \"title\": \"Poulet rôti, pain complet, chou rouge, tomate, pomme et chèvre\",\n      \"slot\": \"dinner\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"4 tranches de pain complet\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"fromage de chèvre\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"goat_cheese_finish\",\n          \"ref\": \"goat_cheese\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"apple_cabbage_side\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"chou rouge\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"apple_cabbage_side\",\n          \"ref\": \"red_cabbage\"\n        },\n        {\n          \"term\": \"pomme\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"apple_cabbage_side\",\n          \"ref\": \"apple\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"15 ml\",\n          \"amount\": 15,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"vinaigrette\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"vinaigre\",\n          \"quantity\": \"15 ml\",\n          \"amount\": 15,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"vinaigrette\",\n          \"ref\": \"vinegar\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"apple_cabbage_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"goat_cheese_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"vinaigrette\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"apple_cabbage_side\"\n        }\n      ],\n      \"method\": \"Servir le poulet rôti avec le pain et la salade de chou, de tomate et de pomme. Ajouter le fromage de chèvre et assaisonner la salade avec l’huile et le vinaigre.\",\n      \"why\": \"Le poulet rôti revient sous une forme de salade croquante pour terminer la semaine avec un dîner différent et régulier.\",\n      \"density_check\": 137,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_roast_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_roast_chicken\",\n      \"title\": \"Poulet rôti aux légumes\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"cuisses de poulet\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"chicken_thigh\"\n        },\n        {\n          \"term\": \"oignon\",\n          \"quantity\": \"110 g\",\n          \"amount\": 110,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"onion\"\n        },\n        {\n          \"term\": \"carotte\",\n          \"quantity\": \"140 g\",\n          \"amount\": 140,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"carrot\"\n        },\n        {\n          \"term\": \"poivron\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"bell_pepper\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"30 ml\",\n          \"amount\": 30,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"roasting_fat\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"sel\",\n          \"quantity\": \"une pincée\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\",\n          \"part\": \"main\"\n        },\n        {\n          \"term\": \"poivre noir\",\n          \"quantity\": \"une pincée\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\",\n          \"part\": \"main\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"roasting_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Préchauffer le four. Assaisonner le poulet, l’oignon, la carotte et le poivron, puis les enrober d’huile. Rôtir jusqu’à cuisson complète, laisser refroidir et répartir au réfrigérateur.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 50,\n      \"cook_on\": \"sat\"\n    },\n    {\n      \"id\": \"prep_chickpea_base\",\n      \"title\": \"Base de pois chiches à la tomate\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"pois chiches en conserve égouttés\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\",\n          \"part\": \"main\",\n          \"ref\": \"chickpeas_tinned\"\n        },\n        {\n          \"term\": \"oignon\",\n          \"quantity\": \"110 g\",\n          \"amount\": 110,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"onion\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"tomato\"\n        },\n        {\n          \"term\": \"huile d’olive\",\n          \"quantity\": \"15 ml\",\n          \"amount\": 15,\n          \"unit\": \"ml\",\n          \"state\": \"raw\",\n          \"part\": \"cooking_fat\",\n          \"ref\": \"olive_oil\"\n        },\n        {\n          \"term\": \"sel\",\n          \"quantity\": \"une pincée\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\",\n          \"part\": \"main\"\n        },\n        {\n          \"term\": \"poivre noir\",\n          \"quantity\": \"une pincée\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\",\n          \"part\": \"main\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"cooking_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Faire revenir l’oignon dans l’huile, ajouter la tomate et les pois chiches, puis laisser mijoter jusqu’à obtenir une base épaisse. Refroidir et répartir au réfrigérateur.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"sat\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"sat\",\n      \"preparation_ids\": [\n        \"prep_roast_chicken\",\n        \"prep_chickpea_base\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Mettre le four en marche et préparer le poulet avec l’oignon, la carotte, le poivron et l’huile. Enfourner, puis faire revenir l’oignon de la base de pois chiches dans une autre casserole. Ajouter la tomate et les pois chiches pendant que le poulet rôtit. Laisser refroidir les deux préparations, les répartir au réfrigérateur et garder les portions pour le lendemain.\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sat\",\n      \"slot\": \"breakfast\",\n      \"serving_instruction\": \"Servir le bol puis ajouter les amandes.\",\n      \"components\": [\n        {\n          \"component_id\": \"main\",\n          \"quantity\": \"325 g\",\n          \"amount\": 325,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"almond_finish\",\n          \"quantity\": \"5 g\",\n          \"amount\": 5,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 113\n    },\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sat\",\n      \"slot\": \"lunch\",\n      \"serving_instruction\": \"Déposer la salade, puis le poulet, puis les pains pita; ajouter la sauce et la feta.\",\n      \"components\": [\n        {\n          \"component_id\": \"salad_side\",\n          \"quantity\": \"90 g\",\n          \"amount\": 90,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"main\",\n          \"quantity\": \"319.2 g\",\n          \"amount\": 319.2,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"pita_side\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"yogurt_sauce\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"feta_finish\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 158\n    },\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sat\",\n      \"slot\": \"dinner\",\n      \"serving_instruction\": \"Déposer le chou, puis les pois chiches, puis le pain; ajouter le citron, l’huile et la feta.\",\n      \"components\": [\n        {\n          \"component_id\": \"cabbage_side\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"main\",\n          \"quantity\": \"432 g\",\n          \"amount\": 432,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"bread_side\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"lemon_oil\",\n          \"quantity\": \"35 g\",\n          \"amount\": 35,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"feta_finish\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 124\n    },\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sun\",\n      \"slot\": \"breakfast\",\n      \"serving_instruction\": \"Servir les tomates, puis les œufs, puis le pain; ajouter l’huile de cuisson incorporée.\",\n      \"components\": [\n        {\n          \"component_id\": \"tomato_side\",\n          \"quantity\": \"130 g\",\n          \"amount\": 130,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"scrambled_eggs\",\n          \"quantity\": \"110 g\",\n          \"amount\": 110,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"bread_side\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"cooking_fat\",\n          \"quantity\": \"5 g\",\n          \"amount\": 5,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 115\n    },\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sun\",\n      \"slot\": \"lunch\",\n      \"serving_instruction\": \"Déposer la salade, puis les pois chiches, puis les pains pita; ajouter la vinaigrette, la feta et les amandes.\",\n      \"components\": [\n        {\n          \"component_id\": \"salad_side\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"main\",\n          \"quantity\": \"432 g\",\n          \"amount\": 432,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"pita_side\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"lemon_dressing\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"feta_finish\",\n          \"quantity\": \"70 g\",\n          \"amount\": 70,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"almond_finish\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 145\n    },\n    {\n      \"member_id\": \"863e9f5f-3bca-4a6a-9af5-ba554126550b\",\n      \"day\": \"sun\",\n      \"slot\": \"dinner\",\n      \"serving_instruction\": \"Déposer la salade, puis le poulet, puis le pain; ajouter la vinaigrette et le fromage de chèvre.\",\n      \"components\": [\n        {\n          \"component_id\": \"apple_cabbage_side\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"main\",\n          \"quantity\": \"319.2 g\",\n          \"amount\": 319.2,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"bread_side\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"vinaigrette\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\"\n        },\n        {\n          \"component_id\": \"goat_cheese_finish\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\"\n        }\n      ],\n      \"density_check\": 137\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"cuisses de poulet\",\n      \"quantity\": \"360 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"pois chiches en conserve\",\n      \"quantity\": \"480 g égouttés\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"œufs\",\n      \"quantity\": \"2 œufs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"yaourt grec nature\",\n      \"quantity\": \"210 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"170 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"fromage de chèvre\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"pains pita complets\",\n      \"quantity\": \"4 pains pita complets\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pain complet\",\n      \"quantity\": \"5 tranches\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"flocons d’avoine\",\n      \"quantity\": \"25 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"oignon\",\n      \"quantity\": \"220 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carotte\",\n      \"quantity\": \"140 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"poivron\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomates\",\n      \"quantity\": \"640 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"laitue\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chou rouge\",\n      \"quantity\": \"140 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pêche\",\n      \"quantity\": \"130 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pomme\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"citrons\",\n      \"quantity\": \"2 citrons\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"amandes\",\n      \"quantity\": \"25 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"huile d’olive\",\n      \"quantity\": \"90 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vinaigre\",\n      \"quantity\": \"15 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sel\",\n      \"quantity\": \"1 paquet\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"poivre noir\",\n      \"quantity\": \"1 moulin\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"explanation\": []\n}",
+  "ligne_ecrite": {
+    "id": "dae703eb-6077-42a4-abee-7aa8cfe8d390",
+    "user_id": "69c5eaa8-e9aa-4f09-8bd4-d3b934869507",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 1,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "sat",
+        "why": "Le yaourt grec ancre ce petit-déjeuner simple avec un aliment protéiné et des produits facilement reconnaissables.",
+        "name": "Bol pêche et yaourt",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0",
+            "items": [
+              {
+                "ref": "greek_yogurt",
+                "term": "yaourt grec nature",
+                "grams": 285,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "flocons d’avoine",
+                "grams": 42,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "peach",
+                "term": "pêche",
+                "grams": 218,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "almonds",
+                "term": "amandes",
+                "grams": 8,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Yaourt grec, flocons d’avoine, pêche et amandes",
+        "method": "Mélanger le yaourt grec et les flocons d’avoine, puis ajouter la pêche et les amandes.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "almond_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "greek_yogurt",
+            "part": "main",
+            "term": "yaourt grec nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 284.95901639344265,
+            "quantity": "284,96 g",
+            "grams_raw": 284.95901639344265,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": "main",
+            "term": "flocons d’avoine",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 41.90573770491803,
+            "quantity": "41,91 g",
+            "grams_raw": 41.90573770491803,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "peach",
+            "part": "main",
+            "term": "pêche",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 217.90983606557378,
+            "quantity": "217,91 g",
+            "grams_raw": 217.90983606557378,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "almonds",
+            "part": "almond_finish",
+            "term": "amandes",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 8.381147540983607,
+            "quantity": "8,38 g",
+            "grams_raw": 8.381147540983607,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "Cette pita transforme la préparation en un déjeuner frais, complet et facile à manger à heure régulière.",
+        "name": "Pita de poulet citronné",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_roast_chicken"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti aux légumes",
+                "grams": 297,
+                "ref_refused": false,
+                "preparation_id": "prep_roast_chicken"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pains pita complets",
+                "grams": 111,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "greek_yogurt",
+                "term": "yaourt grec nature",
+                "grams": 37,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 28,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 37,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 46,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 56,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet rôti, pains pita complets, salade, yaourt, feta et citron",
+        "method": "Ouvrir les pains pita et les garnir avec le poulet rôti et la salade. Mélanger le yaourt, le citron et l’huile, puis ajouter la sauce et la feta.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "pita_side",
+            "term": "pains pita complets",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.8555765595463138,
+            "quantity": "1,86 pains pita complets",
+            "grams_raw": 111.33459357277883,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "greek_yogurt",
+            "part": "yogurt_sauce",
+            "term": "yaourt grec nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 37.11153119092628,
+            "quantity": "37,11 g",
+            "grams_raw": 37.11153119092628,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "yogurt_sauce",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.46389413988657846,
+            "quantity": "0,46",
+            "grams_raw": 27.833648393194707,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 37.11153119092628,
+            "quantity": "37,11 g",
+            "grams_raw": 37.11153119092628,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "salad_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 46.38941398865784,
+            "quantity": "46,39 g",
+            "grams_raw": 46.38941398865784,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "yogurt_sauce",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 9.27788279773157,
+            "quantity": "9,28 ml",
+            "grams_raw": 9.27788279773157,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 55.667296786389414,
+            "quantity": "55,67 g",
+            "grams_raw": 55.667296786389414,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "La base de pois chiches donne un dîner végétal nourrissant, avec du pain et une garniture fraîche plutôt qu’un plat lourd.",
+        "name": "Pois chiches au chou",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chickpea_base"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2",
+            "items": [
+              {
+                "ref": null,
+                "term": "Base de pois chiches à la tomate",
+                "grams": 456,
+                "ref_refused": false,
+                "preparation_id": "prep_chickpea_base"
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 89,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "red_cabbage",
+                "term": "chou rouge",
+                "grams": 60,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 45,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 6,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 33,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Pois chiches mijotés, pain complet, chou, feta et citron",
+        "method": "Répartir la base de pois chiches avec le chou et la feta. Servir avec le pain, puis assaisonner le chou avec le citron et l’huile.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cabbage_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "lemon_oil",
+            "role": "seasoning",
+            "part_of": "cabbage_side"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 2.225129533678756,
+            "quantity": "2,23 tranches de pain complet",
+            "grams_raw": 89.00518134715026,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "red_cabbage",
+            "part": "cabbage_side",
+            "term": "chou rouge",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 66.75388601036269,
+            "quantity": "66,75 g",
+            "grams_raw": 66.75388601036269,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 44.50259067357513,
+            "quantity": "44,5 g",
+            "grams_raw": 44.50259067357513,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "lemon_oil",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 5.562823834196891,
+            "quantity": "5,56 ml",
+            "grams_raw": 5.562823834196891,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "lemon_oil",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.556282383419689,
+            "quantity": "0,56",
+            "grams_raw": 33.376943005181346,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Les œufs offrent un ancrage protéiné chaud pour un petit-déjeuner simple, tandis que la tomate apporte une note fraîche.",
+        "name": "Œufs brouillés au pain",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3",
+            "items": [
+              {
+                "ref": "whole_eggs",
+                "term": "œufs",
+                "grams": 205,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 75,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 242,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Œufs brouillés, pain complet, tomate et huile d’olive",
+        "method": "Faire brouiller les œufs dans l’huile, puis servir avec le pain et la tomate crue.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "scrambled_eggs",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "scrambled_eggs"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "whole_eggs",
+            "part": "scrambled_eggs",
+            "term": "œufs",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 3.729483282674772,
+            "quantity": "3,73 œufs",
+            "grams_raw": 205.12158054711247,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.864741641337386,
+            "quantity": "1,86 tranche de pain complet",
+            "grams_raw": 74.58966565349544,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "tomato_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 242.4164133738602,
+            "quantity": "242,42 g",
+            "grams_raw": 242.4164133738602,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "cooking_fat",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 9.32370820668693,
+            "quantity": "9,32 ml",
+            "grams_raw": 9.32370820668693,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Cette version fraîche de la préparation change le déjeuner tout en gardant les pois chiches comme aliment protéiné principal.",
+        "name": "Pita de pois chiches",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chickpea_base"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Base de pois chiches à la tomate",
+                "grams": 366,
+                "ref_refused": false,
+                "preparation_id": "prep_chickpea_base"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pains pita complets",
+                "grams": 107,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 62,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 9,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 36,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 71,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 27,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "almonds",
+                "term": "amandes",
+                "grams": 18,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Pois chiches mijotés, pains pita complets, salade, feta, amandes et citron",
+        "method": "Garnir les pains pita avec les pois chiches et la salade. Ajouter la feta et les amandes, puis assaisonner avec le citron et l’huile.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "lemon_dressing",
+            "role": "seasoning",
+            "part_of": "main"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "almond_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "pita_side",
+            "term": "pains pita complets",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.7847272727272727,
+            "quantity": "1,78 pains pita complets",
+            "grams_raw": 107.08363636363636,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 62.46545454545455,
+            "quantity": "62,47 g",
+            "grams_raw": 62.46545454545455,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "lemon_dressing",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 8.923636363636364,
+            "quantity": "8,92 ml",
+            "grams_raw": 8.923636363636364,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 35.694545454545455,
+            "quantity": "35,69 g",
+            "grams_raw": 35.694545454545455,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "salad_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 71.38909090909091,
+            "quantity": "71,39 g",
+            "grams_raw": 71.38909090909091,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "lemon_dressing",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.4461818181818182,
+            "quantity": "0,45",
+            "grams_raw": 26.77090909090909,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "almonds",
+            "part": "almond_finish",
+            "term": "amandes",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 17.847272727272728,
+            "quantity": "17,85 g",
+            "grams_raw": 17.847272727272728,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Le poulet rôti revient sous une forme de salade croquante pour terminer la semaine avec un dîner différent et régulier.",
+        "name": "Poulet rôti, pomme et chou",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_roast_chicken"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti aux légumes",
+                "grams": 250,
+                "ref_refused": false,
+                "preparation_id": "prep_roast_chicken"
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 125,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "goat_cheese",
+                "term": "fromage de chèvre",
+                "grams": 39,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 63,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "red_cabbage",
+                "term": "chou rouge",
+                "grams": 56,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "apple",
+                "term": "pomme",
+                "grams": 63,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d’olive",
+                "grams": 12,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "vinegar",
+                "term": "vinaigre",
+                "grams": 12,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet rôti, pain complet, chou rouge, tomate, pomme et chèvre",
+        "method": "Servir le poulet rôti avec le pain et la salade de chou, de tomate et de pomme. Ajouter le fromage de chèvre et assaisonner la salade avec l’huile et le vinaigre.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "apple_cabbage_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "goat_cheese_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          },
+          {
+            "id": "vinaigrette",
+            "role": "seasoning",
+            "part_of": "apple_cabbage_side"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 3.131814038286235,
+            "quantity": "3,13 tranches de pain complet",
+            "grams_raw": 125.2725615314494,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "goat_cheese",
+            "part": "goat_cheese_finish",
+            "term": "fromage de chèvre",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 39.14767547857794,
+            "quantity": "39,15 g",
+            "grams_raw": 39.14767547857794,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "apple_cabbage_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 62.6362807657247,
+            "quantity": "62,64 g",
+            "grams_raw": 62.6362807657247,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "red_cabbage",
+            "part": "apple_cabbage_side",
+            "term": "chou rouge",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 62.6362807657247,
+            "quantity": "62,64 g",
+            "grams_raw": 62.6362807657247,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "apple",
+            "part": "apple_cabbage_side",
+            "term": "pomme",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 62.6362807657247,
+            "quantity": "62,64 g",
+            "grams_raw": 62.6362807657247,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "vinaigrette",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 11.74430264357338,
+            "quantity": "11,74 ml",
+            "grams_raw": 11.74430264357338,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "vinegar",
+            "part": "vinaigrette",
+            "term": "vinaigre",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 11.74430264357338,
+            "quantity": "11,74 ml",
+            "grams_raw": 11.74430264357338,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "cuisses de poulet",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "310 g",
+        "food_group": "poultry",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pois chiches en conserve",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "480 g égouttés",
+        "food_group": "legumes",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "œufs",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "4 œufs",
+        "food_group": "eggs",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt grec nature",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "320 g",
+        "food_group": "dairy_yogurt",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "165 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "fromage de chèvre",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "40 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pains pita complets",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "4 pains pita complets",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "5 tranches",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d’avoine",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "40 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "195 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carotte",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "120 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivron",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "130 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomates",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "640 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "75 g",
+        "food_group": "leafy_greens",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "chou rouge",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "130 g",
+        "food_group": "cruciferous_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêche",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "220 g",
+        "food_group": "other_fruit",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pomme",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "65 g",
+        "food_group": "other_fruit",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "citrons",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "2 citrons",
+        "food_group": "citrus",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "amandes",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "25 g",
+        "food_group": "nuts_seeds",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d’olive",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "85 ml",
+        "food_group": "olive_oil",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "vinaigre",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "12 ml",
+        "food_group": "sauce_dressing",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "sel",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "1 paquet",
+        "food_group": "sauce_dressing",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivre noir",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "1 moulin",
+        "food_group": "sauce_dressing",
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "fat_loss",
+      "names": {
+        "kept": 6,
+        "dishes": 6,
+        "refused": 0,
+        "declared": 6
+      },
+      "intent": "prepare_next",
+      "issues": [
+        "spent_first_day_dropped: fri (shopping_cutoff)",
+        "shopping_waves: 1 (2026-09-12)",
+        "freeze_on_purchase: 0/23",
+        "raw_keeping_needs_later_shop: 0/2 preparations",
+        "waves_kept_for_freshness: 0/23",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "quantity_prose_stale:43",
+        "shopping_list_unattributed: 3/23 lines match no kept and no dropped ingredient -- kept, not guessed",
+        "ref_absent: 4/47 ingredients",
+        "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/4"
+      ],
+      "timing": {
+        "kind": "starts_tomorrow",
+        "reason": "today_already_spent",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 6,
+        "invalid": 0,
+        "declared": 6,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "0d68e7a8-27c8-49ea-87c5-69b0f31beed4",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": null,
+          "free_mouths": 0,
+          "absent_cells": [],
+          "bound_mouths": 0,
+          "cells_checked": 0,
+          "cells_carrying": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "retry_reverted": false,
+          "cells_swap_absent": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 4,
+          "names": 0,
+          "capped": 0,
+          "mouths": 1,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 4,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 6,
+          "preparations": 2,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 6,
+          "mouths_double_model": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_dish",
+          "unused": false,
+          "computed": "one_dish",
+          "diverging": [],
+          "dish_bearing": []
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 1
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 6,
+          "holders": 0,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-07",
+        "box_sizing": {
+          "boxes": 6,
+          "items": 38,
+          "share": {
+            "sized": 0,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 1,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 0,
+          "unmet": {
+            "both": 0,
+            "none": 2,
+            "pot_ceiling": 0,
+            "not_anchored": 0,
+            "tub_estimate": 0,
+            "factor_clamped": 0
+          },
+          "anchor": {
+            "clamped": 0,
+            "no_body": 0,
+            "anchored": 2,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 38,
+          "anchor_cap": {
+            "none": 2,
+            "density": 0,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 0,
+            "shopping": 15,
+            "regrammed": 0,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 0,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 2,
+            "unboxed_use": 0,
+            "lines_scaled": 15,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 5,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 6,
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 1
+          },
+          "pot_attribution": {
+            "ratio": 1,
+            "drawnGrams": 1369,
+            "potsUnreadable": 0,
+            "attributedGrams": 1369
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 0,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 1,
+          "ranks_without_object": 4
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 0,
+          "refused": 0,
+          "declared": 0,
+          "attributed": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 0,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 0,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "silenced_homograph": 0
+        },
+        "member_count": 1,
+        "member_deltas": [],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "apply": {
+            "regrammed": 43,
+            "pots_scaled": 2,
+            "fresh_scaled": 34,
+            "own_authored": 0,
+            "tubs_authored": 0,
+            "boxes_authored": 6,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "servings_rewritten": 0
+          },
+          "final": {
+            "boxes": 6,
+            "water": {
+              "kept": 2,
+              "absorbed": 0,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 6,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 6,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 0,
+            "composed": 3,
+            "declared": 3,
+            "without_target": 0
+          },
+          "dishes": 6,
+          "mouths": 1,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 1,
+            "no_target": 0
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 0,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 0,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 0,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 0,
+            "recipe_quantified": 0,
+            "retry_skipped_small": 0
+          },
+          "measured": 6,
+          "verdicts": {
+            "over_max": 0,
+            "in_bounds": 6,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "verification": {
+            "anchored": 2,
+            "pot_shrunk": 0,
+            "unmet_none": 2,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 0,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 15,
+            "shopping_unattributed": 5
+          },
+          "bounds_source": {
+            "age_known": 6,
+            "age_unknown": 0
+          },
+          "fixed_covered": 0,
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 0,
+            "loose_ignored_kcal": 0
+          },
+          "unmeasurable_by": {},
+          "contract_missing": 0,
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 6,
+          "rows": [],
+          "mouths": 1,
+          "missing": 0,
+          "rehomed": 0,
+          "retried": false,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 6,
+          "restored": 0,
+          "retry_on": {},
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "restored_fallback": 0,
+          "cells_without_dish": 0,
+          "retry_merged_cells": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "pairs_from_stores": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "accountless_count": 0,
+        "restriction_count": 0,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 1,
+          "skipped_no_dedicated": 0
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 34,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+          "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+          "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 0,
+        "lines": [],
+        "refusal": null,
+        "declared": 0
+      },
+      "food_groups": {
+        "lines": 47,
+        "valid": 0,
+        "refused": 0,
+        "declared": 0,
+        "persisted": 0
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "gender.personal": 1,
+        "ageYears.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "activityAxes.personal": 1,
+        "appetite.member_sheet": 1,
+        "activityLevel.personal": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 215925,
+        "elapsed_ms": 134075,
+        "reserve_ms": 30000,
+        "remaining_ms": 245925,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 5.3,
+        "plausible": 7.54,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v32_the_recipe_says_what_holds_it+household.v33_one_standard_recipe_the_engine_multiplies",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-11",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 1,
+        "master_member_id": "863e9f5f-3bca-4a6a-9af5-ba554126550b",
+        "served_member_ids": [
+          "863e9f5f-3bca-4a6a-9af5-ba554126550b"
+        ],
+        "plan_owner_user_id": "69c5eaa8-e9aa-4f09-8bd4-d3b934869507",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-05",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-11T18:16:06.236078+00:00",
+    "updated_at": "2026-09-11T18:16:06.236078+00:00",
+    "preparations": [
+      {
+        "id": "prep_roast_chicken",
+        "title": "Poulet rôti aux légumes",
+        "method": "Préchauffer le four. Assaisonner le poulet, l’oignon, la carotte et le poivron, puis les enrober d’huile. Rôtir jusqu’à cuisson complète, laisser refroidir et répartir au réfrigérateur.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "chicken_thigh",
+            "part": "main",
+            "term": "cuisses de poulet",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 307.9335220820488,
+            "quantity": "307,93 g",
+            "grams_raw": 307.9335220820488,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 94.09079841395936,
+            "quantity": "94,09 g",
+            "grams_raw": 94.09079841395936,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "carrot",
+            "part": "main",
+            "term": "carotte",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 119.7519252541301,
+            "quantity": "119,75 g",
+            "grams_raw": 119.7519252541301,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "main",
+            "term": "poivron",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 128.30563420085366,
+            "quantity": "128,31 g",
+            "grams_raw": 128.30563420085366,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "roasting_fat",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 25.661126840170734,
+            "quantity": "25,66 ml",
+            "grams_raw": 25.661126840170734,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": null,
+            "part": "main",
+            "term": "sel",
+            "unit": null,
+            "group": null,
+            "state": "raw",
+            "amount": null,
+            "quantity": "une pincée",
+            "grams_raw": null,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": null
+          },
+          {
+            "ref": null,
+            "part": "main",
+            "term": "poivre noir",
+            "unit": null,
+            "group": null,
+            "state": "raw",
+            "amount": null,
+            "quantity": "une pincée",
+            "grams_raw": null,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": null
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 50,
+        "active_minutes": 15
+      },
+      {
+        "id": "prep_chickpea_base",
+        "title": "Base de pois chiches à la tomate",
+        "method": "Faire revenir l’oignon dans l’huile, ajouter la tomate et les pois chiches, puis laisser mijoter jusqu’à obtenir une base épaisse. Refroidir et répartir au réfrigérateur.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "chickpeas_tinned",
+            "part": "main",
+            "term": "pois chiches en conserve égouttés",
+            "unit": "g",
+            "group": null,
+            "state": "cooked",
+            "amount": 440.81358337023084,
+            "quantity": "440,81 g",
+            "grams_raw": 440.81358337023084,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 101.01831759538389,
+            "quantity": "101,02 g",
+            "grams_raw": 101.01831759538389,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "main",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 275.5072365261422,
+            "quantity": "275,51 g",
+            "grams_raw": 275.5072365261422,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "cooking_fat",
+            "term": "huile d’olive",
+            "unit": "ml",
+            "group": null,
+            "state": "raw",
+            "amount": 13.77385813000471,
+            "quantity": "13,77 ml",
+            "grams_raw": 13.77385813000471,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": null,
+            "part": "main",
+            "term": "sel",
+            "unit": null,
+            "group": null,
+            "state": "raw",
+            "amount": null,
+            "quantity": "une pincée",
+            "grams_raw": null,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": null
+          },
+          {
+            "ref": null,
+            "part": "main",
+            "term": "poivre noir",
+            "unit": null,
+            "group": null,
+            "state": "raw",
+            "amount": null,
+            "quantity": "une pincée",
+            "grams_raw": null,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": null
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 30,
+        "active_minutes": 10
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "run_through": "Mettre le four en marche et préparer le poulet avec l’oignon, la carotte, le poivron et l’huile. Enfourner, puis faire revenir l’oignon de la base de pois chiches dans une autre casserole. Ajouter la tomate et les pois chiches pendant que le poulet rôtit. Laisser refroidir les deux préparations, les répartir au réfrigérateur et garder les portions pour le lendemain.",
+        "total_minutes": 55,
+        "preparation_ids": [
+          "prep_roast_chicken",
+          "prep_chickpea_base"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-12",
+    "duration_days": 2,
+    "retired_at": null,
+    "ends_on": "2026-09-13",
+    "household_id": "0d68e7a8-27c8-49ea-87c5-69b0f31beed4",
+    "member_portions": [
+      {
+        "member_id": "863e9f5f-3bca-4a6a-9af5-ba554126550b",
+        "display_name": "Paul",
+        "eating_slots": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 4793,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  },
+  "meta_bouche": {
+    "member_id": "863e9f5f-3bca-4a6a-9af5-ba554126550b",
+    "second_member": null,
+    "user_id": "69c5eaa8-e9aa-4f09-8bd4-d3b934869507",
+    "email": "lotf.camp5@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": [
+      {
+        "slot": "breakfast",
+        "size": "medium"
+      },
+      {
+        "slot": "lunch",
+        "size": "small"
+      },
+      {
+        "slot": "dinner",
+        "size": "medium"
+      }
+    ],
+    "fixed_intakes": [
+      {
+        "food_ref": "greek_yogurt",
+        "amount": 200,
+        "unit": "g",
+        "slot": "breakfast"
+      }
+    ],
+    "allergie": null
+  }
+}

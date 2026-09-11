@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Sophia" style="color:#632C4C">
+  <title>Sophia</title>
+  <desc>L’assiette composée. Un cercle et trois parts : un repas, plusieurs portions. Dessiné en SVG natif sur une grille de 64, trait de 3,5. Fond transparent, couleur portée par currentColor.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="24"/>
+  </g>
+  <g fill="currentColor">
+    <path d="M28.5 15.5c-8.3 2.4-13 8.3-13 16.5s4.7 14.2 13 16.5V15.5Z"/>
+    <path d="M35.5 15.5v13h13c-1.2-7.1-7.1-11.8-13-13Z"/>
+    <path d="M35.5 35.5v13c8.3-1.2 14.2-7.1 13-13H35.5Z"/>
+  </g>
+</svg>

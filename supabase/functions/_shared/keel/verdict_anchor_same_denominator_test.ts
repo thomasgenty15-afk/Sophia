@@ -29,7 +29,9 @@ import { scalingInputsFor } from "./portion_scaling_inputs.ts";
 import { offBandDistance } from "./meal_correction.ts";
 import { windowCoverageOf } from "./window_coverage.ts";
 import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
-import { envelopeFor } from "./meal_envelope.ts";
+import { envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 
 // ---------------------------------------------------------------------------
@@ -58,6 +60,7 @@ const REF: CompositionRef = {
   b12Source: false,
   folateSource: false,
   yieldClass: "neutral",
+  yieldFactor: null,
   atwaterDiscount: 1,
   energyDense: false,
   unitGrams: null,
@@ -89,6 +92,7 @@ const PER_KG = envelopeFor(
   { day: null, sport: null, asked: false },
   null,
   null,
+MAINTENANCE_ENVELOPE_DIRECTION
 );
 const BAND = PER_KG.mode === "per_kg" && PER_KG.energy !== null ? PER_KG.energy : null;
 const TARGET = BAND === null ? 0 : (BAND.low + BAND.high) / 2;

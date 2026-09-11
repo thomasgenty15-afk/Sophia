@@ -82,12 +82,25 @@ describe("l'entonnoir sort par l'aperçu, pas par l'écriture", () => {
    * la cicatrice `mine={null}` d'une carte voisine, qui a rendu muet un lot
    * entier sans qu'aucun test ne bouge.
    */
-  it("la fenêtre est montée et le constat vient du brouillon composé", () => {
+  it("la fenêtre est montée, et `rationale` a bien quitté les props", () => {
     expect(src, "la fenêtre d'aperçu n'est plus montée").toContain(
       "<PlanDraftDialog",
     );
-    expect(src, "le constat ne vient plus du brouillon").toContain(
-      "rationale={draft?.envelope.rationale ?? []}",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-11 — CETTE ASSERTION N'ASSERTAIT RIEN
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ELLE ÉTAIT ÉCRITE `toContain()` — SANS ARGUMENT. Le retrait de
+    // `rationale` (décision produit du 2026-09-09) avait laissé le commentaire
+    // et emporté la chaîne. `tsc` le voyait (« Expected 1 arguments, but got
+    // 0 »), `vitest` non: le cas restait VERT en ne vérifiant rien.
+    //
+    // ⚠️ C'est la forme la plus coûteuse d'un test mort: il a l'air de garder
+    // quelque chose. On ne le supprime donc pas — on lui rend la propriété
+    // INVERSE, celle que la décision produit a créée: `rationale` ne doit plus
+    // être passé au dialogue.
+    expect(src, "`rationale` est revenu dans les props du dialogue").not.toMatch(
+      /rationale\s*=/,
     );
   });
 
@@ -119,16 +132,21 @@ describe("l'entonnoir sort par l'aperçu, pas par l'écriture", () => {
    * passent par `draftInput`: deux corps de requête écrits séparément
    * divergeraient, et la divergence se paierait dans le sens le plus cher — un
    * plan composé pour une vie que la personne n'a pas, parce que l'adoption
-   * aurait « oublié » la fenêtre ou la lane.
+   * aurait « oublié » la fenêtre.
    */
   it("les trois gestes partagent le même constructeur d'entrées", () => {
     const calls = src.match(/draftInput\(/g) ?? [];
     // La définition + les trois appels.
     expect(calls.length, "un geste s'est mis à écrire son propre corps")
       .toBeGreaterThanOrEqual(4);
-    expect(src, "la lane n'est plus décidée par `chooseGenerator`").toContain(
-      "chooseGenerator({",
-    );
+    // ⟳ 2026-09-10 · LOT 7 — IL N'Y A PLUS DE LANE À DÉCIDER. Ce cas exigeait
+    // `chooseGenerator({` ici, pour que la règle ne soit pas recopiée en `if`
+    // dans la page. La règle a disparu avec le second moteur: ce qui la
+    // remplace est l'absence de tout choix — donc c'est l'ABSENCE qu'on épingle.
+    expect(src, "un choix de moteur est revenu dans la page")
+      .not.toMatch(/generate-(household-)?meal-v1/);
+    expect(src, "un sélecteur « pour moi / pour le foyer » est apparu")
+      .not.toMatch(/lane:/);
   });
 });
 
@@ -150,14 +168,22 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     expect(api).toContain('{ timeout: 120_000 }');
 
     for (const rel of [
-      "supabase/functions/generate-meal-v1/index.ts",
+      "supabase/functions/generate-household-meal-v1/index.ts",
       "supabase/functions/generate-household-meal-v1/index.ts",
     ]) {
       const server = code(rel);
       expect(server, rel).toContain("DRAFT_ADOPTION_MODEL_TIMEOUT_MS = 100_000");
       expect(server, rel).toContain("plan_adoption_timed_out");
-      expect(server, rel).toContain("anchorMissingBefore > 0 && !adoptingDraft");
-      expect(server, rel).toContain("instruction && !adoptingDraft");
+      // ⟳ 2026-09-09 — sur la lane foyer la coupure porte un nom, parce
+      // qu'elle vaut aussi pour la reprise locale (`edit_cells`) :
+      // `improvementRetries = !adoptingDraft && !editing`. La lane solo n'a
+      // pas de reprise locale et garde le littéral.
+      const gate = rel.includes("household") ? "improvementRetries" : "!adoptingDraft";
+      if (rel.includes("household")) {
+        expect(server, rel).toContain("const improvementRetries = !adoptingDraft && !editing;");
+      }
+      expect(server, rel).toContain(`anchorMissingBefore > 0 && ${gate}`);
+      expect(server, rel).toContain(`instruction && ${gate}`);
     }
   });
 

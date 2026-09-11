@@ -372,7 +372,9 @@ function PersonLine(props: { person: PersonRow; slot: string }) {
           {cell.ownDish
             ? (
               <span className="block font-medium leading-snug text-ink">
-                {cell.ownDish}
+                {/* ⟳ 2026-09-09 — une entrée qui S'AJOUTE à la table se lit
+                    « + », et sa part (dessous) est celle du plat commun. */}
+                {cell.ownDishComplements ? `+ ${cell.ownDish}` : cell.ownDish}
               </span>
             )
             : null}

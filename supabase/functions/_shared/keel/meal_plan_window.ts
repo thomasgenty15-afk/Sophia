@@ -425,72 +425,46 @@ export function firstBlockingPlan(args: {
 }
 
 /**
- * LE DERNIER JOUR QUE LES JETONS SAVENT NOMMER DEPUIS AUJOURD'HUI — le dimanche
- * de la semaine en cours.
+ * ⛔ ICI VIVAIENT `lastNameableStart` ET `windowStartsBeyondDayTokens` — RETIRÉES
+ * LE 2026-09-06, ET LA MESURE QUI LES A FAIT NAÎTRE SURVIT ICI.
  *
- * ⚠️ CE N'EST PAS UNE PRÉFÉRENCE D'ÉCRAN, C'EST L'ARITHMÉTIQUE DES SEPT JETONS.
- * Un plan ne porte pas de dates dans le message envoyé au modèle: il porte
- * `mon`…`sun`, et le message dit à côté « today is: wed ». Au-delà du dimanche,
- * le jeton d'une date est DÉJÀ pris par une date plus proche — `today + 7`
- * porte le jeton d'aujourd'hui — et la consigne devient illisible.
- */
-export function lastNameableStart(today: string): string {
-  const at = WEEK_TOKENS.indexOf(dayTokenOf(today));
-  return addDays(today, WEEK_TOKENS.length - 1 - at);
-}
-
-/**
- * CETTE FENÊTRE COMMENCE-T-ELLE APRÈS CE QUE LES JETONS SAVENT NOMMER ?
+ * ── CE QU'ELLES FAISAIENT ─────────────────────────────────────────────────
+ * `lastNameableStart(today)` rendait le DIMANCHE de la semaine en cours, et
+ * `windowStartsBeyondDayTokens(startsOn, today)` refusait tout départ au-delà.
+ * Les deux fonctions edge rendaient `400 window_beyond_this_week` avant le
+ * modèle, et les deux sélecteurs de date de l'écran portaient le même dimanche
+ * en `max`.
  *
- * ── LE DÉFAUT, MESURÉ EN HTTP RÉEL LE 2026-08-12 ───────────────────────────
- *
- * `starts_on = 2026-08-26` (un mardi) demandé un mercredi. Le message envoyé au
- * modèle portait, à trois lignes d'écart:
+ * ── LA MESURE, ET ELLE RESTE VRAIE ────────────────────────────────────────
+ * HTTP réel, 2026-08-12: `starts_on = 2026-08-26` (un mardi) demandé un
+ * mercredi. Le message portait, à trois lignes d'écart:
  *
  *     today is: wed
  *     days to fill, in this order: tue, wed
  *     … Do not start earlier than today
  *
- * Le modèle a REFUSÉ en toutes lettres — `422 empty_meal`, `lock:
- * disarmed_empty_text`, **après 6,2 s facturées**. Ce n'est pas une
- * désobéissance: les deux phrases se contredisent, et il n'y avait pas de
- * réponse juste.
+ * Le modèle a refusé EN TOUTES LETTRES — `422 empty_meal`, `lock:
+ * disarmed_empty_text` — **après 6,2 s facturées**. Ce n'était pas une
+ * désobéissance: les deux phrases se contredisaient, et aucune réponse n'était
+ * juste. À sept jours d'écart, c'est pire encore: le premier jeton de la
+ * fenêtre est celui d'AUJOURD'HUI, et rien ne les distingue.
  *
- * ── POURQUOI LE DIMANCHE, ET PAS « SEPT JOURS » ────────────────────────────
+ * ── POURQUOI ELLES PARTENT QUAND MÊME ─────────────────────────────────────
+ * Le lot du 2026-08-12 avait nommé lui-même l'option qu'il écartait: « Dater
+ * les jetons dans le prompt aurait marché aussi […] pour servir une forme de
+ * fenêtre que l'écran n'a jamais proposée ». L'écran la propose depuis le
+ * 2026-09-06 — décision produit, demandée à l'écran: « n'importe qui peut
+ * sélectionner la date de début librement ». La prémisse du refus est tombée,
+ * donc c'est l'option écartée qui est livrée: `buildMealPrompt` reçoit
+ * `windowStartsOn` et ANCRE la liste des jours sur cette date, plus sur
+ * « aujourd'hui ». La contradiction n'est plus interdite, elle est impossible.
  *
- * Les deux moitiés du défaut se referment sur la même borne, et c'est ce qui la
- * rend simple:
- *
- *   · un départ APRÈS le dimanche fait forcément revenir un jeton en arrière
- *     (`mon` après `wed`) ou le RÉUTILISE (`today + 7`);
- *   · un départ AVANT ou LE dimanche donne des jetons strictement croissants
- *     depuis celui d'aujourd'hui, donc une liste que « do not start earlier
- *     than today » n'a aucune raison de contredire.
- *
- * `today + 6` aurait laissé passer le cas le plus banal du produit — « je
- * prépare lundi prochain », demandé un mardi — qui est exactement la forme
- * mesurée.
- *
- * ── CE QUE ÇA NE FERME PAS, ET C'EST ÉCRIT ─────────────────────────────────
- *
- * La QUEUE d'une fenêtre peut toujours dépasser le dimanche: un plan de sept
- * jours démarré un vendredi va jusqu'à jeudi, et ses jetons restent distincts.
- * On ne l'a jamais mesuré comme contradictoire — la liste commence bien
- * aujourd'hui — et le refuser retirerait une fenêtre que l'écran propose depuis
- * toujours (`{kind:"days", count:7}`).
- *
- * ⚠️ PURE, ET SANS HORLOGE: `today` est le jour LOCAL de l'élève, résolu par
- * l'appelant. Même invariant que tout ce fichier.
+ * ⛔ NE PAS LES REMETTRE « PAR SÉCURITÉ ». Une fenêtre qui démarre la semaine
+ * prochaine est désormais un geste normal du produit; une garde qui la refuse
+ * casserait l'écran, et son message parlerait d'une borne que plus rien
+ * n'applique. Ce qui reste refusé est le PASSÉ, et il l'est ailleurs
+ * (`resolveRequestedWindow`, `bad_window`).
  */
-export function windowStartsBeyondDayTokens(
-  startsOn: string,
-  today: string,
-): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
-    return false;
-  }
-  return startsOn > lastNameableStart(today);
-}
 
 // ---------------------------------------------------------------------------
 // Arithmétique de dates — la même que partout ailleurs dans ce dépôt

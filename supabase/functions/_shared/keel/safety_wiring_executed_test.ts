@@ -1,3 +1,7 @@
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 
 /**
@@ -11,10 +15,10 @@ import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
  *
  * Les trois fils gardés ici, avec ce que leur coupure produit:
  *
- *   W6c  `generate-meal-v1/index.ts`  la ceinture de régime ne lit plus ni le
+ *   W6c  `generate-household-meal-v1/index.ts`  la ceinture de régime ne lit plus ni le
  *        titre ni le `why` du plat ⇒ « Roast chicken » ne déclenche plus rien
  *        chez un végane, parce que sa liste d'ingrédients est innocente.
- *   W6b  `generate-meal-v1/index.ts`  la brèche est bien calculée, mais plus
+ *   W6b  `generate-household-meal-v1/index.ts`  la brèche est bien calculée, mais plus
  *        poussée dans `issues` ⇒ elle n'est écrite NULLE PART: ni sur la ligne
  *        `student_generated_meals.generated_from`, ni dans la réponse HTTP.
  *   W9   `sophia-brain/router/run.ts` `detectDeclaredMedicalCondition` n'est
@@ -79,7 +83,7 @@ import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 // utilisées ici sont: la ligne `if (…) {` qui CONSOMME le fil, et une bannière
 // de commentaire. Les deux survivent à chacune des trois coupures.
 
-const MEAL_SRC = new URL("../../generate-meal-v1/index.ts", import.meta.url);
+const MEAL_SRC = new URL("../../generate-household-meal-v1/index.ts", import.meta.url);
 const RUN_SRC = new URL(
   "../../sophia-brain/router/run.ts",
   import.meta.url,
@@ -249,138 +253,6 @@ const NEUTRAL_ITEMS = [
   { term: "sea salt", group: null },
   { term: "carrot", group: "non_starchy_veg" },
 ];
-
-Deno.test("W6c — la ceinture lit le TITRE du plat, pas seulement ses ingrédients", async () => {
-  const belt = await loadBelt();
-  // ⛔ LE CAS EXACT DE LA COUPURE. Une végane, un plat dont la liste
-  // d'ingrédients ne porte RIEN d'interdit, et « chicken » uniquement dans le
-  // titre. Si la ceinture ne lit que les ingrédients, elle sert du poulet.
-  const { trace } = belt("vegan", [{
-    title: "Roast chicken",
-    why: "A comforting Sunday tray.",
-    ingredients: NEUTRAL_ITEMS,
-  }]);
-  assertEquals(
-    trace.breaches,
-    1,
-    "la ceinture de régime solo ne lit plus le TITRE du plat: « Roast " +
-      "chicken » ne mord plus chez une végane. Le fil coupé est l'ARGUMENT " +
-      "`prose:` de `scanDietaryRegime`, pas l'appel — un test qui cherche " +
-      "`scanDietaryRegime(` dans la source reste vert ici.",
-  );
-  assertEquals(trace.dishes, 1);
-  assert(trace.forms > 0, "la ceinture n'avait aucune aiguille à chercher");
-});
-
-Deno.test("W6c — la ceinture lit aussi le `why`, où le modèle range la viande", async () => {
-  const belt = await loadBelt();
-  // La moitié qu'une coupure PARTIELLE atteindrait: `prose: [dish.title]`
-  // laisserait le premier test vert et celui-ci rouge.
-  const { trace } = belt("vegan", [{
-    title: "Sunday tray bake",
-    why: "Built around roast chicken, slow and easy.",
-    ingredients: NEUTRAL_ITEMS,
-  }]);
-  assertEquals(
-    trace.breaches,
-    1,
-    "la ceinture ne lit plus le `why` du plat: la justification peut nommer " +
-      "l'interdit sans que rien ne morde.",
-  );
-});
-
-Deno.test("W6c — LE CAS QUI PASSE: un plat conforme ne produit AUCUNE brèche", async () => {
-  const belt = await loadBelt();
-  // ⛔ SANS CE CAS, LA GARDE EST INUTILISABLE. Une ceinture qui mord sur tout
-  // rougirait pareil, et on ne saurait pas la distinguer d'une ceinture juste.
-  const { issues, trace } = belt("vegan", [{
-    title: "Lentil tray bake",
-    why: "A comforting Sunday tray.",
-    ingredients: [
-      { term: "green lentils", group: "legumes" },
-      ...NEUTRAL_ITEMS,
-    ],
-  }]);
-  assertEquals(trace.breaches, 0);
-  assertEquals(
-    issues,
-    [],
-    "un plat végane conforme fait quand même parler la ceinture: elle " +
-      "refuserait le garde-manger de ceux qu'elle protège.",
-  );
-});
-
-Deno.test("W6c — LE CAS QUI PASSE: l'analogue végétal est DÉSAMORCÉ, pas compté", async () => {
-  const belt = await loadBelt();
-  // ⚠️ CICATRICE DU DÉPÔT: « laitue » ne doit pas matcher « lait » — 12 faux
-  // positifs sur 12 mesurés. Ce cas existe pour prouver qu'on exécute le VRAI
-  // moteur (`isPlantAnalogue`, fermé depuis le run réel du 2026-08-11) et non
-  // un appariement écrit ici. Un matcheur maison compterait « Soy yoghurt »
-  // comme une brèche de régime végane.
-  const { issues, trace } = belt("vegan", [{
-    title: "Soy yoghurt bowl",
-    why: "Cool and quick, no cooking.",
-    ingredients: [{ term: "soy yoghurt", group: null }, ...NEUTRAL_ITEMS],
-  }]);
-  assertEquals(trace.breaches, 0);
-  assert(
-    trace.analogues_silenced > 0,
-    "le désamorçage des analogues végétaux ne compte plus rien: une ceinture " +
-      "qui blanchirait tout demain afficherait le même `breaches: 0`.",
-  );
-  assertEquals(issues, []);
-});
-
-Deno.test("W6b — la brèche détectée est POUSSÉE dans `issues`", async () => {
-  const belt = await loadBelt();
-  const { issues, trace } = belt("vegan", [{
-    title: "Roast chicken",
-    why: "A comforting Sunday tray.",
-    ingredients: NEUTRAL_ITEMS,
-  }]);
-  // ① LA PRÉMISSE, ARMÉE. Sans elle, la garde serait indistinguable d'une
-  //   garde qui échoue parce que le calcul n'a rien trouvé — c'est-à-dire
-  //   qu'elle porterait le nom de W6b en gardant W6c.
-  assertEquals(
-    trace.breaches,
-    1,
-    "prémisse non tenue: la ceinture n'a rien détecté, donc cette épreuve ne " +
-      "dit RIEN sur W6b. Lire d'abord les épreuves W6c.",
-  );
-  // ② LE FIL LUI-MÊME.
-  const pushed = issues.filter((i) => i.startsWith("dietary_regime_breach: "));
-  assertEquals(
-    pushed.length,
-    1,
-    "la ceinture a COMPTÉ une brèche et ne l'écrit nulle part: `issues` part " +
-      "à la fois sur la ligne `student_generated_meals.generated_from` et " +
-      "dans la réponse HTTP. Coupé ici, le plan est écrit en base sans aucune " +
-      "trace du motif — le contrôle existe et personne ne peut le lire.",
-  );
-  assert(
-    pushed[0].includes("Roast chicken") && pushed[0].includes("chicken"),
-    `la brèche poussée ne nomme ni le plat ni le terme: ${pushed[0]}`,
-  );
-});
-
-Deno.test("W6b — LE CAS QUI PASSE: sans brèche, `issues` n'est pas touché", async () => {
-  const belt = await loadBelt();
-  const before = ["some_unrelated_issue"];
-  const { issues } = belt("vegan", [{
-    title: "Lentil tray bake",
-    why: "A comforting Sunday tray.",
-    ingredients: [
-      { term: "green lentils", group: "legumes" },
-      ...NEUTRAL_ITEMS,
-    ],
-  }], before);
-  assertEquals(
-    issues,
-    ["some_unrelated_issue"],
-    "la ceinture ajoute une ligne à `issues` sur un plan sain: un diagnostic " +
-      "qui crie tout le temps ne se lit plus.",
-  );
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // W9 — LE PLANCHER DE DÉCLARATION DE MALADIE, DANS `processMessage`

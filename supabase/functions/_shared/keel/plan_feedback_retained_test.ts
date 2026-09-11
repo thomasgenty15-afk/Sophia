@@ -1,3 +1,4 @@
+import { envelopeDirectionFor } from "./weight_pace.ts";
 import {
   assert,
   assertEquals,
@@ -20,7 +21,9 @@ import {
   VARIETY_LEVELS,
 } from "./retained_item.ts";
 // LOT 4C — l'aval du cran fort: l'enveloppe, et le plancher A1 qui l'écrête.
-import { envelopeFor } from "./meal_envelope.ts";
+import { envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 import {
   patchOf,
   undoFieldChange,
@@ -295,38 +298,69 @@ function bandFor(
       mouth: { memberId: ageState === "adult" ? ADULT_ID : KID_ID, ageState },
       items: [adjustFromAnswer(answer)],
     },
+    // ⟳ 2026-09-09 — LA DIRECTION RÉELLE DE CE CORPS. La neutre rendrait une
+    // bande d'ENTRETIEN pour un `fat_loss`, c'est-à-dire un test qui mesure
+    // autre chose que ce qu'il annonce: la bande descend désormais du CRAN de
+    // la personne, pas d'une fraction du jeton d'objectif.
+    envelopeDirectionFor({
+      goal,
+      // ⟳ 2026-09-11 — REQUIS depuis que la garde de condition vit DANS la
+      // fonction. `false` = aucune condition n'annule l'écart ici.
+      deficitCancelled: false,
+      subject: {
+        body: {
+          heightCm: 175,
+          weightKg: 80,
+          gender: "male",
+          ageYears: 37,
+          activityLevel: null,
+          activityAxes: { day: null, sport: null, asked: false },
+          appetite: null,
+        },
+        isMinor: false,
+      },
+      // ⟳ 2026-09-10 — LE CURSEUR EST RÉGLÉ, ET C'EST LA PRÉMISSE DU TEST.
+      // Ce test parle d'une bande **déjà à son plancher A1**; il faut donc un
+      // cran qui l'y mette. Au défaut (0,25 kg/sem) l'écart exécuté vaut 275
+      // kcal et la bande passe AU-DESSUS d'A1 — le test parlerait alors d'un
+      // autre cas que le sien, et les deux crans y mordraient légitimement.
+      // Sur `maintenance`, `envelopeDirectionFor` rend une direction nulle et
+      // ce cran n'est jamais lu.
+      paceKgPerWeek: 0.5,
+    }),
   );
   assert(env.mode === "per_kg");
   return env.energy;
 }
 
 Deno.test("⛔ LOT 4C — LE CRAN FORT RESTE ÉCRÊTÉ PAR LE PLANCHER A1", () => {
-  // `fat_loss` sur ce gabarit est DÉJÀ au plancher A1 (`M − 500`): le bas de
-  // bande vaut exactement le plancher. C'est la population sur laquelle un
-  // −10 % non écrêté irait le plus loin.
-  assertEquals(bandFor("fat_loss", null, null), { low: 2071, high: 2185 });
+  // ⟳ 2026-09-10 — MÊME CAS, MÊME PROPRIÉTÉ, NOUVEAUX NOMBRES.
+  //   BMR = 10×80 + 6,25×175 − 5×37 + 5 = 1 713,75 ; M = ×1,5 = **2 571**
+  //   0,5 kg/sem = 550 kcal/j, ÉCRÊTÉ par A1 à 500 ⇒ cible 2 071 = A1 exactement
+  //   largeur `fat_loss` = 0,10 de M ⇒ ±128,55 ⇒ [1 942 ; 2 200], puis A1
+  //   remonte le bas à 2 071: **son bas EST le plancher A1**.
+  // C'est la population sur laquelle un −10 % non écrêté irait le plus loin.
+  assertEquals(bandFor("fat_loss", null, null), { low: 2071, high: 2200 });
 
-  // ── LE CRAN FORT, ÉCRÊTÉ SUR LES DEUX BORDS ───────────────────────────
-  // Sans l'écrêtage, −10 % rendrait { low: 1864, high: 1967 } — c'est-à-dire
-  // un déficit de 707 kcal contre un plafond de 500. Le plancher gagne, et il
-  // gagne AUSSI EN HAUT (« un plafond qui ne mord que d'un côté n'est pas un
-  // plafond »).
+  // ── LES DEUX CRANS SONT INERTES AU PLANCHER, ET SUR LES DEUX BORDS ────
+  // Sans la garde, −10 % rendrait { low: 1864, high: 1980 } — un déficit de
+  // 707 kcal contre un plafond de 500, ET un haut de bande raboté de 220 kcal
+  // sur quelqu'un qui n'a plus rien à donner. Une bande déjà à son plancher ne
+  // rend plus rien: « un plafond qui ne mord que d'un côté n'est pas un
+  // plafond ».
   assertEquals(bandFor("fat_loss", "adult", "way_too_much"), {
     low: 2071,
-    high: 2071,
+    high: 2200,
   });
-  // Le cran faible mord moins, et il mord quand même: sans cette ligne, deux
-  // crans écrêtés au même nombre ressembleraient à un écrêtage qui marche
-  // pendant que les deux crans seraient devenus identiques.
   assertEquals(bandFor("fat_loss", "adult", "too_much"), {
     low: 2071,
-    high: 2076,
+    high: 2200,
   });
 
   // ── ET LOIN DU PLANCHER, LES DEUX CRANS SONT BIEN ORDONNÉS ────────────
-  // C'est la moitié qui prouve que l'écrêtage ci-dessus n'a pas simplement
-  // aplati la question: en `maintenance`, la bande est très au-dessus de A1.
-  // −5 % et −10 %, écrits en dur.
+  // C'est la moitié qui prouve que la garde ci-dessus n'a pas simplement aplati
+  // la question: en `maintenance`, la bande est très au-dessus de A1, et les
+  // deux crans s'y distinguent. −5 % et −10 %, écrits en dur.
   assertEquals(bandFor("maintenance", null, null), { low: 2442, high: 2700 });
   assertEquals(bandFor("maintenance", "adult", "too_much"), {
     low: 2320,
@@ -1121,6 +1155,8 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -1136,7 +1172,7 @@ const PROMPT_BASE = {
   boxMemberExclusions: [],
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -1147,6 +1183,7 @@ const PROMPT_BASE = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
 };
 
@@ -1191,12 +1228,12 @@ Deno.test("⛔ LA RÉPONSE D'AXE ATTEINT LE MESSAGE DU MODÈLE — bout à bout"
 
   // ④ LE MESSAGE ENVOYÉ AU MODÈLE le porte, avec le mot que la personne a
   // déclenché — et un plan sans correctif ne le porte PAS.
-  const { userMessage } = buildMealPrompt({
+  const { userMessage } = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     variety: String(pc.variety),
   });
   assertStringIncludes(userMessage, "repetition they accept: varied");
-  const before = buildMealPrompt({ ...PROMPT_BASE, variety: "some" })
+  const before = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, variety: "some" })
     .userMessage;
   assertStringIncludes(before, "repetition they accept: some");
   assert(
@@ -1210,7 +1247,7 @@ Deno.test("⛔ …et le maillon de SOURCE: les deux lanes lisent bien `pc.variet
   // est PRIVÉE à chaque `index.ts`. Sans cette assertion, la chaîne s'arrête à
   // « le correctif est posé sur la bonne clé » — et une clé bien posée que le
   // générateur ne relit pas est exactement le défaut que ce chantier ferme.
-  const lanes = ["generate-meal-v1", "generate-household-meal-v1"];
+  const lanes = ["generate-household-meal-v1"];
   for (const lane of lanes) {
     const src = await Deno.readTextFile(
       new URL(`../../${lane}/index.ts`, import.meta.url),

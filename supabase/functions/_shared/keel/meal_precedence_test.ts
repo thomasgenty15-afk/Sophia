@@ -63,6 +63,7 @@ function build(over: Record<string, unknown> = {}): any {
     safetyConstraints: [],
     safetyConstraintTable: null,
     body: null,
+    lightSlots: [],
     focusAxis: null,
     dietBlock: "",
     doctrineBlock: "== A COACH'S METHOD ==",
@@ -92,6 +93,8 @@ function build(over: Record<string, unknown> = {}): any {
     oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     contentLocale: "en-GB",
     // deno-lint-ignore no-explicit-any
     ...(over as any),
@@ -131,7 +134,10 @@ Deno.test("v15 — la version de prompt suit l'octet: elle a bougé avec ce lot"
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });
 
 Deno.test("① l'ordre est ÉCRIT, et il est écrit pour TOUT LE MONDE", () => {
@@ -236,7 +242,13 @@ Deno.test("⚠️ LA POPULATION NON VISÉE NE BOUGE QUE DU BLOC D'ORDRE", () => 
   const withoutPrecedence = msg.slice(0, at).replace(/\n+$/, "");
   assert(!withoutPrecedence.includes(SEVERITY_HEADER));
   assert(!withoutPrecedence.includes("Let it rank your choices among the dishes"));
-  assert(withoutPrecedence.endsWith("Do not use any other day token. Do not start earlier than today."));
+  // ⟳ 2026-09-06 — la queue a changé avec le pivot de la liste des jours:
+  // ancrée sur la DATE d'ouverture de la fenêtre, plus sur « aujourd'hui ».
+  assert(withoutPrecedence.endsWith(
+    "Do not use any other day token. Fill exactly those days, in that order, " +
+      "starting at the first one -- do not shift the list to begin today, and " +
+      "do not add a day before it.",
+  ));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

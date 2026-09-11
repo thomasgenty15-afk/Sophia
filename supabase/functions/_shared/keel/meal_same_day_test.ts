@@ -56,6 +56,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
     ...over,
@@ -572,7 +573,10 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
   // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
   // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
   // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare
@@ -607,7 +611,7 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // n'existe que sur cette lane, et la demander au solo serait une consigne sur
   // du vide. Trois populations à distinguer, pas deux: v25, v26 sans les faits
   // (message byte-identique à v25), v26 avec.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v31_one_wants_what_another_refuses");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v33_one_standard_recipe_the_engine_multiplies");
 });
 
 // ---------------------------------------------------------------------------
@@ -663,7 +667,7 @@ async function functionSource(name: string): Promise<string> {
 }
 
 Deno.test("LOT 2 — ⛔ le compteur est ARCHIVÉ sur la ligne, lane INDIVIDUELLE", async () => {
-  const src = await functionSource("generate-meal-v1");
+  const src = await functionSource("generate-household-meal-v1");
   assert(
     /generated_from:\s*\{[\s\S]*?same_day: meal\.same_day_counts,/.test(src),
     "le compteur du geste du jour n'entre plus dans `generated_from`: un lot " +

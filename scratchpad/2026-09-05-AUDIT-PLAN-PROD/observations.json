@@ -1,0 +1,4666 @@
+[
+  {
+    "id": "A01-solo3",
+    "http": 200,
+    "seconds": 124.5,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 6,
+    "preparations": 1,
+    "sessions": [
+      [
+        "sun",
+        55,
+        1
+      ]
+    ],
+    "shopping_lines": 29,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 4,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet rôti, couscous, courgettes et poivrons, concombre et yaourt": 1,
+      "Poulet rôti, couscous, courgettes et poivrons, tomate et feta": 1,
+      "Poulet rôti, couscous, courgettes et poivrons, laitue et œuf": 1,
+      "Poulet rôti, couscous, courgettes et poivrons, yaourt et olives": 1
+    },
+    "breakfast_titles": [
+      "Cottage cheese, pain complet, pomme et amandes",
+      "Skyr, flocons d'avoine, poire et noix"
+    ],
+    "yogurt_snack_titles": [
+      "Skyr, flocons d'avoine, poire et noix"
+    ],
+    "explanation": null,
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/29",
+      "raw_keeping_needs_later_shop: 0/1 preparations",
+      "shopping_list_unattributed: 3/29 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "uses_kept_freezer: 0/4"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 64983,
+        "output_tokens": 7682,
+        "status": "success"
+      },
+      {
+        "source": "generate-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 1632,
+        "output_tokens": 70,
+        "status": "success"
+      },
+      {
+        "source": "generate-meal-v1.composition_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 57199,
+        "output_tokens": 6403,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A02-duo7",
+    "http": 409,
+    "seconds": 0.5,
+    "code_unchanged": true,
+    "error": "plan_overlaps_existing",
+    "requested_days": 7,
+    "window": null,
+    "timing": null,
+    "dishes": 0,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [],
+    "yogurt_snack_titles": [],
+    "explanation": null,
+    "rationale": null,
+    "request_report": null,
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [],
+    "llm_calls": [],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A03-vegan4-7-r1",
+    "http": 200,
+    "seconds": 174.8,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 36,
+    "preparations": 12,
+    "sessions": [
+      [
+        "sun",
+        60,
+        4
+      ],
+      [
+        "tue",
+        60,
+        4
+      ],
+      [
+        "thu",
+        60,
+        4
+      ]
+    ],
+    "shopping_lines": 31,
+    "grocery_dates": [
+      "2026-09-06",
+      "2026-09-07"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 36,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [
+      {
+        "dish": "Couscous, ratatouille, poulet ou tofu",
+        "eaten": "wed",
+        "preparation": "prep_couscous_thu",
+        "cooked": "thu"
+      },
+      {
+        "dish": "Ratatouille, couscous, poulet ou tofu",
+        "eaten": "wed",
+        "preparation": "prep_couscous_thu",
+        "cooked": "thu"
+      }
+    ],
+    "repeated_main_titles": {
+      "Quinoa, légumes rôtis, poulet ou tofu": 1,
+      "Légumes rôtis, quinoa, poulet ou tofu": 1,
+      "Galette complète, légumes, poulet ou tofu": 1,
+      "Quinoa, salade, poulet ou tofu": 1,
+      "Pommes de terre, haricots verts, poulet ou tofu": 2,
+      "Couscous, ratatouille, poulet ou tofu": 1,
+      "Ratatouille, couscous, poulet ou tofu": 1,
+      "Couscous, légumes rôtis, poulet ou tofu": 1,
+      "Couscous, légumes rôtis, poisson ou tofu": 3
+    },
+    "breakfast_titles": [
+      "Pain complet, haricots blancs et raisin",
+      "Pain complet, houmous et poire",
+      "Pain complet, houmous et pomme",
+      "Pain complet, houmous et prune",
+      "Pain complet, houmous et raisin"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt de soja et kiwi",
+      "Yaourt de soja et pêche",
+      "Yaourt de soja et raisin",
+      "Yaourt de soja et poire",
+      "Yaourt de soja et figue",
+      "Yaourt de soja et raisin",
+      "Yaourt de soja, fraises et noix",
+      "Yaourt de soja, prunes et graines",
+      "Yaourt de soja, figues et amandes",
+      "Yaourt de soja, pêches et graines",
+      "Yaourt de soja, prunes et noix"
+    ],
+    "explanation": {
+      "lines": [
+        "La base commune reste végétale, tandis que les protéines animales et le tofu sont séparés dans les boîtes afin que chacun ait une assiette complète.",
+        "J'ai privilégié des fruits et légumes français de fin d'été quand ils convenaient aux préparations, sans compliquer les repas.",
+        "Le poisson est acheté près de la session du jeudi, car il ne doit pas attendre plusieurs jours au réfrigérateur."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+        "Les quantités sont faites pour 4 bouches.",
+        "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 12,
+        "kept": 12,
+        "refused": 0,
+        "bites": 12,
+        "separated": 12,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 12,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 139,
+        "groups_valid": 139,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 78,
+        "group_undecided": 51
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0
+      },
+      "swap": {
+        "strictest": "vegan",
+        "bound_mouths": 1,
+        "free_mouths": 3,
+        "cells_checked": 12,
+        "cells_carrying": 12,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 4,
+        "expected": 102,
+        "fed": 102,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": true,
+        "retry_attempts": 1,
+        "retry_accepted": 1,
+        "retry_merged_cells": 5,
+        "retry_on": {
+          "held_off_regime": 5
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 36,
+        "common": 12,
+        "items": 96,
+        "sized": 92,
+        "unchanged": 4,
+        "capped_by_pot": 8,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 2,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 4,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 2,
+          "day_incomplete": 2,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 8,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 12
+        },
+        "anchor_applied": 20,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 2,
+          "both": 8,
+          "not_anchored": 14
+        },
+        "unmet_band": {
+          "lt_200": 1,
+          "gte_200": 9
+        },
+        "densify": {
+          "mouth_days": 8,
+          "boxes_touched": 11,
+          "moved_g": 680,
+          "closed_kcal": 701,
+          "stopped": {
+            "closed": 0,
+            "floor": 5,
+            "ceiling": 0,
+            "pot_exhausted": 3,
+            "no_dense_target": 0,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 8
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 4,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 4,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 4
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 4
+        },
+        "appetite": {
+          "declared": 4,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+      "freeze_on_purchase: 0/31",
+      "raw_keeping_needs_later_shop: 0/12 preparations",
+      "preparations[prep_quinoa_sun]: the sized meals would take 2266 g but the batch makes about 1590 g, every share that draws on it scaled back to fit",
+      "preparations[prep_roasted_veg_sun]: the sized meals would take 2427 g but the batch makes about 1508 g, every share that draws on it scaled back to fit",
+      "preparations[prep_chicken_sun]: the sized meals would take 1760 g but the batch makes about 1503 g, every share that draws on it scaled back to fit",
+      "preparations[prep_potatoes_tue]: the sized meals would take 1761 g but the batch makes about 1125 g, every share that draws on it scaled back to fit",
+      "preparations[prep_greenbeans_tue]: the sized meals would take 1490 g but the batch makes about 1091 g, every share that draws on it scaled back to fit",
+      "preparations[prep_chicken_tue]: the sized meals would take 1922 g but the batch makes about 1200 g, every share that draws on it scaled back to fit",
+      "preparations[prep_couscous_thu]: the sized meals would take 5037 g but the batch makes about 3308 g, every share that draws on it scaled back to fit",
+      "preparations[prep_roasted_veg_thu]: the sized meals would take 3620 g but the batch makes about 2175 g, every share that draws on it scaled back to fit",
+      "dishes[1]: name repeats the title (\"Pomme et amandes\") -- dropped, one line is enough",
+      "dishes[3]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[5]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[7]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[9]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[13]: name repeats the title (\"Banane et noisettes\") -- dropped, one line is enough",
+      "dishes[13]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[15]: name repeats the title (\"Pêches et amandes\") -- dropped, one line is enough",
+      "dishes[15]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[17]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[19]: name repeats the title (\"Poire et noix\") -- dropped, one line is enough",
+      "dishes[19]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[20].uses: unknown preparation \"prep_ratatouille_thu\", dropped",
+      "dishes[20].boxes[\"box_wed_lunch_paul\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[20].boxes[\"box_wed_lunch_claire_leo\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[20].boxes[\"box_wed_lunch_nora\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[21]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[22].uses: unknown preparation \"prep_ratatouille_thu\", dropped",
+      "dishes[22].boxes[\"box_wed_dinner_paul\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[22].boxes[\"box_wed_dinner_claire_leo\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[22].boxes[\"box_wed_dinner_nora\"]: item \"ratatouille\" draws on \"prep_ratatouille_thu\", which is not a preparation of this plan, dropped",
+      "dishes[23]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[25]: name repeats the title (\"Prune et noisettes\") -- dropped, one line is enough",
+      "dishes[25]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[27]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[29]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[31]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[33]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[35]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "shopping_list_unattributed: 8/39 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "\"Couscous, ratatouille, poulet ou tofu\" (wed) eats from \"Couscous aux herbes\", cooked on thu -- after the meal",
+      "\"Ratatouille, couscous, poulet ou tofu\" (wed) eats from \"Couscous aux herbes\", cooked on thu -- after the meal",
+      "preparations[0]: the meals that take from \"Quinoa aux herbes\" hold 2400 g but it makes about 1590 g ready -- the boxes cannot all be filled",
+      "preparations[1]: the meals that take from \"Légumes rôtis du dimanche\" hold 2600 g but it makes about 1410 g ready -- the boxes cannot all be filled",
+      "preparations[2]: the meals that take from \"Poulet rôti aux herbes\" hold 1800 g but it makes about 595 g ready -- the boxes cannot all be filled",
+      "preparations[4]: the meals that take from \"Pommes de terre rôties\" hold 1880 g but it makes about 1125 g ready -- the boxes cannot all be filled",
+      "preparations[5]: the meals that take from \"Haricots verts citronnés\" hold 1600 g but it makes about 840 g ready -- the boxes cannot all be filled",
+      "preparations[6]: the meals that take from \"Poulet du mardi\" hold 1800 g but it makes about 450 g ready -- the boxes cannot all be filled",
+      "preparations[8]: the meals that take from \"Couscous aux herbes\" hold 5280 g but it makes about 2110 g ready -- the boxes cannot all be filled",
+      "preparations[9]: the meals that take from \"Légumes rôtis du jeudi\" hold 4240 g but it makes about 1740 g ready -- the boxes cannot all be filled",
+      "uses_kept_freezer: 14/44"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 130130,
+        "output_tokens": 17634,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 41123,
+        "output_tokens": 4794,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2406,
+        "output_tokens": 313,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A03-vegan4-7-r2",
+    "http": 200,
+    "seconds": 229.0,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 36,
+    "preparations": 11,
+    "sessions": [
+      [
+        "sun",
+        60,
+        5
+      ],
+      [
+        "tue",
+        60,
+        3
+      ],
+      [
+        "thu",
+        55,
+        3
+      ]
+    ],
+    "shopping_lines": 25,
+    "grocery_dates": [
+      "2026-09-06",
+      "2026-09-07"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 42,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet, pommes de terre, courgettes et haricots verts": 2,
+      "Poulet, légumes rôtis et pommes de terre": 2,
+      "Bœuf, pâtes, aubergine et tomate": 3,
+      "Bœuf, salade, tomate et pain complet": 1,
+      "Poisson, couscous, poivrons et courgettes": 4
+    },
+    "breakfast_titles": [
+      "Flocons d’avoine, yaourt au soja, prunes et graines",
+      "Flocons d’avoine, yaourt au soja, raisin et noix",
+      "Œufs, pommes de terre et courgettes"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt au soja, prunes et amandes",
+      "Yaourt au soja et kiwi",
+      "Yaourt au soja, pêches et graines",
+      "Yaourt au soja et kiwi",
+      "Flocons d’avoine, yaourt au soja, raisin et noix",
+      "Yaourt au soja, pêche et noisettes",
+      "Compote de poire et yaourt au soja",
+      "Flocons d’avoine, yaourt au soja, raisin et noix",
+      "Yaourt au soja, raisin et amandes",
+      "Yaourt au soja et kiwi",
+      "Flocons d’avoine, yaourt au soja, prunes et graines",
+      "Yaourt au soja, prunes et noix",
+      "Yaourt au soja et poire",
+      "Flocons d’avoine, yaourt au soja, raisin et noix",
+      "Yaourt au soja, pêche et amandes",
+      "Yaourt au soja et pêche"
+    ],
+    "explanation": {
+      "lines": [
+        "Le socle des repas est végétal, tandis que les protéines animales restent séparées dans les boîtes prévues, afin que chacun reçoive la même assiette de base.",
+        "Les petits-déjeuners et collations privilégient les assemblages sans cuisson pour garder les horaires réguliers entre les trois sessions."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+        "Ce qui se cuisine jeudi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+        "Les quantités sont faites pour 4 bouches.",
+        "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+        "Nora : 18 repas sur 24. Il manque dimanche au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 24. Il manque lundi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 24. Il manque mardi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 24. Il manque mercredi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 24. Il manque jeudi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 24. Il manque vendredi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 14,
+        "kept": 12,
+        "refused": 2,
+        "bites": 14,
+        "separated": 12,
+        "not_separated": 2,
+        "silenced": 0,
+        "silenced_homograph": 6,
+        "silenced_spelling": 6,
+        "unknown_mouth": 0,
+        "box_scoped": 14,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 144,
+        "groups_valid": 135,
+        "groups_refused": 9,
+        "group_excluded": 2,
+        "group_plant_only": 88,
+        "group_undecided": 30
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0
+      },
+      "swap": {
+        "strictest": "vegan",
+        "bound_mouths": 1,
+        "free_mouths": 3,
+        "cells_checked": 12,
+        "cells_carrying": 12,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 4,
+        "expected": 102,
+        "fed": 96,
+        "missing": 6,
+        "by_cause": {
+          "held_off_regime": 6,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": true,
+        "retry_attempts": 2,
+        "retry_accepted": 1,
+        "retry_merged_cells": 2,
+        "retry_on": {
+          "held_off_regime": 14
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": [
+          {
+            "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+            "expected": 24,
+            "fed": 18,
+            "missing": [
+              {
+                "day": "sun",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "mon",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "tue",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "wed",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "thu",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "fri",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              }
+            ]
+          }
+        ]
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 42,
+        "common": 14,
+        "items": 90,
+        "sized": 90,
+        "unchanged": 0,
+        "capped_by_pot": 3,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 2,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 4,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 12,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 12
+        },
+        "anchor_applied": 28,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 12,
+          "not_anchored": 12
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 12
+        },
+        "densify": {
+          "mouth_days": 12,
+          "boxes_touched": 22,
+          "moved_g": 1721,
+          "closed_kcal": 1243,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 6,
+            "pot_exhausted": 0,
+            "no_dense_target": 6,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 12
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 4,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 4,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 4
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 4
+        },
+        "appetite": {
+          "declared": 4,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+      "freeze_on_purchase: 0/25",
+      "raw_keeping_needs_later_shop: 1/11 preparations",
+      "preparations[prep_roast_veg_sun]: the sized meals would take 6380 g but the batch makes about 4005 g, every share that draws on it scaled back to fit",
+      "preparations[prep_pasta_tue]: the sized meals would take 4841 g but the batch makes about 3710 g, every share that draws on it scaled back to fit",
+      "preparations[prep_couscous_thu]: the sized meals would take 6274 g but the batch makes about 4005 g, every share that draws on it scaled back to fit",
+      "dishes[0].boxes[\"box_sun_breakfast_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Œufs, pommes de terre et courgettes\" breaks that line (Œufs) -- mouth dropped from the box",
+      "dishes[0].boxes[\"box_sun_breakfast_nora\"]: every mouth on it is held off \"Œufs, pommes de terre et courgettes\" by their declared line, dropped",
+      "dishes[6].boxes[\"box_mon_breakfast_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Œufs, pommes de terre et courgettes\" breaks that line (Œufs) -- mouth dropped from the box",
+      "dishes[6].boxes[\"box_mon_breakfast_nora\"]: every mouth on it is held off \"Œufs, pommes de terre et courgettes\" by their declared line, dropped",
+      "dishes[7]: name repeats the title (\"Poire et noisettes\") -- dropped, one line is enough",
+      "dishes[13]: name repeats the title (\"Banane et amandes\") -- dropped, one line is enough",
+      "dishes[19]: name repeats the title (\"Pomme et noix\") -- dropped, one line is enough",
+      "dishes[25]: name repeats the title (\"Poire et noisettes\") -- dropped, one line is enough",
+      "dishes[31]: name repeats the title (\"Banane et noix\") -- dropped, one line is enough",
+      "shopping_list_unattributed: 19/39 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "structured_quantity_missing: 1/104 ingredients",
+      "unquantified_terms: cannelle",
+      "preparations[1]: the meals that take from \"Poulet rôti\" hold 1860 g but it makes about 1035 g ready -- the boxes cannot all be filled",
+      "preparations[3]: the meals that take from \"Légumes rôtis du dimanche\" hold 6800 g but it makes about 4005 g ready -- the boxes cannot all be filled",
+      "preparations[6]: the meals that take from \"Pâtes aux aubergines et tomates\" hold 5120 g but it makes about 3710 g ready -- the boxes cannot all be filled",
+      "preparations[7]: the meals that take from \"Poisson blanc rôti\" hold 1980 g but it makes about 1290 g ready -- the boxes cannot all be filled",
+      "preparations[9]: the meals that take from \"Couscous aux légumes\" hold 6800 g but it makes about 4005 g ready -- the boxes cannot all be filled",
+      "sun/breakfast: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "mon/breakfast: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "uses_kept_freezer: 0/36"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 137527,
+        "output_tokens": 17433,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 55071,
+        "output_tokens": 8599,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 32670,
+        "output_tokens": 4100,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2494,
+        "output_tokens": 198,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A03-vegan4-7-r3",
+    "http": 200,
+    "seconds": 86.3,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 24,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [
+      "Flocons d’avoine, yaourt de soja, poire et noix",
+      "Flocons d’avoine, yaourt de soja, poires et noisettes",
+      "Flocons d’avoine, yaourt de soja, pomme et amandes",
+      "Flocons d’avoine, yaourt de soja, prunes et graines",
+      "Pain complet, houmous, tomate et pêche",
+      "Pain complet, tartinade de haricots blancs, concombre et raisin"
+    ],
+    "yogurt_snack_titles": [
+      "Flocons d’avoine, yaourt de soja, poire et noix",
+      "Flocons d’avoine, yaourt de soja, pomme et amandes",
+      "Flocons d’avoine, yaourt de soja, prunes et graines",
+      "Flocons d’avoine, yaourt de soja, poires et noisettes",
+      "Yaourt de soja, banane et graines de courge",
+      "Yaourt de soja, prunes et noix",
+      "Yaourt de soja, poire et graines de tournesol",
+      "Yaourt de soja, kiwi et noix",
+      "Yaourt de soja, pomme et cannelle",
+      "Yaourt de soja, prunes et graines",
+      "Yaourt de soja, banane et amandes",
+      "Yaourt de soja, poire et noisettes",
+      "Yaourt de soja, raisin et noix"
+    ],
+    "explanation": {
+      "lines": [
+        "J’ai retenu des collations sans cuisson et des petits-déjeuners majoritairement végétaux pour garder les six rendez-vous alimentaires réalisables dans la semaine."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Sur dimanche, lundi, mardi, mercredi, jeudi et vendredi, le déjeuner et le dîner n'ont pas été composés.",
+        "Les quantités sont faites pour 4 bouches.",
+        "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+        "Nora : 6 repas sur 12. Il manque dimanche au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 6 repas sur 12. Il manque lundi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 6 repas sur 12. Il manque lundi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 6 repas sur 12. Il manque mercredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 6 repas sur 12. Il manque vendredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 6 repas sur 12. Il manque vendredi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 0,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 71,
+        "groups_valid": 71,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 0,
+        "group_undecided": 0
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0
+      },
+      "swap": {
+        "strictest": "vegan",
+        "bound_mouths": 1,
+        "free_mouths": 3,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 4,
+        "expected": 54,
+        "fed": 48,
+        "missing": 6,
+        "by_cause": {
+          "held_off_regime": 6,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 12,
+        "retried": false,
+        "retry_attempts": 1,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {
+          "held_off_regime": 6
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": [
+          {
+            "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+            "expected": 12,
+            "fed": 6,
+            "missing": [
+              {
+                "day": "sun",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "mon",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "mon",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "wed",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "fri",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "fri",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              }
+            ]
+          }
+        ]
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 0,
+        "common": 0,
+        "items": 0,
+        "sized": 0,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 2,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 4,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 0
+        },
+        "anchor_applied": 0,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 0
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 0
+        },
+        "densify": {
+          "mouth_days": 0,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 0,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 0
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 4,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 4,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 4
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 4
+        },
+        "appetite": {
+          "declared": 4,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 0 (none)",
+      "freeze_on_purchase: 0/0",
+      "dishes[6]: name repeats the title (\"Pomme et noix\") -- dropped, one line is enough",
+      "dishes[8]: name repeats the title (\"Raisin et noix\") -- dropped, one line is enough",
+      "dishes[8]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[9]: name repeats the title (\"Prunes et noisettes\") -- dropped, one line is enough",
+      "dishes[9]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[10]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[11]: name repeats the title (\"Raisin et amandes\") -- dropped, one line is enough",
+      "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[15]: name repeats the title (\"Banane et cacahuètes\") -- dropped, one line is enough",
+      "dishes[15]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "empty_slots: sun/lunch, sun/dinner, mon/lunch, mon/dinner, tue/lunch, tue/dinner, wed/lunch, wed/dinner, thu/lunch, thu/dinner, fri/lunch, fri/dinner"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 41934,
+        "output_tokens": 5770,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 41060,
+        "output_tokens": 4998,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2389,
+        "output_tokens": 77,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A03-vegan4-7-r4",
+    "http": 200,
+    "seconds": 246.3,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 36,
+    "preparations": 14,
+    "sessions": [
+      [
+        "sun",
+        60,
+        5
+      ],
+      [
+        "tue",
+        60,
+        5
+      ],
+      [
+        "thu",
+        60,
+        4
+      ]
+    ],
+    "shopping_lines": 29,
+    "grocery_dates": [
+      "2026-09-06",
+      "2026-09-07"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 51,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet, quinoa, courgettes et tomates": 3,
+      "Poulet, quinoa, concombre et tomates": 1,
+      "Dinde, semoule, aubergines et poivrons": 4,
+      "Bœuf, boulgour, haricots verts et tomates": 4
+    },
+    "breakfast_titles": [
+      "Flocons d'avoine, yaourt de soja et figues",
+      "Flocons d'avoine, yaourt de soja et poires",
+      "Flocons d'avoine, yaourt de soja et prunes",
+      "Flocons d'avoine, yaourt de soja et pêches",
+      "Flocons d'avoine, yaourt de soja et raisins"
+    ],
+    "yogurt_snack_titles": [
+      "Flocons d'avoine, yaourt de soja et prunes",
+      "Yaourt de soja et raisins",
+      "Yaourt de soja et poire",
+      "Yaourt de soja et figues",
+      "Yaourt de soja et pêches",
+      "Yaourt de soja et prunes",
+      "Yaourt de soja et raisins",
+      "Flocons d'avoine, yaourt de soja et prunes",
+      "Flocons d'avoine, yaourt de soja et poires",
+      "Flocons d'avoine, yaourt de soja et raisins",
+      "Flocons d'avoine, yaourt de soja et figues",
+      "Flocons d'avoine, yaourt de soja et pêches"
+    ],
+    "explanation": {
+      "lines": [
+        "J'ai gardé une base commune de céréales et de légumes, avec la protéine animale ou végétale séparée par boîte afin que chaque assiette reste cohérente.",
+        "Les trois sessions utilisent des légumes et des fruits de fin d'été, tout en variant les protéines et les formes pour éviter trois jours identiques."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+        "Ce qui se cuisine jeudi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+        "Les quantités sont faites pour 4 bouches.",
+        "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 12,
+        "kept": 0,
+        "refused": 12,
+        "bites": 12,
+        "separated": 0,
+        "not_separated": 12,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 12,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 112,
+        "groups_valid": 112,
+        "groups_refused": 0,
+        "group_excluded": 12,
+        "group_plant_only": 108,
+        "group_undecided": 84
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0
+      },
+      "swap": {
+        "strictest": "vegan",
+        "bound_mouths": 1,
+        "free_mouths": 3,
+        "cells_checked": 12,
+        "cells_carrying": 12,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 4,
+        "expected": 102,
+        "fed": 102,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": true,
+        "retry_attempts": 1,
+        "retry_accepted": 1,
+        "retry_merged_cells": 17,
+        "retry_on": {
+          "held_off_regime": 17
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 51,
+        "common": 17,
+        "items": 91,
+        "sized": 89,
+        "unchanged": 2,
+        "capped_by_pot": 3,
+        "unverifiable": 1,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 2,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 4,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 4,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 8,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 12
+        },
+        "anchor_applied": 22,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 8,
+          "not_anchored": 16
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 8
+        },
+        "densify": {
+          "mouth_days": 8,
+          "boxes_touched": 8,
+          "moved_g": 716,
+          "closed_kcal": 137,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 1,
+            "pot_exhausted": 7,
+            "no_dense_target": 0,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 8
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 4,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 4,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 4
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 4
+        },
+        "appetite": {
+          "declared": 4,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+      "freeze_on_purchase: 0/29",
+      "raw_keeping_needs_later_shop: 1/14 preparations",
+      "preparations[prep_quinoa_sun__r]: the sized meals would take 6660 g but the batch makes about 4392 g, every share that draws on it scaled back to fit",
+      "preparations[prep_couscous_tue__r]: the sized meals would take 6752 g but the batch makes about 4466 g, every share that draws on it scaled back to fit",
+      "preparations[prep_bulgur_thu__r]: the sized meals would take 6660 g but the batch makes about 4395 g, every share that draws on it scaled back to fit",
+      "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[7]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[8]: name repeats the title (\"Raisins et noisettes\") -- dropped, one line is enough",
+      "dishes[8]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[9]: name repeats the title (\"Figues et noix\") -- dropped, one line is enough",
+      "dishes[9]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[10]: name repeats the title (\"Abricots et amandes\") -- dropped, one line is enough",
+      "dishes[10]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[12]: name repeats the title (\"Pomme et noix\") -- dropped, one line is enough",
+      "dishes[12]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[13]: name repeats the title (\"Poires et noisettes\") -- dropped, one line is enough",
+      "dishes[13]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[14]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[15]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[16]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[17]: name repeats the title (\"Prunes et noisettes\") -- dropped, one line is enough",
+      "dishes[17]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[24].boxes[\"box_sun_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+      "dishes[25].boxes[\"box_sun_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+      "dishes[26].boxes[\"box_mon_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, concombre et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+      "dishes[27].boxes[\"box_mon_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Poulet, quinoa, courgettes et tomates\" breaks that line (poulet) -- mouth dropped from the box",
+      "dishes[28].boxes[\"box_tue_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+      "dishes[29].boxes[\"box_tue_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+      "dishes[30].boxes[\"box_wed_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+      "dishes[31].boxes[\"box_wed_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Dinde, semoule, aubergines et poivrons\" breaks that line (dinde) -- mouth dropped from the box",
+      "dishes[32].boxes[\"box_thu_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+      "dishes[33].boxes[\"box_thu_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+      "dishes[34].boxes[\"box_fri_lunch_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+      "dishes[35].boxes[\"box_fri_dinner_claire_leo_nora\"]: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" is vegan and \"Bœuf, boulgour, haricots verts et tomates\" breaks that line (bœuf) -- mouth dropped from the box",
+      "shopping_list_unattributed: 6/36 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "preparations[0]: the meals that take from \"Poulet rôti\" hold 1800 g but it makes about 505 g ready -- the boxes cannot all be filled",
+      "preparations[1]: the meals that take from \"Tofu rôti\" hold 600 g but it makes about 525 g ready -- the boxes cannot all be filled",
+      "preparations[2]: the meals that take from \"Quinoa cuit\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+      "preparations[3]: the meals that take from \"Courgettes et tomates rôties\" hold 3520 g but it makes about 1170 g ready -- the boxes cannot all be filled",
+      "preparations[4]: the meals that take from \"Boulettes de dinde\" hold 1800 g but it makes about 589 g ready -- the boxes cannot all be filled",
+      "preparations[5]: the meals that take from \"Tofu aux épices\" hold 600 g but it makes about 525 g ready -- the boxes cannot all be filled",
+      "preparations[6]: the meals that take from \"Semoule cuite\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+      "preparations[7]: the meals that take from \"Aubergines et poivrons rôtis\" hold 3520 g but it makes about 1020 g ready -- the boxes cannot all be filled",
+      "preparations[10]: the meals that take from \"Boulgour cuit\" hold 3520 g but it makes about 780 g ready -- the boxes cannot all be filled",
+      "preparations[11]: the meals that take from \"Haricots verts et tomates\" hold 3520 g but it makes about 1070 g ready -- the boxes cannot all be filled",
+      "sun/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "sun/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "mon/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "mon/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "tue/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "tue/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "wed/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "wed/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "thu/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "thu/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "fri/lunch: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "fri/dinner: \"89fbc19f-57e2-4a0b-8ae0-9c7452b79f71\" has no box at that meal -- held off it by their declared line",
+      "uses_kept_freezer: 0/48",
+      "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_chicken_sun",
+      "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_turkey_tue",
+      "share_for_unknown_preparation:b60378e6-1956-4dbd-b8dc-7480578a8282:prep_beef_thu",
+      "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_chicken_sun",
+      "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_turkey_tue",
+      "share_for_unknown_preparation:620d929d-3c61-4af5-8575-150442486648:prep_beef_thu",
+      "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_chicken_sun",
+      "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_turkey_tue",
+      "share_for_unknown_preparation:49375b46-a94a-43d3-8a3e-e2df1a8151cf:prep_beef_thu",
+      "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_sun",
+      "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_tue",
+      "share_for_unknown_preparation:89fbc19f-57e2-4a0b-8ae0-9c7452b79f71:prep_tofu_thu"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 138934,
+        "output_tokens": 15631,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 103738,
+        "output_tokens": 11380,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2332,
+        "output_tokens": 72,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A03-vegan4-7",
+    "http": 0,
+    "seconds": 300.9,
+    "code_unchanged": true,
+    "error": "TypeError: fetch failed",
+    "requested_days": 7,
+    "window": null,
+    "timing": null,
+    "dishes": 0,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [],
+    "yogurt_snack_titles": [],
+    "explanation": null,
+    "rationale": null,
+    "request_report": null,
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [],
+    "llm_calls": [],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A04-allergy5-7-r1",
+    "http": 546,
+    "seconds": 225.5,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": null,
+    "timing": null,
+    "dishes": 0,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [],
+    "yogurt_snack_titles": [],
+    "explanation": null,
+    "rationale": null,
+    "request_report": null,
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 104547,
+        "output_tokens": 17164,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A05-vegan-one-session",
+    "http": 200,
+    "seconds": 169.3,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 34,
+    "preparations": 11,
+    "sessions": [
+      [
+        "sun",
+        120,
+        11
+      ]
+    ],
+    "shopping_lines": 41,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 30,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Saumon, couscous, courgettes et tomates": 1,
+      "Poulet, riz, poivrons et haricots verts": 1,
+      "Poulet, riz, salade de concombre et tomates": 1,
+      "Saumon, pommes de terre et courgettes": 1,
+      "Poulet, couscous, aubergine et courgette": 1,
+      "Bœuf, riz, poivrons et haricots verts": 1,
+      "Dinde, couscous, courgettes et poivrons": 1,
+      "Dinde, riz, tomates et haricots verts": 1,
+      "Dinde, pommes de terre, courgettes et salade": 1,
+      "Saumon, riz, aubergine et tomates": 1
+    },
+    "breakfast_titles": [
+      "Flocons d’avoine, yaourt de soja et prunes",
+      "Flocons d’avoine, yaourt de soja et raisin",
+      "Pain complet, haricots blancs écrasés et concombre",
+      "Pain complet, houmous et tomates",
+      "Yaourt de soja, poire, avoine et noisettes",
+      "Yaourt de soja, pomme, avoine et amandes"
+    ],
+    "yogurt_snack_titles": [
+      "Flocons d’avoine, yaourt de soja et prunes",
+      "Yaourt de soja, pomme, avoine et amandes",
+      "Yaourt de soja, poire, avoine et noisettes",
+      "Flocons d’avoine, yaourt de soja et raisin",
+      "Yaourt de soja et fruits rouges",
+      "Yaourt de soja, poire et graines de chia",
+      "Yaourt de soja, prunes et amandes",
+      "Yaourt de soja, pêche et noisettes",
+      "Yaourt de soja, raisin et graines de courge"
+    ],
+    "explanation": {
+      "lines": [
+        "J’ai gardé une base végétale commune et séparé les protéines dans les boîtes afin que chaque assiette reste cohérente avec les différentes lignes alimentaires.",
+        "J’ai varié les céréales, les pommes de terre, les légumes et les présentations pour que les préparations du dimanche ne deviennent pas le même repas chaque jour.",
+        "Les repas de fin de semaine sortent du congélateur la veille, car une seule session doit couvrir tout l’intervalle."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Tout est cuisiné dimanche, en une seule fois : ce qui ne tiendrait pas au frais jusqu'au repas part au congélateur.",
+        "Sur mercredi, le déjeuner et le dîner n'ont pas été composés.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "La session de dimanche prendra plutôt 2 h que 1 h : c'est ton seul jour de cuisine, et cuisiner moins laisserait des jours vides.",
+        "Les quantités sont faites pour 4 bouches.",
+        "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+        "Nora : 18 repas sur 22. Il manque dimanche au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 22. Il manque mardi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 22. Il manque jeudi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Nora : 18 repas sur 22. Il manque vendredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 10,
+        "kept": 10,
+        "refused": 0,
+        "bites": 10,
+        "separated": 10,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 10,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 125,
+        "groups_valid": 121,
+        "groups_refused": 4,
+        "group_excluded": 0,
+        "group_plant_only": 67,
+        "group_undecided": 26
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0
+      },
+      "swap": {
+        "strictest": "vegan",
+        "bound_mouths": 1,
+        "free_mouths": 3,
+        "cells_checked": 10,
+        "cells_carrying": 10,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 4,
+        "expected": 94,
+        "fed": 90,
+        "missing": 4,
+        "by_cause": {
+          "held_off_regime": 4,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 2,
+        "retried": false,
+        "retry_attempts": 1,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {
+          "held_off_regime": 4
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": [
+          {
+            "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+            "expected": 22,
+            "fed": 18,
+            "missing": [
+              {
+                "day": "sun",
+                "slot": "snack_pm",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "tue",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "thu",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              },
+              {
+                "day": "fri",
+                "slot": "breakfast",
+                "cause": "held_off_regime"
+              }
+            ]
+          }
+        ]
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 30,
+        "common": 10,
+        "items": 60,
+        "sized": 60,
+        "unchanged": 0,
+        "capped_by_pot": 1,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 2,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 4,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 10,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 10
+        },
+        "anchor_applied": 20,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 10,
+          "not_anchored": 10
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 10
+        },
+        "densify": {
+          "mouth_days": 10,
+          "boxes_touched": 16,
+          "moved_g": 1150,
+          "closed_kcal": 994,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 8,
+            "pot_exhausted": 2,
+            "no_dense_target": 0,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 10
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 4,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 4,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 4
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 4
+        },
+        "appetite": {
+          "declared": 4,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/41",
+      "raw_keeping_needs_later_shop: 0/11 preparations",
+      "one_cooking_session: 1/1 sessions returned",
+      "preparations[prep_rice]: the sized meals would take 7810 g but the batch makes about 4620 g, every share that draws on it scaled back to fit",
+      "dishes[6]: name repeats the title (\"Pêche et noix\") -- dropped, one line is enough",
+      "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[7]: name repeats the title (\"Pomme et amandes\") -- dropped, one line is enough",
+      "dishes[7]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[8]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[9]: name repeats the title (\"Poire et noix\") -- dropped, one line is enough",
+      "dishes[9]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[10]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[11]: name repeats the title (\"Pomme et noisettes\") -- dropped, one line is enough",
+      "dishes[11]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[14]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[17]: name repeats the title (\"Raisin et noix\") -- dropped, one line is enough",
+      "dishes[17]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[22]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[30]: \"Pommes de terre et légumes rôtis\" is cooked on sun and would still be eaten on wed -- 3 days in the fridge, over the 3-day limit -- dropped",
+      "dishes[31]: \"Couscous aux légumes\" is cooked on sun and would still be eaten on wed -- 3 days in the fridge, over the 3-day limit -- dropped",
+      "shopping_list_unattributed: 5/41 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "cooking session on sun runs 120 min, but they said they have about 60",
+      "preparations[1]: the meals that take from \"Riz aux légumes\" hold 8000 g but it makes about 4620 g ready -- the boxes cannot all be filled",
+      "preparations[3]: the meals that take from \"Poulet rôti aux herbes\" hold 1350 g but it makes about 510 g ready -- the boxes cannot all be filled",
+      "preparations[5]: the meals that take from \"Saumon au four\" hold 1350 g but it makes about 635 g ready -- the boxes cannot all be filled",
+      "preparations[9]: the meals that take from \"Dinde rôtie\" hold 1350 g but it makes about 510 g ready -- the boxes cannot all be filled",
+      "empty_slots: wed/lunch, wed/dinner",
+      "uses_kept_freezer: 12/30"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 125752,
+        "output_tokens": 16263,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 42634,
+        "output_tokens": 4515,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A06-allergy-pizza-r2",
+    "http": 200,
+    "seconds": 271.2,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 16,
+    "preparations": 5,
+    "sessions": [
+      [
+        "sun",
+        115,
+        2
+      ],
+      [
+        "mon",
+        120,
+        3
+      ]
+    ],
+    "shopping_lines": 36,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 12,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Pois chiches, couscous et légumes rôtis": 2,
+      "Pizza aux légumes rôtis et mozzarella": 2,
+      "Raviolis aux champignons, épinards et ricotta": 1,
+      "Raviolis aux épinards et ricotta": 1,
+      "Tofu, légumes mijotés et pommes de terre": 2
+    },
+    "breakfast_titles": [
+      "Porridge au lait, skyr et prunes",
+      "Yaourt, flocons d'avoine et poire"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt, flocons d'avoine et poire",
+      "Skyr, poire et noix",
+      "Skyr, pêche et amandes",
+      "Porridge au lait, skyr et prunes",
+      "Yaourt nature et raisin",
+      "Yaourt, prunes et amandes"
+    ],
+    "explanation": {
+      "lines": [
+        "La pizza demandée est gardée avec une garniture de légumes de saison, et les raviolis aux champignons sont servis au déjeuner.",
+        "Pour la portion séparée, les raviolis sont remplacés par une version aux épinards afin de conserver le même rôle dans l'assiette.",
+        "Les préparations partagées restent végétariennes, avec des pois chiches, du fromage ou du tofu comme sources de protéines."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Tu avais prévu 3 courses ; le plan n'en organise que 2, une par session de cuisine — on ne va pas au magasin plus souvent qu'on ne cuisine. Rien ne t'empêche d'y retourner pour du frais.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 5 bouches.",
+        "Cette semaine, toute la table mange végétarien : c'est la ligne de Lea.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [
+        "Tu as demandé zoe : il n'y en a pas cette fois."
+      ],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 4,
+        "kept": 4,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 2,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 4,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 88,
+        "groups_valid": 88,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 19,
+        "group_undecided": 7
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 2,
+        "kept": 2,
+        "refused": 0,
+        "bites": 1,
+        "separated": 1,
+        "not_separated": 0,
+        "box_scoped": 2
+      },
+      "swap": {
+        "strictest": "vegetarian",
+        "bound_mouths": 1,
+        "free_mouths": 4,
+        "cells_checked": 4,
+        "cells_carrying": 0,
+        "cells_swap_absent": 4,
+        "flagrant": true,
+        "absent_cells": [
+          "sun/lunch",
+          "sun/dinner",
+          "mon/lunch",
+          "mon/dinner"
+        ],
+        "retry_attempts": 1,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 5,
+        "expected": 52,
+        "fed": 52,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": true,
+        "retry_attempts": 1,
+        "retry_accepted": 1,
+        "retry_merged_cells": 4,
+        "retry_on": {
+          "not_named": 4
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 12,
+        "common": 4,
+        "items": 12,
+        "sized": 12,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 5,
+        "mouths": {
+          "sized": 2,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 3,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 0,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 5,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 1,
+        "anchor": {
+          "anchored": 1,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 3,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 6
+        },
+        "anchor_applied": 8,
+        "unmet": {
+          "none": 1,
+          "factor_clamped": 3,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 6
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 3
+        },
+        "densify": {
+          "mouth_days": 3,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 3,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 3
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 5,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 5,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 5
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 5
+        },
+        "appetite": {
+          "declared": 5,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/36",
+      "raw_keeping_needs_later_shop: 0/5 preparations",
+      "preparations[3]: servings_made must be > 1, dropped",
+      "dishes[1]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[5]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[7]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[9]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[11]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[12]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, pêche et amandes\" (sun/before_bed) was dropped instead",
+      "dishes[13]: over the 12-dish cap for several_days, dropped",
+      "dishes[14]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Pizza aux légumes rôtis et mozzarella\" (sun/dinner) was dropped instead",
+      "dishes[15]: over the 12-dish cap for several_days, dropped",
+      "dishes[16]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Pois chiches, couscous et légumes rôtis\" (sun/lunch) was dropped instead",
+      "dishes[17]: over the 12-dish cap for several_days, dropped",
+      "dishes[18]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Fromage blanc et pomme\" (sun/snack_am) was dropped instead",
+      "dishes[18]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[19]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Yaourt, flocons d'avoine et poire\" (sun/breakfast) was dropped instead",
+      "dishes[20]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Fromage blanc, raisin et noix\" (mon/snack_pm) was dropped instead",
+      "dishes[21]: over the 12-dish cap for several_days, dropped",
+      "dishes[22]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, poire et noix\" (sun/snack_pm) was dropped instead",
+      "dishes[23]: over the 12-dish cap for several_days, dropped",
+      "shopping_list_unattributed: 6/32 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "dishes[8]: protein_source_missing -- lunch carries no protein food",
+      "sun/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "sun/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "mon/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "mon/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "uses_kept_freezer: 0/6",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_chickpea_couscous",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_pizza",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_ravioli_mushroom",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_tofu_ratatouille",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_chickpea_couscous",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_pizza",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_ravioli_plain",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_tofu_ratatouille",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_chickpea_couscous",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_pizza",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_ravioli_mushroom",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_tofu_ratatouille",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_chickpea_couscous",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_pizza",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_ravioli_mushroom",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_tofu_ratatouille",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_chickpea_couscous",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_pizza",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_ravioli_mushroom",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_tofu_ratatouille"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 80544,
+        "output_tokens": 12065,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 67566,
+        "output_tokens": 8337,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 52933,
+        "output_tokens": 7053,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.swap_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 67031,
+        "output_tokens": 9460,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 1947,
+        "output_tokens": 186,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A06-allergy-pizza-r3",
+    "http": 200,
+    "seconds": 210.1,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 12,
+    "preparations": 4,
+    "sessions": [
+      [
+        "sun",
+        120,
+        3
+      ],
+      [
+        "mon",
+        105,
+        1
+      ]
+    ],
+    "shopping_lines": 33,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 12,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Raviolis aux champignons, épinards et parmesan": 1,
+      "Pizza aux courgettes, poivrons, tomates et mozzarella": 1,
+      "Curry de tofu, pois chiches, courgettes et riz": 2
+    },
+    "breakfast_titles": [
+      "Fromage blanc, avoine, raisin et graines",
+      "Yaourt, flocons d'avoine, poire et graines"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt, flocons d'avoine, poire et graines",
+      "Skyr, pêche et noix",
+      "Compote de pêches, skyr et amandes",
+      "Poire et yaourt nature",
+      "Yaourt, raisin et graines"
+    ],
+    "explanation": {
+      "lines": [
+        "La pizza demandée est placée dimanche, seul jour de la période où elle peut être préparée, plutôt que vendredi qui n'est pas dans l'étendue à remplir.",
+        "Les raviolis aux champignons sont conservés pour la table, tandis qu'une version au fromage est préparée séparément pour respecter la composition demandée à chacun.",
+        "Le shake de l'après-midi est fouetté à la fourchette, car la cuisine n'a pas de blender."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Tu avais prévu 3 courses ; le plan n'en organise que 2, une par session de cuisine — on ne va pas au magasin plus souvent qu'on ne cuisine. Rien ne t'empêche d'y retourner pour du frais.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 5 bouches.",
+        "Cette semaine, toute la table mange végétarien : c'est la ligne de Lea.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [
+        "Tu as demandé zoe : il n'y en a pas cette fois."
+      ],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 4,
+        "kept": 4,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 4,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 56,
+        "groups_valid": 56,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 22,
+        "group_undecided": 10
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 6,
+        "kept": 6,
+        "refused": 0,
+        "bites": 1,
+        "separated": 1,
+        "not_separated": 0,
+        "box_scoped": 6
+      },
+      "swap": {
+        "strictest": "vegetarian",
+        "bound_mouths": 1,
+        "free_mouths": 4,
+        "cells_checked": 4,
+        "cells_carrying": 0,
+        "cells_swap_absent": 4,
+        "flagrant": true,
+        "absent_cells": [
+          "sun/lunch",
+          "sun/dinner",
+          "mon/lunch",
+          "mon/dinner"
+        ],
+        "retry_attempts": 1,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 5,
+        "expected": 52,
+        "fed": 52,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": false,
+        "retry_attempts": 0,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {},
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 12,
+        "common": 4,
+        "items": 12,
+        "sized": 12,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 1,
+        "mouths": {
+          "sized": 2,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 3,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 0,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 5,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 1,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 4,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 6
+        },
+        "anchor_applied": 8,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 4,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 6
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 4
+        },
+        "densify": {
+          "mouth_days": 4,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 4,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 4
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 5,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 5,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 5
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 5
+        },
+        "appetite": {
+          "declared": 5,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/33",
+      "raw_keeping_needs_later_shop: 0/4 preparations",
+      "dishes[1]: name repeats the title (\"Pomme et fromage\") -- dropped, one line is enough",
+      "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[10]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[12]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Curry de tofu, pois chiches, courgettes et riz\" (mon/lunch) was dropped instead",
+      "dishes[12]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[13]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Raviolis au fromage et épinards\" (sun/lunch) was dropped instead",
+      "dishes[14]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Abricots et cottage cheese\" (mon/snack_pm) was dropped instead",
+      "dishes[15]: over the 12-dish cap for several_days, dropped",
+      "dishes[16]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Boisson au lait, avoine, banane et graines de tournesol\" (sun/snack_pm) was dropped instead",
+      "dishes[17]: over the 12-dish cap for several_days, dropped",
+      "dishes[18]: over the 12-dish cap for several_days, dropped",
+      "shopping_list: 2 line(s) bought for a dish that is not in the plan -- removed (cottage cheese, abricots)",
+      "shopping_list_unattributed: 5/35 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "dishes[2]: protein_source_missing -- lunch carries no protein food",
+      "dishes[4]: protein_source_missing -- dinner carries no protein food",
+      "uses_kept_freezer: 0/6"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 60467,
+        "output_tokens": 9069,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 63177,
+        "output_tokens": 8832,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.swap_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 82588,
+        "output_tokens": 12411,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2796,
+        "output_tokens": 376,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A06-allergy-pizza-r4",
+    "http": 200,
+    "seconds": 279.1,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 17,
+    "preparations": 4,
+    "sessions": [
+      [
+        "sun",
+        120,
+        2
+      ],
+      [
+        "mon",
+        120,
+        2
+      ]
+    ],
+    "shopping_lines": 29,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 10,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Raviolis aux champignons, ricotta et épinards": 2,
+      "Pizza aux courgettes, tomates, champignons et mozzarella": 2,
+      "Couscous, légumes rôtis, pois chiches et feta": 2,
+      "Tofu, riz, courgettes et tomates au curry": 2
+    },
+    "breakfast_titles": [
+      "Couscous, légumes rôtis, pois chiches et feta",
+      "Skyr, flocons d’avoine, poire et graines"
+    ],
+    "yogurt_snack_titles": [
+      "Skyr, flocons d’avoine, poire et graines",
+      "Raisin et yaourt grec",
+      "Yaourt grec, prunes et graines de courge"
+    ],
+    "explanation": {
+      "lines": [
+        "La pizza demandée est conservée sous forme de pizza végétarienne, avec des garnitures de fin d’été et une protéine laitière pour compléter le plat.",
+        "Les raviolis aux champignons restent au menu ; une seconde garniture aux épinards permet de varier la boîte dédiée tout en gardant le même esprit de repas."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Tu avais prévu 3 courses ; le plan n'en organise que 2, une par session de cuisine — on ne va pas au magasin plus souvent qu'on ne cuisine. Rien ne t'empêche d'y retourner pour du frais.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 5 bouches.",
+        "Cette semaine, toute la table mange végétarien : c'est la ligne de Lea.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [
+        "Tu as demandé zoe : il n'y en a pas cette fois."
+      ],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 1,
+        "checked": 5,
+        "kept": 5,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 1,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 5,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 96,
+        "groups_valid": 89,
+        "groups_refused": 7,
+        "group_excluded": 0,
+        "group_plant_only": 26,
+        "group_undecided": 15
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 2,
+        "kept": 2,
+        "refused": 0,
+        "bites": 2,
+        "separated": 2,
+        "not_separated": 0,
+        "box_scoped": 2
+      },
+      "swap": {
+        "strictest": "vegetarian",
+        "bound_mouths": 1,
+        "free_mouths": 4,
+        "cells_checked": 4,
+        "cells_carrying": 0,
+        "cells_swap_absent": 4,
+        "flagrant": true,
+        "absent_cells": [
+          "sun/lunch",
+          "sun/dinner",
+          "mon/lunch",
+          "mon/dinner"
+        ],
+        "retry_attempts": 1,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 5,
+        "expected": 52,
+        "fed": 52,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": true,
+        "retry_attempts": 1,
+        "retry_accepted": 1,
+        "retry_merged_cells": 5,
+        "retry_on": {
+          "not_named": 5
+        },
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 10,
+        "common": 5,
+        "items": 14,
+        "sized": 14,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 4,
+        "mouths": {
+          "sized": 2,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 3,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 0,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 5,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 1,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 2,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 6
+        },
+        "anchor_applied": 5,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 2,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 6
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 2
+        },
+        "densify": {
+          "mouth_days": 2,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 2,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 2
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 5,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 5,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 5
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 5
+        },
+        "appetite": {
+          "declared": 5,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/29",
+      "raw_keeping_needs_later_shop: 0/4 preparations",
+      "dishes[1]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[2]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[5]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[7]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[9]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[11]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[12]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, pêche et graines de tournesol\" (sun/before_bed) was dropped instead",
+      "dishes[13]: over the 12-dish cap for several_days, dropped",
+      "dishes[14]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Pizza aux courgettes, tomates et mozzarella\" (sun/dinner) was dropped instead",
+      "dishes[14]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[15]: over the 12-dish cap for several_days, dropped",
+      "dishes[16]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Raviolis aux épinards, ricotta et courgettes\" (sun/lunch) was dropped instead",
+      "dishes[17]: over the 12-dish cap for several_days, dropped",
+      "dishes[18]: name repeats the title (\"Abricots et fromage blanc\") -- dropped, one line is enough",
+      "dishes[18]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Boisson au skyr, à l’avoine et à la banane\" (sun/snack_am) was dropped instead",
+      "dishes[19]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Skyr, poire, flocons d’avoine et graines de courge\" (sun/breakfast) was dropped instead",
+      "dishes[19]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[20]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Boisson au skyr, à la poire et aux graines de courge\" (mon/snack_pm) was dropped instead",
+      "dishes[21]: over the 12-dish cap for several_days, dropped",
+      "dishes[22]: over the 12-dish cap for several_days -- kept, and the surplus dish \"Boisson au skyr, à la banane et au cacao\" (sun/snack_pm) was dropped instead",
+      "dishes[23]: over the 12-dish cap for several_days, dropped",
+      "shopping_list: 3 line(s) bought for a dish that is not in the plan -- removed (graines de tournesol, boisson au soja, cacao non sucré)",
+      "shopping_list_unattributed: 5/40 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "dishes[2]: protein_source_missing -- lunch carries no protein food",
+      "dishes[4]: protein_source_missing -- dinner carries no protein food",
+      "sun/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "sun/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "mon/breakfast: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "mon/lunch: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "mon/dinner: \"398f89f0-6d43-4f12-8065-30948ced66bc\" has no box at that meal",
+      "uses_kept_freezer: 0/8",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_ravioli",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_pizza",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_couscous",
+      "share_for_unknown_preparation:fff0cc0e-e6ab-4391-acd8-ca9cbd35a554:prep_tofu_curry",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_ravioli_marc",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_pizza_marc",
+      "share_for_unknown_preparation:398f89f0-6d43-4f12-8065-30948ced66bc:prep_chicken",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_ravioli",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_pizza",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_couscous",
+      "share_for_unknown_preparation:38f9d4fc-ba81-4b52-b0d3-591efe83ea47:prep_tofu_curry",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_ravioli",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_pizza",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_couscous",
+      "share_for_unknown_preparation:3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f:prep_tofu_curry",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_ravioli",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_pizza",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_couscous",
+      "share_for_unknown_preparation:20a7dde3-b208-4567-9832-ab10ecda7eca:prep_tofu_curry"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 56636,
+        "output_tokens": 8119,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 83161,
+        "output_tokens": 12810,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.unfed_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 51097,
+        "output_tokens": 7801,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.swap_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 83810,
+        "output_tokens": 10776,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 3104,
+        "output_tokens": 433,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A06-allergy-pizza",
+    "http": 546,
+    "seconds": 230.9,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": null,
+    "timing": null,
+    "dishes": 0,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [],
+    "yogurt_snack_titles": [],
+    "explanation": null,
+    "rationale": null,
+    "request_report": null,
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 69719,
+        "output_tokens": 10789,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 80262,
+        "output_tokens": 11446,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.exclusion_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 57990,
+        "output_tokens": 8658,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "A07-solo-one-session",
+    "http": 200,
+    "seconds": 72.7,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 18,
+    "preparations": 4,
+    "sessions": [
+      [
+        "sun",
+        115,
+        4
+      ]
+    ],
+    "shopping_lines": 43,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 12,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet rôti, riz, courgette et tomates": 1,
+      "Saumon, pommes de terre, courgette et haricots verts": 1,
+      "Poulet rôti, pain complet, laitue et tomate": 1,
+      "Chili de dinde, riz et coriandre": 1,
+      "Saumon, pommes de terre, courgette et salade": 1,
+      "Chili de dinde, poivron cru et salade": 1,
+      "Poulet rôti, riz, haricots verts et salade": 1,
+      "Saumon, pommes de terre, courgette et tomates": 1,
+      "Chili de dinde, riz, courgette et coriandre": 1,
+      "Poulet rôti, pain complet, concombre et carotte": 1,
+      "Saumon, riz, tomates, haricots verts et œuf": 1,
+      "Chili de dinde, pain complet et salade de tomates": 1
+    },
+    "breakfast_titles": [
+      "Fromage blanc, figues, avoine et amandes",
+      "Fromage blanc, raisins, avoine et noisettes",
+      "Skyr, prunes, muesli d'avoine et noix",
+      "Skyr, pêche, avoine et noisettes",
+      "Yaourt grec, avoine, pomme et noix",
+      "Yaourt grec, poire, amandes et graines de chia"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt grec, avoine, pomme et noix",
+      "Yaourt grec, poire, amandes et graines de chia",
+      "Skyr, prunes, muesli d'avoine et noix",
+      "Skyr, pêche, avoine et noisettes"
+    ],
+    "explanation": null,
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Tout est cuisiné dimanche, en une seule fois : ce qui ne tiendrait pas au frais jusqu'au repas part au congélateur.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "La session de dimanche prendra plutôt 1 h 55 min que 1 h : c'est ton seul jour de cuisine, et cuisiner moins laisserait des jours vides."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/43",
+      "raw_keeping_needs_later_shop: 0/4 preparations",
+      "one_cooking_session: 1/1 sessions returned",
+      "dishes[0]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[3]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[6]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[9]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[12]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[15]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "shopping_list_unattributed: 6/43 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "cooking session on sun runs 115 min, but they said they have about 60",
+      "uses_kept_freezer: 12/18"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 70791,
+        "output_tokens": 7996,
+        "status": "success"
+      },
+      {
+        "source": "generate-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 1303,
+        "output_tokens": 75,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "B01-budget-no-oven",
+    "http": 200,
+    "seconds": 201.1,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-05",
+      "duration_days": 7
+    },
+    "timing": {
+      "kind": "same_morning",
+      "reason": "starts_today",
+      "lead_day": null
+    },
+    "dishes": 19,
+    "preparations": 4,
+    "sessions": [
+      [
+        "sat",
+        30,
+        3
+      ],
+      [
+        "tue",
+        30,
+        1
+      ]
+    ],
+    "shopping_lines": 26,
+    "grocery_dates": [
+      "2026-09-05"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 11,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Pizza à la poêle, sardines, tomate et mozzarella": 1,
+      "Poulet, couscous, courgette et tomate": 2,
+      "Poulet, pommes de terre, tomates et salade verte": 1,
+      "Poulet, pommes de terre, salade et tomate": 1,
+      "Sardines, pain complet, tomate et salade": 1,
+      "Poulet, lentilles, tomates et courgette": 1,
+      "Poulet, lentilles, riz et tomate": 2,
+      "Fromage blanc, pain complet, tomate et noix": 1,
+      "Poulet, lentilles, couscous et courgette": 1,
+      "Sardines, pommes de terre, haricots verts et tomate": 1,
+      "Poulet, lentilles, pommes de terre et salade": 1
+    },
+    "breakfast_titles": [
+      "Yaourt nature, flocons d'avoine, banane et noix",
+      "Yaourt nature, flocons d'avoine, poire et noix",
+      "Yaourt nature, flocons d'avoine, pomme et noix",
+      "Œufs durs, flocons d'avoine, yaourt et poire",
+      "Œufs durs, flocons d'avoine, yaourt et pomme"
+    ],
+    "yogurt_snack_titles": [
+      "Œufs durs, flocons d'avoine, yaourt et poire",
+      "Œufs durs, flocons d'avoine, yaourt et pomme",
+      "Yaourt nature, flocons d'avoine, banane et noix",
+      "Yaourt nature, flocons d'avoine, pomme et noix",
+      "Yaourt nature, flocons d'avoine, poire et noix",
+      "Yaourt nature, flocons d'avoine, banane et noix"
+    ],
+    "explanation": null,
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 7 jours, à partir d'aujourd'hui.",
+        "Le plan pose 2 sessions de cuisine : samedi et mardi.",
+        "Courses et cuisson dès le matin, pour être prêt à midi.",
+        "Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.",
+        "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Ce qui se cuisine mardi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+        "Le budget des courses est 25.",
+        "Pour y tenir, ce sont d'abord les protéines chères, puis les produits hors saison, puis la variété qui cèdent — jamais les portions."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [
+      "shopping_waves: 1 (2026-09-05)",
+      "freeze_on_purchase: 0/26",
+      "raw_keeping_needs_later_shop: 1/4 preparations",
+      "shopping_list_unattributed: 11/26 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "structured_quantity_missing: 1/81 ingredients",
+      "unquantified_terms: sel",
+      "uses_kept_freezer: 2/13"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 97186,
+        "output_tokens": 13173,
+        "status": "success"
+      },
+      {
+        "source": "generate-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2596,
+        "output_tokens": 73,
+        "status": "success"
+      },
+      {
+        "source": "generate-meal-v1.composition_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 101016,
+        "output_tokens": 12836,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "B02-opposed-multiword",
+    "http": 200,
+    "seconds": 198.8,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 7,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 6
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 24,
+    "preparations": 6,
+    "sessions": [
+      [
+        "sun",
+        60,
+        3
+      ],
+      [
+        "tue",
+        60,
+        2
+      ],
+      [
+        "thu",
+        55,
+        1
+      ]
+    ],
+    "shopping_lines": 49,
+    "grocery_dates": [
+      "2026-09-06",
+      "2026-09-07"
+    ],
+    "freeze_on_purchase": 1,
+    "boxes": 24,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet rôti, pommes de terre et courgettes": 1,
+      "Lentilles, carottes, tomates et œuf": 1,
+      "Poulet rôti, tortilla complète, tomates et salade": 1,
+      "Poulet rôti, pommes de terre, courgettes et citron": 1,
+      "Poulet rôti, salade, tomates et pain complet": 1,
+      "Poisson blanc, pommes de terre et haricots verts": 1,
+      "Lasagnes de bœuf, tomates, courgettes et salade": 2,
+      "Lasagnes de bœuf, tomates, courgettes et roquette": 1,
+      "Dinde rôtie, semoule et aubergines": 1,
+      "Dinde rôtie, semoule, aubergines et tomates": 1,
+      "Dinde rôtie, semoule, aubergines et courgettes": 1
+    },
+    "breakfast_titles": [
+      "Fromage blanc, raisin, avoine et noix",
+      "Skyr, flocons d'avoine, poire et noisettes",
+      "Skyr, flocons d'avoine, prunes et amandes",
+      "Skyr, flocons d'avoine, pêche et noix",
+      "Skyr, raisins, avoine et noix",
+      "Yaourt grec, prunes, avoine et amandes"
+    ],
+    "yogurt_snack_titles": [
+      "Skyr, flocons d'avoine, pêche et noix",
+      "Lait, skyr, banane, avoine et purée d'amande",
+      "Skyr, flocons d'avoine, poire et noisettes",
+      "Lait, skyr, banane, avoine et purée de cacahuète",
+      "Skyr, flocons d'avoine, prunes et amandes",
+      "Lait, skyr, poire, avoine et purée de noisette",
+      "Lait, skyr, pêche, avoine et purée d'amande",
+      "Yaourt grec, prunes, avoine et amandes",
+      "Lait, skyr, banane, avoine et tahini",
+      "Skyr, raisins, avoine et noix",
+      "Lait, skyr, pomme, avoine et purée d'amande"
+    ],
+    "explanation": {
+      "lines": [
+        "Les lasagnes et les lentilles sont intégrées cette semaine dans des plats distincts, avec des accompagnements frais pour varier les repas.",
+        "Les portions de lentilles et de pois chiches sont préparées séparément afin de garder la même assiette de base tout en laissant le choix du légume sec dans la boîte."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+        "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+        "Les courses se font en 2 fois : dimanche et lundi. Les suivantes existent pour que le frais n'attende pas la casserole.",
+        "Ce qui se cuisine mardi et jeudi s'achète au plus près de ce jour-là : de la viande ou du poisson frais pris à la première course ne tiendrait pas jusque-là.",
+        "Les quantités sont faites pour 2 bouches.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [
+        "Tu as demandé lasagnes : il y en a mercredi et jeudi."
+      ],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 0,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 0,
+        "groups_valid": 0,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 0,
+        "group_undecided": 0
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 12,
+        "kept": 12,
+        "refused": 0,
+        "bites": 1,
+        "separated": 1,
+        "not_separated": 0,
+        "box_scoped": 12
+      },
+      "swap": {
+        "strictest": null,
+        "bound_mouths": 0,
+        "free_mouths": 0,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 2,
+        "expected": 42,
+        "fed": 42,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": false,
+        "retry_attempts": 0,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {},
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 24,
+        "common": 0,
+        "items": 24,
+        "sized": 24,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 2,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 0,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 0,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 2,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 12,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 0
+        },
+        "anchor_applied": 24,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 12,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 0
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 12
+        },
+        "densify": {
+          "mouth_days": 12,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 12,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 12
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 2,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 2,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 2
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 2
+        },
+        "appetite": {
+          "declared": 2,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "household asked to avoid \"pain complet\" and \"Poulet rôti, salade, tomates et pain complet\" still contains pain",
+      "shopping_waves: 2 (2026-09-06, 2026-09-07)",
+      "freeze_on_purchase: 1/49",
+      "raw_keeping_needs_later_shop: 2/6 preparations",
+      "dishes[3]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[7]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[11]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[15]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[19]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "dishes[23]: for_member_id on a shared dish (no dedicated dish was asked), dropped",
+      "shopping_list_unattributed: 8/49 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "preparations[0]: the meals that take from \"Poulet rôti, pommes de terre et courgettes\" hold 5280 g but it makes about 2993 g ready -- the boxes cannot all be filled",
+      "preparations[5]: the meals that take from \"Dinde rôtie, semoule et aubergines\" hold 3960 g but it makes about 2395 g ready -- the boxes cannot all be filled",
+      "uses_kept_freezer: 0/12"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 97260,
+        "output_tokens": 12744,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.exclusion_retry",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 97729,
+        "output_tokens": 13777,
+        "status": "success"
+      },
+      {
+        "source": "generate-household-meal-v1.composition_fill",
+        "model": "gpt-5.4-nano",
+        "latency_ms": 2961,
+        "output_tokens": 249,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "B03-minimal-five-allergy",
+    "http": 422,
+    "seconds": 27.5,
+    "code_unchanged": true,
+    "error": "draft_not_composed",
+    "requested_days": 7,
+    "window": null,
+    "timing": null,
+    "dishes": 0,
+    "preparations": 0,
+    "sessions": [],
+    "shopping_lines": 0,
+    "grocery_dates": [],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {},
+    "breakfast_titles": [],
+    "yogurt_snack_titles": [],
+    "explanation": null,
+    "rationale": null,
+    "request_report": null,
+    "engine": {
+      "regime_belt": null,
+      "exclusion_belt": null,
+      "swap": null,
+      "meals_delivered": null,
+      "boxes_gate": null,
+      "box_sizing": null
+    },
+    "issues": [
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "empty_slots: sun/breakfast, sun/snack_am, sun/lunch, sun/snack_pm, sun/dinner, sun/before_bed, mon/breakfast, mon/snack_am, mon/lunch, mon/snack_pm, mon/dinner, mon/before_bed, tue/breakfast, tue/snack_am, tue/lunch, tue/snack_pm, tue/dinner, tue/before_bed, wed/breakfast, wed/snack_am, wed/lunch, wed/snack_pm, wed/dinner, wed/before_bed, thu/breakfast, thu/snack_am, thu/lunch, thu/snack_pm, thu/dinner, thu/before_bed, fri/breakfast, fri/snack_am, fri/lunch, fri/snack_pm, fri/dinner, fri/before_bed"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 27331,
+        "output_tokens": 2162,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "B04-memory-owner",
+    "http": 200,
+    "seconds": 91.2,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 12,
+    "preparations": 4,
+    "sessions": [
+      [
+        "sun",
+        60,
+        2
+      ],
+      [
+        "mon",
+        45,
+        2
+      ]
+    ],
+    "shopping_lines": 34,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 10,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Skyr, flocons d’avoine, pêches et amandes": 1,
+      "Poulet, poivrons, oignons et tortillas": 1,
+      "Poulet, poivrons, oignons et riz": 1,
+      "Boulettes de dinde, sauce tomate et pâtes": 1
+    },
+    "breakfast_titles": [
+      "Muffin d’œufs, pain complet et pêche",
+      "Muffin d’œufs, pain complet et raisin"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt nature, poire et noix",
+      "Skyr, raisins et amandes"
+    ],
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 3 bouches.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 0,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 0,
+        "groups_valid": 0,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 0,
+        "group_undecided": 0
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 5,
+        "kept": 5,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 5
+      },
+      "swap": {
+        "strictest": null,
+        "bound_mouths": 0,
+        "free_mouths": 0,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 3,
+        "expected": 28,
+        "fed": 28,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": false,
+        "retry_attempts": 0,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {},
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 10,
+        "common": 5,
+        "items": 16,
+        "sized": 16,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 1,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 3,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 2,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 4
+        },
+        "anchor_applied": 5,
+        "unmet": {
+          "none": 2,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 4
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 0
+        },
+        "densify": {
+          "mouth_days": 0,
+          "boxes_touched": 0,
+          "moved_g": 0,
+          "closed_kcal": 0,
+          "stopped": {
+            "closed": 0,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 0,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 0
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 3,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 3,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 3
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 3
+        },
+        "appetite": {
+          "declared": 3,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "body_from_sheet:11effb1a-17f8-4f03-aec0-22e43c745fb0",
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/34",
+      "raw_keeping_needs_later_shop: 0/4 preparations",
+      "shopping_list_unattributed: 2/34 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "uses_kept_freezer: 0/6"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 90636,
+        "output_tokens": 10584,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "B05-note-allergy-child",
+    "http": 200,
+    "seconds": 76.2,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 12,
+    "preparations": 2,
+    "sessions": [
+      [
+        "sun",
+        40,
+        1
+      ],
+      [
+        "mon",
+        40,
+        1
+      ]
+    ],
+    "shopping_lines": 35,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 6,
+    "cooked_without_boxes": [],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Thon, pois chiches, tomates, concombre et pain": 1,
+      "Poulet, poivrons, oignons et tortillas": 2,
+      "Saumon, pommes de terre et haricots verts": 1
+    },
+    "breakfast_titles": [
+      "Yaourt grec, poire, avoine et graines de courge",
+      "Yaourt grec, pêche, avoine et amandes"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt grec, pêche, avoine et amandes",
+      "Raisins et yaourt nature",
+      "Yaourt grec, poire, avoine et graines de courge",
+      "Yaourt nature et figues"
+    ],
+    "explanation": {
+      "lines": [
+        "Les fajitas sont préparées avec du poulet, des poivrons, des oignons et des tortillas, sans noix de cajou, pour conserver le plat demandé avec des ingrédients compatibles."
+      ],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 3 bouches.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 0,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 0,
+        "groups_valid": 0,
+        "groups_refused": 0,
+        "group_excluded": 0,
+        "group_plant_only": 0,
+        "group_undecided": 0
+      },
+      "exclusion_belt": {
+        "mouths": 1,
+        "checked": 3,
+        "kept": 3,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 3
+      },
+      "swap": {
+        "strictest": null,
+        "bound_mouths": 0,
+        "free_mouths": 0,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": [],
+        "retry_attempts": 0,
+        "retry_accepted": 0
+      },
+      "meals_delivered": {
+        "mouths": 3,
+        "expected": 28,
+        "fed": 28,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0
+        },
+        "cells_without_dish": 0,
+        "retried": false,
+        "retry_attempts": 0,
+        "retry_accepted": 0,
+        "retry_merged_cells": 0,
+        "retry_on": {},
+        "restored": 0,
+        "restored_fallback": 0,
+        "rows": []
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 6,
+        "common": 3,
+        "items": 10,
+        "sized": 10,
+        "unchanged": 0,
+        "capped_by_pot": 0,
+        "unverifiable": 2,
+        "mouths": {
+          "sized": 1,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 1,
+          "doctrine_no_counting": 0,
+          "age_unknown": 0,
+          "no_direction": 1,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 3,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 0,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 0,
+          "clamped": 2,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 4
+        },
+        "anchor_applied": 3,
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 2,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 4
+        },
+        "unmet_band": {
+          "lt_200": 1,
+          "gte_200": 1
+        },
+        "densify": {
+          "mouth_days": 2,
+          "boxes_touched": 2,
+          "moved_g": 117,
+          "closed_kcal": 234,
+          "stopped": {
+            "closed": 1,
+            "floor": 0,
+            "ceiling": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 1,
+            "no_box": 0,
+            "no_density": 0
+          },
+          "remaining_lt_200": 1,
+          "remaining_gte_200": 0
+        },
+        "extras_floored": 0,
+        "activity": {
+          "answered": 3,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 3,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "meal_structure": {
+          "answered": 0,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 3
+        },
+        "meal_extras_source": {
+          "per_slot": 0,
+          "legacy_booleans": 0,
+          "mixed": 0,
+          "none": 3
+        },
+        "appetite": {
+          "declared": 3,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      }
+    },
+    "issues": [
+      "body_from_sheet:11effb1a-17f8-4f03-aec0-22e43c745fb0",
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/35",
+      "raw_keeping_needs_later_shop: 0/2 preparations",
+      "dishes[1]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[3]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[8]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+      "dishes[10]: name repeats the title (\"Fromage blanc et raisin\") -- dropped, one line is enough",
+      "dishes[10]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+      "structured_quantity_missing: 2/40 ingredients",
+      "unquantified_terms: sel, poivre noir",
+      "uses_kept_freezer: 0/3"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 76019,
+        "output_tokens": 9252,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  },
+  {
+    "id": "C01-adopt-memory",
+    "http": 200,
+    "seconds": 59.3,
+    "code_unchanged": true,
+    "error": null,
+    "requested_days": 3,
+    "window": {
+      "starts_on": "2026-09-06",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "dishes": 12,
+    "preparations": 3,
+    "sessions": [
+      [
+        "sun",
+        55,
+        2
+      ],
+      [
+        "mon",
+        55,
+        1
+      ]
+    ],
+    "shopping_lines": 23,
+    "grocery_dates": [
+      "2026-09-06"
+    ],
+    "freeze_on_purchase": 0,
+    "boxes": 0,
+    "cooked_without_boxes": [
+      [
+        "sun",
+        "lunch",
+        "Poulet, poivrons, oignons, riz et tortillas"
+      ],
+      [
+        "sun",
+        "dinner",
+        "Poulet, poivrons, oignons et tortillas"
+      ],
+      [
+        "mon",
+        "lunch",
+        "Poulet, poivrons, oignons et riz"
+      ],
+      [
+        "mon",
+        "dinner",
+        "Boulettes de dinde, courgettes, tomates et couscous"
+      ]
+    ],
+    "duplicate_mouths": [],
+    "minor_kcal_candidates": [],
+    "unreferenced_preparations": [],
+    "missing_preparations": [],
+    "uncooked_preparations": [],
+    "cooked_after_meal": [],
+    "repeated_main_titles": {
+      "Poulet, poivrons, oignons, riz et tortillas": 1,
+      "Poulet, poivrons, oignons et tortillas": 1,
+      "Poulet, poivrons, oignons et riz": 1,
+      "Boulettes de dinde, courgettes, tomates et couscous": 1
+    },
+    "breakfast_titles": [
+      "Yaourt, avoine, prunes et graines",
+      "Yaourt, avoine, pêches et graines"
+    ],
+    "yogurt_snack_titles": [
+      "Yaourt, avoine, pêches et graines",
+      "Yaourt grec et prunes",
+      "Yaourt grec et poire",
+      "Yaourt, avoine, prunes et graines"
+    ],
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+        "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+        "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+        "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Les quantités sont faites pour 3 bouches.",
+        "Chaque personne a chacun de ses repas.",
+        "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "engine": {
+      "regime_belt": {
+        "kept": 0,
+        "bites": 0,
+        "mouths": 0,
+        "checked": 0,
+        "refused": 0,
+        "silenced": 0,
+        "separated": 0,
+        "box_scoped": 0,
+        "groups_valid": 0,
+        "item_repaired": 0,
+        "not_separated": 0,
+        "unknown_mouth": 0,
+        "group_excluded": 0,
+        "groups_refused": 0,
+        "group_undecided": 0,
+        "groups_declared": 0,
+        "group_plant_only": 0,
+        "citation_repaired": 0,
+        "silenced_spelling": 0,
+        "silenced_homograph": 0
+      },
+      "exclusion_belt": {
+        "kept": 0,
+        "bites": 0,
+        "mouths": 1,
+        "checked": 0,
+        "refused": 0,
+        "separated": 0,
+        "box_scoped": 0,
+        "not_separated": 0
+      },
+      "swap": {
+        "flagrant": false,
+        "strictest": null,
+        "free_mouths": 0,
+        "absent_cells": [],
+        "bound_mouths": 0,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "retry_accepted": 0,
+        "retry_attempts": 0,
+        "cells_swap_absent": 0
+      },
+      "meals_delivered": {
+        "fed": 28,
+        "rows": [],
+        "mouths": 3,
+        "missing": 0,
+        "retried": false,
+        "by_cause": {
+          "double": 0,
+          "not_named": 0,
+          "held_off_regime": 0,
+          "held_off_exclusion": 0
+        },
+        "expected": 28,
+        "restored": 0,
+        "retry_on": {},
+        "retry_accepted": 0,
+        "retry_attempts": 0,
+        "restored_fallback": 0,
+        "cells_without_dish": 0,
+        "retry_merged_cells": 0
+      },
+      "boxes_gate": null,
+      "box_sizing": {
+        "boxes": 0,
+        "items": 0,
+        "share": {
+          "sized": 3,
+          "no_body": 0,
+          "age_unknown": 0,
+          "no_reference": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0
+        },
+        "sized": 0,
+        "unmet": {
+          "both": 0,
+          "none": 0,
+          "pot_ceiling": 0,
+          "not_anchored": 0,
+          "factor_clamped": 0
+        },
+        "anchor": {
+          "clamped": 0,
+          "no_body": 0,
+          "anchored": 0,
+          "pregnancy": 0,
+          "age_unknown": 0,
+          "no_delivery": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 0,
+          "day_incomplete": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0
+        },
+        "common": 0,
+        "mouths": {
+          "minor": 1,
+          "sized": 1,
+          "no_body": 0,
+          "no_pace": 0,
+          "pregnancy": 0,
+          "age_unknown": 0,
+          "no_direction": 1,
+          "breastfeeding": 0,
+          "restriction_floor": 0,
+          "implausible_factor": 0,
+          "sized_default_pace": 0,
+          "restriction_unknown": 0,
+          "doctrine_no_counting": 0
+        },
+        "densify": {
+          "moved_g": 0,
+          "stopped": {
+            "floor": 0,
+            "closed": 0,
+            "no_box": 0,
+            "ceiling": 0,
+            "no_density": 0,
+            "pot_exhausted": 0,
+            "no_dense_target": 0
+          },
+          "mouth_days": 0,
+          "closed_kcal": 0,
+          "boxes_touched": 0,
+          "remaining_lt_200": 0,
+          "remaining_gte_200": 0
+        },
+        "activity": {
+          "partial": 0,
+          "answered": 3,
+          "not_asked": 0,
+          "not_answered": 0
+        },
+        "appetite": {
+          "declared": 3,
+          "not_asked": 0,
+          "not_answered": 0
+        },
+        "unchanged": 0,
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 0
+        },
+        "unverifiable": 0,
+        "capped_by_pot": 0,
+        "share_clamped": 0,
+        "anchor_applied": 0,
+        "extras_floored": 0,
+        "meal_structure": {
+          "partial": 0,
+          "answered": 0,
+          "not_asked": 3,
+          "not_answered": 0
+        },
+        "activity_source": {
+          "legacy": 0,
+          "assumed": 0,
+          "crossed": 3
+        },
+        "meal_extras_source": {
+          "none": 3,
+          "mixed": 0,
+          "per_slot": 0,
+          "legacy_booleans": 0
+        }
+      }
+    },
+    "issues": [
+      "body_from_sheet:11effb1a-17f8-4f03-aec0-22e43c745fb0",
+      "spent_first_day_dropped: sat (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-06)",
+      "freeze_on_purchase: 0/23",
+      "raw_keeping_needs_later_shop: 0/3 preparations",
+      "dishes[1]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "dishes[7]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+      "4 meals take from a batch and NOT ONE carries a box -- 8 containers were owed, zero came back",
+      "uses_kept_freezer: 0/6"
+    ],
+    "llm_calls": [
+      {
+        "source": "generate-household-meal-v1",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 54971,
+        "output_tokens": 6074,
+        "status": "success"
+      },
+      {
+        "source": "keel-draft-note-classify",
+        "model": "gpt-5.6-luna",
+        "latency_ms": 3484,
+        "output_tokens": 162,
+        "status": "success"
+      }
+    ],
+    "cost_usd_recorded": 0,
+    "cost_verified": false
+  }
+]

@@ -119,9 +119,11 @@ const MEMBER = (over: Partial<PortionMember> = {}): PortionMember => ({
   goal: null,
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
   ...over,
 });
 
@@ -661,7 +663,7 @@ Deno.test("⛔ LE BRIEF DIT LE NOMBRE DE BOÎTES, ET AUCUN FAIT DE CORPS", () =>
     MEMBER({ memberId: "casimir", displayName: "Casimir", ageState: "minor" }),
     MEMBER({ memberId: "wilfrid", displayName: "Wilfrid", ageState: "minor" }),
   ];
-  const sized = buildPortionBrief(four, "one_dish", 0, 4);
+  const sized = buildPortionBrief(four, "one_dish", 0, 4, "legacy_measure");
   // ⚠️ « N POIDS DIFFÉRENTS, DONC N BOÎTES PAR PRÉPARATION » A DISPARU LE
   // 2026-08-19, ET C'EST L'UNITÉ QUI L'A EMPORTÉ: le nombre de boîtes ne se
   // déduit plus des corps, il vaut UN PAR REPAS. Ce que ce nombre achetait — que
@@ -690,7 +692,7 @@ Deno.test("⛔ LE BRIEF DIT LE NOMBRE DE BOÎTES, ET AUCUN FAIT DE CORPS", () =>
   // l'inverse. Quand le moteur pèse, la ligne du mineur ne dit plus la taille.
   assertEquals(sized.includes(CHILD_DIRECTION), false, sized);
   // ⚠️ ET SEULEMENT ALORS: sans moteur, la ligne d'hier, au caractère près.
-  assertStringIncludes(buildPortionBrief(four, "one_dish", 0, 1), CHILD_DIRECTION);
+  assertStringIncludes(buildPortionBrief(four, "one_dish", 0, 1, "legacy_measure"), CHILD_DIRECTION);
   // ⚠️ ET ON NE REVIENT PAS À LA VAGUE D'AVANT LE LOT 4C: les deux tournures
   // mesurées (93 notes, zéro gramme) restent refusées LITTÉRALEMENT.
   // ══════════════════════════════════════════════════════════════════════
@@ -735,7 +737,7 @@ Deno.test("⛔ LE BRIEF DIT LE NOMBRE DE BOÎTES, ET AUCUN FAIT DE CORPS", () =>
   // nombre de POIDS que la table sert, mais QUI a demandé une portion à soi.
   // Les deux appels rendent donc le même bloc de boîtes, et les deux phrases v2
   // ont disparu des DEUX.
-  const flat = buildPortionBrief(four, "one_dish", 0, 1);
+  const flat = buildPortionBrief(four, "one_dish", 0, 1, "legacy_measure");
   assertEquals(
     flat.includes(`"grams" is what THAT person takes out of the box`),
     false,
@@ -756,7 +758,7 @@ Deno.test("⛔ LE BRIEF DIT LE NOMBRE DE BOÎTES, ET AUCUN FAIT DE CORPS", () =>
   // ⛔ ET LES DEUX GRAMMES SONT DITS AUX DEUX POPULATIONS: un seul nom ⇒ une
   // PRESCRIPTION qu'on ouvre et qu'on mange; plusieurs noms ⇒ une QUANTITÉ DE
   // BAC qui ne vise personne et qu'on ne découpe jamais par tête.
-  for (const brief of [sized, buildPortionBrief(four, "one_dish", 0, 1)]) {
+  for (const brief of [sized, buildPortionBrief(four, "one_dish", 0, 1, "legacy_measure")]) {
     assertStringIncludes(brief, "When ONE name is on the lid, its grams are that person's portion");
     assertStringIncludes(brief, "how much goes IN the tub for");
     assertStringIncludes(brief, "never split it per person");
@@ -843,7 +845,7 @@ Deno.test("⛔ LE MOT DE TAILLE EST TARI À LA SOURCE — aucune direction n'en 
     MEMBER({ memberId: "c", displayName: "Casimir", ageState: "minor" }),
     MEMBER({ memberId: "d", displayName: "Wilfrid", ageState: "minor" }),
   ];
-  const sized = buildPortionBrief(four, "one_dish", 0, 4);
+  const sized = buildPortionBrief(four, "one_dish", 0, 4, "legacy_measure");
   // ⛔ AUCUNE des trois directions d'objectif, ni le repli, ni la ligne du
   // mineur ne survit dans le brief dimensionné.
   for (const said of [...Object.values(SERVING_DIRECTION), NEUTRAL_DIRECTION, CHILD_DIRECTION]) {
@@ -858,7 +860,7 @@ Deno.test("⛔ LE MOT DE TAILLE EST TARI À LA SOURCE — aucune direction n'en 
   // ⚠️ ET SANS MOTEUR, LE BRIEF D'HIER AU CARACTÈRE PRÈS: c'est alors le modèle
   // qui porte le nombre, et lui retirer les mots de taille le laisserait sans
   // rien à dire — la vague de 93 notes sans un gramme du LOT 4C.
-  const flat = buildPortionBrief(four, "one_dish", 0, 1);
+  const flat = buildPortionBrief(four, "one_dish", 0, 1, "legacy_measure");
   assertStringIncludes(flat, SERVING_DIRECTION.muscle_gain);
   assertStringIncludes(flat, CHILD_DIRECTION);
 });
@@ -1044,13 +1046,22 @@ Deno.test("⛔ LE GÉNÉRATEUR DIMENSIONNE LES REPAS, ET MESURE LA PHRASE SANS C
     `le dimensionnement tourne sans les facteurs résolus:\n${call}`,
   );
 
-  // ② LA PART REDIMENSIONNÉE EST RECOPIÉE SUR LA BOÎTE. Sans ce report, la
-  //    fonction serait juste et son résultat jeté — « construit, branché,
-  //    désarmé » une fois de plus.
+  // ② ⟳ 2026-09-07 — LA PART REDIMENSIONNÉE N'EST PLUS RECOPIÉE SUR LA BOÎTE,
+  //    ET C'EST LA DÉCISION. Le moteur mesure (`would_resize`) et rapporte; la
+  //    portion servie est celle que le modèle a composée. Ce cas disait
+  //    l'inverse — « construit, branché, désarmé » —; il dit maintenant que le
+  //    résultat est LU et JOURNALISÉ, jamais écrit.
   assert(
     /boxSizing\.items\.get\(/.test(src),
-    "les grammes redimensionnés ne sont jamais reportés sur les contenants",
+    "le dimensionnement n'est plus lu du tout: la mesure `would_resize` serait vide",
   );
+  const sizedRead = src.slice(src.indexOf("boxSizing.items.get("), src.indexOf("boxSizing.items.get(") + 800);
+  assert(
+    !/item\.grams = grams/.test(sizedRead),
+    "les grammes redimensionnés sont de nouveau écrits sur les contenants",
+  );
+  assert(/would_resize: wouldResize,/.test(src), "la mesure `would_resize` n'est pas journalisée");
+  assert(/applied: false,/.test(src), "le journal ne dit plus que rien n'est appliqué");
 
   // ③ LA MESURE DE LA PHRASE N'EST PLUS SOUS CONDITION. L'ancien compteur ne
   //    tournait que dans la branche « une cible a mordu »: un foyer sans corps
@@ -1175,3 +1186,43 @@ Deno.test("⚠️ LE CAS QUI PASSE — un corps connu partout rend bien un nombr
     assertEquals((v as number) * 2 % 1, 0, `${v} n'est pas arrondi au demi`);
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⛔ 2026-09-07 — LE BRIEF NE PART PLUS EN MODE « LE MOTEUR DIMENSIONNE »
+//
+// Le moteur ne redimensionne plus les boîtes (bloc A3 de l'index, même jour).
+// Le brief a deux branches; celle du moteur retire tout mot de taille et dit
+// « never a weight ». Restée armée après le désarmement, elle a produit 45
+// boîtes identiques pour trois corps et trois objectifs (run `1a877fc1…`).
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ CÂBLAGE — l'index écrit le brief avec UN poids servi, jamais le compte mesuré", async () => {
+  const src = withoutComments(await Deno.readTextFile(GENERATOR));
+  assert(src.includes("const ENGINE_SERVES_ONE_WEIGHT = 1;"), "la constante de doctrine a disparu");
+  assert(
+    /const promptWeightGroups = ENGINE_SERVES_ONE_WEIGHT;/.test(src),
+    "le brief reçoit de nouveau le compte mesuré: il retire les mots de taille et le modèle sert la même boîte à tout le monde",
+  );
+  // ET LE COMPTE MESURÉ SURVIT COMME MESURE, PAS COMME ENTRÉE DU PROMPT.
+  assert(/const measuredWeightGroups = weightGroupCount\(/.test(src), "le compte mesuré n'est plus calculé");
+  assert(/weight_groups_measured: measuredWeightGroups,/.test(src), "le compte mesuré ne sort plus au journal");
+});
+
+Deno.test("le brief à UN poids servi porte les directions COMPLÈTES et demande les grammes", () => {
+  // Les trois objectifs à la même table: la branche « sans moteur » doit dire
+  // ce qui diffère dans chaque assiette, et demander le nombre au modèle.
+  const table = [
+    MEMBER({ goal: "fat_loss", ageState: "adult" }),
+    MEMBER({ goal: "muscle_gain", ageState: "adult" }),
+    MEMBER({ goal: "maintenance", ageState: "adult" }),
+  ];
+  const brief = buildPortionBrief(table, "one_dish", 0, 1, "legacy_measure");
+  assertStringIncludes(brief, SERVING_DIRECTION.fat_loss);
+  assertStringIncludes(brief, SERVING_DIRECTION.muscle_gain);
+  assertStringIncludes(brief, SERVING_DIRECTION.maintenance);
+  assertStringIncludes(brief, "write the grams, even when a box already holds them.");
+  // ET PAS L'AUTRE BRANCHE: « never a weight » contredirait la demande de grammes.
+  assertEquals(brief.includes("never a"), false, brief);
+  assertEquals(brief.includes("Never describe the size"), false, brief);
+});
+

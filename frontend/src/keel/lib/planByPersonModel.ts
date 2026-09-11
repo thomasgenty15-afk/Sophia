@@ -91,6 +91,12 @@ export interface PersonCell {
    * en un seul champ obligerait l'écran à deviner lequel il regarde.
    */
   ownDish: string | null;
+  /**
+   * ⟳ 2026-09-09 — `true` quand `ownDish` S'AJOUTE au plat de la table au lieu
+   * de le remplacer (entrée de dernier recours du moteur). La `note` est alors
+   * celle du plat de la TABLE, et l'écran rend l'entrée comme un « + ».
+   */
+  ownDishComplements: boolean;
 }
 
 /** Une bouche, et sa ligne à travers la semaine. */
@@ -215,9 +221,12 @@ export function buildPlanByPerson(args: {
           // un plat dédié peut lui aussi prélever sur une préparation.
           const own = ownByKey.get(`${slot}|${day}|${p.memberId}`) ?? null;
           const shared = byKey.get(`${slot}|${day}`) ?? null;
-          const from = own ?? shared;
-          if (!from) return { note: null, ownDish: null };
-          return { note: shareFor(p, from), ownDish: own?.title ?? null };
+          // ⟳ 2026-09-09 — UN COMPLÉMENT NE CACHE PAS LA TABLE : la part lue
+          // est celle du plat partagé, l'entrée s'affiche en plus.
+          const complements = own !== null && own.complementsShared && shared !== null;
+          const from = complements ? shared : (own ?? shared);
+          if (!from) return { note: null, ownDish: null, ownDishComplements: false };
+          return { note: shareFor(p, from), ownDish: own?.title ?? null, ownDishComplements: complements };
         }),
       })),
     };
@@ -345,8 +354,10 @@ export function buildPersonWeek(args: {
      * ⚠️ CE N'EST PAS UNE DÉDUCTION SUR LE TITRE, ni sur le contenu: c'est la
      * seule lecture de `member_id`, posé par le moteur.
      */
+    // ⟳ 2026-09-09 — un plat à elle qui COMPLÈTE la table ne la cache pas :
+    // seul un plat qui REMPLACE retire le plat commun de son moment.
     const ownSlots = new Set(
-      here.filter((d) => d.memberId === args.person.memberId).map((d) => d.slot),
+      here.filter((d) => d.memberId === args.person.memberId && !d.complementsShared).map((d) => d.slot),
     );
     return {
     day,

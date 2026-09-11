@@ -57,9 +57,11 @@
  * relance du modèle ou un extra déclaré ont un sens.
  */
 import type { CompositionIndex, CompositionInput, CompositionRef } from "./food_composition.ts";
-import { resolveIngredient, resolveIngredients, YIELD_FACTORS } from "./food_composition.ts";
+import { resolveCompositionLine, yieldFactorOf } from "./food_composition.ts";
 import type { FoodGroupRef } from "./tokens.ts";
-import { dishEnergy } from "./plan_energy.ts";
+// ⟳ 2026-09-11 · LOT B — LA RÈGLE D'EAU N'EST PLUS ÉCRITE ICI. Une seule
+// implémentation dans tout le moteur, et elle décide PAR UNITÉ DE CUISSON.
+import { measurePreparation, readyGramsOfUnit } from "./preparation_mass.ts";
 import type { DishIngredient } from "./meal_generation.ts";
 
 export const VEG_FLOOR_RATIO = 0.7;
@@ -93,6 +95,17 @@ export interface DensifyItem {
   readonly term: string;
   readonly grams: number;
   readonly preparationId: string | null;
+  /**
+   * ⟳ LOT A (2026-09-11) — L'IDENTIFIANT DE LA LIGNE DONT CET ITEM EST NÉ.
+   *
+   * ⛔ `densityFromComposition` retrouvait l'aliment d'un item frais par
+   * `resolveIngredient(index, item.term)` — par son LIBELLÉ. Facultatif ici
+   * parce qu'un item de contenant écrit par le MODÈLE n'en porte pas, et que
+   * son absence rend exactement le comportement d'avant: le chemin par le
+   * terme. Il n'arme aucune garde, il ouvre une lecture plus sûre.
+   */
+  readonly ref?: string | null;
+  readonly refRefused?: boolean;
 }
 export interface DensifyBox {
   readonly boxId: string;
@@ -286,10 +299,29 @@ export function densifyBoxes(args: {
 }
 
 /**
- * Les grammes PRÊTS des seuls ingrédients pesés ET résolus d'une casserole.
- * `null` s'il n'y en a aucun. Ce n'est pas `preparationReadyGrams`, qui rend
- * `null` au premier ingrédient non pesé — juste pour une masse, faux pour une
- * densité (voir `densityFromComposition`).
+ * Les grammes PRÊTS des seuls ingrédients pesés ET résolus d'**UNE** unité de
+ * cuisson. `null` s'il n'y en a aucun. Ce n'est pas `preparationReadyGrams`, qui
+ * rend `null` au premier ingrédient non pesé — juste pour une masse, faux pour
+ * une densité (voir `densityFromComposition`).
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-11 · LOT B — LE CORPS EST PARTI DANS `preparation_mass.ts`
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QUI VIVAIT ICI, ET CE QUE ÇA COÛTAIT. La règle d'eau était calculée sur
+ * la liste REÇUE: un seul drapeau `absorbs` pour tout ce qui passait. Tant que
+ * l'appelant donnait une casserole, c'était juste. `standardPortionOf`, lui,
+ * aplatissait le frais du plat et TOUTES les casseroles dans une seule liste:
+ * le couscous (`grain_absorbs`) effaçait alors l'eau de la casserole de
+ * lentilles, qui n'absorbe rien. Mesuré sur GAIN `a18f522e`, samedi déjeuner —
+ * **901 g par composants, 811 g aplati**, et `applySizing` écrivait 727 g là où
+ * le moteur avait annoncé 657. Le même moteur donnait deux masses au même
+ * assemblage (`ENQUETE-DEUX-DIRECTIONS-2026-09-11.md` § 4).
+ *
+ * ⚠️ LA SIGNATURE NE BOUGE PAS, ET LE COMPORTEMENT NON PLUS: sur UNE unité de
+ * cuisson, cette fonction rend exactement ce qu'elle rendait. Ce qui change est
+ * qu'il n'existe plus qu'UNE écriture de la règle d'eau dans ce moteur, et que
+ * l'assemblage d'une assiette passe par `measurePlate`, qui ne l'aplatit plus.
  */
 export function weighedReadyGrams(
   // ⟳ LOT 0 (2026-09-06) — ÉLARGI À `CompositionInput` : cette fonction ne lit
@@ -300,38 +332,12 @@ export function weighedReadyGrams(
   ingredients: readonly CompositionInput[],
   index: CompositionIndex,
 ): number | null {
-  // ⛔ LA MÊME RÉSOLUTION QUE LE NUMÉRATEUR, PAS LE CHAMP `gramsRaw`. Mesuré sur le
-  // premier plan réel densifié (2026-09-05, `161a04de`): la lane foyer ne remplit
-  // JAMAIS `gramsRaw` — tous nuls dans l'archive, « 2 720 g » compris — pendant
-  // que `dishEnergy` recalcule ses grammes depuis `amount`/`unit`/`state`. Le
-  // dénominateur ne comptait donc que les condiments conventionnels: une
-  // casserole entière rapportée à trois grammes de sel, des densités de
-  // plusieurs centaines de kcal par gramme, et 25 g déplacés qui « fermaient »
-  // 393 kcal. Un rejeu hors ligne qui reconstruisait `gramsRaw` ne pouvait pas
-  // le voir. `resolveIngredients` est la règle d'admission du numérateur
-  // (prose, puis unités, puis `condimentMassFor`): on lui prend ses grammes.
-  const r = resolveIngredients(index, ingredients);
-  // ⟳ 2026-09-05 — L'EAU DE CUISSON NE COMPTE PAS DEUX FOIS. Mesuré sur les
-  // plans réels du jour: 4 casseroles de grain sur 13 listent « eau » (1,7 à
-  // 3,7 L). `grain_absorbs` (×2,6) porte déjà cette eau dans les grammes
-  // prêts; la ligne d'eau l'ajoutait une seconde fois — un riz à 0,77 kcal/g
-  // au lieu de ~1,3, donc plus de grammes déplacés pour la même énergie.
-  // L'eau d'une soupe (sans grain absorbant) reste dans la masse.
-  const absorbs = r.resolved.some(({ ref }) => ref.yieldClass === "grain_absorbs");
-  let total = 0;
-  let any = false;
-  for (const { ref, gramsRaw } of r.resolved) {
-    if (!(gramsRaw > 0)) continue;
-    if (absorbs && ref.foodGroupRef === "water") continue;
-    total += gramsRaw * YIELD_FACTORS[ref.yieldClass];
-    any = true;
-  }
-  return any ? total : null;
+  return readyGramsOfUnit(index, ingredients);
 }
 
 /** kcal par gramme SERVI d'une fiche du référentiel — l'énergie est donnée par 100 g CRUS. */
 export function servedDensityOf(ref: CompositionRef): number {
-  return (ref.energyKcal * ref.atwaterDiscount / 100) / YIELD_FACTORS[ref.yieldClass];
+  return (ref.energyKcal * ref.atwaterDiscount / 100) / yieldFactorOf(ref);
 }
 
 /**
@@ -348,7 +354,6 @@ export function densityFromComposition(
 ): DensityOf {
   const byPrep = new Map<string, ItemDensity>();
   for (const prep of preparations) {
-    const energy = dishEnergy(index, { method: prep.method, ingredients: prep.ingredients });
     // ── ⟳ 2026-09-04 — LES GRAMMES PRÊTS DES INGRÉDIENTS PESÉS ET RÉSOLUS ──
     // `preparationReadyGrams` rend `null` dès qu'UN ingrédient n'a pas de
     // `gramsRaw`: juste pour la MASSE d'une casserole, faux pour sa DENSITÉ.
@@ -359,27 +364,41 @@ export function densityFromComposition(
     // été densifié. Une pincée vaut sa masse conventionnelle (`condimentMassFor`,
     // des deux côtés); une huile non pesée rend la casserole incomplète, et la
     // densité `null`, comme avant. Aucun ingrédient pesé ou conventionnel ⇒ `null`.
-    const ready = weighedReadyGrams(prep.ingredients, index);
-    if (!energy.complete || energy.kcal === null || ready === null || !(ready > 0)) {
+    //
+    // ⟳ 2026-09-11 · LOT B — LES DEUX MOITIÉS VIENNENT DE LA MÊME MESURE.
+    // L'énergie et la masse prête d'une casserole sortaient de deux appels
+    // distincts; `measurePreparation` les rend ensemble, sous la même règle
+    // d'eau et la même abstention que `potDensities` et `standardPortionOf`.
+    const m = measurePreparation(index, prep);
+    const ready = m.readyG;
+    if (m.kcal === null || ready === null || !(ready > 0)) {
       byPrep.set(prep.id, { kcalPerGram: null, group: null, reason: "prep_incomplete" });
       continue;
     }
     let bestGroup: FoodGroupRef | null = null;
     let bestGrams = -1;
     for (const ing of prep.ingredients) {
-      const ref = resolveIngredient(index, ing.term);
+      // ⟳ LOT A (2026-09-11) — L'IDENTIFIANT D'ABORD. Le groupe « majoritaire en
+      // masse » d'une casserole se lisait sur le terme; une ligne dont le
+      // libellé français atteint un autre slug que son identifiant faisait
+      // porter à la casserole entière le groupe du mauvais aliment.
+      const ref = resolveCompositionLine(index, ing).ref;
       const g = Number(ing.gramsRaw ?? 0);
       if (!ref || !(g > bestGrams)) continue;
       bestGrams = g;
       bestGroup = ref.foodGroupRef;
     }
-    byPrep.set(prep.id, { kcalPerGram: energy.kcal / ready, group: bestGroup, reason: "resolved" });
+    byPrep.set(prep.id, { kcalPerGram: m.kcal / ready, group: bestGroup, reason: "resolved" });
   }
   return (item) => {
     if (item.preparationId !== null) {
       return byPrep.get(item.preparationId) ?? { kcalPerGram: null, group: null, reason: "unresolved" };
     }
-    const ref = resolveIngredient(index, item.term);
+    // ⟳ LOT A (2026-09-11) — « NE PLUS RETROUVER SON ALIMENT PAR SON LIBELLÉ ».
+    // Un item frais porte désormais l'identifiant de la ligne d'ingrédient dont
+    // il est né (`BoxItem.ref`); son absence rend le chemin d'avant, par le
+    // terme, pour les contenants écrits par le modèle et les plans historiques.
+    const ref = resolveCompositionLine(index, item).ref;
     if (!ref) return { kcalPerGram: null, group: null, reason: "unresolved" };
     return { kcalPerGram: servedDensityOf(ref), group: ref.foodGroupRef, reason: "resolved" };
   };

@@ -1,0 +1,97 @@
+[
+  {
+    "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 56636,
+    "prompt_tokens": 13165,
+    "output_tokens": 8119,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_093b0969638f904c006a9c6b9d807087d284cef91bfc4def26",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+    "source": "generate-household-meal-v1.protein_anchor_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 83161,
+    "prompt_tokens": 13268,
+    "output_tokens": 12810,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_02c7ff44443b2b3a006a9c6bd6383487d2a2884042c77a20cc",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+    "source": "generate-household-meal-v1.unfed_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 51097,
+    "prompt_tokens": 13744,
+    "output_tokens": 7801,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0881d89b3bbd1b89006a9c6c298b3087d2a830fa401c140bbe",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+    "source": "generate-household-meal-v1.swap_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 83810,
+    "prompt_tokens": 13399,
+    "output_tokens": 10776,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_095e94dc7649af84006a9c6c5cbd2c87d29e9163a624924dd3",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "a27e1a29-2539-4e95-b459-8c8865527f34",
+    "source": "generate-household-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 3104,
+    "prompt_tokens": 505,
+    "output_tokens": 433,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0d966047a951586e006a9c6cb0a4ac87d2975b8d4966ba9a4c",
+      "user_id_resolution": "provided"
+    }
+  }
+]

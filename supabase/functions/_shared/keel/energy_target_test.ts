@@ -215,8 +215,33 @@ Deno.test("FF-059 lot 3 — AUCUN objectif n'entre dans la fourchette", () => {
   // reviendrait à prescrire un déficit chiffré à quelqu'un que personne n'a
   // examiné — et le plafond de 500 kcal/j de `meal_envelope` existe justement
   // parce que ce calcul-là est dangereux.
+  //
+  // ⟳ 2026-09-09 — UNE SEULE EXCEPTION, ET ELLE EST UN NOM, PAS UN CALCUL.
+  //
+  // ⛔ CE QUE CETTE GARDE PROTÈGE N'A PAS BOUGÉ D'UN MOT: aucun objectif ne
+  // doit ENTRER dans l'arithmétique de ce fichier. `maintenanceRange` rend ce
+  // qu'un corps dépense, `directedRange` y ajoute un écart qu'on lui DONNE, et
+  // ni l'une ni l'autre ne lit un jeton d'objectif. Les trois interdits qui
+  // portent ça — `fat_loss`, `muscle_gain`, `GoalToken` — restent entiers.
+  //
+  // Ce qui change est qu'un JETON DE BASE porte désormais le mot dans son nom:
+  // `body_equation_with_goal_band`. Ce n'est pas un calcul, c'est une étiquette
+  // — et c'est même l'inverse d'un relâchement: elle existe pour que l'écran
+  // dise SUR QUOI le chiffre est posé, au lieu de le laisser passer pour une
+  // maintenance. La bande, elle, est appliquée dans `meal_energy_shared.ts`,
+  // qui est le seul module à joindre une équation de corps et un objectif.
+  //
+  // ⚠️ ON RETIRE LE LITTÉRAL, PAS L'INTERDIT. Un `banned.filter()` ou un
+  // `includes` assoupli aurait désarmé la règle pour tout le fichier; ici, la
+  // seule chaîne que la garde ne voit plus est celle-ci, nommée en toutes
+  // lettres. Une deuxième occurrence de `goal` ailleurs dans le fichier rougit
+  // toujours.
+  const withoutBasisToken = SOURCE.replaceAll("body_equation_with_goal_band", "");
   for (const banned of ["fat_loss", "muscle_gain", "GoalToken", "goal"]) {
-    assert(!SOURCE.includes(banned), `« ${banned} » dans energy_target.ts`);
+    assert(
+      !withoutBasisToken.includes(banned),
+      `« ${banned} » dans energy_target.ts`,
+    );
   }
 });
 
@@ -639,7 +664,15 @@ Deno.test("FF-059 lot 4 — `directedRange` n'invente aucun entretien: la source
   );
   const start = source.indexOf("export function directedRange(");
   assert(start > 0, "`directedRange` a disparu ou changé de nom");
-  const body = source.slice(start);
+  // ⟳ 2026-09-09 — LES COMMENTAIRES SORTENT AVANT LA RECHERCHE, ET LA GARDE Y
+  // GAGNE. Elle lisait la source BRUTE de `directedRange` jusqu'à la fin du
+  // fichier: n'importe quelle PROSE qui NOMME l'équation écartée la faisait
+  // tomber, y compris le pavé qui explique pourquoi elle est écartée. Ce
+  // qu'elle doit prouver est qu'aucun CODE ne recalcule un entretien ici —
+  // c'est ce qu'elle prouve maintenant, et sur la même étendue.
+  const body = source.slice(start)
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1 ");
   for (const forbidden of ["estimatedMaintenance", "Mifflin", "ACTIVITY_FACTOR", "KCAL_PER_KG_BODY_MASS"]) {
     assert(
       !body.includes(forbidden),

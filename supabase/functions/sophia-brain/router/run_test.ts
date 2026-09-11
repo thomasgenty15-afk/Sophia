@@ -109,8 +109,9 @@ function route(turnFrame: TurnFrame) {
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   // W2.A: "feature_opportunity" n'est plus un flow local retenu.
   // A6: "product_help" non plus — sa lane est supprimée.
+  // ⟳ 2026-09-09: "keel_reengagement_resume_v1" non plus — son flow ne possède
+  // plus aucun tour (voir `chat-inbound-v1`).
   "safety_crisis",
-  "keel_reengagement_resume_v1",
 ];
 
 // P5-A (paul-p4verify T12) — recalibrage volontaire : l'ancien test préservait
@@ -352,7 +353,14 @@ Deno.test("global router runs direct effect then normal reply", () => {
 // « effet direct + propriétaire de lane ». L'invariant, lui, a survécu et vaut
 // désormais pour le seul propriétaire de lane restant : un effet direct
 // s'exécute SANS retirer le tour au flow qui le possède.
-Deno.test("global router combine un effet direct avec le proprietaire de lane actif", () => {
+// ⟳ 2026-09-09 — CE TEST S'EST RETOURNÉ AVEC LE FLOW.
+//
+// Il prenait `keel_reengagement_resume_v1` pour fixture d'un « propriétaire de
+// lane actif » et vérifiait qu'un effet direct s'exécute quand même. Ce flow ne
+// possède plus aucun tour. Ce qui compte maintenant, c'est le RÉSIDU: un état
+// écrit en base avant le retrait ne doit ni reprendre la main, ni empêcher
+// l'effet direct de partir.
+Deno.test("un etat de reprise RESIDUEL ne possede plus le tour, et l'effet direct part quand meme", () => {
   const decision = runConversationRouters({
     turn_frame: frame({
       direct_effects: [{
@@ -372,12 +380,8 @@ Deno.test("global router combine un effet direct avec le proprietaire de lane ac
     safety_context_risk_band: "none",
   });
 
-  assertEquals(decision.response_owner, "keel_reengagement_resume_v1");
+  assertEquals(decision.response_owner, "normal_reply");
   assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
-  assertEquals(
-    decision.reason_code,
-    "active_keel_reengagement_resume_with_direct_effects",
-  );
 });
 
 // W2.B will delete this: la lane est désactivée en W2.A.
@@ -410,10 +414,19 @@ Deno.test({
   assertEquals(decision.reason_code, "feature_opportunity_signal");
 });
 
-// Rebasé de `product_help` (supprimé en A6) vers le seul flow local non-safety
-// restant. L'invariant testé n'a pas bougé: un flow ACTIF garde le tour, quoi
-// que le dispatcher ait par ailleurs signalé.
-Deno.test("readActiveFlowState: un flow de reprise actif garde la propriete du tour", () => {
+// ⟳ 2026-09-09 — L'INVARIANT S'EST INVERSÉ, ET C'EST LE SUJET DU LOT.
+//
+// Ce test disait « un flow ACTIF garde le tour ». Il le disait sur le SEUL flow
+// local non-safety qui restait, et ce flow vient d'être retiré: `chat-inbound`
+// ne l'arme plus, `routers.ts` n'a plus sa branche, `active_flow_state` ne le
+// retient plus. Un état déjà écrit en base survit pourtant à tout ça — c'est
+// exactement ce qu'il faut mesurer, et c'est ce que ce test mesure désormais:
+// le résidu est ignoré, le tour repart en routage normal.
+//
+// ⛔ ET SANS LUI, LE RETRAIT SERAIT INVÉRIFIÉ CÔTÉ LECTURE. Le test du
+// `table_guard` prouve que plus personne n'écrit; celui-ci prouve que ce qui
+// est déjà écrit n'a plus d'effet.
+Deno.test("readActiveFlowState: un etat de reprise residuel n'est plus retenu et ne possede rien", () => {
   const activeFlowState = readActiveFlowState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
       version: 1,
@@ -438,13 +451,10 @@ Deno.test("readActiveFlowState: un flow de reprise actif garde la propriete du t
     safety_context_risk_band: "none",
   });
 
-  assertEquals(
-    (activeFlowState.activeSkillState as any)?.skill_id,
-    "keel_reengagement_resume_v1",
-  );
-  assertEquals(decision.response_owner, "keel_reengagement_resume_v1");
-  assertEquals(decision.reason_code, "active_keel_reengagement_resume");
-  assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
+  // Le registre ne le retient plus: l'état ressort à `null`.
+  assertEquals(activeFlowState.activeSkillState, null);
+  // Donc plus aucun propriétaire actif, et le tour repart en routage normal.
+  assertEquals(decision.response_owner, "normal_reply");
 });
 
 

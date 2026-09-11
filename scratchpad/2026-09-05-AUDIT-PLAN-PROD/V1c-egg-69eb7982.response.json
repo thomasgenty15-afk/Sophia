@@ -1,0 +1,4 @@
+{
+  "code": "BOOT_ERROR",
+  "message": "Worker failed to boot (please check logs)"
+}

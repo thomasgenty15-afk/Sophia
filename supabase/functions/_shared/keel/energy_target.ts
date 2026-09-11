@@ -178,8 +178,37 @@ export const ENERGY_TARGET_BASIS = "weight_range";
  */
 export const ENERGY_TARGET_BASIS_DIRECTED = "weight_range_with_direction";
 
+/**
+ * ⟳ 2026-09-09 — LA TROISIÈME BASE: L'ÉQUATION DU CORPS, PAS LE RACCOURCI.
+ *
+ * ⛔ DÉCISION DU PROPRIÉTAIRE, 2026-09-09, ET ELLE RENVERSE CELLE DU MATIN.
+ * Le matin, « le moteur suit l'écran »: les deux nombres se rejoignaient sur
+ * `poids × kcal/kg`. L'après-midi, mesuré sur poul@gmail.com (187 cm, 72 kg,
+ * 28 ans, assis + 3-4 séances, prise à 0,35 kg/sem):
+ *
+ *     ce que ce raccourci-là rendait          2 400 - 2 800 kcal/j
+ *     l'équation du corps, ses axes lus       3 036 - 3 180 kcal/j
+ *
+ * Le raccourci `28-33 kcal/kg` ne lit ni la TAILLE ni les réponses d'activité.
+ * Sur ce corps il produit un PAL implicite de 1,13 à 1,35 — sous le plancher de
+ * 1,40 que le rapport FAO/WHO/UNU 2004 déclare non soutenable pour une vie
+ * libre, et que ce dépôt cite ailleurs pour construire ses propres facteurs.
+ * Un raccourci de coach calibré sur un corps moyen décroche sur les corps
+ * grands et minces; c'est mesuré, pas supposé.
+ *
+ * ⚠️ CE JETON EST LA MOITIÉ QUI COMPTE. « 3 036-3 180 pour ton poids » et
+ * « 3 036-3 180 parce que ton corps et ton objectif le demandent » ne sont pas
+ * le même énoncé. L'écran choisit sa phrase SUR CE JETON, et les trois bases
+ * cohabitent: une fiche sans taille ni âge retombe sur le raccourci, et le dit.
+ */
+export const ENERGY_TARGET_BASIS_BODY = "body_equation_with_goal_band";
+
 export const ENERGY_TARGET_BASES = Object.freeze(
-  [ENERGY_TARGET_BASIS, ENERGY_TARGET_BASIS_DIRECTED] as const,
+  [
+    ENERGY_TARGET_BASIS,
+    ENERGY_TARGET_BASIS_DIRECTED,
+    ENERGY_TARGET_BASIS_BODY,
+  ] as const,
 );
 export type EnergyTargetBasis = (typeof ENERGY_TARGET_BASES)[number];
 
@@ -482,8 +511,10 @@ export function directedRange(args: {
   direction: ScaleDirection | null;
   /**
    * `executedPaceFor().dailyDeltaKcal` — l'écart que le moteur EXÉCUTE
-   * vraiment, toujours ≥ 0. Jamais le rythme choisi: le curseur d'une prise
-   * monte plus haut que ce que la casserole livre (cicatrice L8).
+   * vraiment, toujours ≥ 0. Jamais le rythme choisi converti à la main: c'est
+   * `executedPaceFor` qui porte A1, le plancher, la fraction du mineur — et,
+   * depuis le 2026-09-09, sur une prise d'adulte le plafond du curseur, plus
+   * la bande +10 % (le curseur est le contrat, en-tête de `weight_pace.ts`).
    */
   dailyDeltaKcal: number;
   /** `energyFloorFor(gender)` — le plancher d'énergie de ce corps. */
@@ -540,4 +571,114 @@ export function directedRange(args: {
     direction: args.direction,
     directionGap: null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-09 — LE MOTEUR SUIT L'ÉCRAN. UNE SEULE JOURNÉE, DEUX LECTEURS.
+// ---------------------------------------------------------------------------
+//
+// ══════════════════════════════════════════════════════════════════════════
+// LE DÉFAUT QUE CES DEUX FONCTIONS FERMENT, MESURÉ EN RUN RÉEL
+// ══════════════════════════════════════════════════════════════════════════
+//
+// Le 2026-09-09, sur la même personne et dans la même minute (homme 82 kg,
+// 180 cm, 36 ans, `trains_some`, `fat_loss` 0,5 kg/sem):
+//
+//     ce contre quoi le PLAN était composé et jugé   2 677 – 2 700 kcal/j
+//       `envelopeFor` → `estimatedMaintenanceKcal` (métabolisme de base ×
+//       facteur d'activité) × `ENERGY_BANDS[goal]`, écrêté par A1
+//     ce que l'ÉCRAN annonçait sous les plats        1 950 – 2 200 kcal/j
+//       `maintenanceRange` (poids × kcal/kg) − l'écart exécuté
+//
+// **~500 kcal/jour d'écart, deux modèles du corps, un seul utilisateur.** Le
+// moteur remplissait l'assiette contre un nombre que la personne ne voyait
+// nulle part, et lui affichait un nombre que son assiette ne respectait pas.
+//
+// ⛔ DÉCISION DU PROPRIÉTAIRE, 2026-09-09: **« Le moteur doit suivre l'écran :
+// 1950-2200 partout. »** Ce n'est pas un arbitrage entre deux estimations — la
+// bande affichée est celle que le produit assume publiquement (`LEGAL.md`
+// §6.4 bis), et `energy_target_test.ts` REFUSE explicitement, depuis sa
+// création, la constante devinée de `meal_envelope.ts`. Le moteur rejoint la
+// seule des deux qui soit opposable.
+//
+// ⚠️ CE QUE ÇA COÛTE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE. La bande
+// affichée ne lit QUE le poids et le cran d'activité. **L'appétit
+// (`APPETITE_FACTORS`, ±10 %) et les deux axes d'activité cessent donc de
+// déplacer l'énergie d'une journée** — ils restaient lus par
+// `estimatedMaintenanceKcal`, que plus personne n'appelle pour une journée
+// d'adulte. Ils sont collectés sur la fiche d'une bouche de foyer et n'ont plus
+// de lecteur ici: c'est une moitié débranchée, NOMMÉE, pas un oubli. La sortie
+// cohérente est de les faire entrer dans `ACTIVITY_KCAL_PER_KG` ou dans la
+// bande affichée — c'est-à-dire de les faire voir à la personne — jamais de les
+// rebrancher en douce sur un second calcul.
+
+/**
+ * LA BANDE CONTRE LAQUELLE UN PLAN SE COMPOSE — la MÊME que celle qui s'affiche.
+ *
+ * `maintenanceRange` puis `directedRange`, dans cet ordre, sans un nombre de
+ * plus. C'est littéralement la chaîne de l'écran: si elle bouge, les deux
+ * bougent ensemble, et c'est toute la propriété recherchée.
+ *
+ * `null` — jamais un repli — quand le poids manque ou sort des bornes de
+ * plausibilité, ou quand la direction est refusée (plancher d'énergie, absence
+ * de rythme). Un moteur sans bande compose sans cible; un moteur avec une bande
+ * devinée compose contre un mensonge.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function plannedEnergyBand(args: {
+  weightKg: number | null;
+  activityLevel: ActivityLevel | null;
+  /** `scaleDirectionOf(goal)`. `null` = maintenance: la bande ne bouge pas. */
+  direction: ScaleDirection | null;
+  /** `executedPaceFor().dailyDeltaKcal` — l'écart EXÉCUTÉ, jamais le cran nu. */
+  dailyDeltaKcal: number;
+  /** `energyFloorFor(gender)`. Non lu quand la direction est `null`. */
+  energyFloorKcal: number;
+}): { low: number; high: number } | null {
+  const maintenance = maintenanceRange({
+    weightKg: args.weightKg,
+    // ⛔ LA DATE DE PESÉE N'ENTRE PAS DANS UN MOTEUR. Elle sert à l'écran pour
+    // dire SUR QUOI la fourchette est posée; ici il n'y a personne à qui le
+    // dire, et la fabriquer serait un fait inventé.
+    weightWeekStart: null,
+    activityLevel: args.activityLevel,
+  });
+  return directedRange({
+    maintenance,
+    direction: args.direction,
+    dailyDeltaKcal: args.dailyDeltaKcal,
+    energyFloorKcal: args.energyFloorKcal,
+    // ⛔ L'ANNULATION DE CONDITION N'ARRIVE PAS PAR ICI. Elle est évaluée par
+    // les portes de chaque lane (`goalUnderConditionGate` côté foyer,
+    // `conditionGateReason` côté grammage), qui coercent l'OBJECTIF avant
+    // d'appeler: la direction est alors déjà `null`, et il n'y a plus d'écart à
+    // annuler. Un second point d'annulation ici en ferait deux.
+    cancelled: null,
+  }).range;
+}
+
+/**
+ * LE POINT D'UNE JOURNÉE D'ENTRETIEN — le MILIEU de la bande affichée.
+ *
+ * ⚠️ UN POINT TIRÉ D'UNE FOURCHETTE, ET C'EST LE SEUL QU'ON S'AUTORISE. Les
+ * appelants qui en ont besoin (`maintenanceKcalOf`, le conseil du midi) doivent
+ * répartir une journée en parts: on ne réparti pas un intervalle. Le milieu est
+ * le seul choix qui ne penche ni vers la sur- ni vers la sous-alimentation, et
+ * il est écrit ICI pour qu'il n'y en ait qu'un.
+ *
+ * ⛔ IL NE S'AFFICHE JAMAIS TEL QUEL. Ce qui se lit reste la FOURCHETTE —
+ * « personne ne rate un intervalle » (en-tête de ce module). Ce point-ci est
+ * une grandeur de calcul.
+ */
+export function maintenanceMidKcal(args: {
+  weightKg: number | null;
+  activityLevel: ActivityLevel | null;
+}): number | null {
+  const range = maintenanceRange({
+    weightKg: args.weightKg,
+    weightWeekStart: null,
+    activityLevel: args.activityLevel,
+  }).range;
+  return range === null ? null : Math.round((range.low + range.high) / 2);
 }

@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "data": [
+    {
+      "id": "9a6e67ec-e1bd-47b0-b6c9-10d19730b0c0",
+      "household_id": "fb235931-b4b8-4052-903f-876ef0f3c7f1",
+      "member_id": "3c5a2dca-e8b4-4f84-9a8d-3d91e204cb4f",
+      "label": "oeuf",
+      "created_by": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+      "created_at": "2026-09-04T15:01:55.302068+00:00"
+    },
+    {
+      "id": "a2e9db17-4f20-4a7f-a4af-ef0af998c178",
+      "household_id": "fb235931-b4b8-4052-903f-876ef0f3c7f1",
+      "member_id": "20a7dde3-b208-4567-9832-ab10ecda7eca",
+      "label": "arachide",
+      "created_by": "33b5cd99-b7a9-4505-9c01-acafd0e3cc60",
+      "created_at": "2026-09-04T15:01:55.542226+00:00"
+    }
+  ]
+}

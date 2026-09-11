@@ -28,6 +28,7 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+import { fedDaysDenominator } from "./fed_days.ts";
 import type { CompositionVerdict } from "./meal_verdict.ts";
 import type { Envelope } from "./meal_envelope.ts";
 import type { FoodGroupRef } from "./tokens.ts";
@@ -228,9 +229,14 @@ const EXCLUSION_MARKERS: readonly string[] = [
   "vegetarian",
   "vegan",
   "pescatarian",
+  // ⟳ 2026-09-08 — « gluten-free » se dit en deux mots dont l'un (`free`) est
+  // déjà un marqueur; « coeliac » ne l'est pas et dit la même exclusion.
+  "coeliac",
+  "celiac",
   // FR
   "pas",
   "jamais",
+  "coeliaque",
   "aucun",
   "aucune",
   "evite",
@@ -494,7 +500,7 @@ export function offBandDistance(args: {
   // (`windowCoverageOf`), donc fractionnaire. Arrondir ici ferait mesurer
   // l'écart d'une relance sur un kcal/jour que le verdict n'a jamais calculé —
   // et l'adoption de la relance se décide sur CET écart.
-  const days = Math.max(1, args.daysCovered);
+  const days = fedDaysDenominator(args.daysCovered);
   let d = 0;
 
   if (verdict.energy === "below" || verdict.energy === "above") {

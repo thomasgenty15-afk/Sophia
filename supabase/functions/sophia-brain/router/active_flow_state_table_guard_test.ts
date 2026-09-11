@@ -48,22 +48,54 @@ Deno.test("aucune fonction edge n'ecrit dans `user_states` (la table n'existe pa
   assertEquals(offenders, []);
 });
 
-Deno.test("l'ecrivain du cadre de reprise passe par la constante partagee", async () => {
+/**
+ * ⟳ 2026-09-09 — LE TEST S'EST RETOURNÉ: IL VÉRIFIAIT QUE ÇA ARME, IL VÉRIFIE
+ * MAINTENANT QUE ÇA N'ARME PLUS.
+ *
+ * Le cadre de reprise ne possède plus aucun tour. `chat-inbound-v1` a perdu son
+ * bloc d'armement (le pourquoi y est écrit, avec le cas mesuré sur poul), et
+ * sans écrivain, un lecteur qui survivrait serait une trappe: un état résiduel
+ * déjà en base avalerait encore un tour. D'où trois retraits, et ce test tient
+ * le premier — celui sans lequel les deux autres ne servent à rien.
+ *
+ * ⚠️ LES COMMENTAIRES SONT RETIRÉS AVANT DE CHERCHER. Le fichier NOMME le flow
+ * dans le pavé qui explique son retrait — c'est le but du pavé. Un `includes`
+ * naïf lirait donc « ça arme encore » sur le texte même qui dit le contraire.
+ * Ce dépôt a déjà payé cet audit-là (`caller-audit-must-strip-comments`).
+ */
+function withoutComments(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .split("\n")
+    .map((line) => line.replace(/(^|[^:])\/\/.*$/, "$1"))
+    .join("\n");
+}
+
+Deno.test("chat-inbound-v1 n'arme PLUS le cadre de reprise", async () => {
   const inbound = await Deno.readTextFile(
     new URL("../../chat-inbound-v1/index.ts", import.meta.url),
   );
-  // Il ARME (le bloc existe)…
+  const code = withoutComments(inbound);
+
+  // ① Le pavé qui explique le retrait est TOUJOURS là: sans lui, la prochaine
+  //    session rebranche le cadre en croyant réparer un oubli.
   assertEquals(
     inbound.includes("keel_reengagement_resume_v1"),
     true,
-    "la garde 4 n'arme plus le cadre de reprise",
+    "le pavé qui dit POURQUOI le cadre a été retiré a disparu",
   );
-  // …et il le fait par la constante, jamais par un littéral. Écrivain et
-  // lecteur se trompent alors ENSEMBLE, ce qui rend l'erreur visible.
+  // ② …et il ne reste QUE dans les commentaires.
   assertEquals(
-    inbound.includes("ACTIVE_FLOW_STATE_TABLE"),
+    code.includes("keel_reengagement_resume_v1"),
+    false,
+    "chat-inbound-v1 arme de nouveau le cadre de reprise",
+  );
+  // ③ La fermeture de l'épisode, elle, RESTE. C'est elle qui empêche le verrou
+  //    permanent par élève; la retirer avec l'armement serait le vrai dégât.
+  assertEquals(
+    code.includes("closeKeelReengagementEpisodeOnInbound"),
     true,
-    "la garde 4 nomme une table en dur au lieu d'importer la constante",
+    "la fermeture de l'épisode est partie avec l'armement",
   );
   assertEquals(ACTIVE_FLOW_STATE_TABLE, "user_chat_states");
 });

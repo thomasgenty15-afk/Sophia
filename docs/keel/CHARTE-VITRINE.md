@@ -27,7 +27,22 @@ D'où : des champs, des figures annotées à la place des images, des angles fer
 et une seule marque répétée — **l'équerre**.
 
 **Le risque assumé : aucune photographie sur ce site, jamais, y compris de
-nourriture.** Le produit ne fabrique aucune image ; une photo de plat serait une
+nourriture.**
+
+> ⚠️ **AMENDÉ LE 2026-09-08.** La landing unique (`/`, `keel/pages/HomePage.tsx`)
+> porte deux visuels culinaires (`public/landing-assets/*.webp`), sur décision
+> du propriétaire (brief `scratchpad/2026-09-08-0030-POSITIONNEMENT-landing.md`).
+> La règle qui survit est celle du dessous : **une photo n'est jamais une preuve
+> du produit**. La preuve est la démonstration du plan, rendue avec les libellés
+> de `meals.*`, et c'est **elle** qui porte la mention « Exemple illustratif ».
+>
+> ⚠️ Les deux images ont porté une légende « Suggestion de présentation »,
+> **retirée le 2026-09-08 par le propriétaire**. Ne pas la remettre au nom de
+> cette charte : légender une photo de plat ne prouve rien et n'est exigé nulle
+> part ; ce qui doit rester légendé, c'est ce qui ressemble à un ÉCRAN du
+> produit.
+> Le reste de la charte (palette figue, typographie, équerre, un seul bloc
+> sombre) s'applique à cette page comme aux autres. Le produit ne fabrique aucune image ; une photo de plat serait une
 assiette que personne n'a cuisinée, choisie pour ressembler à ce que le produit
 *pourrait* donner. C'est l'extension d'un cran de la règle du dépôt — *« on ne
 montre pas un écran qu'on n'a pas »*. La contrepartie est que les figures doivent

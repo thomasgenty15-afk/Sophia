@@ -111,11 +111,15 @@ Deno.test("FF-056 · la liste des verdicts est fermée et contient la bonne fin"
 Deno.test("FF-056 · seuls fat_loss et muscle_gain portent une direction", () => {
   assertEquals(weightGoalDirection("fat_loss"), "down");
   assertEquals(weightGoalDirection("muscle_gain"), "up");
-  // Les quatre autres valeurs du CHECK `student_goals_goal_check`.
+  // La troisième valeur du CHECK `student_goals_goal_check`.
+  assertEquals(weightGoalDirection("maintenance"), null);
+  // ⚠️ ET LES TROIS RETIRÉES LE 2026-08-18, QUI RESTENT ICI EXPRÈS. La base
+  // ne les accepte plus, mais cette fonction lit un `string` venu d'ailleurs
+  // (un jsonb, un client plus vieux). Les retirer du banc rendrait le jour où
+  // quelqu'un ajoute un repli muet indiscernable du jour d'avant.
   assertEquals(weightGoalDirection("recomposition"), null);
   assertEquals(weightGoalDirection("performance"), null);
   assertEquals(weightGoalDirection("health"), null);
-  assertEquals(weightGoalDirection("maintenance"), null);
   // Et tout ce qui n'existe pas.
   assertEquals(weightGoalDirection(null), null);
   assertEquals(weightGoalDirection(undefined), null);
@@ -124,13 +128,13 @@ Deno.test("FF-056 · seuls fat_loss et muscle_gain portent une direction", () =>
   assertEquals(weightGoalDirection("__proto__"), null);
 });
 
-Deno.test("FF-056 · une recomposition qui stagne n'est JAMAIS une divergence", () => {
+Deno.test("FF-056 · un maintien qui stagne n'est JAMAIS une divergence", () => {
   // Le mode de défaillance le plus indéfendable de cette fonctionnalité: poser
   // la question à quelqu'un dont le plan se déroule exactement comme prévu.
   const flat = weeklySeries(MONDAY, [80.0, 80.0, 80.1, 79.9, 80.0, 80.0]);
   const result = detectWeightDivergence({
     measures: flat,
-    goal: "recomposition",
+    goal: "maintenance",
     todayLocalDate: shift(MONDAY, 36),
   });
   assertEquals(result.verdict, "no_directional_goal");

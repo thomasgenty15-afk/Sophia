@@ -76,6 +76,12 @@ export const DIETARY_REGIMES = [
   "vegetarian",
   "vegan",
   "pescatarian",
+  // ⟳ 2026-09-08 — LE QUATRIÈME, ET LE PREMIER QUI N'EST PAS SUR L'AXE ANIMAL.
+  // Les trois premiers s'emboîtent (`pescatarian ⊂ vegetarian ⊂ vegan`);
+  // celui-ci ne se compare à aucun. Ce que ça a coûté de câblage, et pourquoi
+  // le classement par comptage a dû mourir, est écrit sur `REGIME_COVERS`
+  // (`household_diet.ts`).
+  "gluten_free",
 ] as const;
 export type DietaryRegime = typeof DIETARY_REGIMES[number];
 
@@ -109,6 +115,17 @@ const EXCLUDED_GROUPS: Record<DietaryRegime, readonly FoodGroupRef[]> = {
     "dairy_cheese",
   ],
   pescatarian: ["red_meat", "poultry"],
+  // ⛔ VIDE, ET CE N'EST PAS UN OUBLI — c'est la règle du pavé au-dessus prise
+  // au mot. Aucun groupe ne porte « contient du gluten »: `whole_grain` et
+  // `refined_grain` tiennent le riz, le maïs, le quinoa et le sarrasin autant
+  // que le blé, et les exclure interdirait le riz à un cœliaque — exactement
+  // ce que `lean_protein` ferait au tofu d'un végétarien.
+  //
+  // ⚠️ SA GARANTIE EST DONC ENTIÈREMENT DANS `REGIME_FORMS`, la prose. C'est
+  // le cas que ce fichier annonce depuis le début: « les groupes servent au
+  // choix EN AMONT, la prose sert au verrou EN AVAL. » Ici il n'y a pas
+  // d'amont, et l'aval porte tout.
+  gluten_free: [],
 };
 
 export function excludedGroupsFor(
@@ -336,6 +353,36 @@ export function categoryFormsOf(word: unknown): readonly string[] {
   return [];
 }
 
+/**
+ * LES PORTEURS DE GLUTEN — nommés un par un, jamais devinés.
+ *
+ * ⛔ CE QUI N'EST PAS ICI, ET POURQUOI. « sauce soja » en contient presque
+ * toujours, mais le tamari non, et « soja » seul ne dit pas lequel: un terme
+ * qui mord sur les deux retirerait un condiment sûr. La règle du dépôt tient —
+ * on ne bricole pas de matcher (« laitue » ≠ « lait »): on NOMME. Ce qui n'est
+ * pas nommé passe, et c'est la direction d'échec choisie ici PARCE QUE la
+ * ceinture de l'allergène `gluten` existe déjà et mord, elle, fail-closed.
+ *
+ * ⚠️ « pain » EST DANS LA LISTE FR, et c'est un homographe de l'anglais
+ * « pain » (douleur). Le matcher travaille sur des noms d'aliments et compare
+ * des SPANS de mots, pas des sous-chaînes — c'est ce qui rend le terme sûr
+ * ici, et c'est aussi pourquoi il ne faut pas y ajouter de radical court.
+ */
+const GLUTEN_FORMS = [
+  // EN
+  "wheat", "bread", "breadcrumbs", "breaded", "pasta", "spaghetti", "penne",
+  "macaroni", "lasagna", "lasagne", "noodles", "couscous", "semolina",
+  "barley", "rye", "spelt", "farro", "bulgur", "seitan", "flour", "pastry",
+  "pie crust", "puff pastry", "croutons", "tortilla", "pita", "baguette",
+  "brioche", "cracker", "crackers", "biscuit", "cake", "beer",
+  // FR
+  "ble", "pain", "chapelure", "pane", "pates", "spaghetti", "penne",
+  "macaroni", "lasagnes", "nouilles", "couscous", "semoule", "boulgour",
+  "orge", "seigle", "epeautre", "seitan", "farine", "pate brisee",
+  "pate feuilletee", "croutons", "tortilla", "pita", "baguette", "brioche",
+  "biscotte", "gateau", "biere",
+] as const;
+
 const REGIME_FORMS: Record<DietaryRegime, readonly (readonly string[])[]> = {
   vegetarian: [MEAT_FORMS, POULTRY_FORMS, SEAFOOD_FORMS],
   vegan: [
@@ -346,6 +393,7 @@ const REGIME_FORMS: Record<DietaryRegime, readonly (readonly string[])[]> = {
     DAIRY_AND_HONEY_FORMS,
   ],
   pescatarian: [MEAT_FORMS, POULTRY_FORMS],
+  gluten_free: [GLUTEN_FORMS],
 };
 
 /**
@@ -405,6 +453,20 @@ const UNAMBIGUOUS_PLANT_WORDS = [
  * peut que rendre un faux positif au silence.
  */
 const PLANT_ANALOGUE_PHRASES = [
+  // ── SANS GLUTEN, DIT EN TOUTES LETTRES (2026-09-08) ──────────────────────
+  // Même mécanique que « soy yogurt » sous le verrou laitier, et même défaut
+  // évité: le modèle qui compose CORRECTEMENT « gluten-free bread » écrit le
+  // mot `bread`, et la garde mordrait sur son propre succès.
+  "gluten free bread", "gluten-free bread", "gluten free pasta",
+  "gluten-free pasta", "gluten free flour", "gluten-free flour",
+  "gluten free noodles", "gluten-free noodles", "gluten free crackers",
+  "gluten free pastry", "gluten free tortilla", "rice noodles",
+  "buckwheat noodles", "corn tortilla", "rice flour", "almond flour",
+  "chickpea flour", "buckwheat flour", "cornflour", "corn flour",
+  "pain sans gluten", "pates sans gluten", "farine sans gluten",
+  "nouilles de riz", "nouilles de sarrasin", "galette de sarrasin",
+  "farine de riz", "farine d amande", "farine de pois chiche",
+  "farine de sarrasin", "farine de mais", "tortilla de mais",
   // laits et boissons
   "soy milk", "soya milk", "almond milk", "oat milk", "rice milk",
   "coconut milk", "cashew milk", "hemp milk", "nut milk",
@@ -1000,6 +1062,15 @@ export function dietaryRegimePromptLine(regime: DietaryRegime): string {
       "no dairy and no honey — ever.",
     pescatarian:
       "This student is PESCATARIAN: no meat and no poultry. Fish and seafood are fine.",
+    // ⚠️ LA CONSIGNE NOMME LES PORTEURS, PAS « le gluten ». Un modèle à qui on
+    // dit « no gluten » compose des plats corrects la plupart du temps et
+    // glisse une panure ou une sauce épaissie le reste; nommer le blé, l'orge,
+    // le seigle et leurs formes usuelles ferme la porte par où ça passe.
+    gluten_free:
+      "This student is GLUTEN-FREE: no wheat, barley, rye, spelt or their " +
+      "flours — no bread, pasta, couscous, semolina, breadcrumbs, batter, " +
+      "pastry or beer. Naturally gluten-free staples (rice, corn, potato, " +
+      "quinoa, buckwheat, lentils) are fine and preferred.",
   };
   return `${head[regime]} This holds for stocks, sauces, fats and garnishes too — ` +
     `fish sauce, anchovy in a dressing, gelatine in a dessert, lard in a pastry ` +
@@ -1079,6 +1150,10 @@ export function uncoverableSentinelsFor(regime: DietaryRegime): string[] {
       // Œufs et laitages portent la B12. Rien d'incouvrable.
       return [];
     case "pescatarian":
+      return [];
+    // Rien d'incouvrable: retirer le blé ne retire aucun nutriment qu'un autre
+    // féculent ne porte. C'est une contrainte de FORME, pas d'apport.
+    case "gluten_free":
       return [];
   }
 }

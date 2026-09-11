@@ -380,9 +380,11 @@ const MOUTH_A: PortionMember = {
   goal: "fat_loss",
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 const MOUTH_B: PortionMember = {
   memberId: LUBNA,
@@ -390,9 +392,11 @@ const MOUTH_B: PortionMember = {
   goal: null,
   ageState: "adult",
   body: null,
+  lightSlots: [],
   eatingSlots: null,
   habits: [],
   habitNote: null,
+  requiredDensity: null,
 };
 
 const NOBODY_AWAY = resolveWindowPresence({
@@ -406,6 +410,7 @@ const NOBODY_AWAY = resolveWindowPresence({
 
 function blocksWith(ruleHolders: readonly HouseholdRuleHolder[]) {
   return buildHouseholdPromptBlocks({
+    sizingPath: "legacy_measure" as const,
     members: [MOUTH_A, MOUTH_B],
     // ③ — aucune tradition: le prompt reste celui d'hier.
     traditions: [],

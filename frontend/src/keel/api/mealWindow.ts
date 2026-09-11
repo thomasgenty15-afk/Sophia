@@ -246,18 +246,13 @@ export function resolveRequestedWindow(
 }
 
 /**
- * LE DERNIER DÉPART QUE LES JETONS DE JOUR SAVENT NOMMER — le dimanche de la
- * semaine en cours. Miroir de `lastNameableStart` (`meal_plan_window.ts`).
+ * ⛔ ICI VIVAIT `lastNameableStart` — LE MIROIR DU DIMANCHE, RETIRÉ LE
+ * 2026-09-06 AVEC SON ORIGINAL.
  *
- * ⚠️ CE N'EST PAS LE SERVEUR QUI TRANCHE ICI, ET C'EST VOULU. Le serveur refuse
- * `window_beyond_this_week`, en millisecondes, avec le jour local de l'élève —
- * il est l'autorité. Ce miroir sert au `max` du sélecteur de dates, pour que le
- * geste ne soit pas PROPOSÉ: sans lui, l'écran offrait de partir dans quinze
- * jours et le modèle refusait après 6,2 s facturées (mesuré le 2026-08-12). Un
- * décalage d'un jour entre l'horloge du navigateur et le fuseau de l'élève
- * laisse simplement le serveur trancher, ce qu'il fait de toute façon.
+ * Il servait le `max` des deux sélecteurs de date de départ, pour que le geste
+ * ne soit pas PROPOSÉ pendant que le serveur le refusait
+ * (`window_beyond_this_week`). Le serveur ne le refuse plus: la date de départ
+ * est libre, seul le passé reste interdit, et le prompt de génération ancre
+ * désormais la liste des jours sur la DATE d'ouverture de la fenêtre. Toute
+ * l'histoire, avec la mesure, est dans la tombe de `meal_plan_window.ts`.
  */
-export function lastNameableStart(today: string): string {
-  const at = WEEK_TOKENS.indexOf(dayTokenOf(today));
-  return addDays(today, WEEK_TOKENS.length - 1 - at);
-}

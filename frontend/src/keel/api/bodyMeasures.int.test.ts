@@ -546,7 +546,7 @@ describe("la cible saisie — RÉGRESSION: un champ vide n'est pas zéro", () =>
     expect(targetValueOf("20", "waist")).toBeNull();
   });
 
-  it("sans cible possible (performance, health), il n'y a rien à lire", () => {
+  it("sans cible possible, il n'y a rien à lire", () => {
     expect(targetValueOf("75", null)).toBeNull();
   });
 });

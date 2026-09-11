@@ -267,7 +267,15 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
       : null;
     return label ? <p className="text-xs leading-5 text-ink-soft">{label}</p> : null;
   }
-  const rangeKey = energyTargetRangeKey(target.direction);
+  // ⟳ 2026-09-10 · LOT 3 — UN RYTHME QUI NE S'EXÉCUTE PAS NE S'ANNONCE PAS.
+  // La phrase dirigée dit « à ton rythme »; quand le serveur dit que le rythme
+  // n'a pas pu être calculé, ces nombres sont ceux de l'entretien et cette
+  // phrase est fausse mot pour mot. On retombe donc sur la phrase du poids —
+  // qui, elle, est vraie — et on DIT ce qui manque, juste en dessous.
+  const paceMissing = target.paceUnavailable !== null;
+  const rangeKey = energyTargetRangeKey(
+    paceMissing ? null : target.direction,
+  );
   return (
     <div className="text-xs leading-5 text-ink-soft">
       <p className="tabular-nums text-ink-soft">
@@ -293,7 +301,29 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
           taille dépense », ce qui est faux mot pour mot d'une fourchette qu'on
           vient de décaler d'un déficit. Une phrase de garde qui survit à la
           règle qui l'a fondée est pire que pas de phrase. */}
-      <p className="mt-1">{mealCopy(energyTargetNoteKey(target.direction))}</p>
+      <p className="mt-1">
+        {mealCopy(energyTargetNoteKey(paceMissing ? null : target.direction))}
+      </p>
+      {/* ══════════════════════════════════════════════════════════════════
+          ⟳ 2026-09-10 · LOT 3 — LE MOTIF, À L'ENDROIT DU CHIFFRE QU'IL EXPLIQUE.
+          ══════════════════════════════════════════════════════════════════
+
+          ⛔ LE DÉFAUT ÉTAIT MUET, ET C'EST CE QUI LE RENDAIT CHER. Sans taille,
+          la fourchette sort quand même (raccourci au poids) pendant que l'écart
+          du rythme vaut zéro: l'écran annonçait « pour perdre à ton rythme »
+          au-dessus de nombres d'entretien. L'objectif était annulé sans un mot,
+          et rien à l'écran ne permettait de le savoir.
+
+          ⚠️ ELLE DIT CE QUI MANQUE ET OÙ LE CORRIGER. Un motif loin du geste
+          est un mur muet — cicatrice payée trois fois sur `SetupPage`. La
+          taille se saisit dans « Informations de base », sur cette même page.
+
+          ⛔ ET ON NE DEVINE PAS UN ÉCART À LA PLACE. Le refus de calculer sur
+          données manquantes est une décision datée du serveur; ce qui change
+          ici est qu'il porte enfin son motif. */}
+      {paceMissing && (
+        <p className="mt-1">{mealCopy("meals.energy.target_pace_missing_body")}</p>
+      )}
     </div>
   );
 }
@@ -322,6 +352,7 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
  * Le repli est la phrase de maintenance: le comportement d'avant ce champ, vrai
  * hier et vrai aujourd'hui.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function energyTargetRangeKey(
   direction: EnergyTargetDirection | null,
 ): MealCopyKey {
@@ -338,6 +369,7 @@ export function energyTargetRangeKey(
  * mot pour mot. Une phrase de garde qui survit à la règle qui l'a fondée est
  * pire que pas de phrase: elle rassure sur une propriété qui n'existe plus.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function energyTargetNoteKey(
   direction: EnergyTargetDirection | null,
 ): MealCopyKey {

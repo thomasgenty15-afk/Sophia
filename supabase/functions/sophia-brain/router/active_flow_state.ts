@@ -22,19 +22,21 @@ export type ActiveFlowState = {
  */
 export const ACTIVE_FLOW_STATE_TABLE = "user_chat_states";
 
-export type ActiveLocalConversationFlowSkillId =
-  | "safety_crisis"
-  | "keel_reengagement_resume_v1";
+export type ActiveLocalConversationFlowSkillId = "safety_crisis";
 
 // W2.A: `feature_opportunity` et `potion_support_admission_v1` sont retirés du
 // registre en dur. Conséquence voulue: un état de flow résiduel déjà écrit en
 // base n'est plus reconnu comme flow actif — il ne peut ni reprendre la main,
 // ni faire sauter le dispatcher global; le tour repart en routage normal.
+// ⟳ 2026-09-09 — `keel_reengagement_resume_v1` EST RETIRÉ DU REGISTRE, et
+// c'est la troisième ceinture du même retrait: l'écrivain est parti de
+// `chat-inbound-v1`, la branche est partie de `routers.ts`, et ici un état
+// résiduel déjà écrit en base cesse d'être reconnu comme flow actif. Le tour
+// repart en routage normal — exactement l'effet décrit par W2.A au-dessus.
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
   "safety_crisis",
-  "keel_reengagement_resume_v1",
 ]);
 
 function legacyKey(...parts: string[]): string {
@@ -135,37 +137,11 @@ export function isStaleActiveLocalFlowState(
     String(record.skill_id ?? "") === "potion_support_admission_v1" &&
     record.working_state?.potion_support_admission?.awaiting_first_reply === true
   ) return false;
-  // ⚠️ LE CARVE-OUT DU RÉENGAGEMENT EST INERTE AUJOURD'HUI — vérifié en base.
-  //
-  // Il a été restauré en phase B sur l'argument du winback : « un élève répond
-  // à une relance plusieurs JOURS après son armement, un timer de 4 h le tue
-  // avant ». L'argument était juste POUR LE WINBACK, qui armait à l'ENVOI.
-  //
-  // Ce flow-ci arme à la RÉPONSE (`chat-inbound-v1`, garde 4, à la fermeture de
-  // l'épisode). Mesuré : entre la relance et la réponse, `temp_memory` ne porte
-  // AUCUN état de flow ; l'état naît et se consomme dans la même requête, donc
-  // `updated_at` vaut toujours ~maintenant et la borne de 4 h ne peut pas être
-  // franchie. C'est l'ÉPISODE qui porte l'attente, pas l'état de flow.
-  //
-  // Ce qui tient réellement le délai est donc ailleurs, et c'est prouvé :
-  // épisode ouvert 3 jours → réponse → `response_owner` =
-  // `keel_reengagement_resume_v1`, cadre rendu, épisode fermé `reengaged`.
-  //
-  // ── POURQUOI ON LE GARDE QUAND MÊME ─────────────────────────────────────────
-  // Même arbitrage que `no_tooling.product_help_called` dans le contrat safety :
-  // une garde inerte coûte trois lignes, la retirer coûte une panne silencieuse
-  // le jour où l'armement bouge. CONDITION DE SUPPRESSION, explicite : si
-  // l'armement passe un jour à l'ENVOI de la relance (ce qui exposerait l'état
-  // pendant des jours), ce carve-out redevient indispensable — le supprimer
-  // avant ce changement est sûr, le supprimer après ne l'est pas.
-  //
-  // Il est nommé INERTE ici plutôt que décrit comme une protection, parce que
-  // ce dépôt a déjà payé plusieurs fois une ceinture qui se lisait comme armée.
-  if (
-    String(record.skill_id ?? "") === "keel_reengagement_resume_v1" &&
-    record.working_state?.keel_reengagement_resume_local_state
-        ?.awaiting_first_reply === true
-  ) return false;
+  // ⟳ 2026-09-09 — LE CARVE-OUT DU RÉENGAGEMENT EST PARTI AVEC SON FLOW.
+  // Il portait sa propre CONDITION DE SUPPRESSION: « le supprimer avant que
+  // l'armement passe à l'ENVOI de la relance est sûr ». L'armement n'a pas
+  // bougé, il a été RETIRÉ (`chat-inbound-v1`, 2026-09-09), donc la condition
+  // est satisfaite a fortiori: il n'y a plus d'état à garder frais.
   const touchedAt = Date.parse(
     String(record.updated_at ?? record.started_at ?? ""),
   );

@@ -1,0 +1,461 @@
+[
+  {
+    "term": "skyr",
+    "slug": "skyr",
+    "label": "Skyr",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 63,
+    "source": "manual"
+  },
+  {
+    "term": "flocons d'avoine",
+    "slug": "oats",
+    "label": "Oats",
+    "ciqual": "Flocon d'avoine",
+    "code": "9311",
+    "kcal100": 367,
+    "source": "ciqual"
+  },
+  {
+    "term": "pêche",
+    "slug": "peach",
+    "label": "Peach",
+    "ciqual": "Pêche jaune, pulpe, crue",
+    "code": "13195",
+    "kcal100": 46.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "noix",
+    "slug": "walnuts",
+    "label": "Walnuts",
+    "ciqual": "Noix, fraîche",
+    "code": "15023",
+    "kcal100": 377.8,
+    "source": "ciqual"
+  },
+  {
+    "term": "miel",
+    "slug": "honey",
+    "label": "Honey",
+    "ciqual": "Miel",
+    "code": "31008",
+    "kcal100": 329,
+    "source": "ciqual"
+  },
+  {
+    "term": "tomate",
+    "slug": "tomato",
+    "label": "Tomato",
+    "ciqual": "Tomate, crue",
+    "code": "20047",
+    "kcal100": 19.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "concombre",
+    "slug": "cucumber",
+    "label": "Cucumber",
+    "ciqual": "Concombre, pulpe, cru",
+    "code": "20210",
+    "kcal100": 14.7,
+    "source": "ciqual"
+  },
+  {
+    "term": "thon au naturel égoutté",
+    "slug": "tuna_tinned",
+    "label": "Tinned tuna",
+    "ciqual": "Thon, au naturel, appertisé, égoutté",
+    "code": "26039",
+    "kcal100": 111,
+    "source": "ciqual"
+  },
+  {
+    "term": "pain complet",
+    "slug": "wholemeal_bread",
+    "label": "Wholemeal bread",
+    "ciqual": "Pain de mie, complet",
+    "code": "7111",
+    "kcal100": 262,
+    "source": "ciqual"
+  },
+  {
+    "term": "huile d'olive",
+    "slug": "olive_oil",
+    "label": "Olive oil",
+    "ciqual": "Huile d'olive vierge extra",
+    "code": "17270",
+    "kcal100": 900,
+    "source": "ciqual"
+  },
+  {
+    "term": "olives",
+    "slug": "olives",
+    "label": "Olives",
+    "ciqual": "Olive noire (aliment moyen)",
+    "code": "13186",
+    "kcal100": 195.6,
+    "source": "ciqual"
+  },
+  {
+    "term": "yaourt nature",
+    "slug": "plain_yogurt",
+    "label": "Plain yogurt",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 59,
+    "source": "manual"
+  },
+  {
+    "term": "citron",
+    "slug": "lemon",
+    "label": "Lemon",
+    "ciqual": "Citron, pulpe, cru",
+    "code": "13009",
+    "kcal100": 27.6,
+    "source": "ciqual"
+  },
+  {
+    "term": "fromage blanc",
+    "slug": "fromage_blanc",
+    "label": "Fromage blanc",
+    "ciqual": "Fromage blanc nature, 3% MG environ",
+    "code": "19646",
+    "kcal100": 76.9,
+    "source": "ciqual"
+  },
+  {
+    "term": "prune",
+    "slug": "prune",
+    "label": "Prune",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 229,
+    "source": "ciqual"
+  },
+  {
+    "term": "graines de courge",
+    "slug": "pumpkin_seeds",
+    "label": "Pumpkin seeds",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 559,
+    "source": "manual"
+  },
+  {
+    "term": "feta",
+    "slug": "feta",
+    "label": "Feta",
+    "ciqual": "Feta AOP",
+    "code": "12066",
+    "kcal100": 285,
+    "source": "ciqual"
+  },
+  {
+    "term": "roquette",
+    "slug": "rocket",
+    "label": "Rocket",
+    "ciqual": "Roquette, crue",
+    "code": "20217",
+    "kcal100": 27.9,
+    "source": "ciqual"
+  },
+  {
+    "term": "yaourt grec",
+    "slug": "greek_yogurt",
+    "label": "Greek yogurt",
+    "ciqual": "Yaourt à la grecque, nature",
+    "code": "19860",
+    "kcal100": 113.1,
+    "source": "ciqual"
+  },
+  {
+    "term": "raisin",
+    "slug": "raisin",
+    "label": "Raisin",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 321,
+    "source": "ciqual"
+  },
+  {
+    "term": "amandes",
+    "slug": "almonds",
+    "label": "Almonds",
+    "ciqual": "Amande (avec peau)",
+    "code": "15000",
+    "kcal100": 599.9,
+    "source": "ciqual"
+  },
+  {
+    "term": "cuisses de poulet désossées",
+    "slug": "chicken_thigh",
+    "label": "Chicken thigh",
+    "ciqual": "Poulet, cuisse, viande, cru",
+    "code": "36024",
+    "kcal100": 114,
+    "source": "ciqual"
+  },
+  {
+    "term": "quinoa",
+    "slug": "quinoa",
+    "label": "Quinoa",
+    "ciqual": "Quinoa, cru",
+    "code": "9340",
+    "kcal100": 358,
+    "source": "ciqual"
+  },
+  {
+    "term": "courgette",
+    "slug": "courgette",
+    "label": "Courgette",
+    "ciqual": "Courgette, pulpe et peau, crue",
+    "code": "20020",
+    "kcal100": 16.5,
+    "source": "ciqual"
+  },
+  {
+    "term": "poivron rouge",
+    "slug": "bell_pepper",
+    "label": "Bell pepper",
+    "ciqual": "Poivron vert, cru",
+    "code": "20085",
+    "kcal100": 26,
+    "source": "ciqual"
+  },
+  {
+    "term": "oignon",
+    "slug": "onion",
+    "label": "Onion",
+    "ciqual": "Oignon, cru",
+    "code": "20034",
+    "kcal100": 38.4,
+    "source": "ciqual"
+  },
+  {
+    "term": "paprika",
+    "slug": "paprika",
+    "label": "Paprika",
+    "ciqual": "Paprika",
+    "code": "11049",
+    "kcal100": 319,
+    "source": "ciqual"
+  },
+  {
+    "term": "sel",
+    "slug": "salt",
+    "label": "Salt",
+    "ciqual": "Sel blanc alimentaire, iodé, non fluoré (marin, ignigène ou gemme)",
+    "code": "11058",
+    "kcal100": 0,
+    "source": "ciqual"
+  },
+  {
+    "term": "poivre noir",
+    "slug": "black_pepper",
+    "label": "Black pepper",
+    "ciqual": "Poivre noir, poudre",
+    "code": "11015",
+    "kcal100": 330,
+    "source": "ciqual"
+  },
+  {
+    "term": "filet de saumon",
+    "slug": "salmon",
+    "label": "Salmon",
+    "ciqual": "Saumon, cru, élevage",
+    "code": "26036",
+    "kcal100": 194,
+    "source": "ciqual"
+  },
+  {
+    "term": "pomme de terre",
+    "slug": "potato",
+    "label": "Potato",
+    "ciqual": "Pomme de terre nouvelle, crue",
+    "code": "4023",
+    "kcal100": 76.4,
+    "source": "ciqual"
+  },
+  {
+    "term": "haricots verts",
+    "slug": "green_beans",
+    "label": "Green beans",
+    "ciqual": "Haricot vert, cru",
+    "code": "20061",
+    "kcal100": 31.6,
+    "source": "ciqual"
+  },
+  {
+    "term": "aneth",
+    "slug": "herbs_dill",
+    "label": "Dill",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 43,
+    "source": "manual"
+  },
+  {
+    "term": "poire",
+    "slug": "pear",
+    "label": "Pear",
+    "ciqual": "Poireau, cru",
+    "code": "20039",
+    "kcal100": 32.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "raisins",
+    "slug": "raisins",
+    "label": "Raisins",
+    "ciqual": "Raisin, sec",
+    "code": "13046",
+    "kcal100": 321,
+    "source": "ciqual"
+  },
+  {
+    "term": "cottage cheese",
+    "slug": "cottage_cheese",
+    "label": "Cottage cheese",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 98,
+    "source": "manual"
+  },
+  {
+    "term": "muesli",
+    "slug": "granola",
+    "label": "Granola",
+    "ciqual": "Muesli (aliment moyen)",
+    "code": "32004",
+    "kcal100": 418,
+    "source": "ciqual"
+  },
+  {
+    "term": "prunes",
+    "slug": "prune",
+    "label": "Prune",
+    "ciqual": null,
+    "code": null,
+    "kcal100": 229,
+    "source": "ciqual"
+  },
+  {
+    "term": "salade verte",
+    "slug": "lettuce",
+    "label": "Lettuce",
+    "ciqual": "Laitue, crue",
+    "code": "20031",
+    "kcal100": 14.7,
+    "source": "ciqual"
+  },
+  {
+    "term": "houmous",
+    "slug": "hummus",
+    "label": "Hummus",
+    "ciqual": "Houmous, préemballé",
+    "code": "25621",
+    "kcal100": 288.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "tahini",
+    "slug": "tahini",
+    "label": "Tahini",
+    "ciqual": "Tahin ou Purée de sésame",
+    "code": "15203",
+    "kcal100": 620.6,
+    "source": "ciqual"
+  },
+  {
+    "term": "ail",
+    "slug": "garlic",
+    "label": "Garlic",
+    "ciqual": "Ail, cru",
+    "code": "11000",
+    "kcal100": 111,
+    "source": "ciqual"
+  },
+  {
+    "term": "quinoa sec",
+    "slug": "quinoa",
+    "label": "Quinoa",
+    "ciqual": "Quinoa, cru",
+    "code": "9340",
+    "kcal100": 358,
+    "source": "ciqual"
+  },
+  {
+    "term": "eau",
+    "slug": "water",
+    "label": "Water",
+    "ciqual": "Eau du robinet",
+    "code": "18066",
+    "kcal100": 0,
+    "source": "ciqual"
+  },
+  {
+    "term": "lentilles vertes sèches",
+    "slug": "lentils_dry",
+    "label": "Lentils (dry)",
+    "ciqual": "Lentille, sèche",
+    "code": "20504",
+    "kcal100": 331.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "tomates",
+    "slug": "tomato",
+    "label": "Tomato",
+    "ciqual": "Tomate, crue",
+    "code": "20047",
+    "kcal100": 19.3,
+    "source": "ciqual"
+  },
+  {
+    "term": "filets de saumon",
+    "slug": "salmon",
+    "label": "Salmon",
+    "ciqual": "Saumon, cru, élevage",
+    "code": "26036",
+    "kcal100": 194,
+    "source": "ciqual"
+  },
+  {
+    "term": "couscous sec",
+    "slug": "couscous",
+    "label": "Couscous",
+    "ciqual": "Semoule de blé dur, crue",
+    "code": "9610",
+    "kcal100": 352,
+    "source": "ciqual"
+  },
+  {
+    "term": "persil",
+    "slug": "herbs_parsley",
+    "label": "Parsley",
+    "ciqual": "Persil, frais",
+    "code": "11014",
+    "kcal100": 43,
+    "source": "ciqual"
+  },
+  {
+    "term": "aubergine",
+    "slug": "aubergine",
+    "label": "Aubergine",
+    "ciqual": "Aubergine, crue",
+    "code": "20053",
+    "kcal100": 20.7,
+    "source": "ciqual"
+  },
+  {
+    "term": "poivron",
+    "slug": "bell_pepper",
+    "label": "Bell pepper",
+    "ciqual": "Poivron vert, cru",
+    "code": "20085",
+    "kcal100": 26,
+    "source": "ciqual"
+  }
+]

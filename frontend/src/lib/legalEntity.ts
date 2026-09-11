@@ -29,7 +29,16 @@ export const LEGAL_ENTITY = {
   legalName: "IKIZEN",
   /** Société par actions simplifiée. Kept in French: it is a form in French law. */
   legalForm: "SAS",
-  shareCapital: "€10",
+  /**
+   * UN NOMBRE, ET PAS « €10 ».
+   *
+   * La chaîne portait la convention ANGLAISE du montant (symbole devant, pas
+   * d'espace), donc la page française affichait « au capital social de €10 ».
+   * Un montant est un fait; sa mise en forme est de la langue. `formatPrice`
+   * rend « €10 » et « 10 € » à partir de la même valeur — même arbitrage que
+   * `keel/i18n/prices.ts` pour les tarifs.
+   */
+  shareCapitalEur: 10,
 
   /**
    * RCS registration number (9 digits, also the SIREN). The VAT number below
@@ -72,7 +81,11 @@ export const LEGAL_ENTITY = {
     city: "Covina",
     region: "CA",
     postalCode: "91723",
-    country: "United States",
+    // ⚠️ PAS DE `country` ICI, ET C'EST LE SEUL CHAMP D'ADRESSE QUI N'Y EST
+    // PAS. Le nom d'un pays s'écrit dans la langue de qui lit — la convention
+    // postale française veut « États-Unis », pas « United States » — donc il
+    // vit dans les DEUX packs, sous `legal.mentions.hosting_body`. C'est là
+    // qu'il faut le changer le jour où l'hébergeur déménage.
   },
 } as const;
 
@@ -97,7 +110,12 @@ export function organizationStructuredData(): Record<string, unknown> {
     name: "Sophia",
     legalName: `${LEGAL_ENTITY.legalName} ${LEGAL_ENTITY.legalForm}`,
     url: `${LEGAL_ENTITY.siteUrl}/`,
-    logo: `${LEGAL_ENTITY.siteUrl}/apple-touch-icon.png`,
+    // ⚠️ `icon-512.png` ET PAS `apple-touch-icon.png`. C'est le logo que Google
+    // lit pour son panneau de connaissance, et l'icône iOS n'a que 180px de
+    // côté — sous le minimum que la documentation de Google demande à une image
+    // de `logo`. Les deux fichiers portent le MÊME dessin, composé par
+    // `scripts/brand-icons.mjs`; seule la taille change.
+    logo: `${LEGAL_ENTITY.siteUrl}/icon-512.png`,
     email: LEGAL_ENTITY.contactEmail,
     telephone: LEGAL_ENTITY.phoneE164,
     vatID: LEGAL_ENTITY.vatNumber.replace(/\s/g, ""),

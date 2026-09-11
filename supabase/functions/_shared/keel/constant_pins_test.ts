@@ -29,9 +29,13 @@ import {
   EXPLANATION_MAX_CHARS,
   EXPLANATION_MAX_LINES,
 } from "./plan_explanation.ts";
+import {
+  CATALOG_GROUP_CAPS,
+  CATALOG_TOTAL_CAP,
+} from "./composition_contract.ts";
+import { ANCHOR_DIVERGENCE_RATIO } from "./household_portions.ts";
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { UNANSWERED_EXTRAS_KCAL } from "./meal_extras.ts";
 import {
   MAX_DAY_SLOTS,
   MEAL_KCAL_PER_G_COMPOSED,
@@ -76,7 +80,6 @@ import { PROTEIN_REFERENCE_CEILING_KG_PER_M2 } from "./protein_reference_weight.
 import {
   ANCHOR_FACTOR_MAX,
   ANCHOR_FACTOR_MIN,
-  COMPOSED_DISH_MIN_MEAL_SHARE,
   MEAL_MAX_GRAMS_PER_KG,
   SLOT_DAY_WEIGHT,
 } from "./mouth_anchor.ts";
@@ -87,6 +90,11 @@ import {
   NOTCHES_PER_ANSWER,
 } from "./feedback_index.ts";
 import { MEMO_LINE_MAX_CHARS, MEMO_MAX_LINES_PER_SUBJECT } from "./memo.ts";
+import {
+  BUDGET_FLOOR_PER_MOUTH_DAY,
+  BUDGET_FLOOR_REFERENCE_KCAL,
+  BUDGET_PLAUSIBLE_PER_MOUTH_DAY,
+} from "./budget_floor.ts";
 import {
   WEIGH_IN_INTERVAL_DAYS,
   WEIGH_IN_WINDOW_END_HOUR,
@@ -224,40 +232,35 @@ Deno.test("épinglage — MEAL_MAX_GRAMS_PER_KG vaut 8 g/kg", () => {
   assertEquals(MEAL_MAX_GRAMS_PER_KG, 8);
 });
 
-Deno.test("épinglage — le repli d'un moment NON RENSEIGNÉ vaut 0,58", () => {
-  // ⟳ 2026-09-01 — TROIS ÉPINGLES ONT DISPARU D'ICI, ET UNE LES REMPLACE.
-  // `COMPOSED_DISH_MEAL_SHARE` (0,42), `COMPOSED_DISH_KCAL` (300) et
-  // `MEAL_COMPONENT_KCAL` (120/120/80) décrivaient un RATIO — « le plat porte
-  // 42 % du repas » — appliqué à la journée entière. Le forfait, lui, est
-  // retranché en valeur absolue et moment par moment; les kcal viennent
-  // désormais de CIQUAL (`meal_extras.ts`), pas d'une table écrite ici.
+Deno.test("⟳ 2026-09-10 — DEUX ÉPINGLES SONT PARTIES AVEC LES EXTRAS", () => {
+  // ⛔ CE QUI ÉTAIT ÉPINGLÉ ICI, ET POURQUOI CE N'EST PLUS ÉPINGLABLE:
+  //   · `UNANSWERED_EXTRAS_KCAL` — ce qu'on retranchait à un déjeuner ou un
+  //     dîner NON RENSEIGNÉ (0,58 de la cible, puis `0` le 2026-09-04);
+  //   · `COMPOSED_DISH_MIN_MEAL_SHARE` — « le plat garde au moins 30 % de son
+  //     repas », le plancher qui bornait la SOMME de deux retraits.
   //
-  // ⟳ 2026-09-04 — LE REPLI EST PASSÉ DE 0,58 À 0, ET C'EST UN RENVERSEMENT
-  // ASSUMÉ. L'ancien épinglage disait: « une fiche muette ne dit pas *je ne
-  // prends rien*: retrancher zéro multiplierait sa cible par 2,4. » Juste en
-  // logique, et faux en population.
+  // Décision produit du 2026-09-10: le plan dimensionne les aliments qu'il
+  // prévoit et ne réserve plus d'énergie pour un accompagnement hors plan. Il
+  // ne reste qu'UN retrait — l'apport fixe déclaré —, et un plancher sur une
+  // déclaration explicite ferait composer un repas par-dessus une boisson
+  // qu'on sait avalée.
   //
-  // ⛔ MESURÉ EN BASE LE 2026-09-04: **4 bouches sur 143** ont déclaré un extra
-  // au déjeuner ou au dîner. Le « repli » couvrait donc 97 % des gens — il
-  // n'arbitrait plus une incertitude, il ÉTAIT le produit. Traduit en pain
-  // (278 kcal/100 g), il supposait 376 g/jour hors plan pour un adulte à
-  // 2 400 kcal et 704 g pour un corps à 4 501. Une baguette pèse 250 g.
-  //
-  // ⚠️ ET L'UNITÉ ÉTAIT L'ERREUR DE FOND: un extra DÉCLARÉ vaut des kcal, un
-  // extra SUPPOSÉ valait une fraction du besoin. En pourcentage, plus quelqu'un
-  // avait besoin de manger, plus on supposait qu'il mangeait ailleurs.
-  //
-  // Ce qui NE change pas: une fiche qui a répondu garde son retrait au kcal
-  // près (`extrasOf`). Le renversement ne touche que le silence.
-  assertEquals(UNANSWERED_EXTRAS_KCAL, 0);
-});
-
-Deno.test("épinglage — le plat garde au moins 30 % de son repas", () => {
-  // ⚠️ BORNE NEUVE, ET ELLE N'EXISTAIT PAS AVANT: l'ancien ratio ne pouvait
-  // pas descendre sous `300/620 = 0,48` par construction. Une somme de
-  // forfaits, si. Cinq extras sur un petit déjeuner laisseraient 49 kcal au
-  // plat — une cuillère servie comme un repas.
-  assertEquals(COMPOSED_DISH_MIN_MEAL_SHARE, 0.30);
+  // ⚠️ CE FICHIER GARDE LA TRACE PLUTÔT QUE DE PERDRE LE CAS. Un épinglage
+  // supprimé sans un mot se relit comme un épinglage oublié, et c'est
+  // exactement ce que le méta-test voisin existe pour empêcher.
+  const src = Deno.readTextFileSync(
+    new URL("./mouth_anchor.ts", import.meta.url),
+  );
+  assert(
+    !src.includes("export const COMPOSED_DISH_MIN_MEAL_SHARE"),
+    "le plancher de 30 % est revenu dans mouth_anchor.ts",
+  );
+  // Et le seul retrait qui reste ne se rabote plus: `slotPlanTargets` NOMME
+  // ce qu'il ne peut pas composer au lieu d'inventer un minimum.
+  assert(
+    src.includes("fixedCovered"),
+    "l'état explicite du moment déjà couvert a disparu",
+  );
 });
 
 Deno.test("épinglage — SLOT_DAY_WEIGHT, l'objet ENTIER", () => {
@@ -836,12 +839,370 @@ Deno.test("épingle — l'effort de composition et son timeout tiennent sous la 
   assert(m.PLAN_COMPOSITION_HTTP_TIMEOUT_MS > m.PLAN_HTTP_TIMEOUT_MS);
 });
 
-Deno.test("épingle — l'entrée de dernier recours est bornée à DEUX par plan", async () => {
+Deno.test("épingle — le second essai, et le seuil qui décide s'il vaut un appel (2026-09-10)", async () => {
   const m = await import("./portion_sizing.ts");
-  assertEquals(m.DEDICATED_REPAIR_MAX_PER_PLAN, 2);
+  // ⛔ DEUX ESSAIS, PAS TROIS. Trois refus sur quatre (`title_changed`,
+  // `no_cell`, `unparseable`) ne disent rien de la capacité du modèle à
+  // densifier: le second appel est le premier essai réel.
+  assertEquals(m.REPAIR_CALLS_PER_DISH, 2);
+  // ⛔ ET « ENCORE HORS BORNES » NE VAUT PAS TOUJOURS UN APPEL. Mesuré sur les
+  // dix tirs du 2026-09-10: 2 kcal manquantes (un gramme au-dessus du plafond),
+  // 12 kcal, et 74 kcal. Le seuil sépare le bruit du défaut.
+  assertEquals(m.REPAIR_RETRY_MIN_UNMET_KCAL, 25);
+  // Un seuil au-dessus du budget d'un plan entier ne se déclencherait jamais.
+  assert(m.REPAIR_RETRY_MIN_UNMET_KCAL > 0);
+  assert(m.REPAIR_RETRY_MIN_UNMET_KCAL < 200);
+});
+
+Deno.test("épingle — l'entrée de dernier recours est bornée à QUATRE par plan (2026-09-09, un seul appel quel que soit le nombre)", async () => {
+  const m = await import("./portion_sizing.ts");
+  assertEquals(m.DEDICATED_REPAIR_MAX_PER_PLAN, 4);
 });
 
 // ⟳ 2026-09-09 — la chirurgie locale : trois cases par reprise, et pas plus.
 import { CELL_EDIT_MAX, CELL_EDIT_TEXT_MAX_CHARS } from "./cell_edit.ts";
 Deno.test("épinglage — CELL_EDIT_MAX vaut 3", () => assertEquals(CELL_EDIT_MAX, 3));
 Deno.test("épinglage — CELL_EDIT_TEXT_MAX_CHARS vaut 280", () => assertEquals(CELL_EDIT_TEXT_MAX_CHARS, 280));
+
+// ⟳ 2026-09-09 — le complément prend UN CINQUIÈME de l'assiette quand le modèle
+// atteint la densité demandée : c'est ce qui fait une entrée, pas un second plat.
+import { COMPLEMENT_PLATE_SHARE } from "./portion_sizing.ts";
+Deno.test("épingle — la part d'assiette d'un complément vaut 0,2", () => assertEquals(COMPLEMENT_PLATE_SHARE, 0.2));
+
+// ⟳ 2026-09-09 — FF-063 : LA CADENCE DES E-MAILS DE CYCLE DE VIE.
+//
+// Les trois nombres décidés par le propriétaire le 2026-09-09. Ils sont
+// épinglés ici et pas dans `lifecycle_email_test.ts`, pour la raison exacte que
+// l'en-tête de ce fichier décrit : ce test-là construit ses horodatages AVEC
+// `LIFECYCLE_CAP_WINDOW_DAYS` et `LIFECYCLE_QUIET_HOURS`, donc les deux côtés
+// de son égalité bougeraient ensemble et il resterait vert.
+//
+// Ce qu'un déplacement coûte, pour que la ligne qui rougit sache quoi dire :
+// le plafond et le silence sont ce qui sépare une séquence d'une rafale, et
+// ils sont GLOBAUX — tous types confondus. Les monter sans le dire est la
+// façon la plus rapide de faire cliquer sur « spam », ce qui dégrade la
+// réputation du domaine d'envoi pour TOUT ce qui part, reçus compris.
+import {
+  LIFECYCLE_CAP_WINDOW_DAYS,
+  LIFECYCLE_MONTHLY_CAP,
+  LIFECYCLE_QUIET_HOURS,
+  LIFECYCLE_SEND_HOUR,
+} from "./lifecycle_email.ts";
+Deno.test("épinglage — quatre e-mails de cycle de vie par mois", () =>
+  assertEquals(LIFECYCLE_MONTHLY_CAP, 4));
+Deno.test("épinglage — la fenêtre du plafond fait 30 jours glissants", () =>
+  assertEquals(LIFECYCLE_CAP_WINDOW_DAYS, 30));
+Deno.test("épinglage — jamais deux e-mails en moins de 72 h", () =>
+  assertEquals(LIFECYCLE_QUIET_HOURS, 72));
+Deno.test("épinglage — on écrit à 10 h, dans le fuseau de la personne", () =>
+  assertEquals(LIFECYCLE_SEND_HOUR, 10));
+
+// ⟳ 2026-09-09 — FF-063 lot 6 : LE DÉCROCHAGE LONG.
+// Épinglés ici et pas dans `lifecycle_lapse_test.ts`: ce test-là construit ses
+// dates AVEC `LAPSE_DAYS`, donc les deux côtés de son égalité bougeraient
+// ensemble. Ce que ces deux nombres décident: à partir de quand un silence
+// cesse d'être « il a pris un jour » et devient « il a arrêté », et combien de
+// plans font une habitude qu'on a le droit de nommer dans un e-mail.
+import { LAPSE_DAYS, LAPSE_MIN_PLANS } from "./lifecycle_lapse.ts";
+Deno.test("épinglage — le décrochage se compte à 14 jours", () =>
+  assertEquals(LAPSE_DAYS, 14));
+Deno.test("épinglage — trois plans font une habitude", () =>
+  assertEquals(LAPSE_MIN_PLANS, 3));
+
+// ══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-10 — LE BUDGET D'UNE GÉNÉRATION
+// ══════════════════════════════════════════════════════════════════════════
+//
+// Épinglés ici et pas dans `plan_budget_test.ts`: ce test-là CONSOMME les
+// constantes (il boucle `PLAN_MODEL_REPAIR_BUDGET + 3` fois et compte), donc
+// les deux côtés de son égalité bougeraient ensemble. Ce que ces nombres
+// décident: combien de fois on a le droit de redemander au modèle, combien de
+// temps une requête a le droit de prendre, et ce qu'on garde pour écrire.
+//
+// Chantier: `docs/keel/CHANTIER-DENSITE-PORTIONS-ET-FAST.md`.
+import {
+  PLAN_MODEL_MAX_RETRIES,
+  PLAN_MODEL_REPAIR_BUDGET,
+  PLAN_REQUEST_BUDGET_MS,
+  PLAN_TAIL_RESERVE_MS,
+} from "./generation_model.ts";
+import { PLAN_REPAIR_RESERVED_AFTER } from "./plan_budget.ts";
+import { GENERATION_REFUSAL_STATUS } from "./generation_context.ts";
+import { MOUTH_FACT_FIELDS } from "./resolved_mouth.ts";
+import { PACE_UNAVAILABLE_REASONS } from "./weight_pace.ts";
+import {
+  CANDIDATE_VERDICTS,
+  REPAIR_DEFECT_KINDS,
+  REPAIR_MAGNITUDE_MIN_GAIN,
+  REPAIR_MIN_CALL_MS,
+  REPAIR_PASS_REFUSALS,
+} from "./plan_repair_loop.ts";
+
+Deno.test("épinglage — DEUX rattrapages par plan, tous motifs confondus", () =>
+  assertEquals(PLAN_MODEL_REPAIR_BUDGET, 2));
+
+// ⚠️ `1` NE VEUT PAS DIRE « UN RÉESSAI ». C'est une passe de la boucle
+// extérieure de `gemini.ts`; la boucle intérieure parcourt encore la chaîne de
+// replis, donc au plus DEUX appels fournisseur par appel logique. Sans cette
+// ligne, le défaut du transport est **10**, et jusqu'à trente appels HTTP.
+Deno.test("épinglage — une seule passe de tentative par appel de plan", () =>
+  assertEquals(PLAN_MODEL_MAX_RETRIES, 1));
+
+// 380 s laisse vingt secondes sous la coupure du worker edge (400 s), le seul
+// plafond qu'on puisse tenir pour vrai dans tous les environnements.
+Deno.test("épinglage — une requête de plan a 380 secondes", () =>
+  assertEquals(PLAN_REQUEST_BUDGET_MS, 380_000));
+
+// La queue: mesure finale, ceintures, verrou de maison, écriture. Un plan
+// réparé et non écrit ne vaut rien.
+Deno.test("épinglage — trente secondes sont réservées à l'écriture", () =>
+  assertEquals(PLAN_TAIL_RESERVE_MS, 30_000));
+
+// ⛔ L'OBJET ENTIER, PAS UNE CLÉ. C'est la table qui décide QUI reçoit les deux
+// slots quand le pipeline en demande sept — et l'ordre du code n'est pas
+// l'ordre des priorités. Une valeur changée en douce déplacerait la réparation
+// de densité hors du budget sans qu'aucun autre test ne bouge.
+Deno.test("épinglage — PLAN_REPAIR_RESERVED_AFTER, l'objet ENTIER", () =>
+  assertEquals(PLAN_REPAIR_RESERVED_AFTER, {
+    protein_anchor_retry: 2,
+    exclusion_retry: 1,
+    swap_retry: 2,
+    preference_split_retry: 2,
+    unfed_retry: 1,
+    density_repair: 0,
+    dedicated_repair: 0,
+    empty_slots_retry: 1,
+    composition_retry: 0,
+  }));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-10 · LOT 2 — LES STATUTS DE L'ADMISSION
+//
+// ⛔ L'OBJET ENTIER, PAS UNE CLÉ. Ces quatre statuts sont ce que le FRONT lit
+// pour choisir sa phrase: `402` ouvre le panneau de paiement, `403` dit « ce
+// n'est pas toi qui composes », `409` dit « il manque un foyer ». Les
+// intervertir enverrait un membre secondaire vers Stripe.
+//
+// ⚠️ ET LE VOCABULAIRE EST FERMÉ ICI AUSSI. Un cinquième refus ajouté sans
+// écran qui le rend serait un mur muet — le mode d'échec « refus loin du geste
+// = bouton mort », déjà payé trois fois dans `SetupPage`.
+//
+// Chantier: `docs/keel/PLAN-MOTEUR-UNIQUE-ET-PORTIONS.md`, lot 2.
+Deno.test("épinglage — GENERATION_REFUSAL_STATUS, l'objet ENTIER", () =>
+  assertEquals(GENERATION_REFUSAL_STATUS, {
+    not_authenticated: 401,
+    no_household: 409,
+    not_owner: 403,
+    household_frozen: 402,
+  }));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-10 · LOT 3 — LES CHAMPS DONT LA PROVENANCE EST SUIVIE
+//
+// ⛔ LA LISTE ENTIÈRE, PAS UN ÉCHANTILLON. Elle décide de ce que
+// `generated_from.mouth_facts` compte: un champ retiré d'ici cesse d'être
+// compté, et « le grammage suit la pesée » redevient invérifiable pour lui —
+// sans qu'aucun autre test ne bouge.
+Deno.test("épinglage — MOUTH_FACT_FIELDS, la liste ENTIÈRE", () =>
+  assertEquals([...MOUTH_FACT_FIELDS], [
+    "heightCm",
+    "weightKg",
+    "gender",
+    "ageYears",
+    "activityLevel",
+    "activityAxes",
+    "appetite",
+  ]));
+
+// ⛔ UN MOTIF DE PLUS SANS ÉCRAN QUI LE REND EST UN MUR MUET — le mode d'échec
+// « refus loin du geste = bouton mort », déjà payé trois fois dans `SetupPage`.
+Deno.test("épinglage — PACE_UNAVAILABLE_REASONS, le vocabulaire FERMÉ", () =>
+  assertEquals([...PACE_UNAVAILABLE_REASONS], ["pace_unavailable_missing_body"]));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-10 · LOT 6 — LA BOUCLE DE RÉPARATION
+//
+// ⛔ L'ORDRE DE `REPAIR_DEFECT_KINDS` EST LE CONTRAT, pas une liste. Il décide
+// de ce que le modèle lit EN PREMIER dans une instruction de réparation. Une
+// phrase qui commence par « ajoute des lentilles » avant de dire « ce plat
+// contient l'allergène de quelqu'un » fait lire le second comme un détail.
+Deno.test("épinglage — REPAIR_DEFECT_KINDS, dans l'ORDRE du chantier", () =>
+  assertEquals([...REPAIR_DEFECT_KINDS], [
+    "safety",
+    "missing_meal",
+    "sizing",
+    "protein",
+    "preference",
+  ]));
+
+// ⛔ CHAQUE MOTIF A UN SENS DIFFÉRENT POUR QUI RELIT UN PLAN RATÉ.
+// « attempts_exhausted » dit que le produit a essayé; « nothing_repairable »
+// dit qu'un appel de plus n'aurait rien changé. Les confondre ferait chercher
+// une panne de modèle là où il n'y en a pas.
+Deno.test("épinglage — REPAIR_PASS_REFUSALS, le vocabulaire FERMÉ", () =>
+  assertEquals([...REPAIR_PASS_REFUSALS], [
+    "no_defects",
+    "attempts_exhausted",
+    "no_time_left",
+    "nothing_repairable",
+  ]));
+
+Deno.test("épinglage — CANDIDATE_VERDICTS, le vocabulaire FERMÉ", () =>
+  assertEquals([...CANDIDATE_VERDICTS], [
+    "adopt",
+    "safety_regression",
+    "no_improvement",
+  ]));
+
+// 40 s: le plancher sous lequel un aller-retour modèle n'a pas le temps de
+// rendre un plan ET d'être mesuré. L'abaisser dépense un jeton pour jeter sa
+// réponse; le monter refuse des réparations qui tenaient.
+Deno.test("épinglage — quarante secondes pour qu'un appel de réparation serve", () =>
+  assertEquals(REPAIR_MIN_CALL_MS, 40_000));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LE PLANCHER DU BUDGET — 2026-09-11 (`budget_floor.ts`)
+//
+// Ces deux tables sont des PRIX MESURÉS, pas des réglages. Chaque nombre est le
+// coût d'un panier nommé, normalisé à 2 000 kcal, sur la grille du dépôt
+// (`food_composition_refs`, 893 lignes chiffrées FR et 843 US au 2026-09-11).
+// La requête entière et sa sortie sont archivées dans
+// `scratchpad/2026-09-11-PLANCHER-BUDGET/mesure.sql`, et elle se rejoue.
+//
+// ⛔ CE QUE L'ÉPINGLAGE GARDE, ET IL EST ASYMÉTRIQUE:
+//   · BAISSER un plancher laisse partir une composition qu'aucun panier ne peut
+//     acheter — c'est-à-dire rendre au modèle un plafond impossible, le défaut
+//     exact que ce lot ferme;
+//   · MONTER un plancher REFUSE quelqu'un qui avait raison, et le refus tombe
+//     sur lui, pas sur nous.
+// Les deux se font par une ligne, et les deux doivent s'écrire.
+//
+// ⚠️ CE QUI N'EST PAS UN RÉGLAGE NON PLUS: l'égalité entre `omnivore`,
+// `vegetarian`, `vegan` et `pescatarian`. Le panier minimum est déjà végétalien,
+// donc les quatre l'autorisent. Différencier ces lignes ferait payer à un
+// carnivore un plancher qu'il peut manger.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("épinglage — BUDGET_FLOOR_PER_MOUTH_DAY, les deux marchés ENTIERS", () => {
+  assertEquals(BUDGET_FLOOR_PER_MOUTH_DAY, {
+    // MIN_base 2,65 — MIN_gf 2,77 (le riz coûte plus cher que les pâtes en FR)
+    fr: {
+      omnivore: 2.65,
+      vegetarian: 2.65,
+      vegan: 2.65,
+      pescatarian: 2.65,
+      gluten_free: 2.77,
+    },
+    // MIN_base 3,77 — MIN_gf 3,45. ⚠️ L'INVERSE DE LA FRANCE: le riz y est
+    // moins cher, donc le panier sans gluten devient le moins cher des deux
+    // POUR TOUT LE MONDE, et le plancher sans restriction descend avec lui.
+    us: {
+      omnivore: 3.45,
+      vegetarian: 3.45,
+      vegan: 3.45,
+      pescatarian: 3.45,
+      gluten_free: 3.45,
+    },
+  });
+});
+
+Deno.test("épinglage — BUDGET_PLAUSIBLE_PER_MOUTH_DAY, les deux marchés ENTIERS", () => {
+  // ⛔ CETTE TABLE NE REFUSE RIEN. Elle décide d'une PHRASE — « à ce budget, ce
+  // sera surtout des légumes secs » — et rien d'autre. La monter fait parler
+  // plus souvent; la baisser fait taire un avertissement juste. Aucun des deux
+  // ne bloque personne, et c'est la différence avec la table du dessus.
+  assertEquals(BUDGET_PLAUSIBLE_PER_MOUTH_DAY, {
+    fr: {
+      omnivore: 3.77,
+      vegetarian: 3.45,
+      vegan: 3.19,
+      pescatarian: 3.45,
+      gluten_free: 3.92,
+    },
+    us: {
+      omnivore: 4.15,
+      vegetarian: 3.92,
+      vegan: 3.46,
+      pescatarian: 3.92,
+      gluten_free: 4.27,
+    },
+  });
+});
+
+// La journée de référence qui normalise les six paniers. Elle ne sort pas du
+// module et ne se montre à personne: la déplacer déplacerait les dix nombres
+// ci-dessus d'un coup, sans qu'aucun panier n'ait bougé.
+Deno.test("épinglage — BUDGET_FLOOR_REFERENCE_KCAL vaut 2 000", () =>
+  assertEquals(BUDGET_FLOOR_REFERENCE_KCAL, 2000));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOT C (2026-09-11) — LE CATALOGUE DE COMPOSITION ET LA DIVERGENCE D'ANCRAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("épinglage — CATALOG_GROUP_CAPS, les trente groupes ENTIERS", () => {
+  // ⛔ CETTE TABLE DÉCIDE DE CE QUE LE MODÈLE VOIT, ET DE CE QU'IL PAIE. Relever
+  // un groupe ajoute des lignes au prompt d'une lane qui a déjà mis 144 s
+  // quand Kong coupe à 150; le descendre à 0 retire un aliment de la table.
+  // Mesuré le 2026-09-11 sur les 943 lignes du référentiel: ces plafonds
+  // gardent 121 lignes, soit 4 714 caractères de bloc.
+  //
+  // ⛔ LES SIX ZÉROS SONT DES DÉCISIONS PRODUIT, PAS DES OUBLIS: l'alcool, les
+  // boissons sucrées, l'eau, le café/thé, les sucreries et le « fried_food » ne
+  // composent pas un repas ici, et les montrer reviendrait à les proposer.
+  assertEquals(CATALOG_GROUP_CAPS, {
+    lean_protein: 3,
+    fatty_fish: 5,
+    white_fish: 5,
+    shellfish: 3,
+    poultry: 6,
+    red_meat: 6,
+    eggs: 3,
+    legumes: 8,
+    tofu_tempeh: 4,
+    dairy_yogurt: 6,
+    dairy_cheese: 6,
+    whole_grain: 8,
+    refined_grain: 8,
+    starchy_veg: 7,
+    cruciferous_veg: 5,
+    leafy_greens: 4,
+    non_starchy_veg: 8,
+    berries: 4,
+    citrus: 3,
+    other_fruit: 5,
+    nuts_seeds: 5,
+    olive_oil: 2,
+    other_added_fat: 5,
+    sauce_dressing: 3,
+    sugar_sweets: 0,
+    fried_food: 0,
+    alcohol: 0,
+    sweetened_beverage: 0,
+    water: 0,
+    coffee_tea: 0,
+  });
+});
+
+// La seconde ceinture, au-dessus de la somme des plafonds par groupe (122).
+// Elle ne mord pas dans le cas nominal, et c'est voulu: elle tient le jour où
+// quelqu'un relève un groupe sans regarder le total.
+Deno.test("épinglage — CATALOG_TOTAL_CAP vaut 140", () =>
+  assertEquals(CATALOG_TOTAL_CAP, 140));
+
+// L'écart à partir duquel la consigne nomme LES DEUX densités (la visée, et
+// celle que la cible seule impliquerait). 15 %, c'est-à-dire juste au-dessus du
+// bruit de table et de cuisson que ce dépôt assume déjà (±10-15 %).
+Deno.test("épinglage — ANCHOR_DIVERGENCE_RATIO vaut 1,15", () =>
+  assertEquals(ANCHOR_DIVERGENCE_RATIO, 1.15));
+
+// ⟳ 2026-09-11 · LOT E — CE QU'IL FAUT AVOIR GAGNÉ POUR REMPLACER UNE VERSION
+// DÉJÀ RELUE, à nombre de défauts égal. 10 %, c'est-à-dire la tolérance que le
+// chantier accepte déjà sur un repas (« repas à ±10 % »): en dessous, on
+// remplace une version par une autre pour un écart que personne ne mesure dans
+// une assiette, et on brouille la comparaison du run suivant.
+//
+// ⛔ ÉPINGLÉ ICI PARCE QUE SON TEST L'IMPORTE POUR CALCULER SON CAS
+// (cicatrice `test-parameterized-by-its-own-constant`): sans cette ligne,
+// passer le seuil à 0 laisserait `lot_e_reparation_test.ts` vert.
+Deno.test("épinglage — REPAIR_MAGNITUDE_MIN_GAIN vaut 10 %", () =>
+  assertEquals(REPAIR_MAGNITUDE_MIN_GAIN, 0.10));

@@ -1,0 +1,661 @@
+<title>Dix plans au banc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --ground: #F1F3F2;
+    --panel: #FBFCFB;
+    --ink: #16191B;
+    --ink-soft: #5C6669;
+    --ink-faint: #8A9396;
+    --rule: #D5DBD9;
+    --rule-soft: #E4E9E7;
+    --band: #2C6C5E;
+    --band-fill: #C9DED8;
+    --over: #A34527;
+    --under: #3C6390;
+    --flag: #8A5A12;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: "IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121516;
+      --panel: #191D1F;
+      --ink: #E8EDEB;
+      --ink-soft: #A2ABAD;
+      --ink-faint: #778083;
+      --rule: #2E3538;
+      --rule-soft: #23292B;
+      --band: #6FBFAA;
+      --band-fill: #23433D;
+      --over: #E08C6A;
+      --under: #8FB2D8;
+      --flag: #D3A754;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #121516;
+    --panel: #191D1F;
+    --ink: #E8EDEB;
+    --ink-soft: #A2ABAD;
+    --ink-faint: #778083;
+    --rule: #2E3538;
+    --rule-soft: #23292B;
+    --band: #6FBFAA;
+    --band-fill: #23433D;
+    --over: #E08C6A;
+    --under: #8FB2D8;
+    --flag: #D3A754;
+  }
+
+  body { background: var(--ground); color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 1.6; }
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+  .col { max-width: 40rem; }
+
+  h1 { font-family: var(--sans); font-weight: 700; font-size: clamp(2.1rem, 5vw, 3rem); line-height: 1.05;
+       letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+  h2 { font-family: var(--sans); font-weight: 600; font-size: 1.45rem; letter-spacing: -0.01em;
+       margin: 0; text-wrap: balance; }
+  h3 { font-family: var(--sans); font-weight: 600; font-size: 1.08rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: var(--band); }
+
+  .eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+             color: var(--ink-faint); }
+  .lede { font-size: 1.12rem; color: var(--ink-soft); }
+  .stack { display: flex; flex-direction: column; gap: 1rem; }
+  .stack-lg { display: flex; flex-direction: column; gap: 2.4rem; }
+  section { display: flex; flex-direction: column; gap: 1.1rem; }
+  .sections { display: flex; flex-direction: column; gap: 3.4rem; margin-top: 3.4rem; }
+
+  header.head { display: flex; flex-direction: column; gap: 1.2rem; padding-bottom: 2rem;
+                border-bottom: 2px solid var(--ink); }
+  .facts { display: flex; flex-wrap: wrap; gap: 0 2.2rem; font-family: var(--mono); font-size: 0.78rem;
+           color: var(--ink-soft); }
+  .facts b { font-weight: 500; color: var(--ink); }
+
+  /* ── la bande, l'instrument du produit ───────────────────────────── */
+  .cases { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--rule); }
+  .case { display: grid; grid-template-columns: 4.4rem 1fr; gap: 0 1.1rem; padding: 1.05rem 0;
+          border-bottom: 1px solid var(--rule-soft); align-items: start; }
+  .case-id { font-family: var(--mono); font-weight: 500; font-size: 0.95rem; }
+  .case-id span { display: block; font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 0.06em; }
+  .case-body { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+  .case-title { font-family: var(--sans); font-weight: 600; font-size: 1rem; }
+  .case-title em { font-style: normal; color: var(--ink-soft); font-weight: 500; }
+
+  .track { position: relative; height: 30px; background: linear-gradient(var(--rule-soft), var(--rule-soft))
+           center/100% 2px no-repeat; }
+  .zone { position: absolute; top: 4px; bottom: 4px; background: var(--band-fill); border-left: 1px solid var(--band);
+          border-right: 1px solid var(--band); }
+  .day { position: absolute; top: 2px; height: 26px; width: 2px; background: var(--ink); }
+  .day.over { background: var(--over); }
+  .day.under { background: var(--under); }
+  .day b { position: absolute; top: -3px; left: 5px; font-family: var(--mono); font-size: 0.66rem;
+           font-weight: 500; white-space: nowrap; color: inherit; }
+  .day.over b { color: var(--over); }
+  .day.under b { color: var(--under); }
+  .day.left b { left: auto; right: 5px; }
+  .scale { position: relative; height: 1.1rem; font-family: var(--mono); font-size: 0.62rem; color: var(--ink-faint); }
+  .scale i { position: absolute; font-style: normal; transform: translateX(-50%); }
+
+  .verdicts { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag { font-family: var(--mono); font-size: 0.68rem; padding: 0.12rem 0.42rem; border: 1px solid var(--rule);
+         color: var(--ink-soft); white-space: nowrap; }
+  .tag.ok { color: var(--band); border-color: var(--band); }
+  .tag.bad { color: var(--over); border-color: var(--over); }
+  .tag.warn { color: var(--flag); border-color: var(--flag); }
+
+  /* ── les bouches d'un foyer ──────────────────────────────────────── */
+  .mouths { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); gap: 0.55rem 1.4rem; }
+  .mouth { display: grid; grid-template-columns: 4.6rem 1fr 3.1rem; gap: 0.5rem; align-items: center;
+           font-family: var(--mono); font-size: 0.74rem; }
+  .mouth-name { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar { height: 9px; background: var(--rule-soft); position: relative; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--band); }
+  .bar i.over { background: var(--over); }
+  .bar i.none { background: repeating-linear-gradient(45deg, var(--rule), var(--rule) 2px, transparent 2px, transparent 5px); left: 0; right: 0; }
+  .mouth-pct { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ── défauts ─────────────────────────────────────────────────────── */
+  .finding { display: grid; grid-template-columns: 2.3rem 1fr; gap: 0 1rem; padding: 1.4rem 0;
+             border-top: 1px solid var(--rule); }
+  .finding:first-child { border-top: 2px solid var(--ink); }
+  .rank { font-family: var(--mono); font-size: 1.05rem; color: var(--ink-faint); padding-top: 0.1rem; }
+  .finding-body { display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; }
+  .finding p { max-width: 40rem; }
+
+  code, .m { font-family: var(--mono); font-size: 0.85em; background: var(--rule-soft); padding: 0.06em 0.3em; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  blockquote { margin: 0; padding-left: 0.9rem; border-left: 2px solid var(--rule); color: var(--ink-soft);
+               font-size: 0.95rem; }
+
+  table { border-collapse: collapse; font-size: 0.86rem; width: 100%; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; padding: 0.42rem 0.9rem 0.42rem 0; border-bottom: 1px solid var(--rule-soft);
+           vertical-align: baseline; }
+  th { font-family: var(--sans); font-weight: 600; font-size: 0.76rem; letter-spacing: 0.04em;
+       text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--rule); }
+  td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; max-width: 40rem; }
+  li::marker { color: var(--ink-faint); }
+
+  .runbox { background: var(--panel); border: 1px solid var(--rule); padding: 1.1rem 1.2rem; }
+  pre { margin: 0; font-family: var(--mono); font-size: 0.78rem; line-height: 1.7; overflow-x: auto; }
+  pre .c { color: var(--ink-faint); }
+
+  .note { font-size: 0.92rem; color: var(--ink-soft); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <p class="eyebrow">Banc de génération · 2026-09-09 · dix générations réelles</p>
+    <h1>Dix plans au banc</h1>
+    <p class="lede col">Cinq plans solo et cinq foyers de quatre bouches, difficulté croissante, tirés en vrai
+      sur la pile locale. Ce que le produit vise, ce qu'il sert, ce qu'il rattrape — et les treize endroits
+      où l'écart se voit.</p>
+    <div class="facts">
+      <span><b>10</b> générations · <code>intent: draft</code>, rien n'est écrit</span>
+      <span>empreinte code <b>2a0c3762c1f3</b> / <b>0dca62ee4462</b>, inchangée</span>
+      <span>prompt <b>meal.en.v30</b> + <b>household.v34</b></span>
+    </div>
+  </header>
+
+  <div class="sections">
+
+    <!-- ════════ SOLO ════════ -->
+    <section>
+      <h2>Les cinq plans solo</h2>
+      <p class="col">La zone verte est la bande que le produit calcule lui-même pour ce corps et cet objectif
+        (<code>keel.meal.envelope</code>). Chaque trait est un jour <em>complet</em> — un jour dont un plat ne
+        résout pas est sous-compté, pas sous-nourri, et il est écarté de tous les verdicts de cette page.</p>
+
+      <div class="cases">
+        <!-- S1 -->
+        <div class="case">
+          <div class="case-id">S1<span>3 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le socle — <em>homme 82 kg, sédentaire, entretien, zéro contrainte</em></p>
+            <div class="track">
+              <div class="zone" style="left:44.2%;right:46.2%"></div>
+              <div class="day left" style="left:47.8%"><b>2244</b></div>
+              <div class="day" style="left:52.0%"><b>2353 · 2350</b></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag ok">3 jours / 3 dans la bande</span>
+              <span class="tag">rattrapage non déclenché</span>
+              <span class="tag ok">within / met</span>
+              <span class="tag">92 ingrédients résolus sur 92</span>
+              <span class="tag warn">fibres 53–59 g/j</span>
+            </div>
+          </div>
+        </div>
+        <!-- S2 -->
+        <div class="case">
+          <div class="case-id">S2<span>4 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le déficit contraint — <em>femme 78 kg, −0,5 kg/sem, 30 min, budget 60 £</em></p>
+            <div class="track">
+              <div class="zone" style="left:26.9%;right:65.4%"></div>
+              <div class="day over" style="left:41.2%"><b>2071</b></div>
+              <div class="day over left" style="left:46.7%"><b>2213</b></div>
+              <div class="day over" style="left:61.3%"><b>2595 · 2557</b></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag bad">0 jour / 4 dans la bande · +24 % au-dessus</span>
+              <span class="tag warn">rattrapage ×1,598 protéine / ×0,75 autre</span>
+              <span class="tag bad">above / under</span>
+            </div>
+          </div>
+        </div>
+        <!-- S3 -->
+        <div class="case">
+          <div class="case-id">S3<span>3 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le surplus extrême — <em>homme 72 kg, trains_hard + métier physique, prise de muscle</em></p>
+            <div class="track">
+              <div class="zone" style="left:61.5%;right:26.9%"></div>
+              <div class="day" style="left:67.5%"><b>2754</b></div>
+              <div class="day left" style="left:62.9%"><b>2637</b></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag ok">2 jours complets / 2 dans la bande</span>
+              <span class="tag">rattrapage non déclenché</span>
+              <span class="tag ok">within / met</span>
+              <span class="tag warn">1 jour perdu : <code>brown onion</code> inconnu</span>
+            </div>
+          </div>
+        </div>
+        <!-- S4 -->
+        <div class="case">
+          <div class="case-id">S4<span>4 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Végane sous allergie — <em>femme 62 kg, perte, arachide + fruits à coque, sans four</em></p>
+            <div class="track">
+              <div class="zone" style="left:21.2%;right:71.2%"></div>
+              <div class="day over" style="left:47.0%"><b>2222 · 2280</b></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag bad">0 jour complet / 2 dans la bande · +29 %</span>
+              <span class="tag warn">rattrapage ×1,47 / ×0,75</span>
+              <span class="tag bad">above / under</span>
+              <span class="tag ok">0 infraction végane sur 169 formes</span>
+              <span class="tag bad">fibres 69–88 g/j</span>
+            </div>
+          </div>
+        </div>
+        <!-- S5 -->
+        <div class="case">
+          <div class="case-id">S5<span>6 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Une seule session de cuisine — <em>homme 95 kg, −0,75 kg/sem, sans gluten, congélateur</em></p>
+            <div class="track">
+              <div class="zone" style="left:36.5%;right:51.9%"></div>
+              <div class="day" style="left:41.7%"><b>2085 ×2</b></div>
+              <div class="day over left" style="left:90.6%"><b>3355</b></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag warn">2 jours complets / 3 dans la bande</span>
+              <span class="tag bad">un jour à +49 % du plafond</span>
+              <span class="tag warn">verdict <code>within</code> — il juge la MOYENNE</span>
+              <span class="tag ok">1 session · 21 reprises au congélateur / 33</span>
+              <span class="tag warn">230 min pour 120 déclarées</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scale col" style="max-width:none">
+        <i style="left:0%">1000</i><i style="left:19.2%">1500</i><i style="left:38.5%">2000</i>
+        <i style="left:57.7%">2500</i><i style="left:76.9%">3000</i><i style="left:96.2%">3500 kcal/j</i>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Solo</th><th>Protéine servie</th><th>par kg</th><th>Fibres</th><th>Sessions</th><th>Courses</th></tr></thead>
+          <tbody>
+            <tr><td>S1 socle</td><td class="n">163–191 g</td><td class="n">2,0–2,3</td><td class="n">53–59 g/j</td><td class="n">1</td><td class="n">39 lignes, 1 vague</td></tr>
+            <tr><td>S2 déficit</td><td class="n">106–214 g</td><td class="n">1,4–2,7</td><td class="n">38–54 g/j</td><td class="n">2</td><td class="n">33 lignes, 1 vague</td></tr>
+            <tr><td>S3 surplus</td><td class="n">123–158 g</td><td class="n">1,7–2,2</td><td class="n">37–49 g/j</td><td class="n">2</td><td class="n">46 lignes, 2 vagues</td></tr>
+            <tr><td>S4 végane</td><td class="n">101–105 g</td><td class="n">1,6–1,7</td><td class="n">69–88 g/j</td><td class="n">1</td><td class="n">38 lignes, 1 vague</td></tr>
+            <tr><td>S5 une session</td><td class="n">165–206 g</td><td class="n">1,7–2,2</td><td class="n">24–64 g/j</td><td class="n">1</td><td class="n">37 lignes, 1 vague</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ════════ FOYER ════════ -->
+    <section>
+      <h2>Les cinq foyers de quatre bouches</h2>
+      <p class="col">Une barre par bouche : ce que sa boîte lui sert, contre la cible que le moteur calcule pour
+        elle (<code>mouthTargetKcal</code>). Les barres hachurées sont les bouches au <strong>pot commun</strong> —
+        elles n'ont pas de contenant nominatif, donc aucune mesure par personne n'est possible.</p>
+
+      <div class="cases">
+        <div class="case">
+          <div class="case-id">F1<span>2 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le socle — <em>quatre adultes, tous en entretien</em></p>
+            <div class="mouths">
+              <div class="mouth"><span class="mouth-name">Paul 2300</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Claire 1850</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Hugo 2075</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Nina 1925</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag bad">0 bouche dimensionnée · <code>no_direction: 4</code></span>
+              <span class="tag bad">acheté 86 % du besoin</span>
+              <span class="tag warn">casserole 500 g de poulet, courses 2 000 g</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="case">
+          <div class="case-id">F2<span>2 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Deux mineurs — <em>perte + entretien + 7 ans + 14 ans</em></p>
+            <div class="mouths">
+              <div class="mouth"><span class="mouth-name">Yann 2050</span><span class="bar"><i style="width:89%"></i></span><span class="mouth-pct">89 %</span></div>
+              <div class="mouth"><span class="mouth-name">Sarah 1700</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Lise 1770</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Tom 3506</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag bad">jeudi matin : aucun petit-déjeuner livré</span>
+              <span class="tag bad">acheté 78 % du besoin</span>
+              <span class="tag warn">Tom, 14 ans, 52 kg → 3506 kcal/j</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="case">
+          <div class="case-id">F3<span>2 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Les extrêmes — <em>prise de muscle + perte + entretien + un ado</em></p>
+            <div class="mouths">
+              <div class="mouth"><span class="mouth-name">Theo 3250</span><span class="bar"><i style="width:100%"></i></span><span class="mouth-pct">100 %</span></div>
+              <div class="mouth"><span class="mouth-name">Maya 1750</span><span class="bar"><i style="width:100%"></i></span><span class="mouth-pct">100 %</span></div>
+              <div class="mouth"><span class="mouth-name">Georges 2050</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Jules 2965</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag ok">une cuisson, trois contenants : 224 g / 417 g / 643 g de poulet</span>
+              <span class="tag bad">acheté 192 % du besoin</span>
+              <span class="tag warn">19 g de tortilla dans l'assiette de Maya</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="case">
+          <div class="case-id">F4<span>2 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le régime dans le pot commun — <em>F3 + Maya végétarienne + allergie fruits à coque</em></p>
+            <div class="mouths">
+              <div class="mouth"><span class="mouth-name">Theo 3250</span><span class="bar"><i style="width:94%"></i></span><span class="mouth-pct">94 %</span></div>
+              <div class="mouth"><span class="mouth-name">Maya 1750</span><span class="bar"><i class="over" style="width:100%"></i></span><span class="mouth-pct">149 %</span></div>
+              <div class="mouth"><span class="mouth-name">Georges 2050</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Jules 2965</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag ok">pot commun passé au végétarien, viande sortie en boîte à part (3/3)</span>
+              <span class="tag ok">aucun fruit à coque</span>
+              <span class="tag bad">Maya : 149 % puis 112 % de sa cible</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="case">
+          <div class="case-id">F5<span>3 jours</span></div>
+          <div class="case-body">
+            <p class="case-title">Le cas maximal — <em>F4 + une seule session + congélateur</em></p>
+            <div class="mouths">
+              <div class="mouth"><span class="mouth-name">Theo 3250</span><span class="bar"><i style="width:93%"></i></span><span class="mouth-pct">93 %</span></div>
+              <div class="mouth"><span class="mouth-name">Maya 1750</span><span class="bar"><i style="width:88%"></i></span><span class="mouth-pct">88 %</span></div>
+              <div class="mouth"><span class="mouth-name">Georges 2050</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+              <div class="mouth"><span class="mouth-name">Jules 2965</span><span class="bar"><i class="none"></i></span><span class="mouth-pct">—</span></div>
+            </div>
+            <div class="verdicts">
+              <span class="tag bad">24 items de boîte jetés (grammage illisible)</span>
+              <span class="tag bad">acheté ≈70 % du besoin</span>
+              <span class="tag ok">1 session tenue</span>
+              <span class="tag bad">0 reprise au congélateur sur 22</span>
+              <span class="tag warn">240 min pour 150 déclarées</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ CE QUI MARCHE ════════ -->
+    <section>
+      <h2>Ce qui marche, prouvé</h2>
+      <ul>
+        <li><strong>Les régimes et les allergies mordent.</strong> S4 végane : <span class="num">0</span> infraction
+          sur <span class="num">169</span> formes contrôlées, aucune arachide ni fruit à coque dans
+          <span class="num">51</span> lignes. F4 et F5 : la viande sort dans une boîte à part et le pot commun
+          passe au végétarien — <em>et le plan le dit</em> : « The shared base is vegetarian: that is Maya's line ».</li>
+        <li><strong>L'arbitrage entre extrêmes est chirurgical quand les deux bouches ont une direction.</strong>
+          F3, une seule cuisson, trois contenants, et <span class="num">100 %</span> de la cible pour Theo
+          (3248/3250) comme pour Maya (1749/1750) — des cibles qui vont du simple au double.</li>
+        <li><strong>L'entretien et la prise de poids atterrissent en solo.</strong> S1 : trois jours sur trois dans
+          la bande, <span class="num">92</span> ingrédients résolus sur <span class="num">92</span>. S3 : deux jours
+          complets sur deux.</li>
+        <li><strong>La case « tout cuisiner en une fois » tient.</strong> S5 : une session, huit préparations,
+          <span class="num">21</span> reprises au congélateur sur <span class="num">33</span>, écart cuisson→repas
+          maximal de <span class="num">6</span> jours pour un plafond de sept.</li>
+        <li><strong>Le moteur voit ses propres contradictions et les écrit.</strong> « les repas qui puisent dans
+          <em>Cooked quinoa</em> tiennent 1520 g, la fournée en fait 780 » ; « la session du samedi dure 230 min,
+          ils en ont annoncé 120 ».</li>
+      </ul>
+    </section>
+
+    <!-- ════════ DÉFAUTS ════════ -->
+    <section>
+      <h2>Les défauts, du plus grave au plus petit</h2>
+
+      <div>
+        <div class="finding">
+          <div class="rank">01</div>
+          <div class="finding-body">
+            <h3>La perte de poids sort hors bande, trois fois sur trois — et le produit le sait</h3>
+            <p>S2 : moyenne <span class="num">2359</span> pour une bande qui plafonne à <span class="num">1900</span>
+              (<strong>+24 %</strong>). S4 : <span class="num">2251</span> pour <span class="num">1750</span>
+              (<strong>+29 %</strong>). S5 : un jour à <span class="num">3355</span> pour un plafond à
+              <span class="num">2250</span> (<strong>+49 %</strong>).</p>
+            <p>Le rattrapage n'est pas absent : il tire à chaque fois (<code>applied: true</code>) et il est
+              <em>borné</em> — <code>MIN_SCALE = 0.75</code> dans <code>portion_scaling.ts:92</code>. Il ne peut
+              retirer qu'un quart. Quand le modèle compose 3 000 kcal pour une bande à 1 700–1 900, un quart ne
+              suffit pas.</p>
+            <p>Le verdict du produit sort <code>verdict_energy: "above"</code> dans son propre journal, et
+              <strong>rien de cet écart n'atteint <code>issues</code>, <code>rationale</code>, ni l'écran</strong>.
+              La personne reçoit un plan de maintien en croyant perdre 500 g par semaine.</p>
+            <p class="note">Le goulot est en amont : c'est ce que le <em>modèle</em> compose pour une bande basse.
+              Monter <code>MIN_SCALE</code> étirerait le pansement, pas la cause.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">02</div>
+          <div class="finding-body">
+            <h3>Le verdict juge la moyenne de fenêtre, jamais la dispersion</h3>
+            <p>S5 sort <code>within</code> avec <span class="num">2085 · 2085 · 3355</span>. La moyenne atterrit
+              pendant qu'un jour vaut <span class="num">61 %</span> d'un autre. Ni le verdict, ni le rattrapage, ni
+              une ligne d'écran ne regardent l'écart entre les jours.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">03</div>
+          <div class="finding-body">
+            <h3>Foyer : on ne dimensionne que les bouches qui ont coché « perdre » ou « prendre »</h3>
+            <p>F1, quatre adultes en entretien : <code>mouths: {no_direction: 4}</code>, deux bacs communs, zéro
+              bouche dimensionnée. Le plan l'écrit lui-même :</p>
+            <blockquote>The shares in this plan are served at the plate, as close as they can be, rather than
+              adjusted mouth by mouth.</blockquote>
+            <p>Or les quatre cibles vont de <span class="num">1850</span> à <span class="num">2300</span> —
+              <strong>24 % d'écart</strong> — et rien ne les distingue. Le même moteur, dans F3, sert 100 % à Theo
+              et à Maya. <strong>La différence n'est pas la difficulté du foyer : c'est la direction de
+              l'objectif.</strong> Un foyer de gens qui maintiennent ne reçoit aucune part personnalisée, et
+              Georges (entretien) comme Jules (mineur) restent non mesurables dans les quatre foyers extrêmes.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">04</div>
+          <div class="finding-body">
+            <h3>Foyer : la liste de courses ne suit pas les boîtes</h3>
+            <p>Ce que la maison achète, par bouche et par jour, contre la moyenne des quatre cibles :</p>
+            <div class="scroll">
+              <table>
+                <thead><tr><th>Foyer</th><th>Acheté</th><th>Besoin moyen</th><th>Écart</th></tr></thead>
+                <tbody>
+                  <tr><td>F1 socle</td><td class="n">1757</td><td class="n">2038</td><td class="n" style="color:var(--over)">86 %</td></tr>
+                  <tr><td>F2 enfants</td><td class="n">1763</td><td class="n">2257</td><td class="n" style="color:var(--over)">78 %</td></tr>
+                  <tr><td>F3 extrêmes</td><td class="n">4797</td><td class="n">2504</td><td class="n" style="color:var(--over)">192 %</td></tr>
+                  <tr><td>F4 régime</td><td class="n">1866</td><td class="n">2504</td><td class="n" style="color:var(--over)">75 %</td></tr>
+                  <tr><td>F5 maximal</td><td class="n">≈1800</td><td class="n">2504</td><td class="n" style="color:var(--over)">≈70 %</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Le plus lisible est F1. La casserole écrit <strong>500 g de cuisses de poulet</strong> et la session
+              dit « refrigerate two labelled portions » — les courses en achètent <strong>2 000 g</strong>. Idem sur
+              le couscous (180 → 720), les lentilles (180 → 720), les tomates (400 → 1600). Les accompagnements
+              écrits sur les plats, eux, sont achetés ×1 : <strong>50 g d'épinards pour quatre personnes</strong>.
+              Deux multiplicateurs dans la même liste.</p>
+            <p>F3 fait l'inverse : <span class="num">1210 g</span> de cheddar et <span class="num">3235 g</span> de
+              yaourt grec pour quatre personnes sur deux jours, quand les boîtes n'en portent que ~350 g et ~810 g.
+              <strong>Les courses sont calculées sur les quantités écrites par le modèle × les bouches, pas sur les
+              boîtes que le moteur a ensuite redimensionnées.</strong></p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">05</div>
+          <div class="finding-body">
+            <h3>F5 : vingt-quatre items de boîte jetés en silence</h3>
+            <p><code>dishes[0].boxes["vegetarian_box"]: item "Greek yoghurt" has no usable grams, dropped</code> —
+              et onze autres, plus douze « no usable name on the lid ». Le modèle a bien produit deux boîtes par plat
+              (végétarienne / autre) ; aucune n'avait de grammage lisible, donc toutes sont tombées. C'est pour ça
+              que Georges et Jules retombent au pot commun dans le cas le plus difficile.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">06</div>
+          <div class="finding-body">
+            <h3>F2 : un petit-déjeuner vide livré à un foyer avec deux enfants</h3>
+            <p><code>dishes[0]: numeric target (macro_quantity) in an ingredient -- dish rejected (thu/breakfast)</code>,
+              puis <code>empty_slots: thu/breakfast</code> et quatre lignes de courses retirées. Le plan part avec un
+              trou : jeudi matin, personne ne mange. La relance de remplissage n'a pas rattrapé.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">07</div>
+          <div class="finding-body">
+            <h3>Une seule session : la case tient, la congélation ne suit pas toujours</h3>
+            <p>S5 congèle <span class="num">21</span> reprises sur <span class="num">33</span>. <strong>F5 en congèle
+              zéro sur 22</strong>, alors que sa propre rationale promet « whatever would not keep in the fridge until
+              the meal goes in the freezer ». Sur trois jours le frigo suffit — mais la phrase promet autre chose que
+              ce que le plan fait.</p>
+            <p>Et les deux cas à session unique écrivent, dans le même bloc, <strong>« You cook on Sunday »</strong>
+              et <strong>« The plan starts on Saturday, a day earlier: that is the cooking day »</strong>, avec la
+              session posée le <strong>samedi</strong>. Une des deux lignes est fausse à l'écran.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">08</div>
+          <div class="finding-body">
+            <h3>Le débordement de temps est du simple au double</h3>
+            <p>S5 : <span class="num">230</span> min contre <span class="num">120</span> déclarées. F5 :
+              <span class="num">240</span> contre <span class="num">150</span>. Le moteur le nomme — c'est la règle
+              voulue — mais « votre seule session prendra 3 h 50 » n'est pas la même promesse qu'« environ deux
+              heures », et rien ne propose d'arbitrer.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">09</div>
+          <div class="finding-body">
+            <h3>Les fibres ne sont jugées nulle part</h3>
+            <p>Mesuré : <strong>37 à 88 g par jour</strong>. Le végane sort à 69–88 g/j, le socle à 53–59 g/j, pour un
+              repère de 25–30 g. <code>nutrientsOf</code> <em>calcule</em> <code>fiberG</code> ; ni
+              <code>meal_envelope.ts</code> ni <code>meal_verdict.ts</code> ne le lisent. C'est le seul repère que le
+              produit sait mesurer et ne regarde jamais.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">10</div>
+          <div class="finding-body">
+            <h3>Le rétrécissement proportionnel fabrique des assiettes absurdes</h3>
+            <p>F3, la boîte de Maya au déjeuner : <strong>404 g de chili, 19 g de tortilla, 12 g d'avocat, 12 g de
+              tomate, 7 g d'huile</strong>. Le facteur descend tout, y compris ce qui ne se divise pas — un cinquième
+              de wrap, une rondelle d'avocat. Le total en kcal est juste ; l'assiette n'est pas mangeable telle
+              qu'écrite.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">11</div>
+          <div class="finding-body">
+            <h3>Le référentiel décide de ce qui est mesurable, et un mot anglais courant suffit</h3>
+            <p><code>brown onion</code> (S3, un jour entier perdu), <code>certified gluten free oats</code> (S5, trois
+              petits-déjeuners), <code>reduced salt soy sauce</code> (S4, deux jours), <code>mature cheddar</code> et
+              <code>hard cheese</code> (F2, F5). <code>onion</code>, <code>yellow onion</code> et <code>red onion</code>
+              sont dans le référentiel ; <code>brown onion</code> non. <strong>Le régime aggrave le trou</strong> : les
+              deux cas à régime déclaré sont ceux qui perdent le plus de jours.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">12</div>
+          <div class="finding-body">
+            <h3>La ligne d'ingrédient porte deux fois le nom de l'aliment</h3>
+            <p>Le composant rend <code>term</code> puis <code>quantity</code>
+              (<code>DishCard.tsx:500-501</code>) ; le modèle écrit le nom <em>dans</em> la quantité — la ligne se lit
+              « Greek yoghurt · 250 g Greek yoghurt ». Quand le rattrapage réécrit,
+              <code>portion_scaling.ts:632</code> pose <code>`${next} ${unit}`</code> et le nom disparaît :
+              <span class="num">27/35</span> lignes en S2, <span class="num">38/51</span> en S4,
+              <span class="num">34/53</span> en S5, <span class="num">0</span> quand il ne tire pas. Les deux
+              écrivains ne s'accordent pas sur ce que <code>quantity</code> contient.</p>
+            <p class="note">Lu dans le code et dans les payloads ; une capture de <code>/app/plan</code> tranchera en
+              dix secondes.</p>
+          </div>
+        </div>
+
+        <div class="finding">
+          <div class="rank">13</div>
+          <div class="finding-body">
+            <h3>À vérifier — la cible d'un adolescent très sportif</h3>
+            <p>Tom, 14 ans, 52 kg, <code>trains_hard</code> + <code>5_plus</code> + appétit large :
+              <strong>3506 kcal/j</strong>, soit 67 kcal/kg et 71 % de plus que l'adulte du même foyer. Ce n'est pas
+              absurde pour un adolescent en croissance qui s'entraîne six fois par semaine, mais c'est le haut de tout
+              repère publié, et aucune borne d'âge ne mord dessus. Lise, 7 ans, 24 kg : 1770 kcal/j.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ LE BANC ════════ -->
+    <section>
+      <h2>Le banc — comment on le relance</h2>
+      <div class="runbox">
+<pre><span class="c">cd scratchpad/2026-09-09-CAMPAGNE-PLANS</span>
+python3 10-fixtures.py          <span class="c"># les dix comptes camp0909.*@keeltest.dev</span>
+python3 20-run.py S1 F3         <span class="c"># une génération réelle par cas</span>
+python3 40-rapport.py S1 F3     <span class="c"># enveloppe, servi, rattrapage, cuisine, courses</span>
+python3 45-menu.py S1           <span class="c"># le menu tel qu'un utilisateur le lit</span>
+python3 50-tableau.py           <span class="c"># une ligne par cas</span></pre>
+      </div>
+      <ul>
+        <li>Le <strong>corps de requête est celui de l'écran</strong> (<code>planDraft.ts::composeDraft</code>),
+          champ pour champ. Un banc qui invente son corps mesure son corps.</li>
+        <li>L'<strong>enveloppe et le verdict viennent du journal du produit</strong>
+          (<code>keel.meal.envelope</code>, <code>keel.meal.portion_scaling</code>), jamais d'un calcul refait ici.</li>
+        <li>L'<strong>énergie servie est mesurée par les modules de production importés</strong>
+          (<code>planEnergy</code>, <code>resolveIngredients</code>, <code>mouthDayEnergy</code>,
+          <code>mouthTargetKcal</code>), sur le référentiel vivant réextrait le jour même, après pliage des
+          préparations.</li>
+        <li>L'empreinte des <code>mtime</code> de <code>_shared/keel</code> est prise avant et après chaque run :
+          deux runs séparés par une édition comparent deux codes, pas deux profils.</li>
+        <li>Les scénarios vivent dans un seul fichier, <code>cas.json</code> : changer un corps, un objectif, un
+          régime ou une fenêtre est une ligne à éditer.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Les limites de cette campagne</h2>
+      <ul>
+        <li><strong>Un tirage par cas.</strong> Le modèle varie beaucoup d'un tirage à l'autre. Les écarts
+          systématiques portent (trois déficits sur trois hors bande, cinq foyers sur cinq mal approvisionnés) ;
+          un chiffre isolé, non.</li>
+        <li><strong>Les foyers ont tourné sur deux jours</strong>, pas trois. Au-delà, la pile locale rend
+          <code>546 WORKER_LIMIT</code> (« CPU time hard limit reached ») : F1, F2 et F5 ont été tués à 276 s,
+          204 s et 402 s. C'est le plafond CPU du runtime edge local, pas un défaut du produit.</li>
+        <li><strong>Les jours non mesurables ne sont pas des jours pauvres</strong> — ils sont écartés de tous les
+          verdicts de cette page.</li>
+        <li>La mesure « acheté par bouche et par jour » relit la liste de courses avec un parseur écrit pour ce banc
+          (celui de production est ancré sur la fin de chaîne et ne lit pas « 960 g Greek yoghurt »). Les lignes non
+          résolues comptent zéro : les pourcentages d'approvisionnement sont des <strong>planchers</strong>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ce que je regarderais en premier</h2>
+      <ul>
+        <li><strong>La composition sous bande basse</strong> (défaut 01) — c'est le cœur de la promesse, et c'est un
+          problème de consigne, pas de post-traitement.</li>
+        <li><strong>La liste de courses du foyer</strong> (défaut 04) — un foyer de quatre qui rapporte 70 % de ce
+          qu'il lui faut, ou 192 %, se voit tout de suite et coûte la confiance.</li>
+        <li><strong>Les boîtes sans grammage de F5</strong> (défaut 05) — le chemin existe, il tombe en silence.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>

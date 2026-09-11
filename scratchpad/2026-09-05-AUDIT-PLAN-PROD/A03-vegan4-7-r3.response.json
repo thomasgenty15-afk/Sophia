@@ -1,0 +1,1732 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 6
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 6 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 7 : samedi était déjà entamé, le plan commence donc demain et en couvre 6.",
+      "Le plan pose 3 sessions de cuisine : dimanche, mardi et jeudi.",
+      "Sur dimanche, lundi, mardi, mercredi, jeudi et vendredi, le déjeuner et le dîner n'ont pas été composés.",
+      "Les quantités sont faites pour 4 bouches.",
+      "La base du plat commun est végane : c'est la ligne de Nora, qui a sa boîte. Le reste de la table garde la sienne.",
+      "Nora : 6 repas sur 12. Il manque dimanche au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 6 repas sur 12. Il manque lundi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 6 repas sur 12. Il manque lundi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 6 repas sur 12. Il manque mercredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 6 repas sur 12. Il manque vendredi au petit-déjeuner — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Nora : 6 repas sur 12. Il manque vendredi au goûter — le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "J’ai retenu des collations sans cuisson et des petits-déjeuners majoritairement végétaux pour garder les six rendez-vous alimentaires réalisables dans la semaine."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 24,
+    "declared": 24,
+    "kept": 19,
+    "refused": 5
+  },
+  "food_groups": {
+    "declared": 71,
+    "valid": 71,
+    "refused": 0,
+    "persisted": 71,
+    "lines": 71
+  },
+  "household": {
+    "id": "e2f70120-2795-4ad4-ab80-50e6ebf20b93",
+    "member_count": 4,
+    "dish_owners": {
+      "asked": 0,
+      "declared": 0,
+      "attributed": 0,
+      "refused": 0
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 1,
+      "dishes": 24,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 3,
+      "ranks_without_object": 2,
+      "by_rank": {
+        "rank_1": 1,
+        "rank_2": 6,
+        "rank_3": 8,
+        "rank_4": 0,
+        "rank_5": 0
+      }
+    },
+    "boxes": {
+      "meals": 0,
+      "with_box": 0,
+      "boxes": 0,
+      "expected": 0,
+      "delivery": "no_batch_cooking",
+      "refused": 0,
+      "names": 0,
+      "names_refused": 0,
+      "items": 0,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 0,
+      "sum_checked": 0,
+      "sum_over": 0,
+      "sum_unverifiable": 0,
+      "mouth_slots": 0,
+      "mouths_unboxed": 0,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 24,
+      "mouths_no_box_cell": 96,
+      "mouths": 4
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 71,
+      "unquantified": 0
+    },
+    "vague_portions": {
+      "notes": 4,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 0,
+      "unknown": 0,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 1,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 0,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 71,
+      "groups_valid": 71,
+      "groups_refused": 0,
+      "group_excluded": 0,
+      "group_plant_only": 0,
+      "group_undecided": 0
+    },
+    "swap": {
+      "strictest": "vegan",
+      "bound_mouths": 1,
+      "free_mouths": 3,
+      "cells_checked": 0,
+      "cells_carrying": 0,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": [],
+      "retry_attempts": 0,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "box_scoped": 0
+    },
+    "meals_delivered": {
+      "mouths": 4,
+      "expected": 54,
+      "fed": 48,
+      "missing": 6,
+      "by_cause": {
+        "held_off_regime": 6,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 12,
+      "retried": false,
+      "retry_attempts": 1,
+      "retry_accepted": 0,
+      "retry_merged_cells": 0,
+      "retry_on": {
+        "held_off_regime": 6
+      },
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": [
+        {
+          "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+          "expected": 12,
+          "fed": 6,
+          "missing": [
+            {
+              "day": "sun",
+              "slot": "snack_pm",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "mon",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "mon",
+              "slot": "snack_pm",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "wed",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "fri",
+              "slot": "breakfast",
+              "cause": "held_off_regime"
+            },
+            {
+              "day": "fri",
+              "slot": "snack_pm",
+              "cause": "held_off_regime"
+            }
+          ]
+        }
+      ]
+    },
+    "box_sizing": {
+      "boxes": 0,
+      "common": 0,
+      "items": 0,
+      "sized": 0,
+      "unchanged": 0,
+      "capped_by_pot": 0,
+      "unverifiable": 0,
+      "mouths": {
+        "sized": 1,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 1,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 2,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 4,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 0
+      },
+      "anchor_applied": 0,
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 0,
+        "pot_ceiling": 0,
+        "both": 0,
+        "not_anchored": 0
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 0
+      },
+      "densify": {
+        "mouth_days": 0,
+        "boxes_touched": 0,
+        "moved_g": 0,
+        "closed_kcal": 0,
+        "stopped": {
+          "closed": 0,
+          "floor": 0,
+          "ceiling": 0,
+          "pot_exhausted": 0,
+          "no_dense_target": 0,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 0,
+        "remaining_gte_200": 0
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 4,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 4,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 4
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 4
+      },
+      "appetite": {
+        "declared": 4,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 4,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Porridge aux fruits",
+      "title": "Flocons d’avoine, yaourt de soja, poire et noix",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir les flocons, le yaourt de soja, la poire en dés et les noix dans quatre bols.",
+      "why": "Un petit-déjeuner sans cuisson, nourrissant et composé d’aliments simples.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Porridge pomme-cannelle",
+      "title": "Flocons d’avoine, yaourt de soja, pomme et amandes",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger les flocons et le yaourt, puis ajouter la pomme coupée et les amandes.",
+      "why": "Une formule rapide qui garde un rendez-vous régulier le matin.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Tartines protéinées",
+      "title": "Pain complet, houmous, tomate et pêche",
+      "slot": "breakfast",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 520,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le pain de houmous et ajouter les tomates en rondelles; servir avec la pêche.",
+      "why": "Un petit-déjeuner frais qui utilise les produits de saison disponibles en France.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Porridge aux prunes",
+      "title": "Flocons d’avoine, yaourt de soja, prunes et graines",
+      "slot": "breakfast",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "8 unités",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 64,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir les flocons et le yaourt, puis ajouter les prunes coupées et les graines.",
+      "why": "Les prunes apportent une note de saison à un repas matinal sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Tartines aux haricots",
+      "title": "Pain complet, tartinade de haricots blancs, concombre et raisin",
+      "slot": "breakfast",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tartinade de haricots blancs",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le pain, ajouter le concombre en fines tranches et servir avec le raisin.",
+      "why": "Une assiette simple et végétale pour commencer la journée sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 8
+      }
+    },
+    {
+      "name": "Porridge aux poires",
+      "title": "Flocons d’avoine, yaourt de soja, poires et noisettes",
+      "slot": "breakfast",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "flocons d’avoine",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger les flocons et le yaourt, puis ajouter les poires et les noisettes.",
+      "why": "Une option régulière et rapide avec des fruits de fin d’été.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": null,
+      "title": "Pomme et noix",
+      "slot": "snack_am",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "pomme",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les pommes et les servir avec les noix.",
+      "why": "Une collation transportable qui ne demande aucune préparation.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 0
+      }
+    },
+    {
+      "name": "Pêches croquantes",
+      "title": "Pêches et amandes",
+      "slot": "snack_am",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pêche",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 520,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Servir les pêches lavées avec les amandes.",
+      "why": "Une collation de saison prête en quelques secondes.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 0
+      }
+    },
+    {
+      "name": null,
+      "title": "Raisin et noix",
+      "slot": "snack_am",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "raisin",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver le raisin et le répartir avec les noix.",
+      "why": "Une collation fraîche adaptée à la saison et au rythme de la journée.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Prunes et noisettes",
+      "slot": "snack_am",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "prunes",
+          "quantity": "12 unités",
+          "in_pantry": false,
+          "amount": 12,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 96,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les prunes et les servir avec les noisettes.",
+      "why": "Une collation de saison simple à garder dans le sac.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Poire et amandes",
+      "title": "Poires et amandes",
+      "slot": "snack_am",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "poire",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les poires et les servir avec les amandes.",
+      "why": "Une pause sans cuisson, cohérente avec des aliments peu transformés.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": null,
+      "title": "Raisin et amandes",
+      "slot": "snack_am",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "raisin",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver le raisin et le servir avec les amandes.",
+      "why": "Une dernière collation fraîche et pratique pour la semaine.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Compote express",
+      "title": "Yaourt de soja, banane et graines de courge",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 480,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter la banane en rondelles et parsemer de graines.",
+      "why": "Une pause crémeuse et rapide qui apporte une source végétale consistante.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt aux fruits",
+      "title": "Yaourt de soja, prunes et noix",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "8 unités",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 64,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter les prunes en morceaux et les noix.",
+      "why": "Une pause de saison prête sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Tartines de houmous",
+      "title": "Pain complet, houmous et concombre",
+      "slot": "snack_pm",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "1 unité",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le pain de houmous et ajouter le concombre en rondelles.",
+      "why": "Une collation salée, simple et composée d’une légumineuse reconnaissable.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": null,
+      "title": "Banane et cacahuètes",
+      "slot": "snack_pm",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "banane",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 480,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "cacahuètes",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Éplucher les bananes et les servir avec les cacahuètes.",
+      "why": "Une collation immédiate pour garder le rythme même lors d’une journée chargée.",
+      "honours_belief_keys": [
+        "whole_foods_first"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Pois chiches croquants",
+      "title": "Pain complet, houmous, tomates et roquette",
+      "slot": "snack_pm",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "pain complet",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "whole_grain",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "houmous",
+          "quantity": "240 g",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": "legumes",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "non_starchy_veg",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "roquette",
+          "quantity": "80 g",
+          "in_pantry": false,
+          "amount": 80,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 80,
+          "group": "leafy_greens",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Tartiner le pain, puis ajouter les tomates et la roquette.",
+      "why": "Une collation salée qui reste fraîche et rapide à assembler.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt et poire",
+      "title": "Yaourt de soja, poire et graines de tournesol",
+      "slot": "snack_pm",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de tournesol",
+          "quantity": "60 g",
+          "in_pantry": false,
+          "amount": 60,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt et les poires en dés, puis ajouter les graines.",
+      "why": "Une pause fraîche qui demande très peu de temps.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Kiwi du soir",
+      "title": "Yaourt de soja, kiwi et noix",
+      "slot": "before_bed",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "kiwi",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 320,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter le kiwi pelé et parsemer de noix.",
+      "why": "Une option calme et légère pour terminer la journée sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Pomme au yaourt",
+      "title": "Yaourt de soja, pomme et cannelle",
+      "slot": "before_bed",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Mélanger le yaourt avec la pomme en dés et une pincée de cannelle.",
+      "why": "Une fin de journée simple qui maintient des horaires réguliers.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Yaourt aux prunes",
+      "title": "Yaourt de soja, prunes et graines",
+      "slot": "before_bed",
+      "day": "tue",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "prunes",
+          "quantity": "8 unités",
+          "in_pantry": false,
+          "amount": 8,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 64,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter les prunes coupées et les graines.",
+      "why": "Une petite assiette sans cuisson avec des fruits de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Banane du soir",
+      "title": "Yaourt de soja, banane et amandes",
+      "slot": "before_bed",
+      "day": "wed",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "banane",
+          "quantity": "4 unités",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 480,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter la banane et les amandes.",
+      "why": "Une solution immédiate pour ne pas sauter le dernier moment alimentaire.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Poire et yaourt",
+      "title": "Yaourt de soja, poire et noisettes",
+      "slot": "before_bed",
+      "day": "thu",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "2 unités",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt, ajouter la poire en dés et les noisettes.",
+      "why": "Une fin de journée douce, fraîche et sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Raisin au yaourt",
+      "title": "Yaourt de soja, raisin et noix",
+      "slot": "before_bed",
+      "day": "fri",
+      "ingredients": [
+        {
+          "term": "yaourt de soja",
+          "quantity": "600 g",
+          "in_pantry": false,
+          "amount": 600,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": "tofu_tempeh",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "400 g",
+          "in_pantry": false,
+          "amount": 400,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 400,
+          "group": "other_fruit",
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noix",
+          "quantity": "40 g",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": "nuts_seeds",
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt avec le raisin lavé et les noix.",
+      "why": "Une option fraîche et courte pour terminer la semaine régulièrement.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    }
+  ],
+  "preparations": [],
+  "cooking_sessions": [],
+  "shopping_list": [],
+  "member_portions": [
+    {
+      "member_id": "b60378e6-1956-4dbd-b8dc-7480578a8282",
+      "display_name": "Paul",
+      "portion_note": "Au petit-déjeuner, servir les éléments ensemble; aux collations, il ne mange rien; au lunch et au dîner, déposer les légumes d’abord, puis la protéine, puis le féculent.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "620d929d-3c61-4af5-8575-150442486648",
+      "display_name": "Claire",
+      "portion_note": "Au petit-déjeuner, au lunch, au snack_pm et au dîner, servir tous les éléments ensemble dans l’assiette.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "49375b46-a94a-43d3-8a3e-e2df1a8151cf",
+      "display_name": "Leo",
+      "portion_note": "Servir tous les éléments ensemble au petit-déjeuner, aux deux collations, au lunch, au dîner et avant le coucher.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": []
+    },
+    {
+      "member_id": "89fbc19f-57e2-4a0b-8ae0-9c7452b79f71",
+      "display_name": "Nora",
+      "portion_note": "Au petit-déjeuner, au lunch, au snack_pm et au dîner, servir tous les éléments ensemble dans l’assiette.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": []
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 0 (none)",
+    "freeze_on_purchase: 0/0",
+    "dishes[6]: name repeats the title (\"Pomme et noix\") -- dropped, one line is enough",
+    "dishes[8]: name repeats the title (\"Raisin et noix\") -- dropped, one line is enough",
+    "dishes[8]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[9]: name repeats the title (\"Prunes et noisettes\") -- dropped, one line is enough",
+    "dishes[9]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[10]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[11]: name repeats the title (\"Raisin et amandes\") -- dropped, one line is enough",
+    "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[15]: name repeats the title (\"Banane et cacahuètes\") -- dropped, one line is enough",
+    "dishes[15]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "empty_slots: sun/lunch, sun/dinner, mon/lunch, mon/dinner, tue/lunch, tue/dinner, wed/lunch, wed/dinner, thu/lunch, thu/dinner, fri/lunch, fri/dinner"
+  ],
+  "request_id": "af660f6c-e0ca-4ab9-8b34-bef10dbc6290"
+}

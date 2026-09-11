@@ -976,10 +976,19 @@ Deno.serve(async (req) => {
         // La liste fermée est celle de `DATABLE_SLOTS`: rien d'autre ne peut
         // sortir de l'inférence, et un jeton inattendu vaut « ne dis rien »
         // plutôt qu'un nom de créneau introuvable dans le pack.
+        //
+        // ⚠️ ELLE EST PASSÉE DE TROIS À SIX LE 2026-09-09, EN MÊME TEMPS QUE
+        // `DATABLE_SLOTS`. Une liste nommée ne garde que ce qu'elle nomme:
+        // laissée à trois, une photo rangée au goûter serait sortie d'ici avec
+        // `inferredSlot: null`, et l'accusé se serait TU sur un créneau que la
+        // base porte — la déduction silencieuse que tout ce chemin refuse.
         inferredSlot: slotWasInferred(readBack.recognized) &&
             (readBack.slot_key === "breakfast" ||
+              readBack.slot_key === "snack_am" ||
               readBack.slot_key === "lunch" ||
-              readBack.slot_key === "dinner")
+              readBack.slot_key === "snack_pm" ||
+              readBack.slot_key === "dinner" ||
+              readBack.slot_key === "before_bed")
           ? readBack.slot_key
           : null,
         // LA MÊME valeur que celle donnée au modèle, clampée une seule fois

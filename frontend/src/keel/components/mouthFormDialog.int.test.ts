@@ -24,10 +24,12 @@ import {
   arrivalHorizonCopy,
 } from "../lib/arrivalHorizon";
 import {
-  PACE_SATURATION_LABELS,
   PACE_WARNING_LABELS,
 } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
-import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  DAY_ACTIVITY_LEVELS,
+  SPORT_FREQUENCIES,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 
 // ===========================================================================
@@ -640,49 +642,20 @@ describe("en prise, le curseur DIT sans interdire", () => {
     );
   });
 
-  // ── ③ · LE CURSEUR SATURE, ET L'ÉCRAN LE DIT ─────────────────────────────
+  // ── ③ · LA SATURATION N'EXISTE PLUS (⟳ 2026-09-09) ───────────────────────
   //
-  // Mesuré sur CE corps (110 kg, 185 cm, s'entraîne dur, en prise): son curseur
-  // monte jusqu'à 1,0, et à partir de 0,40 l'écart quotidien exécuté ne bouge
-  // plus — 415 kcal à 0,40, à 0,50, à 0,75 et à 1,0. Les trois cinquièmes de la
-  // course ne changent pas un gramme dans une boîte.
+  // Ce bloc gardait le RETRAIT d'affichage (2026-08-19) de « à partir de ce
+  // cran, l'assiette ne change plus » via `PACE_SATURATION_LABELS`. Le plafond
+  // caché qui justifiait la phrase est parti avec elle: un cran du curseur est
+  // exécuté tel quel (en-tête de `weight_pace.ts`), le jeton n'existe plus, et
+  // rien ne peut rebrancher un texte qui n'est plus nulle part. Ce qui reste
+  // à tenir ici est l'avertissement de PHYSIOLOGIE, qui n'a jamais dit la
+  // même chose.
   const SATURATED = "0.75";
 
-  it("⛔ LA PHRASE DE SATURATION N'EST PLUS RENDUE, DANS AUCUNE LANGUE", () => {
-    // ── RETIRÉE DE L'ÉCRAN LE 2026-08-19 ──────────────────────────────────
-    // « À partir de ce cran, l'assiette ne change plus… » décrivait le
-    // comportement interne du plafond à quelqu'un qui pousse un curseur DÉJÀ
-    // borné par ce même plafond: le contrôle ne monte pas plus haut, ce qui est
-    // l'information — la phrase la répétait en trente mots.
-    //
-    // ⚠️ CE TEST GARDE LE RETRAIT, il ne le constate pas: `PACE_SATURATION_LABELS`
-    // reste dans le module moteur avec ses tests à lui, donc rien n'empêcherait
-    // de rebrancher l'affichage sans s'en rendre compte.
-    for (const locale of ["en", "fr"] as const) {
-      const body = text(html({
-        draft: { ...LIFTER, paceKgPerWeek: SATURATED },
-        locale,
-      }));
-      expect(body).not.toContain(
-        decode(PACE_SATURATION_LABELS.plate_stops_changing[locale]),
-      );
-    }
-  });
-
-  it("③ une PERTE ne sature pas: la même borne y est lue deux fois", () => {
-    const body = text(html({
-      draft: { ...LIFTER, goal: "fat_loss", paceKgPerWeek: "0.45" },
-    }));
-    expect(body).not.toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
-    );
-  });
-
-  it("③ l'avertissement de PHYSIOLOGIE, lui, reste", () => {
-    // ⚠️ LES DEUX N'ONT JAMAIS DIT LA MÊME CHOSE, et c'est pour ça qu'une seule
-    // part: « le surplus part surtout en gras » est un fait sur le CORPS, que
-    // le curseur ne montre pas. « L'assiette ne change plus » était un fait sur
-    // le CONTRÔLE, que le curseur montre déjà en refusant de monter.
+  it("③ l'avertissement de PHYSIOLOGIE reste, à un cran que le moteur exécute tel quel", () => {
+    // « Le surplus part surtout en gras » est un fait sur le CORPS: il PARLE
+    // au-delà de 0,5 kg/sem et n'interdit rien — le cran est servi.
     const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
     expect(body).toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.en));
   });
@@ -718,61 +691,79 @@ describe("le refus du poids visé vit sur le geste qui le lève", () => {
 });
 
 // ---------------------------------------------------------------------------
-// BLOC 3 — LE NIVEAU D'ACTIVITÉ
+// BLOC 3 — L'ACTIVITÉ, ET ELLE NE SE DEMANDE PLUS QU'EN DEUX AXES
 // ---------------------------------------------------------------------------
+//
+// ⟳ 2026-09-06 — CE BLOC TENAIT LES QUATRE CRANS: quatre boutons, jamais un
+// nombre, rien de pré-coché, et un `aria-required` qui suivait la direction. Le
+// champ est parti; ce qui suit tient sa PLACE VIDE, parce qu'une suppression
+// sans garde se rejoue toute seule au prochain lot qui « rebranche par
+// symétrie ».
+//
+// ⛔ POURQUOI IL EST PARTI, EN UNE LIGNE: `activityFactorOf` jette le cran dès
+// que les deux axes sont remplis (`crossed` l'emporte sur `legacy`), et
+// `missingRequiredBlocks` en faisait pourtant le SEUL champ bloquant que la
+// carte du titulaire, à côté, ne posait même pas.
 
-describe("le niveau d'activité — quatre crans, jamais un nombre", () => {
-  it("exactement QUATRE boutons, et aucun cinquième « je ne sais pas »", () => {
+describe("l'activité — deux axes, et plus rien d'autre", () => {
+  it("les quatre crans ont disparu de la fiche, mots compris", () => {
     const markup = html({});
-    expect(countOf(markup, 'name="mouth-activity"')).toBe(4);
-    expect(countOf(markup, 'name="mouth-activity"')).toBe(
-      ACTIVITY_LEVELS.length,
-    );
+    expect(countOf(markup, 'name="mouth-activity"')).toBe(0);
+    // ⚠️ ET PAS SEULEMENT LE `name`. Les libellés du cran sont retirés des deux
+    // catalogues; les chercher par leur valeur anglaise prouve qu'aucun ne
+    // survit sous un autre contrôle.
+    const body = text(markup);
+    for (
+      const gone of [
+        "Training 2 to 3 times a week",
+        "Training 4 times or more, or a physical job",
+      ]
+    ) {
+      expect(body, `« ${gone} » est encore rendu`).not.toContain(gone);
+    }
   });
 
-  it("les quatre libellés sont des PHRASES, pas des nombres", () => {
-    const body = text(html({}));
-    for (const level of ACTIVITY_LEVELS) {
-      const key =
-        `household.mouth.activity_${level}` as "household.mouth.activity_sedentary";
-      expect(body).toContain(decode(en[key]));
+  it("les deux axes sont là, en tuiles, avec le catalogue de l'entonnoir", () => {
+    // LE CAS QUI PASSE, et il porte la moitié du lot: retirer une question sans
+    // vérifier que les deux qui restent sont rendues laisserait une fiche qui
+    // ne demande plus rien — verte, et muette.
+    const markup = html({});
+    for (const token of DAY_ACTIVITY_LEVELS) {
+      expect(markup, `l'axe « journée » a perdu ${token}`)
+        .toContain(`id="mouth-day-${token}"`);
     }
-    // Aucun facteur d'activité (1,45 / 1,65 / 1,80 / 2,00) à l'écran.
-    for (const factor of ["1.45", "1.65", "1.8", "2.0", "1,45", "1,65"]) {
-      expect(body).not.toContain(factor);
+    for (const token of SPORT_FREQUENCIES) {
+      expect(markup, `l'axe « sport » a perdu ${token}`)
+        .toContain(`id="mouth-sport-${token}"`);
+    }
+    // ⛔ LES MÊMES MOTS QUE LA CARTE DU TITULAIRE, PAS DES SYNONYMES. C'est
+    // l'écart que l'utilisateur a vu à l'écran: deux formulations pour les
+    // mêmes six jetons, à un doigt l'une de l'autre dans l'étape 2.
+    const body = text(markup);
+    for (
+      const key of [
+        "setup.day_activity.seated",
+        "setup.day_activity.seated_hint",
+        "setup.sport.1_2",
+        "setup.sport.1_2_hint",
+      ] as const
+    ) {
+      expect(body, `« ${en[key]} » manque`).toContain(decode(en[key]));
     }
   });
 
   it("rien n'est PRÉ-COCHÉ: ne pas répondre reste possible", () => {
     // Une coche automatique écrirait un fait faux que personne ne peut
-    // démentir — cicatrice `auto-tick-writes-undeniable-false-facts`.
+    // démentir — cicatrice `auto-tick-writes-undeniable-false-facts`. Les
+    // tuiles disent « choisi » par `aria-pressed`, pas par `checked`.
     const markup = html({});
-    expect(countOf(markup, 'name="mouth-activity" checked')).toBe(0);
+    expect(countOf(markup, 'aria-pressed="true"')).toBe(0);
   });
 
-  it("la FENÊTRE dit qu'il est réclamé — ou qu'il ne l'est pas (D1)", () => {
-    // ⚠️ D1 (2026-08-18) — LA DÉCISION EST RENDUE, PAS SEULEMENT APPLIQUÉE.
-    // Sans cet attribut, la seule trace de la règle serait la ligne « il
-    // manque… », c'est-à-dire une différence qu'on ne voit qu'APRÈS avoir
-    // essayé de sortir.
-    for (const goal of ["fat_loss", "muscle_gain"] as const) {
-      expect(html({ draft: { goal } })).toContain(
-        'aria-label="How active they are" aria-required="true"',
-      );
-    }
-    expect(html({ draft: { goal: "maintenance" } })).toContain(
-      'aria-label="How active they are" aria-required="false"',
-    );
-    // La direction non choisie ne réclame rien: son propre bloc retient déjà.
-    expect(html({})).toContain(
-      'aria-label="How active they are" aria-required="false"',
-    );
-  });
-
-  it("…et le BOUTON suit la même décision — jamais l'inverse", () => {
-    // ⚠️ UN CHAMP DÉCLARÉ FACULTATIF AU-DESSUS D'UN BOUTON QUI RETIENT QUAND
-    // MÊME serait un mensonge, pas un assouplissement. Le corps complet SAUF le
-    // cran: le bouton part sous `maintenance`, il reste retenu sous `fat_loss`.
+  it("le bouton ne retient PLUS sur l'activité — le corps seul le retient", () => {
+    // ⚠️ LES DEUX CAS, ET C'EST LE POINT. Le corps complet et aucune activité:
+    // le bouton part, sous `fat_loss` comme sous `maintenance`. Avant ce lot,
+    // le premier restait bloqué sur une réponse que le moteur n'aurait pas lue.
     const body = {
       firstName: "Zoe",
       birthDate: ADULT_BIRTH,
@@ -781,15 +772,28 @@ describe("le niveau d'activité — quatre crans, jamais un nombre", () => {
       gender: "female" as const,
       activityLevel: "" as const,
     };
-    const holds = html({ draft: { ...body, goal: "fat_loss" } });
+    for (const goal of ["fat_loss", "maintenance"] as const) {
+      const frees = html({ draft: { ...body, goal } });
+      expect(buttonTagOf(frees, decode(en["household.mouth.add"])), goal)
+        .not.toMatch(DISABLED);
+      expect(text(frees), goal)
+        .not.toContain(decode(en["household.mouth.block_body"]));
+    }
+    // LE CAS QUI MORD ENCORE: le sexe manquant retient, lui, et la phrase le
+    // nomme. Sans lui, ce test resterait vert sur une garde entièrement morte.
+    const holds = html({
+      draft: { ...body, gender: "" as const, goal: "fat_loss" },
+    });
     expect(buttonTagOf(holds, decode(en["household.mouth.add"])))
       .toMatch(DISABLED);
     expect(text(holds)).toContain(decode(en["household.mouth.block_body"]));
+  });
 
-    const frees = html({ draft: { ...body, goal: "maintenance" } });
-    expect(buttonTagOf(frees, decode(en["household.mouth.add"])))
-      .not.toMatch(DISABLED);
-    expect(text(frees)).not.toContain(decode(en["household.mouth.block_body"]));
+  it("la phrase de retenue ne réclame plus un champ absent de l'écran", () => {
+    // Une ligne « il manque … et son niveau d'activité » au-dessus d'une fiche
+    // qui ne le demande plus envoie chercher un contrôle qui n'existe pas.
+    expect(en["household.mouth.block_body"]).not.toContain("active");
+    expect(fr["household.mouth.block_body"]).not.toContain("activité");
   });
 });
 
@@ -1098,7 +1102,10 @@ describe("les deux langues, sur la valeur", () => {
         // fusionné et porte désormais `eating`.
         "household.mouth.eating",
         "household.mouth.tastes",
-        "household.mouth.activity",
+        // ⟳ 2026-09-06 — `household.mouth.activity` est parti avec les quatre
+        // crans. Le titre voisé qui reste sur cet axe est celui de la JOURNÉE,
+        // et c'est lui qui doit être français ici.
+        "household.mouth.day_activity",
       ] as const
     ) {
       expect(body).toContain(decode(voicedText(fr, key)));
@@ -1193,9 +1200,12 @@ describe("un mineur porte les six blocs, et une seule direction", () => {
     expect(goalTags[0]).toMatch(/\bchecked(=""|\s|\/)/);
     expect(text(markup)).toContain(
       decode(
+        // ⟳ 2026-09-06 — `setup.goal.*` ET PLUS `household.goal.*`: la fiche
+        // ne porte plus qu'un vocabulaire de direction, celui de l'entonnoir.
+        // La phrase de bascule suit celui de la fiche qui la rend.
         en["household.goal.minor_switched"].replace(
           "{from}",
-          en["household.goal.fat_loss"],
+          en["setup.goal.fat_loss"],
         ),
       ),
     );
@@ -1365,10 +1375,11 @@ describe("la cloison entre les deux surfaces", () => {
       .not.toContain('name="mouth-appetite"');
 
     // ⟳ 2026-09-01 — ① NE SE MESURE PLUS SUR `takesDessert / Cheese / Bread`.
-    // Les trois oui/non par personne ont été retirés avec leur section, et la
-    // question se pose désormais DANS le moment qu'elle concerne. Ce qui est
-    // mesuré ici reste la CLOISON — la fenêtre porte le contrôle, la fiche en
-    // ligne ne le porte pas — sur ce qui l'incarne aujourd'hui.
+    // Les trois oui/non par personne ont été retirés avec leur section; les
+    // bulles par moment qui les remplaçaient l'ont été à leur tour le
+    // 2026-09-10. Ce qui est mesuré ici reste la CLOISON — la fenêtre porte le
+    // contrôle, la fiche en ligne ne le porte pas — sur ce qui l'incarne
+    // aujourd'hui.
     //
     // ⛔ ET LES TROIS NOMS SONT VÉRIFIÉS ABSENTS DES DEUX CÔTÉS. Sans cette
     // moitié, réintroduire un des trois contrôles sur la fiche en ligne ne
@@ -1380,21 +1391,16 @@ describe("la cloison entre les deux surfaces", () => {
         .not.toContain(`name="${name}"`);
     }
 
-    // Les bulles, elles, sont dans la fenêtre — et sur le moment coché.
+    // Le « + repas léger », lui, est dans la fenêtre — et sur le moment coché.
     const withLunch = prefsHtml({
       draft: { ...draft, rhythm: [{ slot: "lunch", size: null }] },
     });
-    expect(withLunch, "la bulle du pain a quitté la fenêtre")
-      .toContain('data-mouth-extra="lunch:bread"');
+    expect(withLunch, "la bulle du repas léger a quitté la fenêtre")
+      .toContain('data-mouth-light="lunch"');
     expect(
       coreHtml({ draft: { ...draft, rhythm: [{ slot: "lunch", size: null }] } }),
-      "les bulles sont remontées sur la fiche en ligne",
-    ).not.toContain("data-mouth-extra");
-    // Et la question se LIT — cinq bulles sans leur question seraient cinq
-    // boutons sur rien.
-    expect(text(withLunch)).toContain(
-      decode(en["household.mouth.extras_field"]),
-    );
+      "la bulle est remontée sur la fiche en ligne",
+    ).not.toContain("data-mouth-light");
   });
 
   it("le bouton qui ouvre la fenêtre est sur la fiche, dans les deux langues", () => {
@@ -1465,6 +1471,35 @@ describe("le corps est demandé AVANT le rythme qu'il borne", () => {
       .toBeGreaterThan(-1);
     expect(atBody, "la direction est repassée devant le corps")
       .toBeLessThan(atDirection);
+  });
+
+  /**
+   * ⟳ 2026-09-06 — L'ORDRE DE LA LECTURE, DEMANDÉ À L'ÉCRAN: d'abord CE QU'EST
+   * ce corps, ensuite CE QU'IL VISE, ensuite CE QU'IL FAIT de ses journées. Les
+   * deux axes d'activité étaient DANS le bloc du corps depuis le 2026-08-20 —
+   * l'argument était le calcul (`meal_envelope.ts` multiplie corps × activité),
+   * et il reste vrai; ce n'est pas l'ordre de la lecture. La carte du titulaire
+   * avait fait le même déplacement le 2026-09-01, et les deux fiches se lisent
+   * l'une sous l'autre dans l'étape 2 depuis A5.
+   *
+   * ⚠️ ET LE CAS DIT LES TROIS BORNES, PAS DEUX: taille < direction < journée.
+   * Sans la première, un lot qui remonterait les axes au-dessus du corps
+   * laisserait ce test vert.
+   */
+  it("les deux axes d'activité viennent APRÈS la direction", () => {
+    const markup = coreHtml({});
+    const atHeight = markup.indexOf('id="mouth-height"');
+    const atGoal = markup.indexOf('name="mouth-goal"');
+    const atDay = markup.indexOf('id="mouth-day-seated"');
+    const atSport = markup.indexOf('id="mouth-sport-none"');
+    for (const [name, at] of [["taille", atHeight], ["direction", atGoal], ["journée", atDay], ["sport", atSport]] as const) {
+      expect(at, `${name} n'est plus rendu`).toBeGreaterThan(-1);
+    }
+    expect(atHeight, "la direction est repassée devant le corps")
+      .toBeLessThan(atGoal);
+    expect(atGoal, "les axes sont remontés au-dessus de la direction")
+      .toBeLessThan(atDay);
+    expect(atDay, "le sport est passé devant la journée").toBeLessThan(atSport);
   });
 
   it("et les champs suivent: taille avant poids visé, taille avant curseur", () => {
@@ -2257,94 +2292,55 @@ describe("le moment du shaker", () => {
 });
 
 // ===========================================================================
-// LES BULLES DE CE QUI EST PRIS À CÔTÉ DU PLAT (2026-09-01)
+// ⟳ 2026-09-10 — LES BULLES DE CE QUI EST PRIS À CÔTÉ DU PLAT SONT SUPPRIMÉES
 //
-// ⛔ ELLES REMPLACENT « Ce qu'il y a d'autre dans l'assiette » ET SES TROIS
-// OUI/NON. Ceux-là étaient posés UNE FOIS POUR LA PERSONNE: « je prends du
-// pain » ne disait pas si c'était le midi, le soir, ou les deux, et le même
-// ratio partait sur les six moments — petit-déjeuner compris, que le plan
-// compose pourtant en entier.
+// ⛔ SIX CAS ONT DISPARU D'ICI. Ils gardaient cinq bulles (`bread / cheese /
+// yoghurt / fruit / dessert`) posées sous le déjeuner et le dîner, dont la
+// réponse RETRANCHAIT des kcal de la cible du repas. Décision produit: le plan
+// dimensionne les aliments qu'il prévoit et ne réserve plus d'énergie pour un
+// accompagnement personnel hors plan.
 //
-// ⚠️ CE FICHIER REND DU MARKUP STATIQUE (`environment: "node"`), donc il ne
-// PEUT PAS cliquer. Ce qui est mordu ici est CE QUI S'AFFICHE et sur QUEL
-// moment; la sémantique du clic est tenue par `lib/mealExtras.ts` et ses
-// tests, et le câblage des deux par la vérification au navigateur.
+// ⚠️ CE FICHIER REND DU MARKUP STATIQUE (`environment: "node"`): il ne peut
+// prouver que ce qui S'AFFICHE. C'est très exactement ce qu'on lui demande
+// ici — que rien ne s'affiche, et qu'une phrase le dise à la place.
 // ===========================================================================
 
-describe("les bulles de ce qui est pris à côté du plat", () => {
+describe("⟳ ce qui est pris à côté du plat n'est plus demandé", () => {
   const lunchOnly = { rhythm: [{ slot: "lunch" as const, size: null }] };
 
-  it("⛔ SUR LE DÉJEUNER ET LE DÎNER SEULEMENT", () => {
+  it("⛔ AUCUNE BULLE D'EXTRA, SUR AUCUN MOMENT", () => {
     const markup = prefsHtml({
       draft: {
         rhythm: EATING_OCCASIONS.map((slot) => ({ slot, size: null })),
       },
     });
-    // Les six moments sont cochés — donc les six dépliants sont ouverts.
-    for (const slot of ["lunch", "dinner"]) {
-      expect(markup, `${slot} devrait porter ses bulles`)
-        .toContain(`data-mouth-extra="${slot}:bread"`);
-    }
-    // ⛔ ET SURTOUT PAS AILLEURS. Le plan compose ENTIÈREMENT le
-    // petit-déjeuner et les collations: y retrancher un forfait compterait
-    // deux fois ce qui est déjà dans l'assiette.
-    for (const slot of ["breakfast", "snack_am", "snack_pm", "before_bed"]) {
-      expect(markup, `${slot} ne doit porter aucune bulle`)
-        .not.toContain(`data-mouth-extra="${slot}:`);
-    }
-  });
-
-  it("les CINQ bulles sont là, et il n'y en a pas une sixième", () => {
-    const markup = prefsHtml({ draft: lunchOnly });
+    // LA PRÉMISSE, ARMÉE: les six dépliants sont bien ouverts — sans quoi
+    // l'absence ci-dessous serait l'absence de la section entière.
+    expect(markup, "aucun moment n'est déplié: la mesure serait sans objet")
+      .toContain('id="mouth-habit-lunch"');
+    expect(markup).not.toContain("data-mouth-extra");
     for (const extra of ["bread", "cheese", "yoghurt", "fruit", "dessert"]) {
-      expect(markup).toContain(`data-mouth-extra="lunch:${extra}"`);
+      expect(markup, `la bulle « ${extra} » est revenue`)
+        .not.toContain(`lunch:${extra}`);
     }
-    expect(countOf(markup, 'data-mouth-extra="lunch:')).toBe(5);
   });
 
-  it("⚠️ ELLES N'APPARAISSENT QUE SI LE MOMENT EST COCHÉ", () => {
-    // Demander ce qu'on prend à côté d'un repas dont on vient de dire qu'il
-    // n'existe pas est le défaut exact que la fusion du 2026-09-01 réparait.
-    expect(prefsHtml({ draft: { rhythm: null } }))
-      .not.toContain("data-mouth-extra");
-    expect(prefsHtml({ draft: lunchOnly }))
-      .toContain('data-mouth-extra="lunch:bread"');
-  });
-
-  it("une bulle ALLUMÉE se distingue d'une bulle éteinte", () => {
-    const off = prefsHtml({ draft: lunchOnly });
-    const on = prefsHtml({ draft: { ...lunchOnly, extras: { lunch: ["bread"] } } });
-    // `aria-pressed` porte l'état — c'est ce qu'un lecteur d'écran annonce, et
-    // une couleur seule ne dirait rien à personne qui ne la voit pas.
-    expect(off).toContain('data-mouth-extra="lunch:bread"');
-    expect(off).toMatch(/aria-pressed="false" data-mouth-extra="lunch:bread"/);
-    expect(on).toMatch(/aria-pressed="true" data-mouth-extra="lunch:bread"/);
-    // ⚠️ ET LE « + » DISPARAÎT: une bulle allumée ne propose plus d'ajouter,
-    // elle DIT ce qui est pris.
-    expect(text(off)).toContain("+ bread");
-    expect(text(on)).not.toContain("+ bread");
-  });
-
-  it("⛔ LE MOMENT SEMÉ SE REND COCHÉ — sinon la fiche EFFACE", () => {
-    // La porte REMPLACE la liste d'entrées: une fiche qui s'ouvre sur des
-    // bulles éteintes alors que la base en porte les effacerait au Save.
-    const markup = prefsHtml({
-      draft: { ...lunchOnly, extras: { lunch: ["cheese", "fruit"] } },
-    });
-    expect(markup).toMatch(/aria-pressed="true" data-mouth-extra="lunch:cheese"/);
-    expect(markup).toMatch(/aria-pressed="true" data-mouth-extra="lunch:fruit"/);
-    expect(markup).toMatch(/aria-pressed="false" data-mouth-extra="lunch:bread"/);
-  });
-
-  it("⛔ « Ce qu'il y a d'autre dans l'assiette » A DISPARU", () => {
+  it("⛔ NI LA QUESTION, NI LES TROIS OUI/NON QU'ELLE AVAIT REMPLACÉS", () => {
     const body = text(prefsHtml({ draft: lunchOnly }));
     expect(body).not.toContain(decode(en["household.mouth.meal_structure_you"]));
     expect(body).not.toContain(decode(en["household.mouth.takes_bread"]));
-    // ⚠️ LE CAS QUI PASSE, à côté: la section qui les REMPLACE, elle, est là.
-    expect(body).toContain(decode(en["household.mouth.extras_field"]));
+  });
+
+  it("⚠️ ET UNE PHRASE PREND LEUR PLACE — sinon le retrait se devine", () => {
+    // ⛔ LE CAS QUI PASSE. Sans lui, « les bulles ont disparu » et « la section
+    // entière a disparu » se relisent pareil — et quelqu'un qui ajoute du pain
+    // croirait que son plan en tient compte.
+    const body = text(prefsHtml({ draft: lunchOnly }));
+    expect(body).toContain(decode(en["household.mouth.portions_plan_only"]));
+    expect(text(prefsHtml({ draft: lunchOnly, locale: "fr" })))
+      .toContain(decode(fr["household.mouth.portions_plan_only"]));
   });
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FF-060 — LES PLAGES QUE LE CORPS EXIGE SONT COCHÉES, ET NE SE DÉCOCHENT PAS
@@ -2373,9 +2369,19 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
   const rythme = (...slots: EatingOccasion[]) =>
     slots.map((slot) => ({ slot, size: null }));
 
-  it("au plancher, les moments cochés se verrouillent", () => {
+  /**
+   * ⟳ 2026-09-06 — LES CAS DE VERROU DÉCLARENT UNE PRISE DE POIDS, ET C'EST LA
+   * MOITIÉ DU LOT. Le plancher ne retient plus que là: « si une personne n'a
+   * pas pour objectif de prendre du poids il faut pas qu'on impose de manger »
+   * (décision produit, à l'écran). Sans ce `goal`, ces cas mesureraient un
+   * verrou qui n'existe plus pour personne — et le dernier cas du bloc le
+   * PROUVE par l'autre bout.
+   */
+  const GAINS = { goal: "muscle_gain" as const };
+
+  it("au plancher, les moments cochés se verrouillent — EN PRISE DE POIDS", () => {
     const h = prefsHtml({
-      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: { ...OPENED, requiredCount: 4 },
       locale: "fr",
     });
@@ -2433,14 +2439,48 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
     expect(h).not.toContain("data-mouth-slot-locked");
   });
 
-  it("la phrase DIT le compte, et pourquoi", () => {
+  it("la phrase DIT le compte", () => {
     const h = prefsHtml({
       draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: OPENED,
       locale: "fr",
     });
     expect(h).toContain("4 moments par jour");
-    expect(h).toContain("Une assiette ne peut pas tout porter");
+  });
+
+  it("⛔ ET LE POURQUOI EST DANS L'ÉTAT QUI CONTRAINT, PAS DANS LES DEUX", () => {
+    // ⟳ 2026-09-08 (soir) — `rhythm_derived_why` était une TROISIÈME phrase,
+    // servie dans les deux états. Sans verrou elle n'explique aucune
+    // contrainte: elle allonge. Elle est donc pliée dans la phrase du verrou,
+    // où elle dit pourquoi une case ne se décoche pas.
+    const tenu = prefsHtml({
+      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(tenu).toContain("une assiette ne peut pas tout porter");
+
+    const libre = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: OPENED,
+      locale: "fr",
+    });
+    expect(libre, "la leçon se sert encore quand rien ne contraint")
+      .not.toContain("une assiette ne peut pas tout porter");
+  });
+
+  it("⛔ L'ÉTAT TENU NE PROPOSE PAS DE DÉCOCHER — les cases sont grisées", () => {
+    // Signalé mot pour mot: « on peut pas décocher les repas imposés ». La
+    // phrase du verrou ne doit donc jamais nommer ce geste-là; elle nomme
+    // l'ajout, qui est le seul possible.
+    const h = prefsHtml({
+      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).toContain("data-mouth-slot-locked");
+    expect(h, "l'écran invite à un geste qu'il refuse").not.toContain("décoche");
+    expect(h, "la sortie n'est plus nommée").toContain("ajoutes-en un");
   });
 
   it("⛔ LA PHRASE N'ÉCRIT JAMAIS UN KCAL", () => {
@@ -2489,7 +2529,7 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
     // zéro, et il restait QUATRE CASES GRISÉES SANS AUCUNE PHRASE pour les
     // expliquer. Mesuré dans le navigateur le 2026-09-04.
     const h = prefsHtml({
-      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      draft: { ...GAINS, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: { ...OPENED, opened: [], requiredCount: 4 },
       locale: "fr",
     });
@@ -2511,13 +2551,134 @@ describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommé
     expect(h).not.toContain("moments par jour");
   });
 
-  it("la voix suit le sujet: « toi » sur sa propre fiche", () => {
-    const h = prefsHtml({
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⛔ ON N'IMPOSE DE MANGER QU'À QUI VEUT PRENDRE DU POIDS — 2026-09-06
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Décision produit, mot pour mot: « si une personne n'a pas pour objectif de
+   * prendre du poids il faut pas qu'on impose de manger […] on peut décocher
+   * et après l'algorithme fera comme il peut ».
+   *
+   * ⚠️ LES TROIS AUTRES DIRECTIONS, PAS UNE. Une garde codée sur `fat_loss`
+   * seul laisserait le verrou mordre en maintien, qui est le cas le plus
+   * courant du produit — et `""` est la fiche qu'on est en train de remplir,
+   * donc la première que quiconque voit.
+   */
+  for (const goal of ["fat_loss", "maintenance", ""] as const) {
+    it(`⛔ AUCUN VERROU HORS PRISE DE POIDS — goal « ${goal || "non choisi"} »`, () => {
+      const h = prefsHtml({
+        // MÊME PLANCHER, MÊMES MOMENTS COCHÉS que le cas qui verrouille
+        // au-dessus: seule la direction change.
+        draft: { goal, rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+        structure: { ...OPENED, requiredCount: 4 },
+        locale: "fr",
+      });
+      expect(h, "une case est grisée alors que rien ne doit être imposé")
+        .not.toContain("data-mouth-slot-locked");
+      // ⚠️ ET LA PHRASE RESTE. Ce qui disparaît est la contrainte, jamais
+      // l'information: sans elle, on découvrirait le goûter dans son plan.
+      expect(h, "le plancher ne se dit plus du tout").toContain(
+        "4 moments par jour",
+      );
+    });
+  }
+
+  it("la voix suit le sujet: « toi » sur sa propre fiche, le PRÉNOM sur l'autre", () => {
+    // ⟳ 2026-09-08 (soir) — la mesure était « ton corps », un fragment de la
+    // phrase longue. Elle ne testait qu'un SENS: une copie qui aurait tutoyé
+    // tout le monde serait passée. On mesure les deux, et le prénom avec.
+    const self = prefsHtml({
       draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
       structure: OPENED,
       locale: "fr",
       subject: { existing: true, hasAccount: true, isSelf: true },
     });
-    expect(h).toContain("ton corps");
+    expect(self).toContain("Il te faut");
+
+    const other = prefsHtml({
+      draft: {
+        firstName: "Roxane",
+        rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner"),
+      },
+      structure: OPENED,
+      locale: "fr",
+      subject: { existing: true, hasAccount: false, isSelf: false },
+    });
+    expect(other, "la fiche d'un tiers tutoie").not.toContain("Il te faut");
+    expect(other).toContain("Roxane");
+  });
+});
+
+describe("« + repas léger » — la bulle du lot 7", () => {
+  // La fenêtre construit son brouillon depuis `emptyMouthDraft()`; on ne
+  // surcharge que ce que chaque cas éprouve.
+  const base = emptyMouthDraft();
+  it("est sur les TROIS repas cochés, et sur aucun autre moment", () => {
+    // ⛔ CE N'EST PAS LA LISTE DES EXTRAS, et l'écran doit le montrer: une
+    // collation pèse déjà 0,10 de la journée, la marquer légère demanderait au
+    // plan de composer ~40 kcal. La base refuse la clé sur ces moments-là.
+    for (const slot of ["breakfast", "lunch", "dinner"] as const) {
+      expect(
+        prefsHtml({ draft: { ...base, rhythm: [{ slot, size: null }] } }),
+        `${slot} devrait porter la bulle`,
+      ).toContain(`data-mouth-light="${slot}"`);
+    }
+    for (const slot of ["snack_am", "snack_pm", "before_bed"] as const) {
+      expect(
+        prefsHtml({ draft: { ...base, rhythm: [{ slot, size: null }] } }),
+        `${slot} ne doit PAS porter la bulle`,
+      ).not.toContain(`data-mouth-light="${slot}"`);
+    }
+  });
+
+  it("n'existe pas sur un moment DÉCOCHÉ", () => {
+    // Une bulle sur un moment que la personne ne prend pas est une question sur
+    // rien — et la réponse partirait en base sur un créneau non déclaré.
+    expect(prefsHtml({ draft: { ...base, rhythm: [] } }))
+      .not.toContain("data-mouth-light");
+  });
+
+  it("le « + » disparaît une fois allumée, et `aria-pressed` suit", () => {
+    // ⛔ LE « + » EST UNE PROPOSITION: allumée, la bulle ne propose plus
+    // d'ajouter, elle DIT que ce moment pèse moins.
+    const eteinte = prefsHtml({
+      draft: { ...base, rhythm: [{ slot: "dinner", size: null }], light: {} },
+    });
+    expect(eteinte).toContain('data-mouth-light="dinner"');
+    expect(eteinte).toContain('aria-pressed="false"');
+    expect(text(eteinte)).toContain(`+ ${decode(en["household.mouth.light"])}`);
+
+    const allumee = prefsHtml({
+      draft: {
+        ...base,
+        rhythm: [{ slot: "dinner", size: null }],
+        light: { dinner: true },
+      },
+    });
+    expect(allumee).toContain('aria-pressed="true"');
+    expect(text(allumee)).not.toContain(`+ ${decode(en["household.mouth.light"])}`);
+    expect(text(allumee)).toContain(decode(en["household.mouth.light"]));
+  });
+
+  it("⛔ SEMÉE À `false`, ELLE EST ÉTEINTE — et c'est une RÉPONSE", () => {
+    // Trois états, deux apparences: « pas demandé » et « répondu non » se
+    // ressemblent à l'écran, et c'est assumé. Ce qui compte est que `false`
+    // n'allume PAS la bulle — sinon la personne verrait sa réponse inversée.
+    const html = prefsHtml({
+      draft: {
+        ...base,
+        rhythm: [{ slot: "dinner", size: null }],
+        light: { dinner: false },
+      },
+    });
+    expect(html).toContain('aria-pressed="false"');
+  });
+
+  it("l'aide se lit — une bulle sans sa phrase serait un bouton sur rien", () => {
+    const html = prefsHtml({
+      draft: { ...base, rhythm: [{ slot: "dinner", size: null }] },
+    });
+    expect(text(html)).toContain(decode(en["household.mouth.light_hint"]));
   });
 });

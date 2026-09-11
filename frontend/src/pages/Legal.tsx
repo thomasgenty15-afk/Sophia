@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { PublicFooter, PublicHeader } from '../keel/components/PublicHeader';
+import { displayLocaleTag, formatDateLong, formatPrice } from '../keel/i18n/format';
+import { t } from '../keel/i18n/t';
 import {
   LEGAL_ENTITY,
   organizationStructuredData,
@@ -24,6 +26,19 @@ import {
  * SIREN, not by people reading prose. The values live in `lib/legalEntity`
  * because the same numbers are also emitted as JSON-LD for the machines.
  *
+ * ── LA PAGE PARLE DEUX LANGUES DEPUIS LE 2026-09-09 ──────────────────────
+ * Tout le texte vit sous `legal.*` dans `keel/i18n/en.ts` / `fr.ts`, et
+ * `/legal` est déclarée dans `PAGE_NAMESPACES`: elle suit donc la langue du
+ * visiteur, chrome compris. Deux conséquences pour qui édite ce fichier:
+ *
+ *  1. AUCUN TEXTE EN DUR ICI. `scripts/ci/i18n-lint.mjs` scanne désormais ce
+ *     fichier (il en était exclu au titre du « legacy grand public »), et
+ *     `t()` LÈVE en DEV sur une clé hors du namespace déclaré.
+ *  2. LES FAITS D'IDENTITÉ NE SONT PAS DU TEXTE. Nom, forme, capital, RCS,
+ *     TVA, adresse, téléphone, e-mail: ils viennent de `lib/legalEntity` et
+ *     passent en PARAMÈTRES. Les recopier dans le seed créerait une seconde
+ *     rédaction d'un numéro de TVA, c'est-à-dire deux valeurs qui divergent.
+ *
  * ── TWO TRAPS THIS FILE HAS ALREADY FALLEN INTO ──────────────────────────
  * 1. NO `prose` CLASSES. This page used to lean on `prose prose-slate` and
  *    `prose-headings:font-bold`. `@tailwindcss/typography` is NOT installed
@@ -42,34 +57,21 @@ import {
  * whole job is to look legitimate.
  */
 
-/** Bump by hand when the text below actually changes. See trap 2 above. */
-const LAST_UPDATED = '4 August 2026';
-
-const SEO_DESCRIPTION =
-  'Legal notice for sophia-coach.ai: publisher, registered office, VAT number, ' +
-  'hosting, terms of use, privacy policy and terms of sale.';
-
-// Hoisted: SEO keeps `structuredData` in a useEffect dependency array, so an
-// inline literal would rebuild the <script> tags on every render.
-const STRUCTURED_DATA = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: 'Legal notice & Terms',
-    url: `${LEGAL_ENTITY.siteUrl}/legal`,
-    description: SEO_DESCRIPTION,
-    inLanguage: 'en-GB',
-    publisher: organizationStructuredData(),
-  },
-  organizationStructuredData(),
-];
+/**
+ * Bump by hand when the text below actually changes. See trap 2 above.
+ *
+ * ⚠️ UNE DATE ISO, ET PLUS « 4 August 2026 ». La chaîne anglaise ne pouvait pas
+ * se rendre en français, et la traduire à la main aurait donné deux dates à
+ * tenir. `formatDateLong` en fait « 4 August 2026 » ou « 4 août 2026 ».
+ */
+const LAST_UPDATED = '2026-08-04';
 
 const SECTIONS = [
-  { id: 'mentions-legales', label: 'Legal notice' },
-  { id: 'cgu', label: 'Terms of use' },
-  { id: 'confidentialite', label: 'Privacy' },
-  { id: 'cgv', label: 'Terms of sale' },
-  { id: 'parrainage', label: 'Referral' },
+  { id: 'mentions-legales', label: 'legal.nav.mentions' },
+  { id: 'cgu', label: 'legal.nav.cgu' },
+  { id: 'confidentialite', label: 'legal.nav.privacy' },
+  { id: 'cgv', label: 'legal.nav.cgv' },
+  { id: 'parrainage', label: 'legal.nav.referral' },
 ] as const;
 
 function Section({
@@ -116,6 +118,23 @@ function Note({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Une amorce en gras suivie de son texte — « Renouvellement : les abonnements
+ * se renouvellent… ».
+ *
+ * DEUX CLÉS, ET C'EST LA SEULE FORME D'EMPHASE QUI SURVIT À LA TRADUCTION. Un
+ * `<strong>` au MILIEU d'une phrase la coupe en trois morceaux dont l'ordre
+ * est celui de l'anglais; une amorce, elle, reste en tête dans les deux
+ * langues. Là où le gras portait un mot interne, il a été retiré.
+ */
+function Term({ label, body }: { label: string; body: string }) {
+  return (
+    <>
+      <strong>{label}</strong> {body}
+    </>
+  );
+}
+
 /** One labelled row of the identity table. `value` may be a node (links). */
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -141,26 +160,51 @@ const Legal = () => {
     window.scrollTo(0, 0);
   }, [location]);
 
+  const seoDescription = t('legal.seo.description', { domain: LEGAL_ENTITY.domain });
+
+  // Mémoïsé: `SEO` garde `structuredData` dans un tableau de dépendances
+  // d'effet, donc un littéral en ligne reconstruirait les `<script>` à chaque
+  // rendu. Il ne peut PAS être hissé hors du composant comme avant: `t()` au
+  // niveau module se figerait à la langue du premier chargement (règle
+  // MODULE_SCOPE_T de `scripts/ci/i18n-lint.mjs`). La bascule de langue
+  // recharge la page, donc `[]` suffit.
+  const structuredData = useMemo(
+    () => [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: t('legal.seo.title'),
+        url: `${LEGAL_ENTITY.siteUrl}/legal`,
+        description: seoDescription,
+        inLanguage: displayLocaleTag(),
+        publisher: organizationStructuredData(),
+      },
+      organizationStructuredData(),
+    ],
+    [seoDescription],
+  );
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <SEO
-        title="Legal notice & Terms"
-        description={SEO_DESCRIPTION}
+        title={t('legal.seo.title')}
+        description={seoDescription}
         canonical={`${LEGAL_ENTITY.siteUrl}/legal`}
-        structuredData={STRUCTURED_DATA}
+        structuredData={structuredData}
       />
 
       <PublicHeader />
 
       <main className="mx-auto max-w-3xl px-4 py-12 sm:py-16">
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
-          Legal notice &amp; terms
+          {t('legal.page.title')}
         </h1>
         <p className="mt-3 text-base leading-7 text-gray-600">
-          Who publishes {LEGAL_ENTITY.domain}, how to reach us, and the terms that
-          govern the service.
+          {t('legal.page.intro', { domain: LEGAL_ENTITY.domain })}
         </p>
-        <p className="mt-2 text-sm text-gray-500">Last updated: {LAST_UPDATED}</p>
+        <p className="mt-2 text-sm text-gray-500">
+          {t('legal.page.updated', { date: formatDateLong(LAST_UPDATED) })}
+        </p>
 
         <nav className="mt-8 flex flex-wrap gap-2">
           {SECTIONS.map((s) => (
@@ -169,7 +213,7 @@ const Legal = () => {
               href={`#${s.id}`}
               className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 hover:text-gray-900"
             >
-              {s.label}
+              {t(s.label)}
             </a>
           ))}
         </nav>
@@ -178,28 +222,38 @@ const Legal = () => {
           {/* ── MENTIONS LÉGALES ────────────────────────────────────────── */}
           <Section
             id="mentions-legales"
-            title="Legal notice"
-            subtitle="Publisher identity, as required by article 6-III of the French LCEN"
+            title={t('legal.mentions.title')}
+            subtitle={t('legal.mentions.subtitle')}
           >
             <P>
-              The site <strong>{LEGAL_ENTITY.domain}</strong> and the Sophia service
-              are published by <strong>{LEGAL_ENTITY.legalName}</strong>,{' '}
-              {LEGAL_ENTITY.legalForm} with share capital of{' '}
-              {LEGAL_ENTITY.shareCapital}, registered with the French Trade and
-              Companies Register (RCS) under number{' '}
-              <strong>{LEGAL_ENTITY.rcsNumber}</strong>, whose registered office is at{' '}
-              {registeredOfficeLine()}.
+              {t('legal.mentions.intro', {
+                domain: LEGAL_ENTITY.domain,
+                name: LEGAL_ENTITY.legalName,
+                form: LEGAL_ENTITY.legalForm,
+                capital: formatPrice(LEGAL_ENTITY.shareCapitalEur),
+                rcs: LEGAL_ENTITY.rcsNumber,
+                office: registeredOfficeLine(),
+              })}
             </P>
 
             <dl className="divide-y divide-gray-200 overflow-hidden rounded-xl border border-gray-200 bg-white">
-              <Row label="Publisher" value={`${LEGAL_ENTITY.legalName} (${LEGAL_ENTITY.legalForm})`} />
-              <Row label="Legal form" value="Société par actions simplifiée (SAS), France" />
-              <Row label="Share capital" value={LEGAL_ENTITY.shareCapital} />
-              <Row label="RCS number" value={LEGAL_ENTITY.rcsNumber} />
-              <Row label="Intra-EU VAT number" value={LEGAL_ENTITY.vatNumber} />
-              <Row label="Registered office" value={registeredOfficeLine()} />
               <Row
-                label="Publication director"
+                label={t('legal.mentions.row_publisher')}
+                value={`${LEGAL_ENTITY.legalName} (${LEGAL_ENTITY.legalForm})`}
+              />
+              <Row
+                label={t('legal.mentions.row_form')}
+                value={t('legal.mentions.form_value')}
+              />
+              <Row
+                label={t('legal.mentions.row_capital')}
+                value={formatPrice(LEGAL_ENTITY.shareCapitalEur)}
+              />
+              <Row label={t('legal.mentions.row_rcs')} value={LEGAL_ENTITY.rcsNumber} />
+              <Row label={t('legal.mentions.row_vat')} value={LEGAL_ENTITY.vatNumber} />
+              <Row label={t('legal.mentions.row_office')} value={registeredOfficeLine()} />
+              <Row
+                label={t('legal.mentions.row_director')}
                 value={
                   <>
                     {LEGAL_ENTITY.publicationDirector} —{' '}
@@ -213,7 +267,7 @@ const Legal = () => {
                 }
               />
               <Row
-                label="Contact"
+                label={t('legal.mentions.row_contact')}
                 value={
                   <a
                     href={`mailto:${LEGAL_ENTITY.contactEmail}`}
@@ -224,7 +278,7 @@ const Legal = () => {
                 }
               />
               <Row
-                label="Phone"
+                label={t('legal.mentions.row_phone')}
                 value={
                   <a
                     href={`tel:${LEGAL_ENTITY.phoneE164}`}
@@ -236,239 +290,175 @@ const Legal = () => {
               />
             </dl>
 
-            <H3>Hosting</H3>
+            <H3>{t('legal.mentions.hosting_title')}</H3>
             <P>
-              The site is hosted by <strong>{LEGAL_ENTITY.host.name}</strong>,{' '}
-              {LEGAL_ENTITY.host.street}, {LEGAL_ENTITY.host.city},{' '}
-              {LEGAL_ENTITY.host.region} {LEGAL_ENTITY.host.postalCode},{' '}
-              {LEGAL_ENTITY.host.country}.
+              {t('legal.mentions.hosting_body', {
+                name: LEGAL_ENTITY.host.name,
+                street: LEGAL_ENTITY.host.street,
+                city: LEGAL_ENTITY.host.city,
+                region: LEGAL_ENTITY.host.region,
+                postal: LEGAL_ENTITY.host.postalCode,
+              })}
             </P>
 
-            <H3>Intellectual property</H3>
-            <P>
-              This site as a whole is governed by French and international copyright
-              and intellectual property law. All reproduction rights are reserved,
-              including for downloadable documents and for iconographic and
-              photographic material.
-            </P>
+            <H3>{t('legal.mentions.ip_title')}</H3>
+            <P>{t('legal.mentions.ip_body')}</P>
           </Section>
 
           {/* ── CGU ─────────────────────────────────────────────────────── */}
           <Section
             id="cgu"
-            title="Terms of use"
-            subtitle="Rules for accessing and using the platform"
+            title={t('legal.cgu.title')}
+            subtitle={t('legal.cgu.subtitle')}
           >
-            <H3>1. Purpose and acceptance</H3>
-            <P>
-              These Terms of Use (the "Terms") govern access to and use of the
-              "Sophia" SaaS platform (the "Service"), published by{' '}
-              <strong>{LEGAL_ENTITY.legalName}</strong> (the "Publisher").
-            </P>
-            <P>
-              Using the Service implies unreserved acceptance of these Terms. The user
-              acknowledges having read all of the conditions before ticking the "I
-              accept" box when signing up.
-            </P>
+            <H3>{t('legal.cgu.s1_title')}</H3>
+            <P>{t('legal.cgu.s1_p1', { name: LEGAL_ENTITY.legalName })}</P>
+            <P>{t('legal.cgu.s1_p2')}</P>
 
-            <H3>2. Description of the Service</H3>
-            <P>
-              Sophia is an intelligent virtual assistant (AI) for personal
-              development, productivity and life design. The Service allows you in
-              particular to:
-            </P>
+            <H3>{t('legal.cgu.s2_title')}</H3>
+            <P>{t('legal.cgu.s2_p1')}</P>
             <UL>
-              <li>
-                Generate personalised action plans to organise your days and reach
-                your goals.
-              </li>
-              <li>
-                Interact with a conversational AI for motivational support and habit
-                tracking.
-              </li>
-              <li>
-                Access tools for structuring identity and tracking progress.
-              </li>
+              <li>{t('legal.cgu.s2_li1')}</li>
+              <li>{t('legal.cgu.s2_li2')}</li>
+              <li>{t('legal.cgu.s2_li3')}</li>
             </UL>
             <Note>
-              <strong>AI notice:</strong> The advice and content generated by Sophia
-              are produced by artificial intelligence algorithms. They are provided
-              for information and decision support, and cannot replace human
-              professional judgement or constitute certified legal, medical or
-              financial advice.
+              <Term
+                label={t('legal.cgu.ai_notice_label')}
+                body={t('legal.cgu.ai_notice_body')}
+              />
             </Note>
 
-            <H3>3. Access to the Service</H3>
+            <H3>{t('legal.cgu.s3_title')}</H3>
+            <P>{t('legal.cgu.s3_p1')}</P>
+
+            <H3>{t('legal.cgu.s4_title')}</H3>
+            <P>{t('legal.cgu.s4_p1')}</P>
+
+            <H3>{t('legal.cgu.s5_title')}</H3>
             <P>
-              The Service is available 24/7, except in cases of force majeure or
-              maintenance. The Publisher reserves the right to suspend, interrupt or
-              limit access to all or part of the Service for technical or security
-              reasons, without this giving rise to compensation.
+              <Term
+                label={t('legal.cgu.s5_service_label')}
+                body={t('legal.cgu.s5_service_body', { name: LEGAL_ENTITY.legalName })}
+              />
+            </P>
+            <P>
+              <Term
+                label={t('legal.cgu.s5_user_label')}
+                body={t('legal.cgu.s5_user_body')}
+              />
             </P>
 
-            <H3>4. User account</H3>
-            <P>
-              Registration is required to access the features. The User is solely
-              responsible for keeping their credentials confidential. Any action taken
-              from their account is deemed to have been taken by them. If credentials
-              are lost or stolen, the User must inform the Publisher without delay.
-            </P>
-
-            <H3>5. Intellectual property</H3>
-            <P>
-              <strong>Service content:</strong> All elements of the Service
-              (structure, design, code, algorithms, the "Sophia" trade marks) are the
-              exclusive property of {LEGAL_ENTITY.legalName}. Any reproduction is
-              prohibited without authorisation.
-            </P>
-            <P>
-              <strong>User content:</strong> The data, text and information provided
-              by the User remain their property. The User grants the Publisher a right
-              to use this content solely for operating and improving the Service
-              (including training AI models, in anonymised form).
-            </P>
-
-            <H3>6. Liability</H3>
-            <P>
-              The Publisher provides the Service under a best-efforts obligation. It
-              cannot be held liable for:
-            </P>
+            <H3>{t('legal.cgu.s6_title')}</H3>
+            <P>{t('legal.cgu.s6_p1')}</P>
             <UL>
-              <li>Indirect damages (loss of revenue, loss of opportunity, and so on).</li>
-              <li>AI advice being unsuited to the User's specific situation.</li>
-              <li>Problems related to the User's own internet connection.</li>
-              <li>
-                The consequences of a failure, security incident or hack occurring on
-                third-party providers' infrastructure (hosting, AI model providers,
-                messaging), where no proven fault of the Publisher in selecting or
-                configuring those services is established.
-              </li>
+              <li>{t('legal.cgu.s6_li1')}</li>
+              <li>{t('legal.cgu.s6_li2')}</li>
+              <li>{t('legal.cgu.s6_li3')}</li>
+              <li>{t('legal.cgu.s6_li4')}</li>
             </UL>
           </Section>
 
           {/* ── CONFIDENTIALITÉ ─────────────────────────────────────────── */}
           <Section
             id="confidentialite"
-            title="Privacy policy"
-            subtitle="Protection of your personal data (GDPR)"
+            title={t('legal.privacy.title')}
+            subtitle={t('legal.privacy.subtitle')}
           >
-            <H3>1. Data collected</H3>
-            <P>When you use Sophia, we collect the following data:</P>
+            <H3>{t('legal.privacy.s1_title')}</H3>
+            <P>{t('legal.privacy.s1_p1')}</P>
             <UL>
               <li>
-                <strong>Identity data:</strong> surname, first name, email, phone
-                number (account identifier).
+                <Term
+                  label={t('legal.privacy.s1_li1_label')}
+                  body={t('legal.privacy.s1_li1_body')}
+                />
               </li>
               <li>
-                <strong>Life &amp; goal data:</strong> questionnaire answers, personal
-                goals, generated action plans.
+                <Term
+                  label={t('legal.privacy.s1_li2_label')}
+                  body={t('legal.privacy.s1_li2_body')}
+                />
               </li>
               <li>
-                <strong>Conversation data:</strong> the history of exchanges with the
-                Sophia assistant.
+                <Term
+                  label={t('legal.privacy.s1_li3_label')}
+                  body={t('legal.privacy.s1_li3_body')}
+                />
               </li>
               <li>
-                <strong>Technical data:</strong> sign-in logs, IP address, browser
-                type.
+                <Term
+                  label={t('legal.privacy.s1_li4_label')}
+                  body={t('legal.privacy.s1_li4_body')}
+                />
               </li>
             </UL>
 
-            <H3>2. Purposes of processing</H3>
-            <P>Your data is processed for the following reasons:</P>
+            <H3>{t('legal.privacy.s2_title')}</H3>
+            <P>{t('legal.privacy.s2_p1')}</P>
             <UL>
-              <li>
-                Providing and personalising the Service (legal basis: performance of
-                the contract).
-              </li>
-              <li>
-                Sending notifications and reminders inside the app (legal basis:
-                consent).
-              </li>
-              <li>
-                Continuous improvement of the AI algorithms (legal basis: legitimate
-                interest).
-              </li>
-              <li>Handling billing and customer support.</li>
+              <li>{t('legal.privacy.s2_li1')}</li>
+              <li>{t('legal.privacy.s2_li2')}</li>
+              <li>{t('legal.privacy.s2_li3')}</li>
+              <li>{t('legal.privacy.s2_li4')}</li>
             </UL>
 
-            <H3>3. Data sharing</H3>
+            <H3>{t('legal.privacy.s3_title')}</H3>
             <P>
-              Your data is strictly confidential. It is passed only to the technical
-              sub-processors we cannot operate without (cloud hosting, AI API
-              provider, message delivery service), who are bound by the same security
-              obligations. <strong>We never sell your data to advertisers.</strong>
+              {t('legal.privacy.s3_p1')}{' '}
+              <strong>{t('legal.privacy.s3_never_sell')}</strong>
             </P>
 
-            <H3>4. Security</H3>
-            <P>
-              We put in place technical security measures (SSL/TLS encryption, secured
-              databases) and organisational ones to protect your data against
-              unauthorised access, loss or alteration.
-            </P>
+            <H3>{t('legal.privacy.s4_title')}</H3>
+            <P>{t('legal.privacy.s4_p1')}</P>
 
-            <H3>5. Your rights</H3>
-            <P>
-              Under the GDPR you have rights of access, rectification, erasure,
-              restriction and portability over your data. You can exercise the erasure
-              and portability rights directly in the app, without contacting us: menu{' '}
-              <strong>Account → Options → My data</strong> (export your data) and{' '}
-              <strong>Delete my account</strong>.
-            </P>
+            <H3>{t('legal.privacy.s5_title')}</H3>
+            <P>{t('legal.privacy.s5_p1')}</P>
 
-            <H3>6. Data retention and deletion</H3>
+            <H3>{t('legal.privacy.s6_title')}</H3>
             <P>
-              <strong>Self-service account deletion:</strong> you can delete your
-              account at any time from the app. Deletion happens in two stages:
+              <Term
+                label={t('legal.privacy.s6_self_label')}
+                body={t('legal.privacy.s6_self_body')}
+              />
             </P>
             <UL>
               <li>
-                <strong>Immediately:</strong> your access is disabled, Sophia stops
-                writing to you and your subscription is cancelled with no further
-                charge.
+                <Term
+                  label={t('legal.privacy.s6_li1_label')}
+                  body={t('legal.privacy.s6_li1_body')}
+                />
               </li>
               <li>
-                <strong>Within 7 days:</strong> all of your data (profile, plans,
-                conversations, memories) is permanently and irreversibly deleted from
-                our databases. During that period you can cancel the deletion by
-                signing in again.
+                <Term
+                  label={t('legal.privacy.s6_li2_label')}
+                  body={t('legal.privacy.s6_li2_body')}
+                />
               </li>
             </UL>
             <P>
-              <strong>Data kept after deletion:</strong>
+              <strong>{t('legal.privacy.s6_kept_title')}</strong>
             </P>
             <UL>
-              <li>
-                The <strong>invoices</strong> relating to your payments, kept under
-                the statutory accounting retention obligation (article L.123-22 of the
-                French Commercial Code).
-              </li>
-              <li>
-                A <strong>minimal anonymised record</strong> of the deletion
-                (cryptographic hashes of the email and phone number, and the deletion
-                date), kept as proof of compliance. It cannot be used to identify you.
-              </li>
-              <li>
-                Technical usage measurements (volumes and compute costs),{' '}
-                <strong>anonymised</strong> at deletion time: they are no longer
-                attached to any person.
-              </li>
+              <li>{t('legal.privacy.s6_kept_li1')}</li>
+              <li>{t('legal.privacy.s6_kept_li2')}</li>
+              <li>{t('legal.privacy.s6_kept_li3')}</li>
             </UL>
             <P>
-              <strong>Technical backups:</strong> backup copies of our databases may
-              remain temporarily after deletion. They expire automatically on their
-              rotation cycle and are never used to restore deleted data, except in a
-              major technical incident affecting the whole service.
+              <Term
+                label={t('legal.privacy.s6_backups_label')}
+                body={t('legal.privacy.s6_backups_body')}
+              />
             </P>
             <P>
-              <strong>Exporting your data:</strong> you can download a copy of your
-              data (profile, plans, conversations, memories) as JSON at any time from
-              the Account menu. For security, re-authentication is required, a
-              notification is sent to you for every request, and exports are limited
-              to one per 24 hours.
+              <Term
+                label={t('legal.privacy.s6_export_label')}
+                body={t('legal.privacy.s6_export_body')}
+              />
             </P>
             <p className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-6 text-gray-700">
-              <strong className="text-gray-900">Exercising your rights.</strong> For
-              any request about your data, contact us at{' '}
+              <strong className="text-gray-900">{t('legal.privacy.rights_label')}</strong>{' '}
+              {t('legal.privacy.rights_body')}{' '}
               <a
                 href={`mailto:${LEGAL_ENTITY.contactEmail}`}
                 className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600"
@@ -482,115 +472,64 @@ const Legal = () => {
           {/* ── CGV ─────────────────────────────────────────────────────── */}
           <Section
             id="cgv"
-            title="Terms of sale"
-            subtitle="Subscriptions, payments and withdrawal"
+            title={t('legal.cgv.title')}
+            subtitle={t('legal.cgv.subtitle')}
           >
-            <H3>1. Plans and prices</H3>
+            <H3>{t('legal.cgv.s1_title')}</H3>
+            <P>{t('legal.cgv.s1_p1', { name: LEGAL_ENTITY.legalName })}</P>
+
+            <H3>{t('legal.cgv.s2_title')}</H3>
+            <P>{t('legal.cgv.s2_p1')}</P>
+
+            <H3>{t('legal.cgv.s3_title')}</H3>
             <P>
-              Services are offered as subscriptions (monthly or annual) or as one-off
-              purchases. Prices are shown in Euros (€) including all taxes on the
-              "Pricing" page. {LEGAL_ENTITY.legalName} reserves the right to change
-              its prices at any time, but the Service is billed at the prices in force
-              when the order is confirmed.
+              <Term
+                label={t('legal.cgv.s3_renewal_label')}
+                body={t('legal.cgv.s3_renewal_body')}
+              />
+            </P>
+            <P>
+              <Term
+                label={t('legal.cgv.s3_cancel_label')}
+                body={t('legal.cgv.s3_cancel_body')}
+              />
             </P>
 
-            <H3>2. Payment</H3>
-            <P>
-              Payment is made by card through our secure payment provider (Stripe).
-              Payment is due immediately on ordering. If payment fails, access to the
-              Service is suspended immediately.
-            </P>
+            <H3>{t('legal.cgv.s4_title')}</H3>
+            <Note>{t('legal.cgv.s4_notice')}</Note>
+            <P>{t('legal.cgv.s4_p1')}</P>
 
-            <H3>3. Renewal and cancellation</H3>
-            <P>
-              <strong>Renewal:</strong> Subscriptions renew automatically for a period
-              identical to the one originally taken out, unless cancelled by the User.
-            </P>
-            <P>
-              <strong>Cancellation:</strong> The User can cancel their subscription at
-              any time from the "My Account" area. Cancellation takes effect at the
-              end of the current subscription period. No pro-rata refund is made for a
-              period already started.
-            </P>
-
-            <H3>4. No right of withdrawal</H3>
-            <Note>
-              Under article L.221-28 of the French Consumer Code, the right of
-              withdrawal cannot be exercised for contracts supplying digital content
-              not provided on a physical medium (SaaS) whose performance has begun
-              after the consumer's express prior agreement and express waiver of their
-              right of withdrawal.
-            </Note>
-            <P>
-              By subscribing to the Service and accessing the digital features
-              immediately, the User expressly waives their right of withdrawal.
-            </P>
-
-            <H3>5. Governing law</H3>
-            <P>
-              These Terms of Sale are governed by French law. In the event of a
-              dispute, jurisdiction is granted to the competent courts in the district
-              of {LEGAL_ENTITY.legalName}'s registered office, notwithstanding
-              multiple defendants or third-party proceedings.
-            </P>
+            <H3>{t('legal.cgv.s5_title')}</H3>
+            <P>{t('legal.cgv.s5_p1', { name: LEGAL_ENTITY.legalName })}</P>
           </Section>
 
           {/* ── PARRAINAGE ──────────────────────────────────────────────── */}
           <Section
             id="parrainage"
-            title="Referral programme"
-            subtitle="Programme conditions"
+            title={t('legal.referral.title')}
+            subtitle={t('legal.referral.subtitle')}
           >
-            <H3>1. How it works</H3>
-            <P>
-              Every User has a personal referral code, shareable as a link or a code.
-              When someone (the "Referee") creates a Sophia account with that code,
-              their free trial is extended to 30 days (instead of 14). The code must
-              be entered at sign-up: it cannot be added later to an existing account.
-            </P>
+            <H3>{t('legal.referral.s1_title')}</H3>
+            <P>{t('legal.referral.s1_p1')}</P>
 
-            <H3>2. Referrer reward</H3>
+            <H3>{t('legal.referral.s2_title')}</H3>
             <P>
-              The Referrer receives one (1) free month of subscription, matching the
-              monthly price of their current plan, as a credit deducted from their
-              next invoices. This reward is credited{' '}
-              <strong>
-                only when the Referee pays a first invoice for an amount strictly
-                greater than zero
-              </strong>
-              . The Referee merely signing up, the trial period, or a €0 invoice give
-              no entitlement to a reward.
+              {t('legal.referral.s2_lead')}{' '}
+              <strong>{t('legal.referral.s2_condition')}</strong>.{' '}
+              {t('legal.referral.s2_no_entitlement')}
             </P>
-            <P>
-              If the Referrer is not yet subscribed when their Referee converts, the
-              reward is held and applied automatically to their first invoices as soon
-              as they take out a subscription.
-            </P>
+            <P>{t('legal.referral.s2_held')}</P>
 
-            <H3>3. Cap</H3>
-            <P>
-              Free months are capped at twelve (12) months per rolling twelve (12)
-              month period per Referrer. Beyond that cap, referrals are still counted
-              but no longer give entitlement to a reward.
-            </P>
+            <H3>{t('legal.referral.s3_title')}</H3>
+            <P>{t('legal.referral.s3_p1')}</P>
 
-            <H3>4. Anti-fraud reservation</H3>
+            <H3>{t('legal.referral.s4_title')}</H3>
             <Note>
-              Self-referral (same person, same phone number, or multiple accounts) is
-              prohibited. The Referee must be a new user who does not already have a
-              Sophia account. {LEGAL_ENTITY.legalName} reserves the right to refuse,
-              suspend or cancel any reward obtained in breach of these conditions or
-              by any fraudulent or abusive means, and to suspend the accounts
-              involved.
+              {t('legal.referral.s4_notice', { name: LEGAL_ENTITY.legalName })}
             </Note>
 
-            <H3>5. Nature of the reward</H3>
-            <P>
-              Free months have no monetary value: they are not refundable,
-              transferable or convertible into cash. {LEGAL_ENTITY.legalName} may
-              change or end the referral programme at any time; rewards already earned
-              remain due.
-            </P>
+            <H3>{t('legal.referral.s5_title')}</H3>
+            <P>{t('legal.referral.s5_p1', { name: LEGAL_ENTITY.legalName })}</P>
           </Section>
         </div>
       </main>

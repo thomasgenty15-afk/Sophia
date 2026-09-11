@@ -111,7 +111,6 @@ import { dishDate, stretchDates } from "../../api/mealStretch";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
-import { inputClass } from "../ui/Field";
 import DishListByDay from "./DishListByDay";
 
 export interface MyShareCardProps {
@@ -159,7 +158,11 @@ export interface MyShareCardProps {
    */
   planStartsOn: string | null;
   onApprove: () => Promise<void>;
-  onRequestChange: (text: string) => Promise<void>;
+  /**
+   * ⛔ `onRequestChange` A ÉTÉ RETIRÉ LE 2026-09-10 (lot 7). Voir le bloc
+   * « DEMANDER UNE MODIF » plus bas: cette carte n'est rendue qu'à un membre
+   * SECONDAIRE, et un secondaire ne compose plus rien.
+   */
   busy: boolean;
 }
 
@@ -173,23 +176,15 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
     householdMealId,
     planStartsOn,
     onApprove,
-    onRequestChange,
     busy,
   } = props;
 
   const [approved, setApproved] = React.useState(false);
   const [working, setWorking] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
-  /**
-   * LE CHAMP EST FERMÉ TANT QU'ON NE L'A PAS DEMANDÉ.
-   *
-   * Une zone de texte ouverte en permanence sous « Ta part » se lit comme une
-   * chose à remplir, et être servi par le foyer est la posture NORMALE — pas un
-   * manque. C'est la même règle que l'en-tête de cette carte: aucune phrase qui
-   * reproche de ne rien faire.
-   */
-  const [changeOpen, setChangeOpen] = React.useState(false);
-  const [changeText, setChangeText] = React.useState("");
+  // ⛔ `changeOpen` / `changeText` SONT PARTIS AVEC LE BOUTON (lot 7). Un état
+  // qui ne pilote plus rien est un morceau de geste qui attend qu'on le
+  // rebranche.
 
   /**
    * ══════════════════════════════════════════════════════════════════════
@@ -398,11 +393,14 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
           dit une fois qu'on a tout lu. Même ordre que `TakeTheHandCard`, qui
           dit ce que le geste coûte avant de l'offrir.
 
-          ⚠️ `secondary` ET NON `primary`: une seule action figue par vue
-          rendue (`KIT-CONTRAT` §2). Sur `/app/plan` la figue est déjà prise
-          par « composer la semaine » (`MealBuilder`, `type="submit"`), qui est
-          rendu en même temps que cette carte pour un secondaire — il peut
-          toujours prendre la main. */}
+          ⚠️ `secondary` ET NON `primary`, ET LA RAISON A CHANGÉ LE 2026-09-10.
+          Elle disait: « la figue est déjà prise par composer la semaine
+          (`MealBuilder`), rendu en même temps que cette carte pour un
+          secondaire ». C'EST FAUX DEPUIS LE LOT 7 — un secondaire ne voit plus
+          le formulaire de composition du tout. Ce qui tient encore la teinte
+          est la règle elle-même (`KIT-CONTRAT` §2, une seule action figue par
+          vue) et le fait que valider sa part n'est pas l'action principale de
+          `/app/plan`: c'est un accusé de lecture, pas une décision. */}
       <div className="mt-4">
         {approved
           ? <p className="text-sm text-ink-soft">{t("plan.mine.approved")}</p>
@@ -433,90 +431,27 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
             </Button>
           )}
 
-        {/* ── « DEMANDER UNE MODIF » — LE GESTE QUE LOT C ARME ─────────────
-            APRÈS « je valide », et en second: dire oui est le cas courant, et
-            le geste le plus offert doit être celui qu'on fait le plus souvent.
+        {/* ══════════════════════════════════════════════════════════════
+            ⟳ 2026-09-10 · LOT 7 — « DEMANDER UNE MODIF » EST RETIRÉ.
+            ══════════════════════════════════════════════════════════════
 
-            ⚠️ IL N'ENVOIE RIEN À PERSONNE. Il ouvre un champ dont la phrase
-            devient une NOTE DE BROUILLON — un aperçu de sa propre semaine.
-            Aucune copie ne dit « envoyé »: il n'existe aucun canal 1:1, et une
-            phrase qui le laisserait croire ferait attendre une réponse qui ne
-            viendra jamais. */}
-        {!changeOpen
-          ? (
-            <Button
-              variant="ghost"
-              className="ml-2"
-              disabled={busy || working}
-              onClick={() => setChangeOpen(true)}
-            >
-              {t("plan.mine.request_change")}
-            </Button>
-          )
-          : (
-            <div className="mt-3">
-              <label
-                htmlFor="my-share-change"
-                className="block text-sm font-semibold text-ink"
-              >
-                {t("plan.mine.change_label")}
-              </label>
-              {/* LA MÊME PHRASE D'ATTENTE QUE LE BROUILLON, parce que c'est
-                  littéralement le même champ: ce qu'on écrit ici part comme
-                  `draft_note`, et sert à REFAIRE un aperçu. Un second texte
-                  d'aide décrirait autrement une seule et même chose. */}
-              <p className="mt-1 text-sm leading-6 text-ink-soft">
-                {t("plan.draft.note_hint")}
-              </p>
-              <textarea
-                id="my-share-change"
-                className={`${inputClass} mt-2 min-h-20`}
-                value={changeText}
-                placeholder={t("plan.draft.note_placeholder")}
-                // ⛔ PAS DE `maxLength`: le navigateur couperait la phrase EN
-                // SILENCE, et la demande partirait tronquée sans que personne
-                // ne le sache. Le serveur est le seul juge (280 signes).
-                disabled={busy || working}
-                onChange={(e) => setChangeText(e.target.value)}
-              />
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Button
-                  variant="secondary"
-                  disabled={busy || working || changeText.trim() === ""}
-                  onClick={async () => {
-                    setWorking(true);
-                    setFailure(null);
-                    try {
-                      await onRequestChange(changeText);
-                      // LE CHAMP SE REFERME UNE FOIS LA PHRASE PARTIE — et
-                      // AUCUN accusé n'est posé: la preuve que la demande a
-                      // été entendue, c'est l'aperçu qui s'ouvre par-dessus.
-                      // Un « c'est envoyé » ici serait un fait faux, et un
-                      // fait faux affiché est indémentable.
-                      setChangeOpen(false);
-                      setChangeText("");
-                    } catch (e) {
-                      setFailure(e instanceof Error ? e.message : String(e));
-                    } finally {
-                      setWorking(false);
-                    }
-                  }}
-                >
-                  {t("plan.draft.cta")}
-                </Button>
-                <Button
-                  variant="ghost"
-                  disabled={busy || working}
-                  onClick={() => {
-                    setChangeOpen(false);
-                    setChangeText("");
-                  }}
-                >
-                  {t("plan.draft.discard")}
-                </Button>
-              </div>
-            </div>
-          )}
+            ⛔ POURQUOI, ET CE N'EST PAS UN ALLÈGEMENT D'ÉCRAN. Le bouton
+            composait un APERÇU DE SA PROPRE SEMAINE sur la lane individuelle.
+            Cette lane n'existe plus: il n'y a qu'un moteur, et il rend 403
+            `not_owner` à un membre secondaire — c'est-à-dire à la seule
+            personne à qui cette carte s'affiche (`selectMyShare` refuse le
+            maître). Le laisser en place aurait fait exactement un BOUTON MORT:
+            un geste offert dont la seule issue est un refus, cicatrice mesurée
+            trois fois sur `SetupPage`.
+
+            ⚠️ CE QUI RESTE EST « je valide », ci-dessus, et c'est cohérent avec
+            le modèle: une bouche n'a pas besoin d'un compte, et réclamer son
+            profil donne la lecture, son objectif et sa part — jamais le droit
+            de composer, d'ajouter ou de retirer.
+
+            ⛔ ET ON N'OUVRE PAS UN CANAL VERS LE MAÎTRE À LA PLACE. Il n'existe
+            aucun canal 1:1 dans ce produit, et une copie qui le laisserait
+            croire ferait attendre une réponse qui ne viendra jamais. */}
 
         {/* ⛔ LE ROUGE RESTE: famille « échec » du produit, et un motif nommé
             est un FAIT. `red-700` sur `paper` = 6,13:1, la valeur du kit. */}

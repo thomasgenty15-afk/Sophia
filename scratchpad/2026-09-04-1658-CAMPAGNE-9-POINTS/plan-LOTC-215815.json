@@ -1,0 +1,1 @@
+{"error":"window_required","detail":"window must be {kind:'until_sunday'} | {kind:'days',count} | {kind:'exact',starts_on,duration_days}","request_id":"24a2cc39-eed4-4fbc-893f-502bcd355d9b"}

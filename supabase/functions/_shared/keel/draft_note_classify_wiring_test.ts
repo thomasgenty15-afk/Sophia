@@ -692,9 +692,10 @@ type Lane = {
   readonly cuts: readonly Cut[];
 };
 
+// deno-lint-ignore no-unused-vars
 const MEAL: Lane = {
   lane: "meal",
-  rel: "generate-meal-v1/index.ts",
+  rel: "generate-household-meal-v1/index.ts",
   assertWired(src) {
     assertWiredCommon(src, "meal");
     // ── LE RÔLE D'UNE LANE À UNE BOUCHE EST VIDE, ET C'EST UNE RÉPONSE ────
@@ -947,7 +948,11 @@ const FEEDBACK: Lane = {
   ],
 };
 
-const LANES: readonly Lane[] = [MEAL, HOUSEHOLD, FEEDBACK];
+// ⟳ 2026-09-11 · LOT 7 — LA LANE `MEAL` A ÉTÉ RETIRÉE DE LA LISTE avec la
+// fonction `generate-meal-v1`. Sa définition reste juste au-dessus, inerte,
+// pour que le jour où une seconde lane revient on la rebranche au lieu de
+// la réécrire. La propriété, elle, continue d'être éprouvée sur le foyer.
+const LANES: readonly Lane[] = [HOUSEHOLD, FEEDBACK];
 
 // ---------------------------------------------------------------------------
 // LES DEUX APPELS — le vrai fichier, puis la copie amputée

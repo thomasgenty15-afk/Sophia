@@ -1,0 +1,59 @@
+{
+  "profile": [
+    {
+      "id": "8eb029b7-19ae-4184-bcf0-1e62646e319d",
+      "full_name": "Evan Neuf",
+      "birth_date": "1990-05-12",
+      "gender": "male",
+      "height_cm": 180,
+      "activity_level": "sedentary",
+      "timezone": "Europe/Paris",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "d3137a72-4482-45b4-9471-26c979226a87",
+      "user_id": "8eb029b7-19ae-4184-bcf0-1e62646e319d",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "grocery_runs": 2,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "cooking_style": "balanced",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "kitchen_equipment": [
+          "oven",
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-04T15:00:56.619791+00:00",
+      "updated_at": "2026-09-05T16:39:28.282022+00:00",
+      "target_weight_kg": 75,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ]
+}

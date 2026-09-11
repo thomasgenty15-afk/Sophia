@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Sophia — Le bol du quotidien" style="color:#632C4C">
+  <title>Sophia — Le bol du quotidien</title>
+  <desc>Symbole dessiné en SVG natif. Une courbe généreuse, une base stable et deux traits de vapeur. Le repas chaud devient un signe simple et accueillant. Fond transparent.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+    <path d="M24 23c-6-6 6-9 0-15M39 23c-6-6 6-9 0-15"/>
+    <path d="M24 57h16"/>
+  </g>
+  <path fill="currentColor" d="M7 30h50c-2 14-11 23-25 23S9 44 7 30Z"/>
+</svg>

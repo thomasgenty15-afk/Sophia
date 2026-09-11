@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "data": [
+    {
+      "id": "f95b3769-dbc0-4b90-915d-2fb579b430a7",
+      "household_id": "91e39c0c-8430-4a58-98b0-cde7334dc6d3",
+      "member_id": "9c2af298-121c-4a49-9cc6-821cc104d7e7",
+      "label": "cashew",
+      "created_by": "101caadd-3cf8-40f9-9108-4c4fdcae9834",
+      "created_at": "2026-09-05T19:00:38.310282+00:00"
+    }
+  ]
+}

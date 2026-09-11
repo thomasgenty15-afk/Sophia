@@ -1,0 +1,55 @@
+// Sonde ② — le couloir « sans arrondi représentable » est-il ATTEIGNABLE par
+// la chaîne de production, ou seulement en montant des bornes à la main ?
+import {
+  densityCorridorFor,
+  plateBoundsFor,
+} from "../../supabase/functions/_shared/keel/portion_sizing.ts";
+
+let releveSilencieux = 0;
+let premier = "";
+let degenereHorsPlafond = 0;
+let premierDeg = "";
+let pireDminSousPlancher = Infinity;
+let pireDminOu = "";
+
+for (const age of [2, 3, 7, 9, 13, 16, 35, 70, null]) {
+  for (const slot of ["breakfast", "lunch", "dinner", "snack_am", "snack_pm", "before_bed"]) {
+    for (const light of [false, true]) {
+      for (const ap of [null, "small", "average", "large"] as const) {
+        for (let cent = 10; cent <= 400000; cent += 1) {
+          const E = cent / 100; // pas de 0,01 kcal jusqu'à 4 000
+          if (cent > 2000 && cent % 7 !== 0) continue; // au-delà de 20 kcal, on échantillonne
+          const b = plateBoundsFor({ ageYears: age, slot, slotTargetKcal: E, light, appetite: ap });
+          const c = densityCorridorFor({ targetKcal: E, bounds: b });
+          if (c === null) continue;
+          const neededMin = (E / b.max) * 100;
+          const rawMax = (E / b.min) * 100;
+          // Le cas du chantier: aucun entier dans [neededMin, rawMax] — le code
+          // remonte alors le plafond au plancher, en silence.
+          if (Math.floor(rawMax) < Math.ceil(neededMin) && c.incompatible === null) {
+            if (releveSilencieux === 0) {
+              premier = `${age}/${slot}/light=${light}/${ap}/E=${E} brut [${neededMin}, ${rawMax}] rendu [${c.minPer100G}, ${c.maxPer100G}]`;
+            }
+            releveSilencieux++;
+          }
+          if (
+            c.incompatible === null && c.maxPer100G <= c.minPer100G && c.minPer100G < 250
+          ) {
+            if (degenereHorsPlafond === 0) {
+              premierDeg =
+                `${age}/${slot}/light=${light}/${ap}/E=${E} -> [${c.minPer100G}, ${c.maxPer100G}] bornes ${b.min}-${b.max}`;
+            }
+            degenereHorsPlafond++;
+          }
+          if (!light && c.minPer100G < pireDminSousPlancher) {
+            pireDminSousPlancher = c.minPer100G;
+            pireDminOu = `${age}/${slot}/${ap}/E=${E} -> min ${c.minPer100G}`;
+          }
+        }
+      }
+    }
+  }
+}
+console.log("couloirs rabattus en silence:", releveSilencieux, "|", premier);
+console.log("dégénérés hors plafond:", degenereHorsPlafond, "|", premierDeg);
+console.log("Dmin le plus bas (non léger):", pireDminSousPlancher, "|", pireDminOu);

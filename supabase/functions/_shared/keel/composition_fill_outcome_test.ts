@@ -194,7 +194,7 @@ Deno.test("④ un ZÉRO réellement mesuré reste `0`, jamais `null`", async () 
 // revenir.
 
 const LANES = [
-  "../../generate-meal-v1/index.ts",
+  "../../generate-household-meal-v1/index.ts",
   "../../generate-household-meal-v1/index.ts",
 ] as const;
 

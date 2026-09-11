@@ -564,7 +564,7 @@ select pg_temp.assert_ok('25b mais il marque LA SIENNE',
 --       prouverait rien: les deux moitiés viendraient de la même colonne.
 insert into public.student_goals
   (user_id, goal, content_locale, practical_constraints)
-values ('f0ed0000-0000-0000-0000-000000000002', 'health', 'en-GB',
+values ('f0ed0000-0000-0000-0000-000000000002', 'maintenance', 'en-GB',
         '{"away_days": [{"day":"sun"}]}'::jsonb)
 on conflict (user_id) do update
   set practical_constraints =
@@ -579,7 +579,7 @@ select pg_temp.become('f0ed0000-0000-0000-0000-000000000001');
 select pg_temp.assert_refused('25c le maître ne pose PAS l''objectif d''un titulaire',
   public.keel_household_set_member_goal(
     (select member_id from public.household_members
-      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'health'),
+      where user_id = 'f0ed0000-0000-0000-0000-000000000002'), 'maintenance'),
   'has_account');
 select pg_temp.assert_ok('25c'' mais il MARQUE SON ABSENCE — un fait, pas une opinion',
   public.keel_household_set_member_away(
@@ -1084,14 +1084,14 @@ select pg_temp.assert_eq('67d le roster rend le MÊME objectif avant et après',
       and r.goal = 'muscle_gain'), 1);
 
 -- 67e. ET LA GRAINE N'ÉCRASE JAMAIS UNE DÉCLARATION EXISTANTE. Le compte 2 a
---      SON « about you » (`health`, posé en 25b'), et sa bouche de foyer ne
+--      SON « about you » (`maintenance`, posé en 25b'), et sa bouche de foyer ne
 --      peut de toute façon plus porter d'objectif — la garde `has_account`.
 --      L'assertion existe pour la population qui vient: un compte individuel
 --      qui rejoint le foyer de son conjoint. Sa direction est la sienne.
 select pg_temp.assert_eq('67e une déclaration personnelle n''est pas écrasée',
   (select count(*) from public.student_goals
     where user_id = 'f0ed0000-0000-0000-0000-000000000002'
-      and goal = 'health'), 1);
+      and goal = 'maintenance'), 1);
 
 -- 68. ET RIEN N'A ÉTÉ PERDU: sa règle de maison et son allergie pendent au
 -- `member_id`, pas à un compte, donc elles ne bougent pas d'un cheveu.
@@ -1193,7 +1193,7 @@ select pg_temp.assert_eq('72e keel_household_join(text) n''existe plus',
 select pg_temp.become('f0ed0000-0000-0000-0000-000000000009');
 select pg_temp.assert_refused('73 le profil réclamé ne pose plus son objectif ICI (D1)',
 public.keel_household_set_member_goal(
-    (select member_id from pg_temp_lea), 'health'),
+    (select member_id from pg_temp_lea), 'maintenance'),
   'has_account');
 -- 73b. MAIS IL MARQUE SON ABSENCE (D14). La distinction, une troisième fois et
 --      sur la population la plus concernée: la personne qui vient de réclamer
@@ -1208,7 +1208,7 @@ select pg_temp.become_super();
 --     et l'assiette changerait.
 select pg_temp.assert_eq('74 et RIEN n''a été écrit dans la colonne refusée',
   (select count(*) from public.household_members
-    where member_id = (select member_id from pg_temp_lea) and goal = 'health'), 0);
+    where member_id = (select member_id from pg_temp_lea) and goal = 'maintenance'), 0);
 -- 74b. L'ABSENCE, ELLE, EST BIEN EN BASE. Le pendant du refus ci-dessus: on
 --      prouve les DEUX sens, sinon « rien ne s'écrit jamais » passerait aussi.
 select pg_temp.assert_eq('74b et l''absence de 73b est VRAIMENT écrite',

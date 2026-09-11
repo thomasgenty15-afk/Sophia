@@ -78,6 +78,7 @@ function nominalFacts(): PlanRationaleFacts {
     // Cas nominal: une seule course, et rien qui ne puisse l'attendre.
     shoppingDays: [],
     shopLaterDays: [],
+    frozenAtPurchase: [],
     sessionOverruns: [],
     budgetAmount: null,
     mouthsServed: null,
@@ -463,6 +464,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // de la première. Les deux phrases doivent passer la porte 4.
     shoppingDays: ["sun", "wed"],
     shopLaterDays: ["wed"],
+    frozenAtPurchase: [{ cookOn: "wed", buyOn: "2026-09-06", terms: ["dinde hachée"] }],
     sessionOverruns: [{ day: "wed", minutes: 75, declared: 30 }],
     budgetAmount: 120,
     mouthsServed: 4,
@@ -812,8 +814,11 @@ const PROMPT_ARGS = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
+  budgetFloor: null,
   dietBlock: "",
   doctrineBlock: "== MARC'S METHOD ==",
   coachNoteBlock: null,
@@ -822,7 +827,7 @@ const PROMPT_ARGS = {
   merge: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -833,6 +838,7 @@ const PROMPT_ARGS = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   // LE CAS FONDATEUR: déclaré `sun, wed`, fenêtre jeudi→dimanche.
   cookDays: ["sun", "wed"],
@@ -1625,7 +1631,7 @@ Deno.test("les courses se lisent AVANT les journées hors de portée", () => {
 });
 
 Deno.test("⛔ LES DEUX FAITS SONT REQUIS — un `undefined` JETTE", () => {
-  for (const key of ["shoppingDays", "shopLaterDays"] as const) {
+  for (const key of ["shoppingDays", "shopLaterDays", "frozenAtPurchase"] as const) {
     const facts = nominalFacts() as unknown as Record<string, unknown>;
     delete facts[key];
     assertThrows(
@@ -2359,5 +2365,52 @@ Deno.test("LOT 3 — les jours de cuisine déclarés sont DITS comme un choix, d
       locale,
     }).lines.join(" ");
     assertStringIncludes(out, locale === "fr" ? "ne tombent pas dans ces jours" : "do not fall within these days", locale);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE GESTE DU CONGÉLATEUR, DIT — 2026-09-09
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ LE CAS RAPPORTÉ — la dinde congelée à l'achat est DITE, avec le jour et l'article", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        shoppingDays: ["wed"],
+        frozenAtPurchase: [{ cookOn: "sun", buyOn: "2026-09-09", terms: ["dinde hachée"] }],
+      },
+      locale,
+    }).lines;
+    const joined = lines.join(" ");
+    assertStringIncludes(joined, "dinde hachée");
+    assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
+    assertStringIncludes(joined, locale === "fr" ? "congélateur" : "freezer");
+    assertStringIncludes(joined, locale === "fr" ? "la veille au soir" : "the night before");
+    // Et la phrase « s'achète au plus près » ne sort PAS: rien n'est acheté
+    // plus tard, le congélateur a tout absorbé.
+    assert(!joined.includes(locale === "fr" ? "au plus près" : "close to that day"), joined);
+    // Après la course, jamais avant: on achète, puis on congèle.
+    const shop = lines.findIndex((l) => l.includes(locale === "fr" ? "course" : "shop"));
+    const frozen = lines.findIndex((l) => l.includes("dinde hachée"));
+    assert(shop >= 0 && frozen > shop, JSON.stringify(lines));
+  }
+});
+
+Deno.test("les phrases du congélateur passent la garde des majuscules", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const facts = {
+      ...nominalFacts(),
+      shoppingDays: ["wed", "thu"],
+      shopLaterDays: ["sun"],
+      frozenAtPurchase: [{ cookOn: "sun", buyOn: "2026-09-09", terms: ["dinde hachée", "poisson"] }],
+    } as const;
+    for (const line of explainPlanChoices({ facts, locale }).lines) {
+      const first = line.trimStart()[0] ?? "";
+      assert(
+        first !== first.toLowerCase() || !/\p{L}/u.test(first),
+        `${locale}: une phrase ouvre sur une minuscule — « ${line} »`,
+      );
+    }
   }
 });

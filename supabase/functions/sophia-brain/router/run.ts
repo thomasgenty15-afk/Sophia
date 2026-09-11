@@ -246,7 +246,6 @@ import { isTrackProgressFutureIntent } from "../tools/always_on/track_progress_p
 import {
   type DisorderedEatingWorkingState,
 } from "../skills/disordered_eating_guard/contract.ts";
-import { runKeelReengagementResumeSkill } from "../skills/keel_reengagement_resume/skill.ts";
 import {
   type DisorderedEatingSkillRuntime,
   runDisorderedEatingGuardSkill,
@@ -7345,84 +7344,13 @@ export async function processMessage(
     });
   }
 
-  // ── PHASE B — REPRISE APRÈS RELANCE KEEL ──────────────────────────────
+  // ── PHASE B — LE HANDLER DE REPRISE EST PARTI LE 2026-09-09 ────────────
   //
-  // Flow DÉTERMINISTE, zéro appel modèle: même arbitrage que `plan_question`.
-  // Sur une reprise, le risque n'est pas de mal comprendre, c'est de dire
-  // quelque chose de faux sur une absence qu'on n'a pas observée. Un gabarit
-  // fermé ne peut pas inventer une durée ni un reproche.
-  //
-  // L'état arrive par `active_flow_state` (armé hors conversation, à la
-  // fermeture de l'épisode dans `chat-inbound-v1`); la bande safety effective
-  // du tour est passée au reducer, qui porte sa propre condition de sortie.
-  if (routeDecision.response_owner === "keel_reengagement_resume_v1") {
-    const skillStart = Date.now();
-    const skillOutput = runKeelReengagementResumeSkill({
-      user_message: userMessage,
-      safety_band: String(runtimeSafetyRiskBand ?? "none"),
-      context: {
-        skill_id: "keel_reengagement_resume_v1",
-        user_id: userId,
-        response_locale: responseLocale,
-        recent_messages: recentMessagesForTurnFrame,
-        active_skill_working_state: ((activeFlowState.activeSkillState as
-          | { working_state?: unknown }
-          | null)?.working_state ?? {}) as ActiveConversationSkillWorkingState,
-        turn_frame: turnFrame,
-        relevant_memory_items: [],
-        plan_items: [],
-        product_surfaces: [],
-        exclusions: [],
-      },
-    });
-    const skillLatencyMs = Date.now() - skillStart;
-
-    // ── L'ÉTAT EST PURGÉ DANS LES DEUX CAS, ET C'EST LE FOND DU FLOW ────────
-    //
-    // Le cadre ne possède qu'UN tour (`KEEL_REENGAGEMENT_RESUME_MAX_TURNS = 1`).
-    // Qu'il ait parlé (`complete`) ou rendu la main sans texte (`exit`), il n'a
-    // plus rien à faire: le message suivant est une conversation ordinaire.
-    //
-    // Mesuré en run réel avant cette correction: le flow gardait la main un
-    // second tour et répondait « Good, let's carry on from there. » à
-    // « Je voudrais surtout gérer les dîners cette semaine ». Voir la séquence
-    // complète dans `skills/keel_reengagement_resume/contract.ts`.
-    tempMemory = clearActiveConversationSkillState(
-      tempMemory as Record<string, unknown>,
-    );
-
-    if (String(skillOutput.status ?? "") === "exit") {
-      // ⚠️ SANS CETTE AFFECTATION, LA PURGE CI-DESSUS EST PERDUE.
-      //
-      // Sur la sortie silencieuse le tour continue vers le composeur, et le
-      // composeur reconstruit `tempMemory` depuis l'état PRÉ-routing
-      // (`agents/companion.ts`, `nextTempMemory`). La ligne
-      // `tempMemory = cleanupLegacyRuntimeState(agentOut.tempMemory ?? …)` plus
-      // bas réinstalle donc l'état de flow qu'on vient d'effacer — sauf si
-      // `localFlowExitSkillRun` est renseigné, ce que la garde juste après
-      // cette ligne teste depuis toujours.
-      //
-      // Ce drapeau n'avait plus AUCUN écrivain depuis la phase A (son setter
-      // vivait dans une lane supprimée): une ceinture armée sur un coffre vide.
-      // MESURÉ: après trois tours, `temp_memory.__active_conversation_skill_v1`
-      // portait encore `turns_in_flow: 2`.
-      localFlowExitSkillRun = {
-        selected_skill_id: "keel_reengagement_resume_v1",
-        reason_code: routeDecision.reason_code,
-        status: "exit",
-        latency_ms: skillLatencyMs,
-      };
-    } else {
-      // Le chemin parlant retourne AVANT le composeur: `finishKeelSkillTurn`
-      // persiste la `tempMemory` déjà purgée ci-dessus, sans passer par la
-      // reconstruction du companion.
-      return await finishKeelSkillTurn({
-        skillId: "keel_reengagement_resume_v1" as never,
-        skillOutput,
-        skillLatencyMs,
-      });
-    }
-  }
+  // `routers.ts` ne nomme plus `keel_reengagement_resume_v1` comme
+  // propriétaire, et `chat-inbound-v1` n'arme plus l'état: ce bloc était
+  // devenu inatteignable. Le pourquoi (le cas mesuré sur poul, et le même pari
+  // déjà perdu au 2ᵉ tour le 2026-08-06) est écrit dans `chat-inbound-v1`, à
+  // l'endroit qui écrivait l'état.
 
   // ── FF-056 — LA DIVERGENCE CONSTATÉE ──────────────────────────────────
   //

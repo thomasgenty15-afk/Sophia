@@ -24,6 +24,7 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+import { fedDaysDenominator } from "./fed_days.ts";
 import {
   type CompositionIndex,
   type CompositionInput,
@@ -92,7 +93,7 @@ export function assessCoverage(args: {
   /** Le verdict a-t-il pu être calculé ? Sinon, on ne prétend rien. */
   verdictComputable: boolean;
 }): CoverageAssessment {
-  const days = Math.max(1, args.daysCovered);
+  const days = fedDaysDenominator(args.daysCovered);
   if (!args.verdictComputable || args.dishes.length === 0) {
     return { energyPerDay: null, floorHit: false, flag: "unverified" };
   }

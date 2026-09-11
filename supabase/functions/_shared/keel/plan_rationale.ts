@@ -359,18 +359,38 @@ export interface PlanRationaleFacts {
    */
   shoppingDays: readonly DayToken[];
   /**
-   * LES JOURS DE CUISSON DONT LE FRAIS NE PEUT PAS VENIR DE LA PREMIÈRE COURSE.
+   * LES JOURS DE CUISSON QU'UNE COURSE APRÈS LA PREMIÈRE SERT VRAIMENT.
    *
-   * ⛔ IL VIENT DE `rawKeepingBreaches` (`raw_keeping.ts`), LA FONCTION QUE LA
-   * CONSIGNE LIT AUSSI. Cinquième fois que ce module écrit cette phrase — et
-   * les quatre premières l'ont été parce qu'un second calcul avait fini par
-   * faire dire à l'explication l'inverse de la consigne.
+   * ⟳ 2026-09-09 — IL VIENT DES VAGUES ÉCRITES (`describeWrittenWaves`,
+   * `grocery_waves.ts`), PLUS DE `rawKeepingBreaches`. Le constat des brèches
+   * compare une cuisson à une fenêtre crue et ne sait pas ce que le moteur a
+   * fait ensuite de l'article: mesuré sur un plan réel, il faisait dire « ce
+   * qui se cuisine dimanche s'achète au plus près » d'une dinde prise à la
+   * PREMIÈRE course et congelée en rentrant. La phrase lit désormais la
+   * décision — `buy_on` sur la ligne — et se tait sur ce que le congélateur a
+   * absorbé (voir `frozenAtPurchase`, juste en dessous).
    *
    * ⚠️ CE N'EST PAS UN REPROCHE, ET LE GABARIT LE TIENT. Cuisiner du poulet le
    * samedi est légitime; ce qui ne l'est pas, c'est de le faire acheter lundi
    * sans le dire. La phrase porte donc la SORTIE — on achète au plus près.
    */
   shopLaterDays: readonly DayToken[];
+  /**
+   * CE QUI EST ACHETÉ TÔT ET CONGELÉ EN RENTRANT, PAR JOUR DE CUISSON — 2026-09-09.
+   *
+   * ⛔ REQUIS, `[]` = rien n'est congelé à l'achat. La MÊME lecture des vagues
+   * que `shopLaterDays`: un article congelé à l'achat porte `buy_on` de la
+   * première course et `freeze_on_purchase`, et il nourrit une cuisson plus
+   * loin que sa fenêtre crue. C'est le geste que la liste marque « à congeler »
+   * et que le déroulé doit redire (« sors-la la veille au soir »): sans cette
+   * phrase, la personne lit « dinde achetée mercredi, cuisinée dimanche » et
+   * conclut que la garde a lâché — c'est le cas rapporté.
+   */
+  frozenAtPurchase: readonly {
+    readonly cookOn: DayToken;
+    readonly buyOn: string;
+    readonly terms: readonly string[];
+  }[];
   /**
    * LES SESSIONS PLUS LONGUES QUE CE QUI A ÉTÉ DEMANDÉ. `[]` = aucune.
    *
@@ -745,9 +765,14 @@ const COPY = {
       `Les courses se font en ${n} fois : ${days}. Les suivantes existent pour ` +
       `que le frais n'attende pas la casserole.`,
     shopLater: (days: string) =>
-      `Ce qui se cuisine ${days} s'achète au plus près de ce jour-là : de la ` +
-      `viande ou du poisson frais pris à la première course ne tiendrait pas ` +
-      `jusque-là.`,
+      `Une partie de ce qui se cuisine ${days} s'achète au plus près de ce ` +
+      `jour-là : du frais pris à la première course ne tiendrait pas jusque-là.`,
+    // ⟳ 2026-09-09 — LE GESTE DU CONGÉLATEUR, DIT AVEC L'ARTICLE ET LE JOUR.
+    // « la veille au soir » plutôt qu'un jour calculé: la phrase ne date rien,
+    // elle suit la session, quel que soit le jour où elle tombe.
+    frozenAtPurchase: (day: string, terms: string) =>
+      `Pour ${day}, ${terms} : acheté à la première course et congelé en ` +
+      `rentrant. Sors-le du congélateur la veille au soir.`,
     // ── LA SESSION QUI DÉBORDE, DITE AVANT LES FOURNEAUX ─────────────────
     // Le chiffre DÉCLARÉ est rappelé: sans lui, « compte 1 h 10 » se lit comme
     // une estimation venue de nulle part, au lieu d'un écart avec ce qu'on a
@@ -866,6 +891,10 @@ const COPY = {
       vegetarian: "végétarien",
       vegan: "végane",
       pescatarian: "pescétarien",
+      // ⚠️ LE `as Record<string, string>` DÉSARME L'EXHAUSTIVITÉ: un régime
+      // absent d'ici ne casse pas la compilation, il rend le SLUG BRUT dans
+      // une phrase française. Ajouté à la main le 2026-09-08, avec le jeton.
+      gluten_free: "sans gluten",
     } as Record<string, string>,
     // ── PERSONNE SANS REPAS ─────────────────────────────────────────────
     // ⚠️ LE CAS NOMINAL SE DIT AUSSI. Ne parler que des trous ferait du silence
@@ -991,8 +1020,11 @@ const COPY = {
       `Shopping happens ${n} times: ${days}. The later trips are there so ` +
       `fresh food does not wait for the pan.`,
     shopLater: (days: string) =>
-      `What is cooked on ${days} is bought close to that day: fresh meat or ` +
-      `fish from the first shop would not keep that long.`,
+      `Part of what is cooked on ${days} is bought close to that day: fresh ` +
+      `food from the first shop would not keep that long.`,
+    frozenAtPurchase: (day: string, terms: string) =>
+      `For ${day}, ${terms}: bought at the first shop and frozen on the way ` +
+      `in. Take it out of the freezer the night before.`,
     sessionRunsLong: (day: string, minutes: string, declared: string) =>
       `The ${day} session will take ${minutes} rather than ${declared}: it is ` +
       `your only cooking day, and cooking less would leave days empty.`,
@@ -1077,6 +1109,7 @@ const COPY = {
       vegetarian: "vegetarian",
       vegan: "vegan",
       pescatarian: "pescatarian",
+      gluten_free: "gluten-free",
     } as Record<string, string>,
     allFed: "Everyone has every one of their meals.",
     mealMissing: (name: string, fed: number, expected: number, where: string, why: string) =>
@@ -1197,6 +1230,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "cookDayBefore",
   "shoppingDays",
   "shopLaterDays",
+  "frozenAtPurchase",
   "sessionOverruns",
   "budgetAmount",
   "mouthsServed",
@@ -1562,6 +1596,18 @@ export function explainPlanChoices(input: {
   const shopLater = facts.shopLaterDays.filter(Boolean);
   if (shopLater.length > 0) {
     lines.push(copy.shopLater(renderDays(shopLater, input.locale)));
+  }
+  // ── ④bis' CE QUI A ÉTÉ CONGELÉ À L'ACHAT, PAR JOUR DE CUISSON ───────────
+  // ⚠️ APRÈS les courses et AVANT les journées hors de portée: c'est un geste
+  // du jour des courses qui sert une cuisson plus tard, donc entre les deux.
+  // Une phrase par jour de cuisson, jamais une par article: la personne sort
+  // les boîtes d'une session ensemble, la veille au soir.
+  for (const frozen of facts.frozenAtPurchase) {
+    if (!frozen || !frozen.cookOn || frozen.terms.length === 0) continue;
+    lines.push(copy.frozenAtPurchase(
+      renderDays([frozen.cookOn], input.locale),
+      frozen.terms.join(", "),
+    ));
   }
 
   const outOfReach = facts.daysOutOfBatchReach.filter(Boolean);

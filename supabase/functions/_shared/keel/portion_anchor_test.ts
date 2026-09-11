@@ -4,7 +4,9 @@ import {
   portionAnchorFor,
   portionAnchorPromptLine,
 } from "./portion_anchor.ts";
-import { envelopeFor } from "./meal_envelope.ts";
+import { envelopeFor,
+  MAINTENANCE_ENVELOPE_DIRECTION,
+} from "./meal_envelope.ts";
 import type { AgeBand } from "./student_age.ts";
 
 function body(
@@ -43,8 +45,8 @@ const SMALL = body(55, 162, "female");
 // ===========================================================================
 
 Deno.test("l'ancre SUIT le corps — c'est toute sa raison d'être", () => {
-  const big = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3)!;
-  const small = portionAnchorFor(envelopeFor("fat_loss", SMALL, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3)!;
+  const big = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3)!;
+  const small = portionAnchorFor(envelopeFor("fat_loss", SMALL, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3)!;
   assert(big, "pas d'ancre pour un corps connu");
   assert(small);
 
@@ -59,8 +61,8 @@ Deno.test("l'ancre SUIT le corps — c'est toute sa raison d'être", () => {
 });
 
 Deno.test("l'objectif change la FORME de l'assiette, pas seulement sa taille", () => {
-  const loss = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3)!;
-  const gain = portionAnchorFor(envelopeFor("muscle_gain", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3)!;
+  const loss = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3)!;
+  const gain = portionAnchorFor(envelopeFor("muscle_gain", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3)!;
 
   // À corps identique, la prise de masse mange PLUS de féculent — c'est l'axe
   // qui gouverne cette dynamique (l'apport, pas la retenue).
@@ -74,8 +76,8 @@ Deno.test("l'objectif change la FORME de l'assiette, pas seulement sa taille", (
 });
 
 Deno.test("moins de repas ⇒ des parts plus grandes, pas la même servie deux fois", () => {
-  const three = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3)!;
-  const two = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 2)!;
+  const three = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3)!;
+  const two = portionAnchorFor(envelopeFor("fat_loss", BIG, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 2)!;
   assert(
     two.proteinFoodG > three.proteinFoodG,
     "un élève à deux repas doit voir des parts plus grandes",
@@ -87,11 +89,11 @@ Deno.test("sous le plancher TCA, il n'y a PAS d'ancre", () => {
   // élève sous plancher. `null`, jamais des valeurs par défaut: une ancre
   // « moyenne » ferait exactement ce que ce module corrige, à l'envers —
   // servir la même assiette à tout le monde en ayant l'air de personnaliser.
-  const flagged = envelopeFor("fat_loss", body(92, 186, "male", true), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null);
+  const flagged = envelopeFor("fat_loss", body(92, 186, "male", true), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
   assertEquals(portionAnchorFor(flagged, 3), null);
 
   // Corps inconnu: même silence, et c'est ce qui rend les deux indiscernables.
-  assertEquals(portionAnchorFor(envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null), 3), null);
+  assertEquals(portionAnchorFor(envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3), null);
 });
 
 Deno.test("la consigne ne porte AUCUN chiffre sur la personne", () => {
@@ -100,7 +102,7 @@ Deno.test("la consigne ne porte AUCUN chiffre sur la personne", () => {
   // ligne la franchirait.
   for (const goal of STUDENT_GOALS) {
     for (const b of [BIG, SMALL]) {
-      const anchor = portionAnchorFor(envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3);
+      const anchor = portionAnchorFor(envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3);
       if (!anchor) continue;
       const line = portionAnchorPromptLine(anchor).toLowerCase();
 
@@ -138,7 +140,7 @@ Deno.test("les parts restent dans des ordres de grandeur crédibles", () => {
   // modèle la suivrait. Bornes larges, mais bornes.
   for (const goal of STUDENT_GOALS) {
     for (const b of [BIG, SMALL]) {
-      const a = portionAnchorFor(envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null), 3);
+      const a = portionAnchorFor(envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION), 3);
       if (!a) continue;
       const tag = `${goal}/${b.latestWeight.value}kg`;
       assert(a.proteinFoodG >= 80 && a.proteinFoodG <= 400, `${tag}: protéine ${a.proteinFoodG} g`);
@@ -158,7 +160,7 @@ Deno.test("l'ancre couvre RÉELLEMENT le plancher protéique", () => {
   // résoudre.
   for (const b of [BIG, SMALL]) {
     for (const goal of ["fat_loss", "muscle_gain"] as const) {
-      const env = envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
+      const env = envelopeFor(goal, b, "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null, MAINTENANCE_ENVELOPE_DIRECTION);
       const a = portionAnchorFor(env, 3)!;
       assert(a);
       // ~24 g de protéine pour 100 g d'aliment protéique.

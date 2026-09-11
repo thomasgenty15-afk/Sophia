@@ -137,7 +137,192 @@ export const PLAN_HTTP_TIMEOUT_MS = 300_000;
  */
 export const PLAN_REASONING_EFFORT = "medium" as const;
 
+/**
+ * ⟳ 2026-09-08 — L'EFFORT DE LA COMPOSITION DU FOYER, SÉPARÉ DE CELUI DES RELANCES.
+ *
+ * ⛔ MESURÉ LE SOIR MÊME, foyer `quatre`, même fixture, même prompt (cartes avec
+ * la densité nominative), série `medium` puis série `high` :
+ *
+ *     medium   91 · 75 · 91 · 83 · 66 %   — réparation demandée à chaque tir
+ *     high    100 · 100 %                 — AUCUNE réparation demandée
+ *
+ * Deux tirs `high` sur quatre ont été tués par un rechargement externe du
+ * runtime ; les deux survivants sont à 12 assiettes sur 12, plan juste du
+ * premier coup, 6 plats composés et 6 mesurés, aucun coupé. Le défaut de
+ * structure que la mesure d'août reprochait à `high` (plats en surnombre,
+ * casseroles sans boîte) ne s'est pas reproduit sur ce prompt-ci.
+ *
+ * ⚠️ DEUX TIRS NE FONT PAS UNE DISTRIBUTION. C'est un signal fort, pas une
+ * preuve : à vérifier sur une série de quatre ou cinq dans une fenêtre où rien
+ * n'écrit sous `_shared/`. La réserve est écrite ici pour qu'on ne la perde pas.
+ *
+ * ⛔ LES RELANCES RESTENT À `medium`. Elles relisent un plan déjà composé pour y
+ * changer un plat ; le compromis entre personnes est déjà tranché, et c'est lui
+ * que `high` sert. Les passer à `high` triplerait leur coût sans objet mesuré.
+ *
+ * ⛔ CE QUE ÇA COÛTE : 244 à 281 s par composition au lieu de 66 à 108. Mais
+ * à `medium` presque chaque tir enchaîne une relance de 36 à 96 s, que `high`
+ * n'a pas eu à faire. Le surcoût net est plus proche du double que du triple.
+ * D'où `PLAN_COMPOSITION_HTTP_TIMEOUT_MS` juste en dessous : 300 s laissait
+ * vingt secondes de marge à un appel de 281.
+ */
+export const PLAN_COMPOSITION_REASONING_EFFORT = "high" as const;
+
+/**
+ * LE TIMEOUT DE LA COMPOSITION DU FOYER, DÉSORMAIS À `high`.
+ *
+ * Le worker edge coupe à 400 s et Kong à 600 (voir `PLAN_HTTP_TIMEOUT_MS`) :
+ * 380 s garde vingt secondes sous la coupure du worker. Les relances gardent
+ * `PLAN_HTTP_TIMEOUT_MS`, comme elles gardent `medium`.
+ */
+export const PLAN_COMPOSITION_HTTP_TIMEOUT_MS = 380_000;
+
 export function keelGenerationModel(): string {
   const override = (safeEnvGet("KEEL_GENERATION_MODEL") ?? "").trim();
   return override || KEEL_GENERATION_MODEL_DEFAULT;
 }
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 — LE PALIER DE SERVICE DES DEUX LANES DE PLAN
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `fast` est le « Fast mode » du fournisseur. La réponse renvoie `priority`,
+ * qu'on ait demandé `fast` ou `priority` — c'est normal, et le journal
+ * distingue `service_tier_sent` de `service_tier_echoed` pour ne pas le lire
+ * comme une dégradation.
+ *
+ * ⛔ CE N'EST PAS UN IDENTIFIANT DE MODÈLE. « high fast » n'existe pas: le
+ * modèle reste `gpt-5.6-luna`, l'effort reste `medium`/`high`, et le palier est
+ * un TROISIÈME axe, transmis par `meta.serviceTier`.
+ *
+ * ⚠️ CE QU'IL NE RÉPARE PAS, ET IL FAUT LE DIRE AVANT LE BANC: un `546` du
+ * worker edge est un dépassement de CPU, de mémoire ou de mur. Fast raccourcit
+ * l'ATTENTE du modèle; il ne réduit ni le CPU dépensé à parser, ni la mémoire
+ * tenue. Un banc qui verdit après Fast n'a pas prouvé que la cause était la
+ * latence — il faut lire le motif de shutdown.
+ */
+export const PLAN_SERVICE_TIER = "fast" as const;
+
+/**
+ * ⟳ 2026-09-10 — L'EFFORT DES RATTRAPAGES PASSE À `high`, PAR DÉCISION.
+ *
+ * ⛔ C'EST L'INVERSE DE CE QUE `PLAN_COMPOSITION_REASONING_EFFORT` a mesuré
+ * au-dessus, et la mesure n'est pas effacée: le 2026-09-08, les relances
+ * relisaient un plan déjà tranché, et `high` y triplait le coût sans objet.
+ *
+ * Ce qui a changé, et qui justifie de rouvrir: les relances ne sont plus
+ * indépendantes. Elles partagent un budget de DEUX (`PLAN_MODEL_REPAIR_BUDGET`)
+ * là où le pire cas en portait dix, et chacune doit donc atterrir du premier
+ * coup — un rattrapage qui rate n'a plus de suivant. Le surcoût unitaire de
+ * `high` se paie sur au plus deux appels au lieu de dix, et `fast` en reprend
+ * une partie sur l'attente.
+ *
+ * ⚠️ À REMESURER: si le banc montre que les rattrapages atterrissent aussi bien
+ * à `medium`, cette ligne redescend. Elle est écrite comme un arbitrage, pas
+ * comme une mesure.
+ */
+export const PLAN_REPAIR_REASONING_EFFORT = "high" as const;
+
+/**
+ * ⛔ LE REPLI DE MODÈLE EXISTE, ET IL POINTAIT SUR LE MODÈLE MESURÉ DANGEREUX.
+ *
+ * L'en-tête de ce fichier affirme qu'un modèle OpenAI choisi par l'appelant n'a
+ * « pas de repli ». C'est vrai de `pickModelForAttempt` et **faux** de
+ * `pickFallbackChainForAttempt` (`_shared/gemini.ts:869`): pour `gpt-5.6-luna`,
+ * aucune branche anticipée ne mord, et la fin de fonction pousse
+ * `PRIMARY_AI_MODEL` puis `OPENAI_LIGHT_FALLBACK_MODEL`. La chaîne réelle était
+ * donc:
+ *
+ *     ["gpt-5.6-luna", "gpt-5.4-mini", "gpt-5.4-nano"]
+ *
+ * Le repli n° 2 est très exactement le modèle que le banc du 2026-08-11 accuse
+ * de servir des aliments interdits — `Greek yogurt` à un intolérant au lactose
+ * 3 fois sur 3 — et il partait SANS QUE RIEN NE LE DISE, sur un chemin où le
+ * coût se paie en assiettes.
+ *
+ * On ne coupe pas le repli (une génération qui échoue en dur sur un 429 est
+ * pire), on le REMPLACE par le repli propre mesuré. `secondFallbackModel` et
+ * `thirdFallbackModel` occupent les deux emplacements que `gemini.ts` remplirait
+ * sinon lui-même; `push` déduplique, donc la chaîne devient:
+ *
+ *     ["gpt-5.6-luna", "gpt-5.6-sol"]
+ *
+ * Détail de la mesure: scratchpad/RAPPORT-BANC-MODELES.md §4.1
+ */
+export const KEEL_GENERATION_FALLBACK_MODEL_DEFAULT = "gpt-5.6-sol";
+
+export function keelGenerationFallbackModel(): string {
+  const override = (safeEnvGet("KEEL_GENERATION_FALLBACK_MODEL") ?? "").trim();
+  return override || KEEL_GENERATION_FALLBACK_MODEL_DEFAULT;
+}
+
+/**
+ * ⛔ LES TENTATIVES DU TRANSPORT ÉTAIENT INVISIBLES AU BUDGET.
+ *
+ * `_shared/gemini.ts:1021` : sans `meta.maxRetries`, le défaut est **10** (la
+ * branche à 4 exige `requestId.includes(":tools:")`, ce que les lanes de plan
+ * ne font pas — elles passent un UUID nu). Multiplié par la chaîne de replis,
+ * la borne haute d'un SEUL `generateWithGemini` était de trente appels HTTP,
+ * chacun avec son plein timeout.
+ *
+ * ⚠️ `maxRetries: 1` ne veut pas dire « un réessai »: c'est **une passe** de la
+ * boucle extérieure. La boucle intérieure parcourt encore la chaîne de replis,
+ * donc au plus DEUX appels fournisseur par appel logique — luna, puis sol.
+ * C'est borné, et c'est ce que le budget peut compter.
+ */
+export const PLAN_MODEL_MAX_RETRIES = 1;
+
+/**
+ * LE BUDGET COMMUN DE RATTRAPAGE — deux, pour tout le plan.
+ *
+ * ⛔ AVANT, CHAQUE RELANCE AVAIT SON PROPRE COMPTEUR, et personne ne les
+ * additionnait: exclusions 1, régime 1, échange 1, séparation 1, non-nourris
+ * **3**, densité 1, plat dédié 1 — plus la composition initiale. Pire cas
+ * mesuré sur la lane du foyer: **dix appels modèle** dans une requête dont
+ * aucun ne connaissait le temps déjà dépensé par les autres.
+ *
+ * Désormais un seul compteur, consommé par toute recomposition demandée au
+ * modèle APRÈS la composition initiale. Quand il est vide, les contrôles
+ * déterministes tournent quand même — c'est eux qui décident, pas le budget:
+ * `applyHouseRuleLock` rend toujours 422 sur une règle de maison violée, et
+ * `clampToBounds` rabote toujours en écrivant `unmet_kcal`.
+ */
+export const PLAN_MODEL_REPAIR_BUDGET = 2;
+
+/**
+ * L'ÉCHÉANCE DE LA REQUÊTE, ET LA QUEUE QU'ON LUI RÉSERVE.
+ *
+ * ⚠️ DEUX COMMENTAIRES DU DÉPÔT SE CONTREDISENT SUR KONG:
+ * `generation_model.ts` (ci-dessus) dit 600 s, patché;
+ * `generate-household-meal-v1/index.ts:1178` dit « celle que Kong coupe à 150 s
+ * en hébergé ». Les deux ne peuvent pas décrire le même environnement. En local
+ * le patch est un script (`scripts/local_extend_kong_functions_timeout.sh`,
+ * 150 000 → 600 000 ms) **perdu à chaque recréation du conteneur**. Le seul
+ * plafond qu'on peut tenir pour vrai partout est celui du worker edge: 400 s.
+ *
+ * 380 s laisse vingt secondes sous cette coupure. Les trente dernières secondes
+ * sont réservées à ce qui vient APRÈS le dernier appel modèle: la mesure
+ * finale, les ceintures, le verrou de maison, l'écriture. Un plan mesuré et non
+ * écrit ne vaut rien, et c'est ce bout-là qui saute quand on laisse le modèle
+ * manger tout le mur.
+ */
+export const PLAN_REQUEST_BUDGET_MS = 380_000;
+export const PLAN_TAIL_RESERVE_MS = 30_000;
+
+/**
+ * LE TEMPS MINIMUM POUR OSER LANCER UN RATTRAPAGE.
+ *
+ * ⛔ UN APPEL LANCÉ TROP TARD EST PIRE QU'UN APPEL NON LANCÉ: il fait générer
+ * une réponse ENTIÈRE, facturée, que personne ne lit — et `timeout_or_abort`
+ * n'enregistre aucun jeton, donc le compteur de coût ne voit même pas ce qu'il
+ * a coûté. Nuit du 2026-08-19: 987 appels lancés, 101 aboutis, **137 abandons**.
+ *
+ * 40 s: la borne basse de ce qu'un rattrapage a mesuré (36 à 96 s le
+ * 2026-09-08, à `medium`). En dessous, on sait déjà qu'il ne reviendra pas.
+ *
+ * ⚠️ CE N'EST PAS UNE PROMESSE QU'IL REVIENDRA. C'est un refus de partir quand
+ * on sait qu'il ne peut pas — le budget écrit alors `time_budget_exhausted`, et
+ * la dernière version utilisable part telle quelle.
+ */
+export const PLAN_REPAIR_MIN_MS = 40_000;

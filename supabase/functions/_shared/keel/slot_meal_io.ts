@@ -1,3 +1,5 @@
+import { loadJournal } from "./tracking_v2_io.ts";
+import { promptEligibleJournalSlots } from "./tracking_v2.ts";
 /**
  * FF-062 C1 — LA LECTURE, L'ENVOI, ET LE FAIT.
  *
@@ -10,7 +12,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { CHAT_SCOPE, deliverChatMessage } from "../chat/delivery.ts";
 import { localDateInZone } from "./local_date.ts";
-import { type EatingOccasion } from "./meal_generation.ts";
+import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
 import { dayTokenForLocalDate } from "./slot_reminders.ts";
 import { plannedSlotsToday } from "./slot_meal_planned_io.ts";
 import {
@@ -172,6 +174,25 @@ export interface SlotMealStepOutcome {
  * ⚠️ `.eq("user_id", …)` ET RIEN DE PLUS: une personne n'a qu'une bouche dans
  * son foyer. Une lecture en panne rend `null`, ce qui FERME les plats dédiés —
  * une question qui manque plutôt qu'un fait fabriqué sur le plat d'un tiers.
+ *
+ * ⚠️ 🔴 `member_id`, ET LA COLONNE `id` N'EXISTE PAS — MESURÉ LE 2026-09-09.
+ * Ce SELECT nommait `id`. Vérifié contre la base locale:
+ *
+ *     select id from public.household_members limit 1;
+ *     ERROR: column "id" does not exist
+ *
+ * `household_members` est clavetée `(household_id, user_id)` et son identité de
+ * bouche s'appelle `member_id` depuis `20260810120000`. PostgREST rendait donc
+ * 42703 à CHAQUE appel — et l'appelant (`slot_meal_planned_io.ts`) attrape,
+ * journalise et se ferme: `memberId = null`, donc `dishIsForMouth` ÉCARTE tout
+ * plat dédié. Un plan de foyer ne porte que des plats dédiés (une boîte par
+ * bouche): la question du repas ne pouvait donc JAMAIS nommer un plat de foyer,
+ * et le compte-rendu ressemblait à un canal qui n'a rien à demander.
+ *
+ * C'est la TROISIÈME fois dans ce même fichier — `eating_rhythm` et
+ * `content_locale` — et c'est pour ça que le pavé chiffre l'effet au lieu de
+ * répéter la règle: « ne nommer que des colonnes qui existent » était déjà
+ * écrit deux fois au-dessus, et écrit ne suffit pas.
  */
 async function memberIdOf(
   admin: SupabaseClient,
@@ -179,12 +200,14 @@ async function memberIdOf(
 ): Promise<string | null> {
   const { data, error } = await admin
     .from("household_members")
-    .select("id")
+    .select("member_id")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  const id = String((data as Record<string, unknown> | null)?.id ?? "").trim();
+  const id = String(
+    (data as Record<string, unknown> | null)?.member_id ?? "",
+  ).trim();
   return id || null;
 }
 
@@ -281,18 +304,23 @@ export async function runSlotMealStep(
     ? await slotsAskedToday(admin, { userId: args.userId, today })
     : [];
 
+  // The same journal coverage drives the page and automatic questions.
+  const journal = openSwitch ? await loadJournal(admin, {
+    userId:args.userId, from:today, to:today, requestId:`slot-meal:${today}`, forPrompts:true,
+  }) : null;
+  const eligible = new Set(promptEligibleJournalSlots(journal?.days[0]));
   const verdict = decideSlotMealAsk({
     goal,
     muted: args.muted,
     askEnabled: args.askEnabled,
-    plannedToday: planned.slots,
+    plannedToday: planned.slots.filter(p=>eligible.has(p.slot)),
     dayToken,
     localHour,
-    eatingOut,
+    eatingOut: eatingOut.map(c=>({...c,slots:c.slots.filter(s=>eligible.has(s as never))})),
     // La CLÉ du jsonb, pas une colonne. Voir le pavé au-dessus.
     rhythmRaw: (row?.practical_constraints as Record<string, unknown> | null)
       ?.eating_rhythm,
-    askedSlotsToday: asked,
+    askedSlotsToday: [...asked, ...EATING_OCCASIONS.filter(s=>!eligible.has(s))],
   });
   if (!verdict.ask) return { verdict, delivered: false };
   if (args.dryRun) return { verdict, delivered: false, deliveryReason: "dry_run" };
@@ -377,6 +405,13 @@ export async function writeSlotMealFact(
       source: "quick_tap",
       evidence_weight: 0.4,
       plan_relation: "off_plan",
+      meal_context: {
+        version: 1,
+        occurrenceId: `slot:${args.localDate}:${args.slot}`,
+        relation: "outside",
+        state: "reported",
+        planRefs: [],
+      },
       content_locale: args.contentLocale,
       source_message_id: key,
     } as never)

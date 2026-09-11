@@ -128,7 +128,7 @@ export default function StudentKnownPage() {
   }, [refresh]);
 
   const shell = (children: React.ReactNode) => (
-    <KeelAppShell title={t("known.title")} subtitle={t("known.subtitle")}>
+    <KeelAppShell title={t("known.title")}>
       {children}
     </KeelAppShell>
   );

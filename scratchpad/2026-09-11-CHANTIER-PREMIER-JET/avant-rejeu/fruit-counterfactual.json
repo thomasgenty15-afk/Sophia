@@ -1,0 +1,138 @@
+[
+  {
+    "id": "5fad22ce-d181-4a0c-b0b5-77caf65092b5",
+    "boxes": [
+      {
+        "day": "fri",
+        "slot": "breakfast",
+        "kcal": 613,
+        "grams": 609,
+        "gap": null
+      },
+      {
+        "day": "fri",
+        "slot": "lunch",
+        "kcal": 982,
+        "grams": 667,
+        "gap": null
+      },
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "kcal": 857.9456724287148,
+        "grams": 660,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "kcal": 388,
+        "grams": 345,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "kcal": 981.6863072139208,
+        "grams": 625,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "kcal": 858.9866312645066,
+        "grams": 690,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "kcal": 356,
+        "grams": 272,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "kcal": 981.4859847894185,
+        "grams": 672,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "kcal": 857.1109301643982,
+        "grams": 663,
+        "gap": null
+      }
+    ]
+  },
+  {
+    "id": "a18f522e-41f9-469e-9c50-1d693d892ce6",
+    "boxes": [
+      {
+        "day": "fri",
+        "slot": "breakfast",
+        "kcal": 728,
+        "grams": 675,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "kcal": 427,
+        "grams": 383,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "kcal": 475,
+        "grams": 373,
+        "gap": null
+      },
+      {
+        "day": "fri",
+        "slot": "lunch",
+        "kcal": 1163.2573978884145,
+        "grams": 623,
+        "gap": null
+      },
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "kcal": 1019.0854819389782,
+        "grams": 584,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "kcal": 1162.4122169418943,
+        "grams": 727,
+        "gap": null
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "kcal": 1014.9417001466768,
+        "grams": 488,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "kcal": 1164.726106968796,
+        "grams": 677,
+        "gap": null
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "kcal": 1012.0244901590663,
+        "grams": 549,
+        "gap": null
+      }
+    ]
+  }
+]

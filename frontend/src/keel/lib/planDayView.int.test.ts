@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -211,7 +211,6 @@ describe("le câblage de la vue jour", () => {
   }
 
   const RESULT = "frontend/src/keel/components/plan/PlanResult.tsx";
-  const GRID = "frontend/src/keel/components/plan/PlanGrid.tsx";
 
   it("le rail des jours existe, et il écrit dans LA sélection", () => {
     const src = code(RESULT);
@@ -226,23 +225,23 @@ describe("le câblage de la vue jour", () => {
     );
   });
 
-  it("la grille est le sélecteur naturel: son `<th>` filtre le détail", () => {
-    const grid = code(GRID);
-    expect(grid, "le `<th>` n'est plus cliquable").toContain(
-      "onClick={() => props.onSelectDay?.(day)}",
-    );
-    const result = code(RESULT);
-    expect(result, "`PlanResult` ne branche plus la grille sur la sélection")
-      .toContain("onSelectDay={(day) => setSelectedDay(day)}");
+  // ⟳ 2026-09-09 — LA GRILLE EST PARTIE, ET LE RAIL RESTE LE SEUL SÉLECTEUR.
+  // « Ta semaine d'un coup d'œil » faisait doublon avec le détail juste en
+  // dessous. Ce qui est gardé ici est la conséquence: plus aucune surface ne
+  // doit rendre `PlanGrid`, sinon le doublon revient sans qu'on le voie.
+  it("la grille de la semaine n'est plus rendue nulle part", () => {
+    expect(code(RESULT)).not.toContain("<PlanGrid");
+    expect(existsSync(resolve(ROOT, "frontend/src/keel/components/plan/PlanGrid.tsx")))
+      .toBe(false);
   });
 
-  it("la grille et le détail lisent la MÊME dérivation du plan", () => {
+  it("le modèle de grille et le détail lisent la MÊME dérivation du plan", () => {
     const src = code(RESULT);
     // Une seule expansion par jour (`groupByDay`), lue par la grille ET par
     // les blocs: deux dérivations du même plan divergent.
     expect(src).toContain("const groups = groupByDay(props.dishes, dayOrder);");
     expect(src.match(/groupByDay\(/g)?.length, "une seconde dérivation est apparue").toBe(1);
-    expect(src, "la grille ne lit plus `groups`").toContain("groups,");
+    expect(src, "`buildPlanGrid` ne lit plus `groups`").toContain("groups,");
     expect(src, "le détail ne lit plus `groups`").toContain("shownGroups.map");
   });
 

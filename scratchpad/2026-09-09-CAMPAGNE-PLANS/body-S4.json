@@ -1,0 +1,15 @@
+{
+ "case": "S4",
+ "goal": "fat_loss",
+ "weightKg": 62.0,
+ "heightCm": 170,
+ "gender": "female",
+ "ageBand": "18_29",
+ "ageYears": 29,
+ "activityLevel": "trains_some",
+ "servings": 1,
+ "regime": "vegan",
+ "pace": 0.25,
+ "userId": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+ "email": "camp0909.s4@keeltest.dev"
+}

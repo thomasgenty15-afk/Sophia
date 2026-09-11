@@ -340,6 +340,7 @@ get-momentum-trace
 household-merge-notices-v1
 intake-to-transformations-v2
 keel-cards-v1
+keel-lifecycle-email-v1
 keel-tracking-v1
 keel-week-rollover-v1
 meal-photo-upload-v1
@@ -363,7 +364,6 @@ stripe-reconcile-seats
 stripe-sync-subscription
 stripe-webhook
 trigger-memorizer-daily
-trigger-retention-emails
 trigger-synthesizer-batch
 trigger-topic-compaction
 trigger-watcher-batch
@@ -408,6 +408,7 @@ coach-invite-student-v1
 coach-signup-v1
 cycle-draft
 evaluate-adherence-v1
+keel-lifecycle-email-v1
 keel-week-rollover-v1
 meal-photo-upload-v1
 plan-import-v1

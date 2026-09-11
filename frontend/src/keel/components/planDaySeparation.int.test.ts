@@ -91,6 +91,8 @@ function markup(args: {
     wave: null,
     shoppingList: [],
     moments: [],
+    // ⟳ 2026-09-09 — la phrase de timing du jour: aucune ici.
+    timingLine: null,
     portions: args.portions,
   })));
 }

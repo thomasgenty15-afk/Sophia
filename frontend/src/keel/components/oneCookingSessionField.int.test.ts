@@ -28,6 +28,8 @@ const read = (rel: string) => readFileSync(resolve(__dirname, rel), "utf8");
 const BUILDER = read("./MealBuilder.tsx");
 const SETUP = read("../pages/SetupPage.tsx");
 const FIELD = read("./OneCookingSessionField.tsx");
+// La chrome partagée: c'est elle qui DESSINE la parenthèse et fixe le corps.
+const CHECKBOX = read("./ui/CheckboxField.tsx");
 
 describe("le champ est monté sur les DEUX surfaces", () => {
   it("sur `/app/plan` (MealBuilder)", () => {
@@ -42,44 +44,35 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     expect(SETUP).toMatch(/onChange=\{onOneCookingSession\}/);
   });
 
-  it("⛔ ET LES DEUX VIVENT AVEC LES DATES, pas ailleurs", () => {
+  it("⛔ ET LES DEUX LA POSENT SOUS LE SÉLECTEUR DE STYLE, pas ailleurs", () => {
     // ══════════════════════════════════════════════════════════════════════
-    // CE TEST A CHANGÉ D'ANCRE LE 2026-09-01, ET C'EST LE POINT DU LOT.
+    // TROISIÈME ANCRE EN QUATRE JOURS, ET CELLE-CI DIT POURQUOI.
     // ══════════════════════════════════════════════════════════════════════
     //
-    // Il ancrait les cases sous « les jours où tu cuisines ». Cette rangée
-    // n'existe plus: le plan ne demande plus QUELS jours on cuisine, seulement
-    // QUAND la cuisine a lieu. Les deux cases sont donc les seules questions
-    // de calendrier qui restent, et elles se lisent avec les dates — « je
-    // cuisine la veille » RECULE le premier jour du champ juste au-dessus.
+    // Elle a d'abord tenu « sous les jours où tu cuisines » (rangée retirée le
+    // 2026-09-01), puis « avec les dates » — au motif que « quand la cuisine a
+    // lieu » est une question de calendrier. Ce motif tenait tant que « je
+    // cuisine la veille » était la case d'à côté; celle-là a été retirée le
+    // 2026-09-03 (le serveur DÉRIVE la veille), et il ne restait qu'une case
+    // isolée à trois champs de la seule question qu'elle précise.
     //
-    // ⚠️ L'ORDRE ENTRE ELLES COMPTE AUSSI: d'abord QUAND commence la cuisine,
-    // ensuite si elle tient en une fois.
+    // ⟳ 2026-09-04 — L'ANCRE EST MAINTENANT LA QUESTION QU'ELLE PRÉCISE.
+    // `plan.cooking.style_hint` annonce déjà « le nombre de fois où le plan
+    // vous demande de cuisiner »: la case en est le cas extrême, et elle se lit
+    // SOUS le sélecteur. Elle reste AVANT « combien de courses » — une seule
+    // course implique la session unique, et les deux entrent par la même porte
+    // côté moteur.
     //
-    // ⟳ A1 (2026-09-03) — IL N'EN RESTE QU'UNE. La case « je cuisine la
-    // veille » a été retirée: le serveur DÉRIVE le jour de cuisine de la date
-    // de départ et de l'heure locale (`leadDayFor`, coupure à 18 h). Ce test
-    // s'est donc retourné une seconde fois, et il tient toujours la même
-    // chose: la question de calendrier qui reste vit ENTRE les dates et le
-    // reste du formulaire.
-    //
-    // ⟳ P2 (2026-09-03) — L'ANCRE D'APRÈS A CHANGÉ SUR L'ENTONNOIR, parce que
-    // la question qu'elle nommait n'existe plus: `setup.plan.time` (« combien
-    // de temps dure une session ») a été remplacée par les deux questions de
-    // P2. `src.indexOf` d'une clé absente rend `-1`, et `x < -1` est faux pour
-    // tout `x` — le test tombait donc, ce qui est exactement ce qu'on veut
-    // d'une ancre périmée, mais il fallait la remplacer et non l'assouplir.
-    for (const [name, src, dateKey, afterKey] of [
-      ["MealBuilder", BUILDER, "meals.form.window_label", "plan.cooking.time_label"],
-      ["SetupPage", SETUP, "setup.request.from", "setup.request.presence_title"],
-    ] as const) {
-      const dates = src.indexOf(dateKey);
+    // ⚠️ CE QUE CE TEST TIENT N'A PAS BOUGÉ: les deux surfaces posent la même
+    // question au même endroit. Une seule qui bouge, et on a deux formulaires.
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const style = src.indexOf("<CookingStyleField");
       const session = src.indexOf("<OneCookingSessionField");
-      const after = src.indexOf(afterKey);
-      expect(dates, name).toBeGreaterThan(-1);
-      expect(after, `${name}: l'ancre d'après a disparu`).toBeGreaterThan(-1);
-      expect(session, name).toBeGreaterThan(dates);
-      expect(session, name).toBeLessThan(after);
+      const runs = src.indexOf("<GroceryRunsField");
+      expect(style, `${name}: le sélecteur de style a disparu`).toBeGreaterThan(-1);
+      expect(runs, `${name}: la cadence de courses a disparu`).toBeGreaterThan(-1);
+      expect(session, name).toBeGreaterThan(style);
+      expect(session, name).toBeLessThan(runs);
     }
   });
 
@@ -201,6 +194,62 @@ describe("la porte du congélateur", () => {
     expect(FIELD).toMatch(/plan\.cooking\.one_session_needs_freezer/);
   });
 
+  it("⟳ 2026-09-04 — LE REFUS EST UNE PARENTHÈSE, ET IL S'EFFACE UNE FOIS LEVÉ", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // LES DEUX MOITIÉS, ET AUCUNE N'EST DÉCORATIVE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ① SANS congélateur: la condition se lit ENTRE PARENTHÈSES à côté du
+    //    libellé — au plus près du geste refusé —, et la ligne d'aide générale
+    //    se tait (elle décrirait un geste que la personne ne peut pas faire).
+    // ② AVEC congélateur: la parenthèse DISPARAÎT. Une condition qui reste
+    //    affichée une fois remplie apprend à ne plus la lire, et « il faut un
+    //    congélateur » sous une case cochable est un refus qui ment.
+    expect(FIELD).toMatch(
+      /note=\{hasFreezer \? null : t\("plan\.cooking\.one_session_needs_freezer"\)\}/,
+    );
+    expect(FIELD).toMatch(
+      /hint=\{hasFreezer \? t\("plan\.cooking\.one_session_hint"\) : null\}/,
+    );
+    // ⛔ LES PARENTHÈSES SONT DANS LA MARKUP, JAMAIS DANS LA TRADUCTION. Une
+    // chaîne qui les porterait se retrouverait un jour au milieu d'une phrase
+    // qui n'en veut pas — et les deux langues divergeraient sur la ponctuation.
+    expect(CHECKBOX, "la parenthèse n'est plus dessinée par la chrome").toMatch(
+      /\(\{props\.note\}\)/,
+    );
+    for (const [lang, dict] of [["fr", fr], ["en", en]] as const) {
+      expect(dict["plan.cooking.one_session_needs_freezer"], lang).not.toMatch(/[()]/);
+    }
+  });
+
+  it("⛔ ET LE REFUS NOMME L'ÉCRAN OÙ ON LE LÈVE, dans les deux langues", () => {
+    // « Un refus qui ne dit pas ce qui le lèverait n'est pas un refus, c'est un
+    // mur. » Le titre est LU du dictionnaire, pas recopié: le jour où la carte
+    // d'équipement change de nom, ce test tombe au lieu d'envoyer la personne
+    // chercher une section qui n'existe plus.
+    for (const [lang, dict] of [["fr", fr], ["en", en]] as const) {
+      expect(
+        dict["plan.cooking.one_session_needs_freezer"],
+        `${lang}: le refus ne nomme plus « ${dict["setup.equipment.title"]} »`,
+      ).toContain(dict["setup.equipment.title"]);
+    }
+  });
+
+  it("⟳ 2026-09-04 — LA CASE EST UNE SOUS-OPTION, ET SA TYPOGRAPHIE LE DIT", () => {
+    // Au même corps que le champ au-dessus, elle se lisait comme une question
+    // de plein droit; un cran plus petit dit qu'elle appartient au sélecteur
+    // qui la précède. `text-sm` ici, et le déplacement ne se voit plus.
+    // ⚠️ SUR LA SOURCE PRIVÉE DE SES COMMENTAIRES. L'en-tête du fichier DIT
+    // « `text-xs`, pas `text-sm` » — un grep naïf lit sa propre justification
+    // et rougit sur un fichier juste. Cicatrice du dépôt: « un audit
+    // d'appelants doit retirer les commentaires ».
+    const chrome = CHECKBOX.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(chrome, "la chrome est repassée au corps d'un champ").not.toMatch(
+      /text-sm/,
+    );
+    expect(chrome).toMatch(/text-xs/);
+  });
+
   it("⛔ ET ELLE SE DÉCOCHE TOUTE SEULE QUAND LE CONGÉLATEUR DISPARAÎT", () => {
     // Décor atteignable en deux gestes dans l'entonnoir: cocher l'option à
     // l'étape « demande », revenir à l'étape « table », décocher le
@@ -221,13 +270,24 @@ describe("la porte du congélateur", () => {
   });
 });
 
-describe("la réponse part vraiment, sur les deux lanes", () => {
-  it("MealBuilder l'envoie au foyer ET à la lane individuelle", () => {
-    // Deux sites d'envoi dans ce fichier: `generateHouseholdMeal` et
-    // `generateMeal`. Un seul câblé serait un champ qui marche une fois sur
-    // deux, sans qu'aucun test ne rougisse.
+describe("la réponse part vraiment, sur le seul moteur", () => {
+  it("MealBuilder l'envoie, et il n'a plus qu'un site d'envoi", () => {
+    // ⟳ 2026-09-10 · LOT 7 — LE COMPTE ATTENDU EST PASSÉ DE DEUX À UN, ET LA
+    // PROPRIÉTÉ EST LA MÊME: « chaque site d'envoi de ce fichier porte le
+    // champ ». Il y en avait deux (`generateHouseholdMeal`, `generateMeal`), et
+    // un seul câblé aurait fait un champ qui marche une fois sur deux. Il n'y a
+    // plus qu'un moteur, donc plus qu'un site.
+    //
+    // ⛔ ET ON MESURE UNE ÉGALITÉ, PAS UN PLANCHER. `>= 1` resterait vert le
+    // jour où une seconde lane réapparaît sans que le champ y soit — c'est
+    // exactement le défaut que ce cas existait pour attraper, à l'envers.
     const sends = BUILDER.match(/^\s+oneCookingSession,$/gm) ?? [];
-    expect(sends.length).toBeGreaterThanOrEqual(2);
+    expect(sends.length, "un site d'envoi, ni plus ni moins").toBe(1);
+    // ⚠️ LA PRÉMISSE, ARMÉE: il n'y a bien plus qu'un appel de composition dans
+    // ce fichier. Sans elle, « un site » se lirait aussi bien « le champ a été
+    // débranché d'une lane qui existe encore ».
+    expect(BUILDER, "`generateMeal` est revenu").not.toContain("generateMeal(");
+    expect((BUILDER.match(/await generateHouseholdMeal\(/g) ?? []).length).toBe(1);
     // ⟳ A1 — et `cookTheDayBefore` NE PART PLUS: il n'existe plus. La garde
     // du bloc précédent le tient sur la source privée de ses commentaires.
   });
@@ -363,34 +423,88 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     }
   });
 
-  it("⛔ le STYLE vient AVANT la cadence, et les deux avant la session unique", () => {
+  it("⛔ le STYLE vient AVANT la cadence, sur les deux surfaces", () => {
     // L'ordre est le sens: c'est le style qui PLAFONNE le nombre de sessions,
     // donc lire « trois courses » avant de savoir qu'on cuisine le moins
-    // possible ferait attendre trois séances que le plan ne fera pas. Et
-    // « une seule course » IMPLIQUE la session unique — lire la conséquence
-    // avant sa cause ferait cocher deux fois la même chose.
+    // possible ferait attendre trois séances que le plan ne fera pas.
     for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
       const style = src.indexOf("<CookingStyleField");
       const runs = src.indexOf("<GroceryRunsField");
       expect(style, name).toBeGreaterThan(-1);
       expect(runs, name).toBeGreaterThan(style);
     }
-    // Sur `/app/plan` les trois cohabitent; l'entonnoir, lui, ne monte plus la
-    // session unique au même endroit, et ce test ne l'invente pas.
-    expect(BUILDER.indexOf("<OneCookingSessionField")).toBeGreaterThan(
-      BUILDER.indexOf("<GroceryRunsField"),
-    );
   });
 
-  it("⛔ « combien de temps dure une session » N'EST PLUS DEMANDÉ dans l'entonnoir", () => {
+  it("⛔ ET LA SESSION UNIQUE VIENT ENTRE LES DEUX, sur les deux surfaces", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // CE TEST S'EST RETOURNÉ DEUX FOIS, ET CHAQUE RETOURNEMENT ÉTAIT LE LOT.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Il a exigé « la session APRÈS la cadence de courses » (motif: une seule
+    // course implique la session unique), puis « la session AVANT les deux »
+    // (motif: c'est une question de calendrier, elle vit avec les dates).
+    //
+    // ⟳ 2026-09-04 — LES DEUX MOTIFS SURVIVENT, DANS LA MÊME POSITION. Elle
+    // précise le style (elle est donc APRÈS lui) et elle conditionne la lecture
+    // des courses (elle est donc AVANT elles): style → session → courses. Ce
+    // que le test tient reste l'invariant du lot: les deux surfaces posent les
+    // trois champs dans le MÊME ordre.
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const style = src.indexOf("<CookingStyleField");
+      const session = src.indexOf("<OneCookingSessionField");
+      const runs = src.indexOf("<GroceryRunsField");
+      expect(style, `${name}: le style a disparu`).toBeGreaterThan(-1);
+      expect(session, `${name}: la case a disparu`).toBeGreaterThan(-1);
+      expect(session, `${name}: la case ne suit plus le style`).toBeGreaterThan(style);
+      expect(runs, `${name}: la case ne précède plus les courses`).toBeGreaterThan(session);
+    }
+  });
+
+  it("⛔ l'équipement précède la case qu'il conditionne, sur `/app/plan`", () => {
+    // La case est GRISÉE sans congélateur, et son refus renvoie mot pour mot à
+    // « Avec quoi vous cuisinez ». Un refus posé au-dessus de son remède se lit
+    // comme un bouton mort — cicatrice mesurée trois fois sur l'écran de
+    // réglages. L'entonnoir tient le même ordre en montant la carte AVANT
+    // `RequestStep`; ici les deux vivent dans le même formulaire.
+    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
+    const session = BUILDER.indexOf("<OneCookingSessionField");
+    expect(equipment, "la carte d'équipement a disparu").toBeGreaterThan(-1);
+    expect(session, "la case a disparu").toBeGreaterThan(equipment);
+  });
+
+  it("⛔ « combien de temps dure une session » N'EST PLUS DEMANDÉ — NULLE PART", () => {
     // La suppression EST le lot. Un champ qui revient par une page oubliée
     // ferait deux autorités sur `cooking_time_min`, dont une invisible.
-    const code = SETUP
-      .split("\n")
-      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
-      .join("\n");
-    expect(code).not.toMatch(/setup\.plan\.time/);
-    expect(code).not.toMatch(/COOKING_SESSION_MINUTES/);
+    //
+    // ⟳ 2026-09-03 (soir) — `MealBuilder` REJOINT LA GARDE. La rangée y a
+    // survécu une demi-journée à son retrait de l'entonnoir: `/app/plan`
+    // écrivait donc `cooking_time_min` depuis un choix d'écran pendant que le
+    // moteur le DÉRIVAIT du style, et c'est la composition suivante qui
+    // départageait. Une garde qui ne couvre qu'une des deux surfaces laisse
+    // exactement ce trou-là.
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const code = src
+        .split("\n")
+        .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+        .join("\n");
+      expect(code, name).not.toMatch(/setup\.plan\.time/);
+      expect(code, name).not.toMatch(/plan\.cooking\.time_label/);
+      expect(code, name).not.toMatch(/COOKING_SESSION_MINUTES/);
+    }
+  });
+
+  it("⚠️ mais la VALEUR déjà en base n'est pas effacée: elle fait l'aller-retour", () => {
+    // ⛔ LA MOITIÉ QUI MANQUAIT AU RETRAIT. `savePlanInputs` réécrit la clé à
+    // CHAQUE composition: cesser de la lire aurait écrit `null` par-dessus la
+    // réponse de tout compte d'avant P2, et le moteur serait retombé sur son
+    // défaut sans qu'aucun écran ne le dise. Les deux surfaces relisent et
+    // réécrivent à l'identique.
+    expect(BUILDER, "la valeur n'est plus relue").toMatch(
+      /setCookingTimeMin\(last\.cookingTimeMin\)/,
+    );
+    expect(BUILDER, "un nombre inventé est réécrit à la place").not.toMatch(
+      /cookingTimeMin:\s*Number\(/,
+    );
   });
 
   it("les deux réponses sont DURABLES: elles s'écrivent et se relisent", () => {
@@ -422,11 +536,27 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
   // le patron `renderToStaticMarkup` du dépôt ne s'applique qu'aux composants
   // qui n'en ont pas besoin — `kitchenEquipmentCard.int.test.ts` en est
   // l'exemple. Ce qui rend la lecture de source SUFFISANTE ici, et seulement
-  // ici: les trois blocs sont des FRÈRES du même parent JSX, sans condition ni
-  // enveloppe entre eux, donc l'ordre du fichier EST l'ordre du DOM. La
-  // seconde assertion vérifie cette prémisse au lieu de la supposer.
+  // ici: aucun des blocs n'est déplacé par rapport à sa position dans le
+  // fichier, donc l'ordre du fichier EST l'ordre du DOM. La seconde assertion
+  // vérifie cette prémisse au lieu de la supposer.
+  //
+  // ⟳ 2026-09-07 — LA PRÉMISSE A ÉTÉ AMENDÉE, PAS AFFAIBLIE. Elle disait « les
+  // trois blocs sont des FRÈRES du même parent JSX, sans enveloppe entre eux ».
+  // Il y a maintenant UNE enveloppe: le style et la case partagent une ligne
+  // (`grid sm:grid-cols-2`), parce qu'ils sont une seule question. Une grille
+  // en flux normal place ses enfants dans l'ordre du DOM — premier enfant =
+  // colonne de gauche —, donc la conclusion tient. Ce qui la casserait est une
+  // CLASSE, pas une balise: `order-*`, `*-reverse`, `grid-flow-*-dense`. Le
+  // troisième test ci-dessous refuse ces classes dans l'enveloppe; sans lui, la
+  // prémisse redeviendrait une supposition.
 
-  it("sur `/app/plan`, l'inventaire précède le style ET les courses", () => {
+  it("sur `/app/plan`, l'inventaire précède la session, le style et les courses", () => {
+    // ⟳ 2026-09-04 — L'ORDRE D'APRÈS: inventaire → style → session → courses.
+    // La case est passée SOUS le sélecteur qu'elle précise (l'aide du style
+    // annonce déjà « le nombre de fois où le plan vous demande de cuisiner »),
+    // et elle reste AVANT les courses. Ce que ce test tient n'a pas bougé:
+    // l'inventaire vient AVANT tout ce qui en dépend — la case du congélateur
+    // comme « une seule course ».
     const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
     const style = BUILDER.indexOf("<CookingStyleField");
     const runs = BUILDER.indexOf("<GroceryRunsField");
@@ -435,24 +565,111 @@ describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
       expect(at, `${name} introuvable`).toBeGreaterThan(-1);
     }
     expect(equipment, "l'inventaire ne précède plus le style").toBeLessThan(style);
-    expect(style).toBeLessThan(runs);
-    expect(runs).toBeLessThan(session);
+    expect(style, "la case ne suit plus le sélecteur de style").toBeLessThan(session);
+    expect(session, "la case ne précède plus les courses").toBeLessThan(runs);
   });
 
-  it("⛔ LA PRÉMISSE: les blocs sont des FRÈRES, donc la source dit le DOM", () => {
+  it("⛔ LA PRÉMISSE: aucune BRANCHE ne reste ouverte, donc la source dit le DOM", () => {
     // Si l'inventaire était rendu dans une branche conditionnelle ou déplacé
     // par du CSS, l'ordre du fichier ne dirait plus rien du DOM et le test
     // au-dessus serait une garde désarmée. On vérifie donc que le `<details>`
     // qui porte l'inventaire est FERMÉ avant que le champ de style ne s'ouvre.
+    //
+    // ⚠️ CE QUE CETTE MESURE COUVRE, ET CE QU'ELLE NE COUVRE PAS — dit ici
+    // depuis que l'enveloppe de la paire style/case existe (2026-09-07). Elle
+    // compte des DÉLIMITEURS JS: elle refuse une branche `{cond && (` laissée
+    // ouverte, qui rendrait le style conditionnel. Elle ne voit pas les BALISES,
+    // et c'est sans conséquence: un élément imbriqué se rend quand même APRÈS
+    // les frères qui le précèdent, donc l'inventaire reste avant le style. Ce
+    // qui casserait l'ordre est une CLASSE de déplacement — le test suivant.
     const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
     const closes = BUILDER.indexOf("</details>", equipment);
     const style = BUILDER.indexOf("<CookingStyleField");
     expect(closes).toBeGreaterThan(equipment);
     expect(closes, "le style est DANS le bloc de l'inventaire").toBeLessThan(style);
-    // Et rien n'ouvre de branche entre les deux: pas de `? (` ni de `&&` porté
-    // par une ligne de JSX dans l'intervalle.
-    const between = BUILDER.slice(closes, style);
-    expect(between, `intervalle: ${between.trim().slice(0, 120)}`).not.toMatch(/\{\s*\w+\s*(\?|&&)/);
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-03 — LA MESURE A CHANGÉ, LA PRÉMISSE NON.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Elle cherchait « aucune branche ouverte dans l'intervalle »
+    // (`/\{\s*\w+\s*(\?|&&)/`). C'était juste tant que rien ne se rendait
+    // entre les deux; la grille de présence du foyer vit maintenant là, et
+    // elle EST conditionnelle. Or une branche qui s'ouvre ET SE REFERME entre
+    // les deux ne déplace personne: c'est un FRÈRE de plus, pas une enveloppe.
+    //
+    // Ce qui distingue les deux cas est la PROFONDEUR: si l'intervalle ne
+    // change pas le niveau d'imbrication, les deux blocs ont le même parent.
+    // On compte donc les délimiteurs, commentaires retirés — ce dépôt en écrit
+    // des pavés, pleins de parenthèses françaises qui fausseraient le compte.
+    const between = BUILDER.slice(closes, style)
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+    const depth = (open: string, close: string) =>
+      (between.split(open).length - 1) - (between.split(close).length - 1);
+    expect(depth("(", ")"), `parenthèses non refermées: ${between.trim().slice(0, 160)}`)
+      .toBe(0);
+    expect(depth("{", "}"), `accolades non refermées: ${between.trim().slice(0, 160)}`)
+      .toBe(0);
+  });
+
+  it("⛔ LA PAIRE EST SUR UNE LIGNE, ET LA GRILLE NE RETOURNE PAS L'ORDRE", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-07 — LE STYLE ET LA CASE PARTAGENT UNE LIGNE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Ils sont UNE question — l'aide du sélecteur annonce « le nombre de fois
+    // où le plan vous demande de cuisiner », la case en est le cas extrême —,
+    // et c'est la règle des deux écrans: on n'aligne que ce qui n'en fait
+    // qu'une (les deux dates de la fenêtre sont l'autre cas).
+    //
+    // ⛔ CE QUE CE TEST GARDE N'EST PAS LA JOLIESSE, C'EST L'ORDRE DE LECTURE.
+    // Une grille en flux normal rend son premier enfant à GAUCHE, donc le DOM
+    // et l'écran disent la même chose. Trois familles de classes brisent ça
+    // sans toucher une ligne de JSX — `order-*`, `*-reverse`, `*-dense` —, et
+    // les quatre tests d'ordre de ce fichier lisent la SOURCE: aucun ne les
+    // verrait. La case passerait à gauche du champ qu'elle précise, et la
+    // suite verte.
+    //
+    // ⚠️ COMMENTAIRES RETIRÉS AVANT LA MESURE. Les pavés de ce dépôt NOMMENT
+    // les classes interdites pour expliquer pourquoi elles le sont; les lire
+    // comme du code ferait échouer le test sur sa propre justification.
+    const bare = (src: string) =>
+      src
+        .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .split("\n")
+        .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+        .join("\n");
+
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const style = src.indexOf("<CookingStyleField");
+      const session = src.indexOf("<OneCookingSessionField");
+      expect(style, `${name}: le style a disparu`).toBeGreaterThan(-1);
+      expect(session, `${name}: la case a disparu`).toBeGreaterThan(style);
+
+      // L'ENVELOPPE: la dernière balise ouvrante avant le sélecteur.
+      const open = src.lastIndexOf("<div className=", style);
+      expect(open, `${name}: la paire n'a plus d'enveloppe`).toBeGreaterThan(-1);
+      const envelope = src.slice(open, style);
+      expect(envelope, `${name}: l'enveloppe de la paire n'est pas une grille`)
+        .toMatch(/\bgrid\b/);
+      // ⚠️ LE REPLI MOBILE EST UNE PIÈCE DE LA GARDE, pas un détail: deux
+      // colonnes de texte à 150 px ne rangent rien. `sm:grid-cols-2` dit que
+      // la case retombe SOUS le sélecteur en dessous de 640 px.
+      expect(envelope, `${name}: la paire ne retombe plus en colonne sous sm`)
+        .toMatch(/\bsm:grid-cols-2\b/);
+
+      const inside = bare(src.slice(open, session));
+      for (const banned of [/\border-(?:\d|first|last)\b/, /-reverse\b/, /\bdense\b/]) {
+        expect(
+          banned.test(inside),
+          `${name}: ${banned} peut mettre la case à gauche du champ qu'elle précise`,
+        ).toBe(false);
+      }
+    }
   });
 
   it("dans l'entonnoir aussi, et là c'est l'ÉTAPE qui le garantit", () => {

@@ -1,0 +1,52 @@
+[
+  {
+    "case": "zero dishes, two expected meals",
+    "result": {
+      "mouths": [
+        {
+          "memberId": "alice",
+          "expected": 0,
+          "fed": 0,
+          "missing": []
+        }
+      ],
+      "expected": 0,
+      "fed": 0,
+      "missing": 0,
+      "byCause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cellsWithoutDish": 2,
+      "unplacedDishes": 0,
+      "allFed": true
+    }
+  },
+  {
+    "case": "lunch present, dinner absent",
+    "result": {
+      "mouths": [
+        {
+          "memberId": "alice",
+          "expected": 1,
+          "fed": 1,
+          "missing": []
+        }
+      ],
+      "expected": 1,
+      "fed": 1,
+      "missing": 0,
+      "byCause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cellsWithoutDish": 1,
+      "unplacedDishes": 0,
+      "allFed": true
+    }
+  }
+]

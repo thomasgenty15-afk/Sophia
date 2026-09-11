@@ -49,6 +49,7 @@ function dish(over: Partial<HouseholdDishView> = {}): HouseholdDishView {
     slot: "dinner",
     uses: [],
     memberId: null,
+    complementsShared: false,
     ...over,
   };
 }
@@ -130,7 +131,6 @@ function shareText(args: {
     householdMealId: null,
     planStartsOn: null,
     onApprove: async () => {},
-    onRequestChange: async () => {},
     busy: false,
   }))).replace(/<[^>]*>/g, "");
 }

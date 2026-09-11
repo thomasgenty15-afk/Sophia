@@ -1,0 +1,75 @@
+{
+  "source": "recalculé par 31-energie-solo.ts (arithmétique du moteur importée)",
+  "refs": 925,
+  "aliases": 2715,
+  "dishes": 4,
+  "pot_ingredients_without_amount": 8,
+  "rows": [
+    {
+      "day": "tue",
+      "slot": "breakfast",
+      "title": "Yaourt, flocons d’avoine, poire et noix",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 637,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 676,
+      "density_kcal_per_100g": 94.2,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "snack_pm",
+      "title": "Pomme et amandes",
+      "member_id": null,
+      "pots": [],
+      "standard_kcal": 135,
+      "complete": true,
+      "gaps": [],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 157,
+      "density_kcal_per_100g": 86.1,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "dinner",
+      "title": "Poulet rôti, riz, roquette, tomate et citron",
+      "member_id": null,
+      "pots": [
+        "Poulet rôti aux herbes ÷1",
+        "Riz nature ÷1"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 296,
+      "density_kcal_per_100g": null,
+      "boxes": 1
+    },
+    {
+      "day": "tue",
+      "slot": "lunch",
+      "title": "Poulet rôti, riz, tomate, concombre et persil",
+      "member_id": null,
+      "pots": [
+        "Cuisses de poulet rôties ÷1",
+        "Riz long grain cuit ÷1"
+      ],
+      "standard_kcal": null,
+      "complete": false,
+      "gaps": [
+        "unknown_ingredient"
+      ],
+      "bounded_kcal": 0,
+      "standard_cooked_g": 584,
+      "density_kcal_per_100g": null,
+      "boxes": 1
+    }
+  ]
+}

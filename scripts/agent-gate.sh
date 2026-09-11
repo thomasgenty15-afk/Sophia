@@ -374,7 +374,6 @@ check_typecheck() {
       supabase/functions/sophia-brain/index.ts \
       supabase/functions/sophia-brain/router/agent_exec.ts \
       supabase/functions/sophia-brain/agents/companion.ts \
-      supabase/functions/generate-meal-v1/index.ts \
       supabase/functions/generate-household-meal-v1/index.ts
   else
     info "deno not found, skipping deno check"

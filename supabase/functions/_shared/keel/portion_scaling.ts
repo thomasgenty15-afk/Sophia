@@ -72,6 +72,7 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
+import { fedDaysDenominator } from "./fed_days.ts";
 import type { Envelope } from "./meal_envelope.ts";
 import { MIN_RESOLUTION_FOR_VERDICT } from "./meal_verdict.ts";
 
@@ -200,7 +201,7 @@ export function scaleFactorFor(args: {
   //
   // ⚠️ AUCUN APPELANT ENTIER NE BOUGE: `Math.floor` est l'identité sur un
   // entier, et un test le tient.
-  const days = Math.max(1, args.daysCovered);
+  const days = fedDaysDenominator(args.daysCovered);
   const perDay = computedKcal / days;
   if (perDay <= 0) return null;
 
@@ -408,7 +409,7 @@ export function scaleFactorsFor(args: {
   // ⛔ MÊME RAISON QU'AU-DESSUS, ET ELLE MORD PLUS FORT ICI: le plancher
   // protéique est un plancher. Un `floor` sur 2,35 rendait une protéine/jour
   // 17 % trop haute, donc un plancher jugé ATTEINT sur un plan qui le rate.
-  const days = Math.max(1, args.daysCovered);
+  const days = fedDaysDenominator(args.daysCovered);
   const floor = args.envelope.proteinFloorG;
   const proteinPerDay = (args.computedProteinG ?? 0) / days;
 

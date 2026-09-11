@@ -5,12 +5,73 @@ import { logLlmRawResponseEvent } from "./llm-raw-trace.ts";
 // Keep this lightweight to avoid noisy "Cannot find name 'Deno'" errors.
 declare const Deno: any;
 
+/**
+ * ⟳ 2026-09-08 — LE PALIER DE SERVICE OPENAI, LU UNE FOIS, ABSENT PAR DÉFAUT.
+ *
+ * L'API `responses` accepte `service_tier` ∈ {auto, default, flex, fast,
+ * priority, ultrafast}. `fast` est le « Fast mode » ; la réponse renvoie
+ * `priority` qu'on ait demandé `fast` ou `priority`.
+ *
+ * ⛔ ABSENT ⇒ LE CHAMP N'EST PAS ENVOYÉ, et la charge est OCTET POUR OCTET celle
+ * d'avant. Une valeur hors liste n'est pas envoyée non plus, et se compte : un
+ * palier mal orthographié ne doit pas devenir « pas de palier » en silence.
+ */
+const OPENAI_SERVICE_TIERS = ["auto", "default", "flex", "fast", "priority", "ultrafast"] as const;
+export type OpenAIServiceTier = typeof OPENAI_SERVICE_TIERS[number];
+export function openAiServiceTierFromEnv(): { tier: OpenAIServiceTier | null; rejected: string | null } {
+  const raw = (safeEnvGet("KEEL_OPENAI_SERVICE_TIER") ?? "").trim();
+  if (raw === "") return { tier: null, rejected: null };
+  return (OPENAI_SERVICE_TIERS as readonly string[]).includes(raw)
+    ? { tier: raw as OpenAIServiceTier, rejected: null }
+    : { tier: null, rejected: raw };
+}
+
 function safeEnvGet(name: string): string | undefined {
   try {
     return Deno.env.get(name);
   } catch {
     return undefined;
   }
+}
+
+/**
+ * ⟳ 2026-09-10 — LE PALIER, DÉSORMAIS DEMANDABLE PAR APPEL.
+ *
+ * ── POURQUOI L'ENVIRONNEMENT NE SUFFISAIT PAS ──────────────────────────────
+ * `KEEL_OPENAI_SERVICE_TIER` est global à l'isolat: le poser met TOUT le
+ * produit sur le même palier — le chat, le memorizer, les flows — pour un
+ * besoin qui n'existe que sur les deux lanes de génération. Et il n'était posé
+ * nulle part, donc le champ n'a jamais été envoyé en vrai.
+ *
+ * ── L'ORDRE, ET IL EST FIXE ────────────────────────────────────────────────
+ *   1. le paramètre de l'appelant, s'il est dans la liste;
+ *   2. sinon `KEEL_OPENAI_SERVICE_TIER`, s'il est dans la liste;
+ *   3. sinon RIEN N'EST ENVOYÉ, et la charge est octet pour octet celle d'avant.
+ *
+ * ⛔ UNE VALEUR HORS LISTE SE COMPTE, elle ne devient jamais « pas de palier »
+ * en silence — un palier mal orthographié doit se voir dans le journal, pas
+ * disparaître. `source` dit qui a décidé: sans lui, un journal qui affiche
+ * `fast` ne distingue pas « la lane l'a demandé » de « une variable traînait ».
+ */
+export function resolveOpenAiServiceTier(
+  explicit?: string | null,
+): {
+  tier: OpenAIServiceTier | null;
+  rejected: string | null;
+  source: "call" | "env" | "none";
+} {
+  const asked = String(explicit ?? "").trim();
+  if (asked !== "") {
+    if ((OPENAI_SERVICE_TIERS as readonly string[]).includes(asked)) {
+      return { tier: asked as OpenAIServiceTier, rejected: null, source: "call" };
+    }
+    // Un palier demandé et invalide ne retombe PAS sur l'environnement: on
+    // dirait alors que la demande a été honorée par quelqu'un d'autre.
+    return { tier: null, rejected: asked, source: "none" };
+  }
+  const fromEnv = openAiServiceTierFromEnv();
+  if (fromEnv.tier) return { tier: fromEnv.tier, rejected: null, source: "env" };
+  return { tier: null, rejected: fromEnv.rejected, source: "none" };
 }
 
 export type GeminiReasoningEffort =
@@ -34,6 +95,28 @@ export type GenerateWithGeminiMeta = {
   maxRetries?: number;
   httpTimeoutMs?: number;
   reasoningEffort?: GeminiReasoningEffort;
+  // Le palier de service OpenAI demandé POUR CET APPEL. Voir
+  // `resolveOpenAiServiceTier`: il précède `KEEL_OPENAI_SERVICE_TIER`.
+  serviceTier?: OpenAIServiceTier;
+  /**
+   * ⟳ 2026-09-11 · LOT 6 — UNE TRANSMISSION RÉELLE AU FOURNISSEUR, RAPPORTÉE.
+   *
+   * ⛔ POURQUOI CE RAPPEL EXISTE. Le budget d'un plan comptait les appels
+   * LOGIQUES (`askRepair`), pas les transmissions. Or un seul appel logique
+   * peut partir plusieurs fois: la boucle de réessai ici, et la CHAÎNE DE
+   * REPLIS à l'intérieur de chaque passe. Le chantier l'exige en toutes
+   * lettres — « compter les transmissions de recomposition au fournisseur,
+   * échecs et replis inclus, pas seulement les appels logiques ».
+   *
+   * ⚠️ APPELÉ AVANT L'ENVOI, pas après la réponse: une transmission qui
+   * échoue ou qui expire a bel et bien été faite, et c'est elle qui coûte du
+   * temps au budget. Ne compter que les succès rendrait un compteur qui
+   * descend quand ça va mal.
+   *
+   * ⚠️ IL NE DOIT JAMAIS JETER. Une instrumentation qui casse un appel modèle
+   * coûterait le plan qu'elle prétend mesurer.
+   */
+  onProviderAttempt?: () => void;
   // If true, attempt #1 always uses meta.model exactly (no policy model override).
   forceInitialModel?: boolean;
   // If true, do not append our internal provider/model fallback chain.
@@ -566,6 +649,11 @@ export async function generateWithGemini(
     };
   };
 
+  // Résolu UNE fois par `generateWithGemini`, pour que les deux branches et les
+  // quatre sites de journal citent la MÊME valeur. Avant, chaque site relisait
+  // l'environnement: un palier demandé par l'appelant n'y serait jamais apparu.
+  const resolvedServiceTier = resolveOpenAiServiceTier(meta?.serviceTier);
+
   const callOpenAIResponses = async (
     args: {
       model: string;
@@ -606,6 +694,9 @@ export async function generateWithGemini(
     if (openAiReasoningEffort && isOpenAiGpt5Family(args.model)) {
       payload.reasoning = { effort: openAiReasoningEffort };
     }
+    // ⟳ 2026-09-08 — LE PALIER, SEULEMENT S'IL EST DEMANDÉ ET VALIDE.
+    // ⟳ 2026-09-10 — et il vient de l'appelant AVANT de venir de l'environnement.
+    if (resolvedServiceTier.tier) payload.service_tier = resolvedServiceTier.tier;
     if (args.jsonMode) {
       payload.text = { format: { type: "json_object" } };
     }
@@ -687,6 +778,12 @@ export async function generateWithGemini(
     if (openAiReasoningEffort && isOpenAiGpt5Family(args.model)) {
       payload.reasoning_effort = openAiReasoningEffort;
     }
+    // ⟳ 2026-09-10 — LE PALIER PASSE AUSSI PAR ICI, ET C'EST LE DÉFAUT QUI
+    // MANQUAIT. `OPENAI_USE_RESPONSES_API=0` est un repli manuel d'une ligne;
+    // tant que cette branche ne portait pas le champ, le basculer faisait
+    // perdre le palier SANS RIEN DIRE — et un banc « Fast » y aurait mesuré
+    // une latence de palier ordinaire en croyant mesurer Fast.
+    if (resolvedServiceTier.tier) payload.service_tier = resolvedServiceTier.tier;
     if (args.jsonMode) {
       payload.response_format = { type: "json_object" };
     }
@@ -1139,6 +1236,20 @@ export async function generateWithGemini(
           model = desiredModel;
         }
 
+        // ⟳ 2026-09-11 · LOT 6 — LA TRANSMISSION EST COMPTÉE ICI.
+        //
+        // ⛔ AVANT L'ENVOI, ET APRÈS LE DISJONCTEUR. Une passe sautée parce que
+        // le disjoncteur est ouvert n'est PAS une transmission: elle ne coûte
+        // ni jeton ni temps fournisseur, et la compter ferait croire à un
+        // budget consommé qui ne l'est pas. Une passe qui part et ÉCHOUE, si —
+        // c'est elle qui prend le temps que le budget doit connaître.
+        //
+        // ⚠️ IL NE JETTE JAMAIS. Une instrumentation qui casse un appel modèle
+        // coûterait le plan qu'elle prétend mesurer.
+        try {
+          meta?.onProviderAttempt?.();
+        } catch { /* une mesure ne casse pas ce qu'elle mesure */ }
+
         // Provider dispatch: OpenAI vs Gemini
         if (isOpenAiModel(model)) {
           if (!OPENAI_API_KEY) {
@@ -1367,6 +1478,15 @@ export async function generateWithGemini(
                     openai_api: api,
                     openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
                       null,
+                    // ⟳ 2026-09-08 — LE PALIER DEMANDÉ ET CELUI RENDU, côte à
+                    // côte : « fast » se lit `priority` en retour, et un palier
+                    // refusé ou ignoré se voit ICI, pas dans une latence.
+                    service_tier_sent: resolvedServiceTier.tier,
+                    service_tier_rejected: resolvedServiceTier.rejected,
+                    service_tier_source: resolvedServiceTier.source,
+                    service_tier_echoed: typeof rawJson?.service_tier === "string"
+                      ? rawJson.service_tier
+                      : null,
                   },
                 });
               }
@@ -1419,6 +1539,14 @@ export async function generateWithGemini(
                   openai_api: api,
                   openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
                     null,
+                  // ⟳ 2026-09-08 — LE PALIER DEMANDÉ ET CELUI RENDU, côte à côte : « fast »
+                  // se lit `priority` en retour, et un palier refusé se voit ICI.
+                  service_tier_sent: resolvedServiceTier.tier,
+                  service_tier_rejected: resolvedServiceTier.rejected,
+                  service_tier_source: resolvedServiceTier.source,
+                  service_tier_echoed: typeof rawJson?.service_tier === "string"
+                    ? rawJson.service_tier
+                    : null,
                 },
               });
               return { tool: toolName, args: argsObj };
@@ -1444,6 +1572,14 @@ export async function generateWithGemini(
                   openai_api: api,
                   openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
                     null,
+                  // ⟳ 2026-09-08 — LE PALIER DEMANDÉ ET CELUI RENDU, côte à côte : « fast »
+                  // se lit `priority` en retour, et un palier refusé se voit ICI.
+                  service_tier_sent: resolvedServiceTier.tier,
+                  service_tier_rejected: resolvedServiceTier.rejected,
+                  service_tier_source: resolvedServiceTier.source,
+                  service_tier_echoed: typeof rawJson?.service_tier === "string"
+                    ? rawJson.service_tier
+                    : null,
                 },
                 error_message: "Empty OpenAI response",
               });
@@ -1482,6 +1618,14 @@ export async function generateWithGemini(
                 openai_api: api,
                 openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
                   null,
+                // ⟳ 2026-09-08 — LE PALIER DEMANDÉ ET CELUI RENDU, côte à côte : « fast »
+                // se lit `priority` en retour, et un palier refusé se voit ICI.
+                service_tier_sent: resolvedServiceTier.tier,
+                service_tier_rejected: resolvedServiceTier.rejected,
+                service_tier_source: resolvedServiceTier.source,
+                service_tier_echoed: typeof rawJson?.service_tier === "string"
+                  ? rawJson.service_tier
+                  : null,
               },
             });
             return jsonMode ? text.replace(/```json\n?|```/g, "").trim() : text;

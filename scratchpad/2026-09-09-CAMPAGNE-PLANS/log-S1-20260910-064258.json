@@ -1,0 +1,131 @@
+[
+ {
+  "tag": "keel.meal.retained_items",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.meal.own_mouth",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "source": "no_household",
+  "appetite": null,
+  "appetite_asked": 0,
+  "axes_asked": 0,
+  "axes_answered": 0
+ },
+ {
+  "tag": "keel.age_gate",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "age_population": "adult",
+  "age_reason": "adult",
+  "number_allowed": true,
+  "age": 36
+ },
+ {
+  "tag": "keel.meal.notes",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "subject": "household",
+  "lines": 0,
+  "served": 0
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "911ef337-2af9-4f41-acf0-eb49b9d0d8be",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.condition_gate",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "population": "none",
+  "goal": "maintenance",
+  "served_goal": "maintenance",
+  "cancelled": false
+ },
+ {
+  "tag": "keel.meal.portion_adjust",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "age_state": "adult",
+  "retained": 0,
+  "answers": 0,
+  "position": 0,
+  "raw": 0,
+  "factor": 1,
+  "applied": 0,
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": []
+ },
+ {
+  "tag": "keel.meal.envelope_direction",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "goal": "maintenance",
+  "direction": null,
+  "daily_delta_kcal": 0,
+  "energy_floor_kcal": 1500,
+  "pace_set": 0
+ },
+ {
+  "tag": "keel.meal.envelope",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "intent": "draft",
+  "mode": "per_kg",
+  "energy_low": 2414,
+  "energy_high": 2668,
+  "unadjusted_low": 2414,
+  "unadjusted_high": 2668
+ },
+ {
+  "tag": "keel.meal.day_target",
+  "user_id": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "intent": "draft",
+  "kcal": 2541,
+  "reason": "anchored",
+  "gap_closed": "none",
+  "slots": 3,
+  "per_slot": {
+   "breakfast": 635,
+   "lunch": 1016,
+   "dinner": 889
+  },
+  "grams": {
+   "breakfast": {
+    "min": 250,
+    "max": 635,
+    "preferred": 443,
+    "by": "target",
+    "appetite_factor": 1
+   },
+   "lunch": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "dinner": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   }
+  },
+  "applied_to_grams": 0
+ }
+]

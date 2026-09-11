@@ -2254,7 +2254,14 @@ export interface MealPhotoAckArgs {
    * `undefined` n'est pas une réponse: la fonction jette, comme pour les trois
    * autres arguments de ce contrat.
    */
-  inferredSlot: "breakfast" | "lunch" | "dinner" | null;
+  inferredSlot:
+    | "breakfast"
+    | "snack_am"
+    | "lunch"
+    | "snack_pm"
+    | "dinner"
+    | "before_bed"
+    | null;
   locale: string;
 }
 
@@ -2363,7 +2370,41 @@ const ACK_COPY: Record<LocalePackKey, {
   assumed: (assumption: string) => string;
   lowConfidence: string;
   /** Les trois créneaux DATABLES — les seuls que l'inférence peut produire. */
-  slotName: Record<"breakfast" | "lunch" | "dinner", string>;
+  /**
+   * LE NOM DU MOMENT, PRÊT À S'INSÉRER DANS `filedUnder`.
+   *
+   * ⚠️ EN FRANÇAIS, LE NOM PORTE SA PRÉPOSITION, et ce n'est pas du confort de
+   * traduction: « au déjeuner » et « à ton en-cas du matin » ne se composent
+   * pas avec le même mot. Un gabarit qui écrirait « au » lui-même produirait
+   * « au en-cas du matin » dès qu'un moment optionnel serait déduit — et les
+   * trois moments optionnels sont arrivés le 2026-09-09.
+   */
+  slotName: Record<
+    "breakfast" | "snack_am" | "lunch" | "snack_pm" | "dinner" | "before_bed",
+    string
+  >;
+  /**
+   * LE CRÉNEAU DÉDUIT, ET LA PORTE DE CORRECTION DANS LA MÊME PHRASE.
+   *
+   * ⟳ 2026-09-09 — LA PORTE A CHANGÉ D'ADRESSE, PARCE QUE L'ANCIENNE N'EN
+   * ÉTAIT PAS UNE. Elle disait « dis-moi si c'était un autre repas ». Or
+   * l'accusé photo n'est PAS un tour de cerveau (`meal-photo-upload-v1` poste
+   * par `deliverChatMessage`, sans `processMessage`), et AUCUN écrivain de ce
+   * dépôt ne déplace le créneau d'un fait déjà écrit depuis la conversation:
+   * les deux outils qui touchent `slot_key` (`log_protocol_event`,
+   * `declare_deviation`) INSÈRENT. Répondre « c'était le déjeuner » aurait
+   * donc, au mieux, fabriqué un second repas.
+   *
+   * Le seul écrivain qui déplace vraiment est `journal_correct`
+   * (`tracking_mutations_io.ts`), et il vit sur `/app/progress`. La phrase y
+   * envoie. §3.3bis est tenu — l'hypothèse est annoncée et la porte existe —
+   * et elle mène désormais quelque part.
+   *
+   * ⛔ PAS DE BOUTON DE CORRECTION ICI. Le bouton « corriger le chiffre » a été
+   * retiré le 2026-09-07 avec un motif qui vaut aussi pour le créneau:
+   * modifier un fait déjà écrit par un bouton est la lane que le chantier de
+   * réduction du chat ferme.
+   */
   filedUnder: (slot: string) => string;
   and: string;
 }> = {
@@ -2402,9 +2443,16 @@ const ACK_COPY: Record<LocalePackKey, {
     assumed: (assumption) => `${assumption} Tell me if that is wrong.`,
     lowConfidence:
       "I am not confident about this reading - correct me if I got it wrong.",
-    slotName: { breakfast: "breakfast", lunch: "lunch", dinner: "dinner" },
+    slotName: {
+      breakfast: "breakfast",
+      snack_am: "your mid-morning snack",
+      lunch: "lunch",
+      snack_pm: "your afternoon snack",
+      dinner: "dinner",
+      before_bed: "your bedtime snack",
+    },
     filedUnder: (slot) =>
-      `I have filed it under ${slot}, going by the time — tell me if it was another meal.`,
+      `I have filed it under ${slot}, going by the time — you can move it in your tracking if it was another meal.`,
     and: "and",
   },
   fr: {
@@ -2448,12 +2496,15 @@ const ACK_COPY: Record<LocalePackKey, {
     lowConfidence:
       "Je ne suis pas sûre de cette lecture - corrige-moi si je me trompe.",
     slotName: {
-      breakfast: "petit-déjeuner",
-      lunch: "déjeuner",
-      dinner: "dîner",
+      breakfast: "au petit-déjeuner",
+      snack_am: "à ton en-cas du matin",
+      lunch: "au déjeuner",
+      snack_pm: "au goûter",
+      dinner: "au dîner",
+      before_bed: "à ton en-cas du soir",
     },
     filedUnder: (slot) =>
-      `Je l'ai rangée au ${slot}, d'après l'heure — dis-moi si c'était un autre repas.`,
+      `Je l'ai rangée ${slot}, d'après l'heure — tu peux la déplacer dans ton suivi si c'était un autre repas.`,
     and: "et",
   },
 };

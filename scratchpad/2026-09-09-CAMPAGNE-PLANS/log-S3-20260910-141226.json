@@ -1,0 +1,552 @@
+[
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "70e7b197-5ebe-45cb-9891-6e6ee3347f71",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "b806c291-5f64-4fdf-ae86-b83761255395",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "draftId": "b8a8bab3-eba9-4d02-81cc-6777c68a1e37",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "draftId": "b6be93d1-1474-4a18-84f3-f17f12edc610",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.retained_items",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.meal.own_mouth",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "source": "no_household",
+  "appetite": null,
+  "appetite_asked": 0,
+  "axes_asked": 0,
+  "axes_answered": 0
+ },
+ {
+  "tag": "keel.age_gate",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "age_population": "adult",
+  "age_reason": "adult",
+  "number_allowed": true,
+  "age": 27
+ },
+ {
+  "tag": "keel.meal.notes",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "subject": "household",
+  "lines": 0,
+  "served": 0
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "draftId": "3ba0cb1c-9009-485c-9df1-525fa6b3e9d0",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.condition_gate",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "population": "none",
+  "goal": "muscle_gain",
+  "served_goal": "muscle_gain",
+  "cancelled": false
+ },
+ {
+  "tag": "keel.meal.portion_adjust",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "age_state": "adult",
+  "retained": 0,
+  "answers": 0,
+  "position": 0,
+  "raw": 0,
+  "factor": 1,
+  "applied": 0,
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": []
+ },
+ {
+  "tag": "keel.meal.envelope_direction",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "goal": "muscle_gain",
+  "direction": "up",
+  "daily_delta_kcal": 275,
+  "energy_floor_kcal": 1500,
+  "pace_set": 1
+ },
+ {
+  "tag": "keel.meal.envelope",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "mode": "per_kg",
+  "energy_low": 3722,
+  "energy_high": 3898,
+  "unadjusted_low": 3722,
+  "unadjusted_high": 3898
+ },
+ {
+  "tag": "keel.meal.day_target",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "kcal": 3810,
+  "reason": "anchored",
+  "gap_closed": "none",
+  "slots": 5,
+  "per_slot": {
+   "breakfast": 794,
+   "snack_am": 318,
+   "lunch": 1270,
+   "snack_pm": 318,
+   "dinner": 1111
+  },
+  "grams": {
+   "breakfast": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "snack_am": {
+    "min": 80,
+    "max": 300,
+    "preferred": 190,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "lunch": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "snack_pm": {
+    "min": 80,
+    "max": 300,
+    "preferred": 190,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "dinner": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   }
+  },
+  "applied_to_grams": 0
+ },
+ {
+  "tag": "keel.meal.regrammed",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "lines": 1
+ },
+ {
+  "tag": "keel.meal.composition_fill",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "measured": true,
+  "unknowns": 2,
+  "requested": 2,
+  "answered": 2,
+  "model": 1,
+  "group_bounds": 1,
+  "over_cap": 0,
+  "no_group": 0,
+  "no_band": 0,
+  "already_resolved": 0,
+  "unreachable": 0,
+  "implausible": 0,
+  "kept": 2,
+  "sas_group_armed": 2,
+  "sas_write_skipped_reused_group": 1,
+  "sas_written": 1,
+  "sas_failed": 0,
+  "shares": {
+   "kcal": 6793,
+   "table": 0.988,
+   "promoted": 0,
+   "model": 0,
+   "group_bounds": 0.012
+  }
+ },
+ {
+  "tag": "keel.meal.empty_slots_retry",
+  "request_id": "e35aa020-78d4-4d4f-a776-079c6b806bcf",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "before": 2,
+  "attempts": 1,
+  "filled": 2,
+  "shopping_added": 3,
+  "shopping_summed": 0,
+  "shopping_conflicts": 2,
+  "after": 0
+ },
+ {
+  "tag": "keel.meal.composition_correction",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "tokens": [
+   "raise_energy"
+  ],
+  "suppressed": [],
+  "retried": false,
+  "coverage_flag": "ok"
+ },
+ {
+  "tag": "keel.meal.portion_scaling",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "applied": true,
+  "abstained": null,
+  "protein_factor": 0.75,
+  "other_factor": 1.507,
+  "lines_changed": 57,
+  "capped": 0,
+  "shopping_changed": 39,
+  "shopping_unrewritable": 6,
+  "verdict_energy": "within",
+  "verdict_protein": "not_computable"
+ },
+ {
+  "tag": "keel.meal.fridge_window",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "dishes": 12,
+  "violations": 0,
+  "within": 6,
+  "not_evaluated": 0,
+  "routed": 46,
+  "unknown_group": 2
+ },
+ {
+  "tag": "keel.meal.plan_explanation",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "asked": true,
+  "declared": 0,
+  "kept": 0,
+  "refused": null
+ },
+ {
+  "tag": "keel.meal.food_groups",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "declared": 0,
+  "valid": 0,
+  "refused": 0,
+  "persisted": 0,
+  "lines": 73
+ },
+ {
+  "tag": "keel.meal.wall",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "request_id": "e35aa020-78d4-4d4f-a776-079c6b806bcf",
+  "intent": "draft",
+  "outcome": "draft",
+  "wall_ms": 146489
+ },
+ {
+  "tag": "keel.meal.draft_store",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "request_id": "e35aa020-78d4-4d4f-a776-079c6b806bcf",
+  "outcome": "stored",
+  "draft_id": "3ba0cb1c-9009-485c-9df1-525fa6b3e9d0",
+  "reason": null
+ },
+ {
+  "tag": "keel.meal.retained_items",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.meal.own_mouth",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "source": "no_household",
+  "appetite": null,
+  "appetite_asked": 0,
+  "axes_asked": 0,
+  "axes_answered": 0
+ },
+ {
+  "tag": "keel.age_gate",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "age_population": "adult",
+  "age_reason": "adult",
+  "number_allowed": true,
+  "age": 27
+ },
+ {
+  "tag": "keel.meal.notes",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "subject": "household",
+  "lines": 0,
+  "served": 0
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "draftId": "e29b4e9c-11e9-4323-a89d-8f1c9a41acbd",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.meal.condition_gate",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "population": "none",
+  "goal": "muscle_gain",
+  "served_goal": "muscle_gain",
+  "cancelled": false
+ },
+ {
+  "tag": "keel.meal.portion_adjust",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "age_state": "adult",
+  "retained": 0,
+  "answers": 0,
+  "position": 0,
+  "raw": 0,
+  "factor": 1,
+  "applied": 0,
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": []
+ },
+ {
+  "tag": "keel.meal.envelope_direction",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "goal": "muscle_gain",
+  "direction": "up",
+  "daily_delta_kcal": 275,
+  "energy_floor_kcal": 1500,
+  "pace_set": 1
+ },
+ {
+  "tag": "keel.meal.envelope",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "mode": "per_kg",
+  "energy_low": 3722,
+  "energy_high": 3898,
+  "unadjusted_low": 3722,
+  "unadjusted_high": 3898
+ },
+ {
+  "tag": "keel.meal.day_target",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "kcal": 3810,
+  "reason": "anchored",
+  "gap_closed": "none",
+  "slots": 5,
+  "per_slot": {
+   "breakfast": 794,
+   "snack_am": 318,
+   "lunch": 1270,
+   "snack_pm": 318,
+   "dinner": 1111
+  },
+  "grams": {
+   "breakfast": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "snack_am": {
+    "min": 80,
+    "max": 300,
+    "preferred": 190,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "lunch": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "snack_pm": {
+    "min": 80,
+    "max": 300,
+    "preferred": 190,
+    "by": "table",
+    "appetite_factor": 1
+   },
+   "dinner": {
+    "min": 250,
+    "max": 700,
+    "preferred": 475,
+    "by": "table",
+    "appetite_factor": 1
+   }
+  },
+  "applied_to_grams": 0
+ },
+ {
+  "tag": "keel.meal.regrammed",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "lines": 4
+ },
+ {
+  "tag": "keel.meal.composition_fill",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "measured": true,
+  "unknowns": 3,
+  "requested": 3,
+  "answered": 3,
+  "model": 0,
+  "group_bounds": 3,
+  "over_cap": 0,
+  "no_group": 0,
+  "no_band": 0,
+  "already_resolved": 0,
+  "unreachable": 0,
+  "implausible": 0,
+  "kept": 3,
+  "sas_group_armed": 0,
+  "sas_write_skipped_reused_group": 0,
+  "sas_written": 3,
+  "sas_failed": 0,
+  "shares": {
+   "kcal": 8155,
+   "table": 0.986,
+   "promoted": 0,
+   "model": 0,
+   "group_bounds": 0.014
+  }
+ },
+ {
+  "tag": "keel.meal.empty_slots_retry",
+  "request_id": "bf7d39be-dfe1-4b3f-91c9-0c3d34c4e04d",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "before": 0,
+  "attempts": 0,
+  "filled": 0,
+  "shopping_added": 0,
+  "shopping_summed": 0,
+  "shopping_conflicts": 0,
+  "after": 0
+ },
+ {
+  "tag": "keel.meal.composition_correction",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "tokens": [],
+  "suppressed": [],
+  "retried": false,
+  "coverage_flag": "ok"
+ },
+ {
+  "tag": "keel.meal.portion_scaling",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "applied": false,
+  "abstained": "no_factor",
+  "protein_factor": null,
+  "other_factor": null,
+  "lines_changed": 0,
+  "capped": 0,
+  "shopping_changed": 0,
+  "shopping_unrewritable": 0,
+  "verdict_energy": "within",
+  "verdict_protein": "not_computable"
+ },
+ {
+  "tag": "keel.meal.fridge_window",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "dishes": 12,
+  "violations": 0,
+  "within": 13,
+  "not_evaluated": 0,
+  "routed": 38,
+  "unknown_group": 3
+ },
+ {
+  "tag": "keel.meal.plan_explanation",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "asked": true,
+  "declared": 2,
+  "kept": 2,
+  "refused": null
+ },
+ {
+  "tag": "keel.meal.food_groups",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "intent": "draft",
+  "declared": 0,
+  "valid": 0,
+  "refused": 0,
+  "persisted": 0,
+  "lines": 67
+ },
+ {
+  "tag": "keel.meal.wall",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "request_id": "bf7d39be-dfe1-4b3f-91c9-0c3d34c4e04d",
+  "intent": "draft",
+  "outcome": "draft",
+  "wall_ms": 45437
+ },
+ {
+  "tag": "keel.meal.draft_store",
+  "user_id": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "request_id": "bf7d39be-dfe1-4b3f-91c9-0c3d34c4e04d",
+  "outcome": "stored",
+  "draft_id": "e29b4e9c-11e9-4323-a89d-8f1c9a41acbd",
+  "reason": null
+ }
+]

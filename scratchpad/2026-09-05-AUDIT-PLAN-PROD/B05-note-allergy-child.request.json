@@ -1,0 +1,12 @@
+{
+  "operation": "compose",
+  "window": {
+    "kind": "days",
+    "count": 3
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": null,
+  "one_cooking_session": false,
+  "draft_note": "Tom est allergique aux noix de cajou. Pour le prochain plan, je voudrais des fajitas."
+}

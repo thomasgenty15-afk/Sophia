@@ -34,8 +34,9 @@ export const INDEXED_PAGES: ReadonlyArray<{
   titleKey: MessageKey;
   descriptionKey: MessageKey;
 }> = [
+  // ⚠️ UNE SEULE PAGE DEPUIS LE 2026-09-08 — les trois pages de vente sont
+  // retirées avec leurs namespaces. Le prérendu n'écrit plus que `index.html`
+  // et `en.html`; `vercel.json` a perdu leurs réécritures et gagné des
+  // redirections permanentes vers le hall.
   { path: "/", titleKey: "home.seo_title", descriptionKey: "home.seo_description" },
-  { path: "/meal-prep", titleKey: "mealprep.seo_title", descriptionKey: "mealprep.seo_description" },
-  { path: "/couples", titleKey: "couples.seo_title", descriptionKey: "couples.seo_description" },
-  { path: "/families", titleKey: "families.seo_title", descriptionKey: "families.seo_description" },
 ];

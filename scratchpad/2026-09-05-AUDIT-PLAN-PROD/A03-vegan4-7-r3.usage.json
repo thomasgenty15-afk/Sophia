@@ -1,0 +1,59 @@
+[
+  {
+    "request_id": "af660f6c-e0ca-4ab9-8b34-bef10dbc6290",
+    "source": "generate-household-meal-v1",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 41934,
+    "prompt_tokens": 10896,
+    "output_tokens": 5770,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_08af0373a25d6af3006a9c697a995c87d2a4609c8b04b2df1b",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "af660f6c-e0ca-4ab9-8b34-bef10dbc6290",
+    "source": "generate-household-meal-v1.unfed_retry",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "status": "success",
+    "latency_ms": 41060,
+    "prompt_tokens": 11727,
+    "output_tokens": 4998,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_0d92732bb697c9dc006a9c69a4892887d29247b0770d4e2bdf",
+      "user_id_resolution": "provided"
+    }
+  },
+  {
+    "request_id": "af660f6c-e0ca-4ab9-8b34-bef10dbc6290",
+    "source": "generate-household-meal-v1.composition_fill",
+    "provider": "openai",
+    "model": "gpt-5.4-nano",
+    "status": "success",
+    "latency_ms": 2389,
+    "prompt_tokens": 421,
+    "output_tokens": 77,
+    "cost_usd": 0,
+    "metadata": {
+      "hasTools": false,
+      "jsonMode": true,
+      "openai_api": "responses",
+      "toolChoice": "auto",
+      "openai_response_id": "resp_025641867789024b006a9c69cdcfa887d29c0d26eb378988f9",
+      "user_id_resolution": "provided"
+    }
+  }
+]

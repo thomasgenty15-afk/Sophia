@@ -19,6 +19,10 @@
 // en attente.
 // ===========================================================================
 
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import { HOUSEHOLD_TRIAL_DAYS } from "../billing-tier.ts";
@@ -169,7 +173,7 @@ Deno.test("la génération de repas PERSONNELLE interroge la couverture", async 
   // écrit portait quand même le `household_id` de ce foyer. Un 402 qui se
   // contourne par une porte voisine n'est pas un 402.
   const src = await Deno.readTextFile(
-    new URL("generate-meal-v1/index.ts", FUNCTIONS_DIR),
+    new URL("generate-household-meal-v1/index.ts", FUNCTIONS_DIR),
   );
   assert(
     callsCoverageRpc(src),
@@ -190,7 +194,7 @@ Deno.test("le gel personnel ne coûte pas un appel modèle", async () => {
   // brûle les 19 805 jetons qu'elle existe pour ne pas dépenser. La position
   // ne se prouve donc pas par le comportement, seulement par la source.
   for (
-    const fn of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+    const fn of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = stripComments(
       await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
@@ -222,7 +226,7 @@ Deno.test("un impayé n'écrit pas dans le journal d'incidents", async () => {
   // personne et le foyer, juste au-dessus du refus. Ce test garde le silence
   // du journal d'incidents, pas le silence tout court.
   for (
-    const fn of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+    const fn of ["generate-household-meal-v1/index.ts"]
   ) {
     const src = stripComments(
       await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
@@ -247,58 +251,6 @@ Deno.test("un impayé n'écrit pas dans le journal d'incidents", async () => {
         `les pannes.`,
     );
   }
-});
-
-Deno.test("le gel personnel ne mord QUE sur un foyer connu et non couvert", async () => {
-  // UNE GARDE A BESOIN D'UN CAS QUI PASSE. Cassée, elle refuse tout et
-  // ressemble trait pour trait à une garde qui marche. Les trois cas qui
-  // DOIVENT passer sont rejoués ici sur la logique elle-même:
-  //
-  //   • sans foyer — arbitrage D13, mot pour mot: « il y a des comptes
-  //     individuels qui nécessiteront pas de foyer on s'en fout ». La RPC
-  //     n'est même pas interrogée.
-  //   • foyer couvert — le cas nominal.
-  //   • lecture de foyer EN PANNE — fail-open, l'inverse des allergies: on ne
-  //     peut pas geler quelqu'un dont on n'a pas su lire le foyer, et une
-  //     lecture de facturation cassée qui refuse coupe un client qui paie.
-  const decide = (
-    householdId: string | null,
-    lookupFailed: boolean,
-    covered: boolean | null,
-  ): "refuse" | "pass" => {
-    if (householdId && !lookupFailed) {
-      if (covered === false) return "refuse";
-    }
-    return "pass";
-  };
-
-  // ⚠️ `decide` est une COPIE de la condition, et une copie qui dérive est un
-  // test faux-vert — ce dépôt a déjà mesuré « un test paramétré par sa propre
-  // constante reste vert quand on change la constante ». Les deux lignes
-  // ci-dessous rattachent la copie à l'original: si la condition de la source
-  // change, ce test tombe avant d'avoir pu mentir.
-  const src = await Deno.readTextFile(
-    new URL("generate-meal-v1/index.ts", FUNCTIONS_DIR),
-  );
-  assert(
-    src.includes("if (householdId && !householdLookupFailed) {"),
-    "la condition d'entrée de la garde a changé dans generate-meal-v1: " +
-      "`decide` ci-dessous n'en est plus la copie, et ses cas qui passent ne " +
-      "prouvent plus rien.",
-  );
-  assert(
-    stripComments(src).includes('coverRes.data === false'),
-    "generate-meal-v1 ne compare plus la couverture à `false`: un `!coverRes." +
-      "data` refuserait aussi sur `null`, c'est-à-dire sur une lecture " +
-      "illisible — l'inverse exact du fail-open voulu.",
-  );
-
-  assertEquals(decide(null, false, null), "pass", "compte sans foyer (D13)");
-  assertEquals(decide("h1", false, true), "pass", "foyer couvert");
-  assertEquals(decide("h1", true, null), "pass", "résolution du foyer en panne");
-  assertEquals(decide(null, true, null), "pass", "pas de foyer, lecture ratée");
-  assertEquals(decide("h1", false, null), "pass", "couverture illisible");
-  assertEquals(decide("h1", false, false), "refuse", "foyer gelé");
 });
 
 // ⚠️ ── LA SECONDE PORTE DE D4 A DISPARU AVEC SON CANAL (2026-09-01) ────────
@@ -343,6 +295,13 @@ Deno.test("personne ne relit `free_until` hors de la facturation", async () => {
     "stripe-reconcile-households/index.ts",
     "stripe-create-checkout-session/index.ts",
     "_shared/keel/household_freeze_test.ts",
+    // ⟳ 2026-09-11 — UN BANC QUI POSE UN DÉCOR N'EST PAS UNE DÉFINITION. Ce
+    // fichier ÉCRIT `free_until` sur le foyer d'essai, lit la valeur d'avant
+    // et la restaure à la fin: il fabrique un foyer gelé pour vérifier ce que
+    // le runtime en fait. Il ne répond jamais « ce foyer est-il couvert » —
+    // c'est toujours `keel_household_is_covered` qui tranche. La garde reste
+    // donc entière pour tout lecteur de production.
+    "_shared/keel/lot8_integration_handler_test.ts",
   ]);
   const offenders: string[] = [];
   for (const [name, src] of await functionSources()) {
@@ -358,64 +317,12 @@ Deno.test("personne ne relit `free_until` hors de la facturation", async () => {
       "que le chantier 3 existe pour retirer.",
   );
 });
+// ⟳ 2026-09-11 · LOT 7 — C5 ⑦ EST PARTI AVEC `generate-meal-v1`.
+// Il épinglait que la panne de `resolveHouseholdIdFor` était JOURNALISÉE dans
+// la lane individuelle. Cette fonction n'existe plus, et la lane du foyer
+// n'a jamais eu ce chemin: elle jette sur sa lecture de siège
+// (`if (meRes.error) throw`), ce que le lot 2 a épinglé ailleurs.
 
-// ===========================================================================
-// C5 ⑦ — UNE LECTURE DE FOYER QUI TOMBE NE PEUT PLUS TOMBER EN SILENCE
-//
-// Le `catch` qui pose `householdLookupFailed` n'écrivait RIEN: ni log, ni
-// ligne d'erreur. Le fail-open, lui, est ASSUMÉ (« se tromper de sens coupe un
-// client qui paie »). Le silence ne l'était pas, et il coûte DEUX choses:
-//
-//   · le gel 402 est sauté — et c'est voulu;
-//   · `householdId` devient `null`, donc le repli de doctrine de C1/C2
-//     disparaît, et un secondaire PAYANT retombe sur `409 no_coach`.
-//
-// La seconde n'est écrite nulle part quand la fonction refuse avant d'écrire
-// une ligne: `generated_from.household_lookup_failed` ne vit que sur un plan
-// qui s'écrit. À comparer avec la lecture de COUVERTURE, juste en dessous, qui
-// appelle `logEdgeFunctionError` depuis L1.
-// ===========================================================================
-
-for (
-  const fn of [
-    "generate-meal-v1/index.ts",
-  ]
-) {
-  Deno.test(`C5 ⑦ — la panne de résolution du foyer est journalisée — ${fn}`, async () => {
-    const src = stripComments(
-      await Deno.readTextFile(new URL(fn, FUNCTIONS_DIR)),
-    );
-    const at = src.indexOf("resolveHouseholdIdFor(admin, userId)");
-    assert(at >= 0, `${fn}: la résolution du foyer a disparu — test à réviser`);
-    // Le `catch` de CETTE lecture-là, pas un `logEdgeFunctionError` ailleurs
-    // dans le fichier: il ne prouverait rien sur cette panne-ci.
-    const block = src.slice(at, at + 700);
-    assert(
-      /catch\s*\(\s*error\s*\)/.test(block),
-      `${fn}: l'erreur est de nouveau jetée (\`catch (_error)\`). Une panne ` +
-        `qui n'a pas de nom ne se journalise pas.`,
-    );
-    assert(
-      block.includes("logEdgeFunctionError("),
-      `${fn}: la panne de résolution du foyer ne laisse AUCUNE trace. Le gel ` +
-        `402 est sauté (fail-open assumé) ET le repli de doctrine disparaît — ` +
-        `un secondaire payant retombe sur \`no_coach\` sans qu'on puisse le ` +
-        `relier à quoi que ce soit.`,
-    );
-    assert(
-      /source:\s*"household_lookup"/.test(block),
-      `${fn}: la ligne d'erreur ne nomme plus sa source; elle se confondra ` +
-        `avec celle de la couverture, dix lignes plus bas.`,
-    );
-    // ET LE FAIL-OPEN SURVIT: la panne ne doit pas être devenue un refus.
-    assert(
-      !/status:\s*(40[0-9]|50[0-9])/.test(block),
-      `${fn}: la panne de lecture est devenue un REFUS. C'est l'inverse de ` +
-        `l'arbitrage de L1 — un refus qui coupe un client qui paie ne se ` +
-        `répare par aucun nouvel essai.`,
-    );
-  });
-}
 
 // ===========================================================================
 // C5 ⑥ — UN 500 DIT DE QUOI, ET PAS « [object Object] »
@@ -429,7 +336,9 @@ for (
 Deno.test("C5 ⑥ — aucun générateur ne rend `[object Object]` dans son corps", async () => {
   for (
     const fn of [
-      "generate-meal-v1/index.ts",
+      // ⟳ 2026-09-11 · LOT 7 — une seule lane reste. La boucle est GARDÉE sur
+      // un élément: la propriété est « sur CHAQUE générateur », pas « sur
+      // celui-ci », et un second s'y ajoutera au lieu de rouvrir un test.
       "generate-household-meal-v1/index.ts",
     ]
   ) {
@@ -470,4 +379,56 @@ Deno.test("C5 ⑥ — LE CAS QUI PASSE: une PostgrestError se lit", async () => 
   assert(!readableErrorMessage(Object.create(null)).includes("[object Object]"));
   // Une vraie `Error` garde son message, mot pour mot.
   assertEquals(readableErrorMessage(new Error("boom")), "boom");
+});
+
+// ---------------------------------------------------------------------------
+// FF-064 — LE PAIEMENT ANTICIPÉ EST BRANCHÉ, ET LE REFUS QU'IL REMPLACE EST
+// PARTI
+// ---------------------------------------------------------------------------
+//
+// Ces deux assertions sont des épreuves de FIL, pas de logique: le calcul de
+// `trial_end` est prouvé dans `_shared/billing-tier_test.ts`, mais un calcul
+// juste qu'on n'appelle nulle part est un lot désarmé qui ressemble à un lot
+// qui marche. Elles lisent la SOURCE parce que c'est la seule façon de le voir
+// sans un compte Stripe.
+Deno.test("le tunnel du foyer pose `trial_end`, et ne refuse plus l'essai", async () => {
+  const src = stripComments(
+    await Deno.readTextFile(
+      new URL("stripe-create-checkout-session/index.ts", FUNCTIONS_DIR),
+    ),
+  );
+
+  // 1. LE REFUS EST PARTI. `household_in_trial` renvoyait 409 à quiconque
+  //    voulait payer pendant sa semaine offerte — c'est-à-dire à tout le monde,
+  //    puisque c'est la seule fenêtre où l'app fonctionne encore.
+  assert(
+    !/["']household_in_trial["']/.test(src),
+    "le refus `household_in_trial` est revenu. Il n'a plus de raison d'être: " +
+      "l'objection qui l'avait créé (Stripe exige 48 h) est répondue par le " +
+      "repli à 49 h de `householdStripeTrialEnd`, qui ne peut que DÉPASSER la " +
+      "promesse.",
+  );
+
+  // 2. LA CLÉ EST DANS `subscription_data`, ET PAS AILLEURS. Posée à côté —
+  //    au niveau de la session — Stripe l'ignore en silence, et la semaine
+  //    offerte se ferait facturer sans que rien ne le dise.
+  const at = src.indexOf("subscription_data:");
+  assert(at >= 0, "`subscription_data` a disparu du tunnel — test à réviser.");
+  const tail = src.slice(at, at + 400);
+  assert(
+    /trial_end:\s*householdStripeTrialEnd\(/.test(tail),
+    "`trial_end` n'est plus posé dans les 400 caractères qui suivent " +
+      "`subscription_data`. Hors de cet objet, Stripe l'ignore SANS ERREUR, " +
+      "et le premier prélèvement tombe le jour du paiement.",
+  );
+
+  // 3. ⛔ LA CARTE RESTE OBLIGATOIRE. `payment_method_collection:
+  //    "if_required"` laisserait démarrer un essai sans moyen de paiement,
+  //    c'est-à-dire un mur qui retombe dans sept jours.
+  assert(
+    !/payment_method_collection/.test(src),
+    "quelqu'un a touché à `payment_method_collection`. Avec un `trial_end`, " +
+      "Checkout collecte la carte par défaut; la rendre facultative rouvre le " +
+      "mur une semaine plus tard.",
+  );
 });

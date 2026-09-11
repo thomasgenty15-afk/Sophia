@@ -126,7 +126,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // et un mineur n'a pas d'objectif — sont affirmées en base par
       // _shared/keel/household_rls_test.sql.
       "generate-household-meal-v1",
-      "generate-meal-v1",
       // `generate-week-plan-v1` est partie le 2026-08-19. Elle était déployée,
       // testée et déclarée ICI — et sans un seul appelant: ni écran, ni cron,
       // ni vue, ni policy autre que celle du propriétaire. Cette liste avait
@@ -222,6 +221,38 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // _shared/keel/weigh_in_test.ts (13 cas), tous deux sur les modules PURS
       // que ce job se contente de balayer.
       "keel-proactive-v1",
+      // 2026-09-09 — L'INVITATION D'UN FOYER PART PAR E-MAIL (FF-048).
+      //
+      // Elle appelle `keel_household_invite` SOUS LE JETON DE L'APPELANT et
+      // n'écrit AUCUNE règle: les sept refus (`not_authenticated`,
+      // `no_household`, `not_owner`, `bad_email`, `not_a_member`,
+      // `already_claimed`, `rate_limited`) restent en base, une seule fois. Ce
+      // qu'elle ajoute est l'envoi, qui ne peut pas partir d'un navigateur —
+      // et qui n'existait pas: FF-060 R7 disait « AUCUN E-MAIL N'EST ENVOYÉ »,
+      // et le maître portait donc lui-même le lien, avec ses propres mots.
+      //
+      // Couverte par `keel-household-invite-v1/invite_email_test.ts` sur le
+      // module PUR (le rendu, la langue, l'URL), et par un run HTTP réel du
+      // 2026-09-09: `ok` sur une bouche libre, `not_a_member` sur la bouche
+      // d'un autre foyer, `bad_email` sur une adresse malformée, et 401 de la
+      // passerelle sans jeton (`verify_jwt = true`).
+      "keel-household-invite-v1",
+      // FF-063 — LES E-MAILS DE CYCLE DE VIE. Un job pour les onze types, et
+      // le même motif que `keel-proactive-v1` juste au-dessus: la règle « une
+      // personne, un e-mail par passage » est du code, pas une convention.
+      //
+      // ⚠️ CE QU'IL NE MESURE PAS, ET C'EST LE CŒUR DE SA CONCEPTION: le
+      // silence. Aucune colonne de ce dépôt n'enregistre qu'une personne a
+      // OUVERT l'app — lire son plan ne laisse aucune trace. Une relance
+      // déclenchée par l'absence de trace écrirait donc « on ne te voit plus »
+      // à quelqu'un qui a composé sept jours et qui cuisine tous les soirs.
+      // Le curseur est `student_generated_meals.ends_on`, la fin de couverture.
+      //
+      // Couvert par _shared/keel/lifecycle_email_test.ts (13 cas, la cadence),
+      // _shared/keel/lifecycle_coverage_test.ts (le segment et les deux packs)
+      // et _shared/keel/lifecycle_copy_guard_test.ts (LEGAL.md §6), tous sur
+      // les modules PURS que ce job se contente de balayer.
+      "keel-lifecycle-email-v1",
       // Q6 — le PDF d'un repas. Depuis de-whatsapp il s'annonce dans la bulle
       // au lieu d'être envoyé par Graph.
       "meal-document-v1",
@@ -295,7 +326,19 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "test-send-message",
       "trigger-memorizer-daily",
       "trigger-memory-v2-alerts",
-      "trigger-retention-emails",
+      // `trigger-retention-emails` A ÉTÉ SUPPRIMÉE le 2026-09-09 (FF-063 lot 8).
+      // Quatre étapes autour de `profiles.trial_end`, textes du coach de vie
+      // (« L'Architecte », « check-ins »), CTA vers `sophia-coach.ai/upgrade`.
+      // Son cron était déprogrammé depuis le 2026-08-03 (20260803030000): la
+      // fonction ne tournait plus, mais elle restait déployée et appelable à la
+      // main, avec de VRAIS envois Resend au nom d'un produit abandonné.
+      // Sa fin d'essai est reprise par `keel-lifecycle-email-v1`, qui lit les
+      // DEUX horloges (`households.free_until` et `profiles.trial_end`) au lieu
+      // d'une seule.
+      // ⚠️ Les références qui SURVIVENT et qu'il ne faut pas nettoyer:
+      // `_shared/keel/pivot_nutrition_tables_test.sql:167` affirme que son cron
+      // est ABSENT — la retirer désarmerait le test — et les migrations
+      // 20260615133000 / 20260803030000 sont l'historique, pas des appelants.
       "trigger-synthesizer-batch",
       "trigger-topic-compaction",
       "trigger-watcher-batch",
@@ -330,6 +373,13 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "on_auth_user_created",
       "on_auth_user_email_confirmed_send_onboarding",
       "on_profile_created_master_admin",
+      // ⟳ 2026-09-11 · LOT 1 — un profil neuf reçoit son foyer personnel
+      // (migration `20260910194000`). Il AVALE ses exceptions (`raise
+      // warning`): une inscription ne peut pas échouer parce que le
+      // provisionnement a raté. Éprouvé par `personal_household_lifecycle_test.sql` § ④.
+      "on_profile_created_ensure_personal_household",
+      // ⟳ 2026-09-10 — le contexte de repas d'un événement de protocole.
+      "protocol_events_meal_context_guard",
       "on_profile_created_seed_default_coach_preferences_trigger",
       // W10 — the inherited entitlement (MEGA_REVIEW B6). The link and the
       // coach's solvency both write `profiles.access_tier`, so both carry a

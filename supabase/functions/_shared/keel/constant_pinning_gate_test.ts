@@ -855,7 +855,6 @@ const DETTE_NON_EPINGLEE: ReadonlySet<string> = new Set([
   "WAIST_NOISE_CM",
   "WEEKLY_LABEL_MAX_CHARS",
   "WEIGHT_NOISE_KG",
-  "YIELD_FACTORS",
 ]);
 
 /**
@@ -874,8 +873,12 @@ const SENTINELLES: readonly string[] = [
   // `composedDishShare`; les enlever d'ici sans remplaçant aurait rendu ce
   // méta-test aveugle à DEUX causes de cécité, en silence — exactement ce qu'il
   // existe pour empêcher. On garde donc une constante de chaque FORME.
-  "UNANSWERED_EXTRAS_KCAL", // ⟳ 2026-09-04: était `_SHARE` (0,58). Le retrait
-  // supposé est passé d'une FRACTION à zéro — rien d'indiqué, rien de retiré.
+  //
+  // ⟳ 2026-09-10 — TROISIÈME RELÈVE, MÊME RÈGLE. `UNANSWERED_EXTRAS_KCAL` est
+  // partie avec les extras eux-mêmes; `ANCHOR_FACTOR_MAX` la remplace — même
+  // forme (scalaire décimal, `export const`, module `mouth_anchor.ts`), et
+  // épinglée par `assertEquals` dans `constant_pins_test.ts`.
+  "ANCHOR_FACTOR_MAX",
   "SLOT_DAY_WEIGHT", // `Record` numérique épinglé en entier
   "BOX_FACTOR_MAX", // module `M`, épinglé depuis un fichier NEUF
   // ⟳ LOT `X2″` (2026-08-23) — UNE SENTINELLE PAR CAUSE DE CÉCITÉ REFERMÉE.

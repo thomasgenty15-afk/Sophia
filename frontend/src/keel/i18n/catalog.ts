@@ -76,21 +76,21 @@ export const DEFAULT_UI_LOCALE: UiLocale = "en";
 /**
  * Les namespaces dont le pack français est ÉCRIT.
  *
- * `legal` n'y est PAS: `Legal.tsx` ne passe par aucun `t()` aujourd'hui (zéro
- * clé dans le seed), c'est une extraction à part. Sa version française
- * d'origine est récupérable dans git (commit `0328448a`), donc ce sera de la
- * récupération et non de la traduction — mais pas ici.
+ * `legal` Y EST DEPUIS LE 2026-09-09. Il en était absent parce que
+ * `Legal.tsx` ne passait par aucun `t()` — zéro clé dans le seed — et que la
+ * frontière refuse une page à moitié traduite. L'extraction faite, la page
+ * rejoint la règle commune. Sa version française d'avant le passage à
+ * l'anglais (commit `0328448a`) a servi de base aux sections qui ont survécu.
  */
 export const TRANSLATED_NAMESPACES = [
   // Les deux HALLS de la refonte du 2026-08-12: `/` accueille le foyer,
   // `/pro` accueille les professionnels.
   "home",
   "pro",
-  // Les six PAGES DE VENTE, une par acheteur. Un namespace par page et JAMAIS
+  // Les PAGES DE VENTE PRO, une par acheteur. Un namespace par page et JAMAIS
   // de clé partagée — voir l'en-tête du bloc dans `en.ts`.
-  "mealprep",
-  "couples",
-  "families",
+  // ⚠️ `mealprep`, `couples` et `families` ont QUITTÉ cette liste le
+  // 2026-09-08: les trois pages sont retirées, `/` est la seule landing.
   "coaches",
   "gyms",
   "communities",
@@ -129,6 +129,19 @@ export const TRANSLATED_NAMESPACES = [
   // backend ne répond pas lisait trois phrases anglaises là où tout le reste
   // du site lui parlait français — et en DEV, `t()` levait. Quatre clés.
   "server_unreachable",
+  // FF-063 — `/unsubscribe`, la SORTIE des e-mails de cycle de vie. Traduite
+  // d'office et pas « plus tard »: c'est la seule page du produit qu'on
+  // atteint uniquement depuis un e-mail, et cet e-mail est écrit dans la
+  // langue du compte. Un écran anglais au bout d'un mail français serait la
+  // couture la plus visible du dépôt, sur la page où l'on est le moins patient.
+  "unsubscribe",
+  // ⚠️ `legal` EST ENTRÉ ICI LE 2026-09-09, ET LA NOTE QUI L'EN EXCLUAIT EST
+  // TOMBÉE AVEC. Elle disait vrai tant que `Legal.tsx` portait mille lignes
+  // d'anglais EN DUR, hors de tout `t()`: déclarer la page aurait promis un
+  // écran entièrement français autour d'un texte juridique anglais. Ce qui a
+  // changé n'est pas la décision, c'est le fait — les ~150 phrases de la page
+  // sont dans le seed, et le pack français est écrit sur les cinq sections.
+  "legal",
 
   // ══ LE COULOIR D'ENTRÉE (lot 2) ═════════════════════════════════════════
   // Une personne s'inscrit, traverse les portes ci-dessous et arrive sur son
@@ -226,6 +239,13 @@ export const TRANSLATED_NAMESPACES = [
   // avec elle. C'est cohérent — la pastille et la bulle disent la même chose.
   "shell",
   "chat",
+
+  // ── FF-064 · L'ABONNEMENT DU FOYER ───────────────────────────────────────
+  // Il entre AVEC le chrome et pas avec les pages de vente, parce qu'il n'en
+  // est pas une: c'est un écran de compte. La vitrine vend, `billing` rend
+  // compte — d'où l'absence totale de montant dans ses clés (ils viennent de
+  // `PRICES` par `<OfferLines />`, cité et jamais recopié).
+  "billing",
 
   // ══ L'APP ÉLÈVE (lot 4) ═════════════════════════════════════════════════
   // ⚠️ `meals` N'EST PAS « L'ÉCRAN /app/meals » — cet écran n'existe d'ailleurs
@@ -452,10 +472,13 @@ export const PAGE_NAMESPACES: Readonly<
   // de `pageSeams.int.test.ts` est délibéré: le chrome est ce que TOUTE page
   // porte, et une sixième page de vente qui voudrait ce bloc devra le dire
   // ici — donc quelqu'un le lira.
-  "/": ["home", "offer", "server_unreachable"],
-  "/meal-prep": ["mealprep", "offer"],
-  "/couples": ["couples", "offer"],
-  "/families": ["families", "offer"],
+  // ⚠️ `meals` SUR LE HALL, ET C'EST VOULU (2026-09-08): la démonstration du
+  // plan (`components/home/PlanDemo`) rend les libellés DU PRODUIT — la
+  // grille, les sessions, le Boxing, les courses du jour. Une seconde table
+  // de libellés sous `home.*` divergerait du produit au premier renommage,
+  // et c'est précisément ce que le brief interdit (« les vrais libellés »).
+  // `/meal-prep`, `/couples` et `/families` ont quitté ce tableau le même jour.
+  "/": ["home", "offer", "meals", "server_unreachable"],
   // ── LE MONDE DES PROFESSIONNELS ──────────────────────────────────────────
   "/pro": ["pro", "server_unreachable"],
   "/coaches": ["coaches"],
@@ -492,19 +515,25 @@ export const PAGE_NAMESPACES: Readonly<
   // rend `start.error.*` quand la création de compte échoue. Aucun scan
   // statique du JSX ne les aurait trouvés — ils viennent de deux modules d'API.
   "/join-household": ["household_claim", "household", "start", "auth"],
-  // ⚠️ `/legal` EST ABSENTE, ET C'EST UN CHOIX QU'IL FAUT LIRE AVANT DE
-  // L'AJOUTER. La déclarer avec `[]` marchait — « tous ses namespaces sont
-  // traduits » est vrai sur l'ensemble vide — et rendait son chrome en
-  // français. Mais son CORPS est mille lignes d'anglais EN DUR, hors de tout
-  // `t()`: la déclaration aurait donc promis une page entièrement française
-  // autour d'un texte juridique anglais, c'est-à-dire précisément la couture
-  // de `/start`, en pire — sur un écran dont la valeur est d'être lisible.
+  // FF-063 — un seul namespace, et c'est vrai: la page ne monte que son
+  // gabarit et le chrome public (`public`, `brand`, implicites). Aucun module
+  // d'API n'y rend de texte — elle parle à UNE rpc qui rend un booléen.
+  "/unsubscribe": ["unsubscribe"],
+  // ⚠️ `/legal` A ÉTÉ ABSENTE DE CETTE TABLE PENDANT UN MOIS, ET LA RAISON
+  // MÉRITE DE SURVIVRE À SON ENTRÉE. La déclarer avec `[]` marchait — « tous
+  // ses namespaces sont traduits » est vrai sur l'ensemble vide — et rendait
+  // son chrome en français; c'est ce qui a été essayé le 2026-08-13, et
+  // vérifié à l'écran: en-tête et pied de page français autour de « Legal
+  // notice & terms / Who publishes sophia-coach.ai… », mille lignes d'anglais
+  // en dur. Une déclaration est une PROMESSE de page entière; sur un écran
+  // juridique, la tenir à moitié est pire qu'ailleurs.
   //
-  // Vérifié à l'écran le 2026-08-13: en-tête et pied de page français,
-  // « Legal notice & terms / Who publishes sophia-coach.ai… » en dessous.
-  // Non déclarée, la page est entièrement anglaise, ce qui est la vérité.
-  // Sa version française d'origine est récupérable dans git (`0328448a`);
-  // l'extraction faite, la ligne revient ici avec son namespace.
+  // Elle entre le 2026-09-09 avec ce qui manquait: le corps est dans le seed
+  // (`legal.*`, ~150 clés) et le pack français est écrit. UN SEUL namespace —
+  // la page ne monte que son gabarit, `SEO` et le chrome public. Les FAITS
+  // d'identité (nom, RCS, TVA, adresse, téléphone) ne passent pas par `t()`:
+  // ils viennent de `lib/legalEntity.ts` et arrivent en paramètres.
+  "/legal": ["legal"],
   // ── LE COULOIR D'ENTRÉE, CÔTÉ CONNECTÉ ───────────────────────────────────
   // Le tunnel d'onboarding. Il ne monte PAS `KeelAppShell` (vérifié: son
   // graphe d'imports ne le contient pas), donc son chrome est celui de la
@@ -521,6 +550,13 @@ export const PAGE_NAMESPACES: Readonly<
   // `common.close`, donc toute page qui monte une fenêtre sans nommer sa sortie
   // atteint ce namespace. Ici c'est la grille « Quels repas, quels jours ».
   "/app/setup": [
+    // ⟳ 2026-09-09 (FF-064) — `shell` ENTRE PAR LE MUR DE PAIEMENT, PAS PAR LA
+    // COQUILLE. `/app/setup` est le seul écran d'app qui ne monte pas
+    // `KeelAppShell`; il est désormais gardé par `KeelPaywallGate`, dont le
+    // panneau porte la déconnexion (`shell.nav.sign_out`). Couture RÉELLE,
+    // donc déclarée — contrairement à `household.*`, dont l'arête a été
+    // coupée (voir `api/householdCoverage.ts`).
+    "shell",
     "setup",
     "allergen",
     "household",
@@ -529,18 +565,6 @@ export const PAGE_NAMESPACES: Readonly<
     "meals",
     "common",
   ],
-  // ── L'APP ÉLÈVE (lot 4) ──────────────────────────────────────────────────
-  // ⚠️ CES PAGES MONTENT `KeelAppShell`, ET LES TROIS NAMESPACES DE LA
-  // COQUILLE SONT DONC ÉCRITS À LA MAIN SUR CHACUNE. `pageSeams.int.test.ts`
-  // ne les met PAS dans son chrome implicite (contrairement à `public` et
-  // `brand`), exprès: `app` entre par la GARDE de route — `KeelStudentRoute`
-  // rend `app.guard.checking` avant que la page n'existe —, et l'oublier
-  // donnait un throw en DEV au tout premier rendu.
-  //
-  // `/app/health` — les allergies, intolérances et médicaments. `allergen`
-  // parce que la liste fermée des treize dangers est rendue par son
-  // formulaire, via `copy/allergens.ts`.
-  "/app/health": ["health", "allergen", "app", "shell", "chat"],
   // `/app/household` — qui mange ici, ce dont chacun a envie, et ce que la
   // maison ne sert pas à qui. ELLE REVIENT DANS CETTE TABLE, d'où le lot 3
   // l'avait retirée: la raison écrite alors était `api/mealLabels.ts` et ses
@@ -610,6 +634,29 @@ export const PAGE_NAMESPACES: Readonly<
   // pages d'app, parce que `app.*` entre par la GARDE DE ROUTE —
   // `KeelHouseholdRoute` rend `app.guard.checking` avant que la page n'existe.
   "/app/about-you": ["known", "slot", "day", "app", "shell", "chat"],
+  // `/app/billing` — L'ABONNEMENT DU FOYER (FF-064).
+  //
+  // ⚠️ `offer` N'EST PAS DU DÉCOR: la page monte `<OfferLines />`, qui est le
+  // seul endroit du produit où le prix du foyer s'écrit. C'est aussi la raison
+  // pour laquelle ce composant ne vit PAS dans `Marketing.tsx` — l'y mettre
+  // ferait « atteindre » `offer.*` aux quatre pages pro.
+  //
+  // ⚠️ `app` entre par la GARDE DE ROUTE (`KeelHouseholdRoute` rend
+  // `app.guard.checking`), pas par le contenu — la même leçon qu'à
+  // `/app/about-you`. `shell` et `chat` entrent par `KeelAppShell`.
+  //
+  // ⚠️ `household` ENTRE PAR `api/household.ts`, PAS PAR L'ÉCRAN. La page n'y
+  // prend qu'`openHouseholdCheckout`, mais le module tire `householdPlanTrace`
+  // et ses phrases (`household.plan.reclaimed`). `pageSeams` suit le graphe
+  // d'imports COMPLET, et son remède est la DÉCLARATION — pas le
+  // contournement par un import plus étroit, qui ferait deux portes vers le
+  // même tunnel de paiement.
+  //
+  // ⚠️ `plan` ENTRE PAR LES REFUS NOMMÉS, ET C'EST UNE VRAIE COUTURE.
+  // `ExtraAccessCard` traduit le refus de `keel_household_invite` par
+  // `edgeRefusalKey` (`copy/planRefusals.ts`) — sans quoi l'écran rendrait le
+  // jeton brut `not_owner` à quelqu'un. Déclaré, donc, et pas contourné.
+  "/app/billing": ["billing", "offer", "household", "plan", "app", "shell", "chat"],
   // `/app/chat` — la bulle. Elle n'a coûté que le point hebdomadaire: les onze
   // libellés des six axes et des cinq crans vivaient dans `api/weeklyCheckIn.ts`
   // sous CONTRAT MOT POUR MOT avec un fichier Deno, ce qui les rendait
@@ -945,7 +992,8 @@ export const PAGE_NAMESPACES: Readonly<
   // rapatriés et `i18n/format.ts` posé — voir l'en-tête du fichier.
   //
   // Ce qui reste dehors: les quatre écrans coach ci-dessus (leur corps n'est
-  // pas à nous), `/legal`, `/account` et les trois écrans admin.
+  // pas à nous), `/account` et les trois écrans admin. `/legal` en est sortie
+  // le 2026-09-09 — c'était la dernière page PUBLIQUE hors de la table.
 };
 
 // ── LES PAGES DONT L'URL DÉCIDE LA LANGUE ──────────────────────────────────

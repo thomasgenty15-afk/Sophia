@@ -224,7 +224,6 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
   it("le préfixe /en ne fabrique pas de page: il porte celle du chemin nu", () => {
     // Sans ça, `/en/nimporte-quoi` hériterait silencieusement des namespaces
     // d'une page déclarée, et une URL inventée se rendrait comme une vraie.
-    expect(namespacesForPath("/en/couples")).toEqual(namespacesForPath("/couples"));
     expect(namespacesForPath("/en")).toEqual(namespacesForPath("/"));
     expect(namespacesForPath("/en/page-qui-nexiste-pas")).toBeNull();
   });
@@ -280,16 +279,22 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     }
   });
 
-  it("/legal reste anglaise: son corps est en dur, la promesse serait fausse", () => {
-    // Le cas qui a failli passer. Déclarer `/legal` avec une liste VIDE rendait
-    // son chrome en français — « tous ses namespaces sont traduits » est vrai
-    // sur l'ensemble vide — et c'est ce qui a été essayé. Vérifié à l'écran: la
-    // page affichait alors un en-tête et un pied de page français autour de
+  it("/legal suit le visiteur — et sa déclaration ne peut pas être VIDE", () => {
+    // ⚠️ CE TEST DISAIT L'INVERSE JUSQU'AU 2026-09-09, et ce qu'il gardait
+    // mérite de survivre au renversement. Déclarer `/legal` avec une liste
+    // VIDE rendait son chrome en français — « tous ses namespaces sont
+    // traduits » est vrai sur l'ensemble vide — et c'est ce qui avait été
+    // essayé. Vérifié à l'écran: en-tête et pied de page français autour de
     // « Legal notice & terms / Who publishes sophia-coach.ai… », mille lignes
     // d'anglais en dur. Une déclaration est une PROMESSE de page entière; sur
     // un écran juridique, la tenir à moitié est pire qu'ailleurs.
+    //
+    // La page est maintenant traduite POUR DE BON: son corps vit sous
+    // `legal.*` dans le seed. Les deux attentes vont ensemble — la seconde est
+    // celle qui rougirait si quelqu'un rouvrait la porte de l'ensemble vide.
     setChosenUiLocaleForTest("fr");
-    expect(uiLocaleForPath("/legal")).toBe("en");
+    expect(uiLocaleForPath("/legal")).toBe("fr");
+    expect(namespacesForPath("/legal")).toEqual(["legal"]);
   });
 
   it("une page DÉCLARÉE et entièrement traduite suit le choix du visiteur", () => {

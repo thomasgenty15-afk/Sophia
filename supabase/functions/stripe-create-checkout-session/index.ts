@@ -12,7 +12,7 @@ import {
 import { stripeRequest } from "../_shared/stripe.ts";
 import {
   countSeats,
-  householdTrialCovers,
+  householdStripeTrialEnd,
   KEEL_HOUSEHOLD_PRICE_ENV,
   type SeatLedgerRow,
 } from "../_shared/billing-tier.ts";
@@ -225,6 +225,8 @@ Deno.serve(async (req) => {
     // ligne de profils.
     let householdId: string | null = null;
     let householdProfileQuantity = 0;
+    /** `households.free_until` — lu pour CALCULER la bascule, plus pour refuser. */
+    let householdFreeUntil: string | null = null;
     if (isKeelHousehold) {
       const { data: memberRow, error: memberErr } = await supabaseAdmin
         .from("household_members")
@@ -254,17 +256,25 @@ Deno.serve(async (req) => {
       householdId = String((memberRow as any).household_id);
 
       // L'ESSAI (D4bis). Un foyer couvert n'est pas facturé — PROFILS RÉCLAMÉS
-      // COMPRIS, « un seul abonnement, un seul état ». La même règle vaut aux
-      // DEUX portes: ici on refuse d'ouvrir le tunnel, et
-      // `stripe-reconcile-households` refuse de pousser une quantité. Une
-      // seule source (`households.free_until`), deux refus nommés.
+      // COMPRIS, « un seul abonnement, un seul état ».
       //
-      // ⚠️ CE REFUS EST UN ARBITRAGE, pas une évidence: quelqu'un qui VEUT
-      // payer pendant son essai est renvoyé. L'alternative (ouvrir le tunnel
-      // avec `subscription_data.trial_end`) fait dépendre la promesse d'une
-      // contrainte Stripe sur la date, et un essai qui finit dans moins de
-      // 48 h la viole silencieusement. On préfère un refus lisible à une
-      // promesse à moitié tenue.
+      // ⟳ RENVERSÉ LE 2026-09-09 (FF-064, décision du propriétaire). Ce bloc
+      // rendait `409 household_in_trial`: quelqu'un qui VOULAIT payer pendant
+      // son essai était renvoyé, et le produit n'avait donc AUCUNE fenêtre de
+      // vente avant la coupure.
+      //
+      // L'objection écrite ici était juste, et elle est nommée pour qu'on ne la
+      // redécouvre pas: ouvrir le tunnel avec `subscription_data.trial_end`
+      // fait dépendre la promesse d'une contrainte Stripe (48 h), et un essai
+      // qui finit demain « la violerait en silence ». Sa réponse est le repli
+      // de `householdStripeTrialEnd`: à moins de 48 h restantes on repousse à
+      // 49 h, donc le prélèvement ne tombe JAMAIS avant la fin de la semaine
+      // offerte — au pire un ou deux jours après.
+      //
+      // CE QUI RESTE VRAI: `stripe-reconcile-households` refuse toujours de
+      // pousser une quantité pendant l'essai (`skip_reason=in_trial`), et
+      // `households.free_until` reste la source unique — cette lecture ne sert
+      // plus à refuser, elle sert à calculer la date de bascule.
       const { data: houseRow, error: houseErr } = await supabaseAdmin
         .from("households")
         .select("free_until")
@@ -283,15 +293,8 @@ Deno.serve(async (req) => {
         });
         return serverError(req, requestId);
       }
-      const freeUntil = (houseRow as { free_until?: string | null } | null)?.free_until ?? null;
-      if (householdTrialCovers(freeUntil)) {
-        return jsonResponse(req, {
-          error: "household_in_trial",
-          detail: "This household is covered by its trial; nothing is billed until it ends.",
-          free_until: freeUntil,
-          request_id: requestId,
-        }, { status: 409 });
-      }
+      householdFreeUntil =
+        (houseRow as { free_until?: string | null } | null)?.free_until ?? null;
 
       // LA QUANTITÉ DE PROFILS RÉCLAMÉS, PAR LA DÉFINITION UNIQUE DE LA BASE.
       // `keel_household_billable_profiles` exclut le maître et les bouches
@@ -393,7 +396,7 @@ Deno.serve(async (req) => {
           (isKeelCoach
             ? "/coach/billing?billing=portal"
             : isKeelHousehold
-            ? "/app/household?billing=portal"
+            ? "/app/billing?billing=portal"
             : "/dashboard?billing=portal")
       }`;
       const portal = await stripeRequest<{ url?: string }>({
@@ -487,12 +490,12 @@ Deno.serve(async (req) => {
         success_url: isKeelCoach
           ? `${appBaseUrl}/coach/billing?billing=success&session_id={CHECKOUT_SESSION_ID}`
           : isKeelHousehold
-          ? `${appBaseUrl}/app/household?billing=success&session_id={CHECKOUT_SESSION_ID}`
+          ? `${appBaseUrl}/app/billing?billing=success&session_id={CHECKOUT_SESSION_ID}`
           : `${appBaseUrl}/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: isKeelCoach
           ? `${appBaseUrl}/coach/billing?billing=cancelled`
           : isKeelHousehold
-          ? `${appBaseUrl}/app/household?billing=cancelled`
+          ? `${appBaseUrl}/app/billing?billing=cancelled`
           : `${appBaseUrl}/upgrade?billing=cancelled`,
         line_items: lineItems,
         // LA LANGUE DU TUNNEL, ET SEULEMENT LA SIENNE.
@@ -510,6 +513,20 @@ Deno.serve(async (req) => {
         allow_promotion_codes: true,
         client_reference_id: user.id,
         subscription_data: {
+          // ── FF-064 · LA SEMAINE OFFERTE SURVIT AU PAIEMENT ANTICIPÉ ─────
+          // `undefined` quand il n'y a plus d'essai à tenir (foyer gelé) —
+          // et `toStripeFormBody` OMET `undefined`, donc « pas d'essai » et
+          // « clé absente » sont le même octet. Le calcul, ses trois
+          // branches et le repli à 49 h vivent dans
+          // `householdStripeTrialEnd` (_shared/billing-tier.ts).
+          //
+          // ⛔ NE PAS AJOUTER `payment_method_collection: "if_required"`.
+          // Avec un `trial_end`, Checkout collecte la carte par défaut;
+          // `if_required` laisserait démarrer un essai SANS moyen de
+          // paiement, c'est-à-dire un mur qui retombe dans sept jours.
+          ...(isKeelHousehold
+            ? { trial_end: householdStripeTrialEnd(householdFreeUntil) }
+            : {}),
           metadata: {
             supabase_user_id: user.id,
             // The reconciliation job finds the subscription from the coach row;

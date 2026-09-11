@@ -1,1028 +1,801 @@
 import React from "react";
-import { supabase } from "../../lib/supabase";
+import { Link } from "react-router-dom";
+
+import {
+  correctJournalMeal,
+  describeJournalMeal,
+  type JournalDay,
+  type JournalMeal,
+  type JournalReport,
+  loadJournalTracking,
+  retryJournalMeal,
+  skipJournalMeal,
+} from "../api/tracking";
+import { signMealPhotoUrls, uploadMealPhoto } from "../api/mealPhoto";
+import { slotLabel } from "../api/labels";
 import { KeelAppShell } from "../components/KeelAppShell";
-import { Badge, type BadgeTone } from "../components/ui/Badge";
-import { Card, SectionLabel } from "../components/ui/Card";
-import {
-  aggregateWeekInFood,
-  type FoodEventRow,
-} from "../lib/weekInFood";
-import {
-  aggregateRhythm,
-  momentInSentence,
-  momentLabel,
-  MOMENTS,
-  type RhythmEventRow,
-} from "../lib/mealRhythm";
-import { signMealPhotoUrls } from "../api/mealPhoto";
-import { loadTracking, type TrackingReport } from "../api/tracking";
-import {
-  TrackingObjectiveCard,
-  TrackingSummaryCard,
-} from "../components/TrackingCards";
 import { WeightCurveCard } from "../components/WeightCurveCard";
-import { TrackingDescribeDialog } from "../components/TrackingDescribeDialog";
-import { ActivitySessionsCard } from "../components/ActivitySessionsCard";
-import { formatWeekday } from "../i18n/format";
-import { plural } from "../i18n/plural";
+import { Button } from "../components/ui/Button";
+import { Card, SectionLabel } from "../components/ui/Card";
+import { Field, inputClass } from "../components/ui/Field";
+import Modal from "../components/ui/Modal";
+import { formatDate, formatWeekday } from "../i18n/format";
 import { type MessageKey, t } from "../i18n/t";
 
-/**
- * PIVOT N3 — `/app/progress` : l'avancée, semaine et mois.
- *
- * ---------------------------------------------------------------------------
- * L'ORDRE DES BLOCS EST UNE DÉCISION, PAS UNE MISE EN PAGE
- * ---------------------------------------------------------------------------
- * 1. LA RÉGULARITÉ d'abord. C'est la seule métrique dont ce dépôt a la preuve
- *    qu'elle prédit le résultat (PHOTO_QUANTIFICATION §5, Peterson 2014,
- *    n=220, p<0,0001 sur la fréquence de log ; la COMPLÉTUDE du log, elle, ne
- *    prédit rien, p>0,05). Elle passe donc en premier et en gros.
- * 2. LA VIVABILITÉ ensuite — les taps du soir. « Est-ce que ça tient ? »
- * 3. LES PORTIONS — la réponse à « je mange beaucoup ou peu ? » sans un kcal.
- * 4. LES SÉANCES (L2b, 2026-08-18) — un COMPTE, et rien qui en dérive. Placées
- *    ici, avant-dernières, et c'est un arbitrage : une séance est un fait daté
- *    que la personne déclare sur elle-même, du même genre que la pesée, et elle
- *    ne doit jamais concurrencer la RÉGULARITÉ en tête. ⛔ Aucune kcal sur ce
- *    chemin — la raison est chiffrée dans l'en-tête de
- *    `20260818180000_a_session_is_a_fact_not_an_energy.sql`, et l'écran ne
- *    règle rien depuis une séance : aucun générateur ne lit cette table.
- * 5. LE POIDS en dernier, et c'est délibéré : la variation d'eau quotidienne
- *    (±1-2 kg) dépasse le signal hebdomadaire, et c'est la métrique la plus
- *    associée aux troubles alimentaires. Il est affiché en clair — arbitrage
- *    produit du 2026-08-03 — mais il ne mène jamais.
- *
- * ---------------------------------------------------------------------------
- * CE QUI N'EST PAS ICI, ET NE DOIT PAS Y ARRIVER
- * ---------------------------------------------------------------------------
- * Aucun score, aucun pourcentage de réalisation, aucune série, aucun badge.
- * Le coach RECOMMANDE, l'élève DÉCIDE, personne ne note (§1.3 bannit
- * explicitement streaks et badges : un jour raté ne casse rien).
- *
- * ---------------------------------------------------------------------------
- * LE GARDE-FOU TCA
- * ---------------------------------------------------------------------------
- * Si `restriction_guard` a levé un drapeau, l'écran chiffré se masque
- * entièrement — doctrine W3.2 : « plus aucun score affiché à l'élève ». Ce
- * n'est pas une préférence d'affichage, c'est une règle clinique, et elle
- * s'applique AVANT toute autre considération de lisibilité.
- */
+type Relation = "planned" | "replacement" | "outside" | "extra";
+type Editor =
+  | { kind: "describe"; day: JournalDay; meal: JournalMeal }
+  | { kind: "add"; day: JournalDay }
+  | { kind: "correct"; day: JournalDay; meal: JournalMeal }
+  | null;
 
-type Range = "week" | "month";
+const SLOTS = ["breakfast", "snack_am", "lunch", "snack_pm", "dinner", "before_bed"];
 
-interface PulseRow {
-  local_date: string;
-  overall: "good" | "mixed" | "hard";
-  axis: string | null;
-}
-// C8: les événements portent maintenant le contenu alimentaire (aliments
-// détectés, groupes) en plus de la bande de portion — même type que l'util
-// d'agrégation, une seule forme pour les deux lecteurs.
-type LoadState =
-  | { kind: "loading" }
-  | { kind: "error"; message: string }
-  | { kind: "restricted" }
-  | { kind: "ready" };
-
-/**
- * LES TROIS AXES DU TAP DU SOIR — et ce ne sont PAS les six du dimanche.
- *
- * `student_daily_checkins.axis` porte un CHECK sur ('energy','hunger','sleep')
- * (migration 20260803160000). Les six axes du point hebdomadaire vivent sous
- * `chat.weekly.axis.*`, dans leur forme de TITRE (« Day-to-day energy »):
- * les brancher ici donnerait « c'est le plus souvent L'énergie au quotidien ».
- *
- * Une FONCTION et pas un `Record` de module: un `Record` d'appels à `t()` se
- * fige à la langue du premier chargement.
- */
-const PULSE_AXES = ["energy", "hunger", "sleep"] as const;
-
-function axisLabel(axis: string): string {
-  return (PULSE_AXES as readonly string[]).includes(axis)
-    ? t(`student_progress.axis.${axis}` as MessageKey)
-    : axis;
+function readableError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  const token = raw.match(/journal_[a-z_]+/)?.[0];
+  if (!token) return t("student_progress.journal.error_unknown");
+  const key = `student_progress.journal.error_${token.slice("journal_".length)}`;
+  try {
+    return t(key as MessageKey);
+  } catch {
+    return t("student_progress.journal.error_unknown");
+  }
 }
 
-/** Le mot d'une bande de portion. `unclear` n'en a pas — voir le seed. */
-function bandWord(band: string | null | undefined): string | null {
-  return band === "small" || band === "moderate" || band === "large"
-    ? t(`student_progress.band.${band}` as MessageKey)
+function shiftDate(value: string, days: number): string {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function browserToday(): string {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function mondayOf(value: string): string {
+  const date = new Date(`${value}T00:00:00Z`);
+  const weekday = date.getUTCDay();
+  return shiftDate(value, -(weekday === 0 ? 6 : weekday - 1));
+}
+
+function dayStateKey(day: JournalDay): MessageKey {
+  if (day.meals.length === 0 && day.state !== "future") {
+    return "student_progress.journal.day_free";
+  }
+  return `student_progress.journal.day_${day.state === "in_progress" ? "progress" : day.state}` as MessageKey;
+}
+
+function mealStateKey(state: JournalMeal["state"]): MessageKey {
+  const suffix = state === "reported"
+    ? "confirmed"
+    : state === "unattached"
+    ? "missing"
+    : state;
+  return `student_progress.journal.state_${suffix}` as MessageKey;
+}
+
+function originKey(origin: JournalMeal["origin"]): MessageKey {
+  return `student_progress.journal.${origin}` as MessageKey;
+}
+
+function relationFor(meal: JournalMeal): Relation {
+  if (meal.origin === "planned") return "planned";
+  if (meal.planRefs.length > 0) return "replacement";
+  if (meal.origin === "extra") return "extra";
+  return "outside";
+}
+
+function safeSlotLabel(slot: string | null): string {
+  if (!slot) return "";
+  try {
+    return slotLabel(slot);
+  } catch {
+    return slot;
+  }
+}
+
+function ErrorLine({ message }: { message: string | null }) {
+  return message
+    ? (
+      <p role="alert" className="mt-3 text-sm text-red-700">
+        {t("student_progress.journal.error", { message })}
+      </p>
+    )
     : null;
 }
 
-function daysBack(range: Range): number {
-  return range === "week" ? 7 : 30;
-}
-
-/**
- * LE PREMIER JOUR DE LA FENÊTRE RÉELLEMENT AFFICHÉE.
- *
- * ── LE DÉFAUT MESURÉ LE 2026-08-05 ────────────────────────────────────────
- * Le filtre était `local_date >= isoDaysAgo(7)` alors que la grille rend
- * `isoDaysAgo(6..0)` — sept jours. Le J-7 entrait donc dans TOUS les
- * dénominateurs de l'écran et ne pouvait atterrir dans AUCUNE case. Mesuré:
- * « 5 meals logged across 4 days » et « Vegetables at 1 of 5 meals » pendant
- * que le journal listait 3 jours et que la grille sommait à 4. Même décalage à
- * 30 jours.
- *
- * Une seule expression sert maintenant les deux — la borne des requêtes et
- * celle des cases — pour qu'elles ne puissent plus diverger.
- */
-function windowStart(range: Range, timeZone: string | null = null): string {
-  return isoDaysAgo(daysBack(range) - 1, timeZone);
-}
-
-/**
- * AUJOURD'HUI DANS LE FUSEAU DE L'ÉLÈVE, en `YYYY-MM-DD`.
- *
- * `en-CA` est le seul locale dont le format court EST l'ISO — c'est l'idiome
- * habituel pour obtenir une date civile dans un fuseau donné sans dépendance.
- */
-function todayIn(timeZone: string | null): string {
-  try {
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: timeZone || undefined,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-  } catch {
-    // Un fuseau invalide en base ne doit pas blanchir l'écran.
-    return new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-  }
-}
-
-/**
- * Le jour civil `n` jours avant aujourd'hui, DANS LE FUSEAU DE L'ÉLÈVE.
- *
- * Le décalage se fait en arithmétique de chaîne (via un `Date` en UTC pur),
- * jamais en `setDate` sur une date locale: `setDate` sur une nuit de changement
- * d'heure décale d'un jour de plus ou de moins selon le fuseau de la machine —
- * exactement le genre d'écart que cet écran vient de payer.
- */
-function isoDaysAgo(n: number, timeZone: string | null = null): string {
-  const base = todayIn(timeZone);
-  const d = new Date(`${base}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().slice(0, 10);
-}
-
-export default function StudentProgressPage() {
-  const [state, setState] = React.useState<LoadState>({ kind: "loading" });
-  const [range, setRange] = React.useState<Range>("week");
-  const [pulses, setPulses] = React.useState<PulseRow[]>([]);
-  const [events, setEvents] = React.useState<FoodEventRow[]>([]);
-  // C8: la fenêtre PRÉCÉDENTE, uniquement pour donner une direction («more
-  // vegetables than the week before») — jamais affichée en tant que telle.
-  const [prevEvents, setPrevEvents] = React.useState<FoodEventRow[]>([]);
-  /**
-   * LE RAPPORT DE SUIVI — une passe serveur, et la PORTE de l'énergie avec.
-   * `null` tant qu'il n'est pas lu; l'écran ne rend alors aucun bloc chiffré.
-   */
-  const [report, setReport] = React.useState<TrackingReport | null>(null);
-  /** Le créneau qu'on est en train de décrire. `null` = dialogue fermé. */
-  const [describing, setDescribing] = React.useState<
-    { date: string; slot: string } | null
-  >(null);
-  /**
-   * Le compteur de rechargement. Un enregistrement change les CHIFFRES du
-   * serveur, pas l'état local: la seule façon honnête de les remettre à jour
-   * est de redemander la passe. Recalculer un total ici serait exactement le
-   * chemin par lequel un kcal perdrait sa base.
-   */
-  const [reload, setReload] = React.useState(0);
-  /** chemin de bucket -> URL signée, pour les vignettes du journal. */
-  const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
-  /**
-   * LE FUSEAU DE L'ÉLÈVE, celui qui a daté ses lignes. Null tant qu'il n'est
-   * pas lu — voir `timeZone` plus bas pour pourquoi ce n'est pas celui du
-   * navigateur.
-   */
-  const [profileTimeZone, setProfileTimeZone] = React.useState<string | null>(null);
-  /**
-   * L'ÉLÈVE, NOMMÉMENT — et il est lu ICI parce que la carte des séances écrit.
-   *
-   * ⚠️ « RLS NE REMPLACE PAS UN `.eq("user_id", …)` ». Les autres lectures de
-   * cette page se reposent sur RLS seul; celle des séances porte son filtre, et
-   * son écriture porte son `user_id`. Ce dépôt a déjà rendu la ligne d'un élève
-   * à un coach par cet oubli, et une écriture sans propriétaire explicite est le
-   * même défaut vu de l'autre côté.
-   */
-  const [userId, setUserId] = React.useState<string | null>(null);
+function MealEditor({
+  editor,
+  today,
+  busy,
+  error,
+  onClose,
+  onDescribe,
+  onCorrect,
+  onPhoto,
+}: {
+  editor: Editor;
+  today: string;
+  busy: boolean;
+  error: string | null;
+  onClose: () => void;
+  onDescribe: (args: {
+    date: string;
+    slot: string;
+    mealId: string;
+    relation: Relation;
+    text: string;
+  }) => Promise<void>;
+  onCorrect: (args: {
+    sourceDate: string;
+    sourceMealId: string;
+    date: string;
+    slot: string;
+    mealId: string;
+    relation: Relation;
+  }) => Promise<void>;
+  onPhoto: (args: {
+    file: File;
+    date: string;
+    slot: string;
+    mealId: string;
+    relation: Relation;
+  }) => Promise<void>;
+}) {
+  const defaultSlot = editor?.kind === "add" ? "lunch" : editor?.meal.slot ?? "lunch";
+  const defaultRelation = !editor || editor.kind === "add" ? "extra" : relationFor(editor.meal);
+  const defaultDate = editor?.day.date ?? today;
+  const [text, setText] = React.useState("");
+  const [slot, setSlot] = React.useState(defaultSlot);
+  const [relation, setRelation] = React.useState<Relation>(defaultRelation);
+  const [date, setDate] = React.useState(defaultDate);
+  const [file, setFile] = React.useState<File | null>(null);
 
   React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setState({ kind: "loading" });
-      try {
-        const authRes = await supabase.auth.getUser();
-        if (cancelled) return;
-        setUserId(authRes.data.user?.id ?? null);
-        // LE FUSEAU D'ABORD, parce que les bornes de la fenêtre en dépendent:
-        // « aujourd'hui » n'est pas le même jour pour un élève d'Auckland et
-        // pour le navigateur qui l'affiche depuis Paris. Une requête de plus,
-        // séquentielle, contre un écran dont les dates seraient fausses d'un
-        // jour pour tout élève à l'est du spectateur.
-        const profileRes = await supabase
-          .from("profiles")
-          .select("timezone")
-          .maybeSingle();
-        // Un fuseau illisible DÉGRADE vers celui du navigateur, il ne fait pas
-        // échouer l'écran: une grille approximative vaut mieux qu'une page
-        // blanche.
-        const tz = String(
-          (profileRes.data as { timezone?: unknown } | null)?.timezone ?? "",
-        ).trim() || null;
-        if (cancelled) return;
-        setProfileTimeZone(tz);
+    setText("");
+    setSlot(defaultSlot);
+    setRelation(defaultRelation);
+    setDate(defaultDate);
+    setFile(null);
+  }, [defaultDate, defaultRelation, defaultSlot, editor]);
 
-        const since = windowStart(range, tz);
-        // LA BORNE HAUTE. Le `.gte` n'en avait aucune: une ligne datée dans le
-        // futur entrait dans les compteurs sans pouvoir s'afficher. Voir
-        // `windowStart`.
-        const until = isoDaysAgo(0, tz);
+  if (!editor) return null;
+  const editingExisting = editor.kind !== "add";
+  const sourceMeal = editingExisting ? editor.meal : null;
+  const planRelated = sourceMeal?.origin === "planned" || Boolean(sourceMeal?.planRefs.length);
+  const generatedMealId = (targetRelation: Relation) =>
+    `${targetRelation === "extra" ? "extra" : "outside"}:${date}:${slot}:${crypto.randomUUID()}`;
 
-        // ══════════════════════════════════════════════════════════════════
-        // A7 (2026-09-03) — LE GARDE TCA A CHANGÉ DE CÔTÉ, ET CE N'EST PAS UN
-        // RANGEMENT.
-        // ══════════════════════════════════════════════════════════════════
-        //
-        // Il lisait ICI `weekly_reviews.risk_band` et basculait l'écran en
-        // « restricted » sur `risk_band === "restriction_flag"`. Cette colonne
-        // n'a PLUS AUCUN ÉCRIVAIN depuis le 2026-08-08
-        // (`20260808200000_weekly_reviews_risk_band_orphaned.sql`): la ceinture
-        // était armée sur un coffre vide, et elle ne s'est jamais levée pour
-        // personne. Ce n'était pas une garde qui protégeait mal — c'était une
-        // garde qui ne pouvait pas se déclencher, et qui RESSEMBLAIT à une
-        // garde qui marche.
-        //
-        // Le signal vivant est `evaluateRestrictionForStudent`, atteint par
-        // `loadEnergyGate`, et il n'est pas lisible depuis un navigateur: il
-        // demande la doctrine publiée du coach et le service_role. La porte est
-        // donc désormais la PREMIÈRE instruction de `keel-tracking-v1`, et
-        // c'est sa réponse qui décide.
-        //
-        // ⛔ ET L'ÉCHEC DE CET APPEL EST UN ÉCHEC DE PAGE, pas une dégradation.
-        // Rendre les blocs « au cas où » quand la porte est illisible, c'est
-        // refaire exactement le défaut qu'on vient de retirer.
-        const report = await loadTracking({ from: since, to: until });
-        if (cancelled) return;
-        setReport(report);
-        if (report.floor) {
-          if (!cancelled) setState({ kind: "restricted" });
-          return;
-        }
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (editor?.kind === "correct" && sourceMeal) {
+      const moved = date !== editor.day.date || slot !== sourceMeal.slot;
+      const targetRelation = !moved
+        ? relation
+        : relation === "extra"
+        ? "extra"
+        : "outside";
+      const targetMealId = moved ? generatedMealId(targetRelation) : sourceMeal.id;
+      await onCorrect({
+        sourceDate: editor.day.date,
+        sourceMealId: sourceMeal.id,
+        date,
+        slot,
+        mealId: targetMealId,
+        relation: targetRelation,
+      });
+      return;
+    }
 
-        // ⟳ A7 — LA REQUÊTE `weekly_reviews` A QUITTÉ CETTE PAGE avec la carte
-        // de poids qu'elle servait. Elle lisait `outcomes` / `biofeedback` pour
-        // rendre UN nombre et un delta; la courbe le remplace, et sa source est
-        // `student_body_measures` (FF-031), servie par l'agrégat. Deux sources
-        // de poids sur le même écran auraient fini par se contredire.
-        const [pulseRes, eventRes] = await Promise.all([
-          supabase
-            .from("student_daily_checkins")
-            .select("local_date, overall, axis")
-            .gte("local_date", since)
-            // MÊME borne haute que les repas: un check-in daté de demain chez
-            // l'élève entrait sinon dans « HOW IT WENT » (mesuré).
-            .lte("local_date", until)
-            .order("local_date", { ascending: true }),
-          supabase
-            .from("protocol_events")
-            // C8: le contenu alimentaire voyage avec la ligne. On remonte 7
-            // jours PLUS LOIN que la fenêtre affichée quand elle est
-            // hebdomadaire: la semaine d'avant ne sert qu'à la direction.
-            //
-            // `occurred_at` est ce qui rend le RYTHME possible: `slot_key` est
-            // NULL sur 71 % des lignes (mesuré), donc une grille bâtie dessus
-            // perdrait les deux tiers des repas. Voir `lib/mealRhythm.ts`.
-            // `media_path` sert la vignette: revoir son assiette À CÔTÉ de ce
-            // qui en a été lu est la réponse la plus directe à « pourquoi je
-            // prends des photos ». C'est un chemin de bucket privé, pas une
-            // URL — il est signé plus bas.
-            .select(
-              // FF-009 — `source` et `plan_relation` séparent les trois
-              // comptes; sans eux l'agrégat afficherait trois zéros.
-              "local_date, occurred_at, slot_key, portion_band, food_group_ref, " +
-              "source, plan_relation, " +
-                "recognized, disqualified_reason, media_path",
-            )
-            // LE FILTRE DE SUJET, à la source. `disqualified_reason` existe
-            // pour que les lecteurs qui comptent des repas filtrent une colonne
-            // au lieu de ré-implémenter « est-ce que ceci est un repas ». Cet
-            // écran ne le faisait pas: une photo de menu ou de rayon comptait
-            // comme un repas dans « X meals logged » et dans la distribution
-            // des portions.
-            .is("disqualified_reason", null)
-            // `tz` et pas le fuseau du navigateur: la borne basse doit être
-            // dans la MÊME horloge que la borne haute, sinon la fenêtre de
-            // comparaison déborde d'un jour pour tout élève décalé.
-            .gte("local_date", range === "week" ? isoDaysAgo(13, tz) : since)
-            .lte("local_date", until),
-        ]);
-        if (pulseRes.error) throw new Error(pulseRes.error.message);
-        if (eventRes.error) throw new Error(eventRes.error.message);
-
-        if (cancelled) return;
-        setPulses((pulseRes.data ?? []) as PulseRow[]);
-        // Le découpage en deux fenêtres se fait ICI, pas dans les cartes: les
-        // cartes existantes (régularité, assiettes) ne doivent voir QUE la
-        // fenêtre affichée, sinon leurs chiffres changent en silence.
-        // `as unknown as` et pas `as`: le client navigateur n'a pas de
-        // générique `Database`, donc PostgREST type ce `.select(...)` en
-        // `GenericStringError[]`, qui ne recouvre pas assez `FoodEventRow[]`
-        // pour un cast direct. Même traversée que partout ailleurs.
-        const allEvents = (eventRes.data ?? []) as unknown as FoodEventRow[];
-        // Les DEUX bornes, comme la requête: ce filtre et `windowDates` plus bas
-        // décrivent désormais le même intervalle.
-        setEvents(
-          allEvents.filter((e) => e.local_date >= since && e.local_date <= until),
-        );
-        setPrevEvents(
-          range === "week" ? allEvents.filter((e) => e.local_date < since) : [],
-        );
-        setState({ kind: "ready" });
-      } catch (err) {
-        if (!cancelled) {
-          setState({ kind: "error", message: err instanceof Error ? err.message : String(err) });
-        }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [range, reload]);
-
-  const total = daysBack(range);
-
-  // 1. RÉGULARITÉ — des jours DISTINCTS avec au moins un fait.
-  const loggedDays = new Set(events.map((e) => e.local_date)).size;
-
-  // 2. VIVABILITÉ — les taps.
-  const good = pulses.filter((p) => p.overall === "good").length;
-  const mixed = pulses.filter((p) => p.overall === "mixed").length;
-  const hard = pulses.filter((p) => p.overall === "hard").length;
-  const taps = good + mixed + hard;
-  const axisCounts = new Map<string, number>();
-  for (const p of pulses) {
-    if (p.axis) axisCounts.set(p.axis, (axisCounts.get(p.axis) ?? 0) + 1);
-  }
-  // Tri déterministe sur égalité, comme côté serveur.
-  const dominantAxis = [...axisCounts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null;
-
-  // 3. PORTIONS.
-  const bands = events.map((e) => e.portion_band).filter(Boolean) as string[];
-  const bandCount = (b: string) => bands.filter((x) => x === b).length;
-
-  // 3bis. LA SEMAINE DANS L'ASSIETTE — l'agrégat de fréquence. Des comptes,
-  // jamais des pourcentages: « at 9 of 13 meals » décrit, « 69% » note.
-  // Les MÊMES bornes que la requête, dans le MÊME fuseau — voir `windowStart`.
-  const windowDates = range === "week"
-    ? Array.from({ length: 7 }, (_, i) => isoDaysAgo(6 - i, profileTimeZone))
-    : [];
-  const food = aggregateWeekInFood(events, {
-    dates: windowDates,
-    prevRows: range === "week" ? prevEvents : undefined,
-  });
-  // ⚠️ TOUS LES EN-TÊTES DE COLONNE DE LA GRILLE DE RYTHME PASSENT PAR ICI, et
-  // c'est ce qui reliait cette page au lot du FORMATAGE: `toLocaleDateString(
-  // "en-GB", …)` en dur rendait « Mon Tue Wed » au-dessus d'une page française.
-  // Le contournement `${iso}T00:00:00` (sans `Z`) qui vivait ici corrigeait le
-  // décalage d'un jour à la main — il est dans `i18n/format.ts` maintenant, où
-  // il vaut pour les vingt-six sites et pas pour celui-ci seul.
-  const dayName = (iso: string) => formatWeekday(iso);
-
-  // 3ter. LE RYTHME — la même semaine, mais sur l'axe du TEMPS.
-  //
-  // ── LE FUSEAU VIENT DU PROFIL, PAS DE L'APPAREIL ────────────────────────
-  // Il venait de `Intl.DateTimeFormat().resolvedOptions().timeZone`, au motif
-  // que le navigateur est la source la plus proche de la journée vécue. C'était
-  // vrai pour le MOMENT et faux pour le JOUR: `local_date` est résolu côté
-  // serveur dans `profiles.timezone`. La colonne d'une case et sa ligne étaient
-  // donc calculées dans deux horloges différentes.
-  //
-  // Mesuré 3/3 le 2026-08-05, élève à Auckland, navigateur à Paris: 08:00 →
-  // « Night », 12:30 → « Night », 19:00 → « Morning », et le résumé affirmait
-  // « Most of what you log lands in the night » à quelqu'un qui mange à 8 h,
-  // 12 h 30 et 19 h. Ça mordait dès UNE heure d'écart — un dîner londonien à
-  // 21 h 30 tombait en « Night ». Sur l'écran qui porte le garde TCA.
-  //
-  // Le repli reste l'appareil: mieux vaut une grille approximative qu'aucune.
-  const timeZone = profileTimeZone ||
-    Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  const rhythmDates = range === "week"
-    ? windowDates
-    : Array.from({ length: 30 }, (_, i) => isoDaysAgo(29 - i, profileTimeZone));
-  const rhythm = aggregateRhythm(events as RhythmEventRow[], {
-    dates: rhythmDates,
-    timeZone,
-  });
-  // La taille du bloc dit la BANDE, jamais une quantité. Une case vide reste
-  // visible: les trous d'une semaine sont la moitié de son information.
-  const BAND_FILL: Record<string, string> = {
-    small: "h-2 w-2",
-    moderate: "h-3 w-3",
-    large: "h-4 w-4",
-    unclear: "h-2.5 w-2.5",
-  };
-  // Les jours qui portent réellement quelque chose, du plus récent au plus
-  // ancien: un journal se lit par le haut, et la semaine dernière n'est pas ce
-  // qu'on vient vérifier après avoir envoyé une photo.
-  const loggedDaysDetail = [...rhythm.days]
-    .reverse()
-    .map((d) => ({
-      date: d.date,
-      entries: MOMENTS
-        .map((m) => ({ moment: m, cell: d.cells[m] }))
-        .filter((e) => e.cell !== null),
-    }))
-    .filter((d) => d.entries.length > 0);
-
-  // LES VIGNETTES. Même chaîne que la conversation: le bucket est privé et sans
-  // policy, donc un chemin ne devient affichable qu'après signature. Un échec
-  // est avalé — une ligne sans vignette reste une ligne lisible, et perdre
-  // l'écran entier pour une image serait le mauvais arbitrage.
-  React.useEffect(() => {
-    const paths = [
-      ...new Set([
-        ...loggedDaysDetail.flatMap((d) =>
-          d.entries.flatMap((e) => e.cell!.mediaPaths)
-        ),
-        // A7 — les vignettes du bloc objectif passent par la MÊME signature.
-        // Une seconde chaîne de signature sur le même écran, c'est deux
-        // budgets de 100 chemins et deux façons d'échouer.
-        ...(report?.objective?.days ?? []).flatMap((d) =>
-          d.photos.map((ph) => ph.mediaPath).filter((x): x is string =>
-            typeof x === "string" && x.length > 0
-          )
-        ),
-      ]),
-    ].filter((p) => !(p in photoUrls));
-    if (paths.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const urls = await signMealPhotoUrls(paths);
-        if (!cancelled && Object.keys(urls).length > 0) {
-          setPhotoUrls((prev) => ({ ...prev, ...urls }));
-        }
-      } catch {
-        // Muet par conception: voir ci-dessus.
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [loggedDaysDetail, photoUrls, report]);
-
-  if (state.kind === "loading") {
-    return (
-      <KeelAppShell variant="student" title={t("student_progress.title")}>
-        <p className="text-sm text-ink-soft">{t("student_progress.loading")}</p>
-      </KeelAppShell>
-    );
-  }
-  if (state.kind === "error") {
-    return (
-      <KeelAppShell variant="student" title={t("student_progress.title")}>
-        <Card tone="warning">
-          <p className="text-sm text-ink">{t("student_progress.error")}</p>
-          <p className="mt-1 text-xs text-ink-soft">{state.message}</p>
-        </Card>
-      </KeelAppShell>
-    );
-  }
-  if (state.kind === "restricted") {
-    // Doctrine W3.2 — aucun chiffre affiché à l'élève quand le plancher TCA
-    // est levé. On ne dit pas pourquoi: nommer le drapeau ici serait un
-    // diagnostic posé par une machine.
-    return (
-      <KeelAppShell variant="student" title={t("student_progress.title")}>
-        <Card>
-          <p className="max-w-[62ch] text-sm leading-6 text-ink">
-            {t("student_progress.restricted")}
-          </p>
-        </Card>
-      </KeelAppShell>
-    );
+    const mealId = sourceMeal?.id ?? generatedMealId(relation);
+    if (file) {
+      await onPhoto({ file, date, slot, mealId, relation });
+      return;
+    }
+    if (!text.trim()) return;
+    await onDescribe({ date, slot, mealId, relation, text: text.trim() });
   }
 
   return (
-    <KeelAppShell variant="student" title={t("student_progress.title")}>
+    <Modal
+      open
+      onClose={onClose}
+      closeAsIcon
+      title={editor.kind === "correct"
+        ? t("student_progress.journal.correct")
+        : t("student_progress.journal.dialog_title")}
+    >
+      <form onSubmit={submit} className="space-y-4">
+        {editor.kind === "correct"
+          ? (
+            <Field label={t("student_progress.journal.dialog_date")} htmlFor="journal-date">
+              <input
+                id="journal-date"
+                type="date"
+                className={inputClass}
+                value={date}
+                min={shiftDate(today, -14)}
+                max={today}
+                onChange={(event) => setDate(event.target.value)}
+                required
+              />
+            </Field>
+          )
+          : null}
+
+        {(editor.kind === "add" || editor.kind === "correct")
+          ? (
+            <Field label={t("student_progress.journal.dialog_slot")} htmlFor="journal-slot">
+              <select
+                id="journal-slot"
+                className={inputClass}
+                value={slot}
+                onChange={(event) => setSlot(event.target.value)}
+              >
+                {SLOTS.map((item) => <option key={item} value={item}>{safeSlotLabel(item)}</option>)}
+              </select>
+            </Field>
+          )
+          : null}
+
+        <Field label={t("student_progress.journal.dialog_relation")} htmlFor="journal-relation">
+          <select
+            id="journal-relation"
+            className={inputClass}
+            value={relation}
+            onChange={(event) => setRelation(event.target.value as Relation)}
+          >
+            {planRelated
+              ? <option value="planned">{t("student_progress.journal.dialog_as_planned")}</option>
+              : null}
+            {planRelated
+              ? <option value="replacement">{t("student_progress.journal.dialog_replacement")}</option>
+              : null}
+            {!planRelated
+              ? <option value="outside">{t("student_progress.journal.dialog_outside")}</option>
+              : null}
+            {!planRelated
+              ? <option value="extra">{t("student_progress.journal.dialog_extra")}</option>
+              : null}
+          </select>
+        </Field>
+
+        {editor.kind === "correct"
+          ? null
+          : (
+            <>
+              <Field label={t("student_progress.journal.dialog_prompt")} htmlFor="journal-description">
+                <textarea
+                  id="journal-description"
+                  rows={4}
+                  className={inputClass}
+                  placeholder={t("student_progress.journal.dialog_placeholder")}
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  disabled={Boolean(file)}
+                />
+              </Field>
+              <Field label={t("student_progress.journal.add_photo")} htmlFor="journal-photo">
+                <input
+                  id="journal-photo"
+                  className={inputClass}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                />
+              </Field>
+            </>
+          )}
+
+        <ErrorLine message={error} />
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={busy || (editor.kind !== "correct" && !file && !text.trim())}
+          >
+            {busy
+              ? file
+                ? t("student_progress.journal.photo_saving")
+                : t("student_progress.journal.dialog_saving")
+              : t("student_progress.journal.dialog_save")}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function MealRow({
+  meal,
+  signedPhotos,
+  busy,
+  onDescribe,
+  onCorrect,
+  onSkip,
+  onPhoto,
+  onRetry,
+}: {
+  meal: JournalMeal;
+  signedPhotos: Record<string, string>;
+  busy: boolean;
+  onDescribe: () => void;
+  onCorrect: () => void;
+  onSkip: () => void;
+  onPhoto: (file: File) => void;
+  onRetry: (eventId: string) => void;
+}) {
+  const firstPhoto = meal.events.find((event) => event.mediaPath && signedPhotos[event.mediaPath]);
+  const note = meal.events.map((event) => event.note?.trim()).find(Boolean);
+  const showMissingActions = meal.state === "missing" && meal.origin === "outside";
+
+  return (
+    <article className="rounded-card border border-line bg-paper p-3">
+      <div className="flex min-w-0 gap-3">
+        {firstPhoto?.mediaPath
+          ? (
+            <img
+              src={signedPhotos[firstPhoto.mediaPath]}
+              alt=""
+              className="h-16 w-16 shrink-0 rounded-card object-cover"
+            />
+          )
+          : null}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                {meal.slot ? `${safeSlotLabel(meal.slot)} · ` : ""}{t(originKey(meal.origin))}
+              </p>
+              {meal.title ? <h4 className="truncate text-sm font-semibold text-ink">{meal.title}</h4> : null}
+            </div>
+            <span className="text-xs text-ink-soft">{t(mealStateKey(meal.state))}</span>
+          </div>
+          {note ? <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink-soft">{note}</p> : null}
+          {meal.events.some((event) => event.analysis !== "ready")
+            ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <p className="text-xs text-ink-soft">
+                  {t(meal.events.some((event) => event.analysis === "pending")
+                    ? "student_progress.journal.analysis_pending"
+                    : "student_progress.journal.analysis_unavailable")}
+                </p>
+                {meal.actions.retry
+                  ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => {
+                        const event = meal.events.find((item) => item.analysis !== "ready");
+                        if (event) onRetry(event.id);
+                      }}
+                    >
+                      {t("student_progress.journal.retry")}
+                    </Button>
+                  )
+                  : null}
+              </div>
+            )
+            : null}
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-soft">
+            {meal.plannedEnergy
+              ? <span>{t("student_progress.journal.planned_kcal", { kcal: meal.plannedEnergy.kcal })}</span>
+              : null}
+            {meal.reportedEnergy
+              ? (
+                <span>
+                  {t(
+                    meal.reportedEnergy.basis === "photo_estimate" || meal.reportedEnergy.basis === "text_estimate"
+                      ? "student_progress.journal.reported_estimated"
+                      : "student_progress.journal.reported_kcal",
+                    { kcal: meal.reportedEnergy.kcal },
+                  )}
+                </span>
+              )
+              : null}
+            {meal.origin === "planned"
+              ? (
+                <Link to="/app/plan" className="underline underline-offset-2 hover:text-ink">
+                  {t("student_progress.journal.open_plan")}
+                </Link>
+              )
+              : null}
+          </div>
+        </div>
+      </div>
+
+      {showMissingActions
+        ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {meal.actions.photo ? <label className="inline-flex cursor-pointer items-center rounded-full border border-line-strong bg-paper px-2.5 py-1 text-xs font-medium text-ink hover:bg-fig-50">
+              {t("student_progress.journal.add_photo")}
+              <input
+                type="file"
+                className="sr-only"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onPhoto(file);
+                  event.target.value = "";
+                }}
+              />
+            </label> : null}
+            {meal.actions.describe ? <Button size="sm" onClick={onDescribe} disabled={busy}>{t("student_progress.journal.describe")}</Button> : null}
+            {meal.actions.skip ? <Button size="sm" variant="ghost" onClick={onSkip} disabled={busy}>{t("student_progress.journal.skip")}</Button> : null}
+          </div>
+        )
+        : null}
+
+      {meal.actions.correct || (meal.actions.photo && meal.events.length > 0)
+        ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {meal.actions.correct ? <Button size="sm" variant="ghost" onClick={onCorrect} disabled={busy}>
+              {t("student_progress.journal.correct")}
+            </Button> : null}
+            {meal.actions.photo ? <label className="inline-flex cursor-pointer items-center rounded-full px-2.5 py-1 text-xs font-medium text-ink-soft hover:bg-fig-50">
+              {t("student_progress.journal.add_photo")}
+              <input
+                type="file"
+                className="sr-only"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onPhoto(file);
+                  event.target.value = "";
+                }}
+              />
+            </label> : null}
+          </div>
+        )
+        : null}
+      {!meal.editable && meal.origin !== "fixed" && meal.state !== "future"
+        ? <p className="mt-3 text-xs text-ink-soft">{t("student_progress.journal.readonly")}</p>
+        : null}
+    </article>
+  );
+}
+
+function DayPanel({
+  day,
+  today,
+  signedPhotos,
+  busy,
+  onAdd,
+  onDescribe,
+  onCorrect,
+  onSkip,
+  onPhoto,
+  onRetry,
+}: {
+  day: JournalDay;
+  today: string;
+  signedPhotos: Record<string, string>;
+  busy: boolean;
+  onAdd: () => void;
+  onDescribe: (meal: JournalMeal) => void;
+  onCorrect: (meal: JournalMeal) => void;
+  onSkip: (meal: JournalMeal) => void;
+  onPhoto: (meal: JournalMeal, file: File) => void;
+  onRetry: (eventId: string) => void;
+}) {
+  const canAdd = day.date <= today && shiftDate(today, -14) <= day.date;
+  return (
+    <section className="rounded-fiche border border-line bg-paper-2 p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h3 className="font-semibold text-ink">
+            {formatWeekday(day.date, { long: true })} · {formatDate(day.date, { year: false })}
+          </h3>
+          <p className="text-xs text-ink-soft">{t(dayStateKey(day))}</p>
+        </div>
+        {day.reportedKcal !== null
+          ? (
+            <p className="text-sm font-semibold text-ink">
+              {t(
+                day.state === "complete" ? "student_progress.journal.total" : "student_progress.journal.subtotal",
+                { kcal: day.reportedKcal },
+              )}
+            </p>
+          )
+          : null}
+      </div>
+      {day.reportedKcal !== null && day.state !== "complete"
+        ? <p className="mt-1 text-xs text-ink-soft">{t("student_progress.journal.incomplete_note")}</p>
+        : day.meals.some((meal) => meal.state === "reported")
+        ? <p className="mt-1 text-xs text-ink-soft">{t("student_progress.journal.no_total")}</p>
+        : null}
+
+      <div className="mt-3 space-y-2">
+        {day.meals.length === 0
+          ? <p className="text-sm text-ink-soft">{t("student_progress.journal.empty")}</p>
+          : day.meals.map((meal) => (
+            <MealRow
+              key={meal.id}
+              meal={meal}
+              signedPhotos={signedPhotos}
+              busy={busy}
+              onDescribe={() => onDescribe(meal)}
+              onCorrect={() => onCorrect(meal)}
+              onSkip={() => onSkip(meal)}
+              onPhoto={(file) => onPhoto(meal, file)}
+              onRetry={onRetry}
+            />
+          ))}
+      </div>
+      {canAdd
+        ? (
+          <Button className="mt-3" size="sm" variant="ghost" onClick={onAdd} disabled={busy}>
+            + {t("student_progress.journal.add")}
+          </Button>
+        )
+        : null}
+    </section>
+  );
+}
+
+export default function StudentProgressPage() {
+  const initialToday = browserToday();
+  const [weekStart, setWeekStart] = React.useState(() => mondayOf(initialToday));
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(initialToday);
+  const [wholeWeek, setWholeWeek] = React.useState(false);
+  const [report, setReport] = React.useState<JournalReport | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [mutationError, setMutationError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
+  const [editor, setEditor] = React.useState<Editor>(null);
+  const [signedPhotos, setSignedPhotos] = React.useState<Record<string, string>>({});
+  const alignedToServer = React.useRef(false);
+
+  const weekEnd = shiftDate(weekStart, 6);
+
+  const refresh = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const next = await loadJournalTracking({ from: weekStart, to: weekEnd });
+      if (!alignedToServer.current) {
+        alignedToServer.current = true;
+        const serverWeek = mondayOf(next.today);
+        if (serverWeek !== weekStart) {
+          setWeekStart(serverWeek);
+          setSelectedDate(next.today);
+          return;
+        }
+      }
+      setReport(next);
+      setSelectedDate((current) => {
+        if (current && current >= weekStart && current <= weekEnd) return current;
+        return next.today < weekStart ? weekStart : next.today > weekEnd ? weekEnd : next.today;
+      });
+      const paths = next.days.flatMap((day) => day.meals.flatMap((meal) => meal.events.map((event) => event.mediaPath).filter(Boolean))) as string[];
+      setSignedPhotos(await signMealPhotoUrls(paths).catch(() => ({})));
+    } catch (caught) {
+      setError(readableError(caught));
+    } finally {
+      setLoading(false);
+    }
+  }, [weekEnd, weekStart]);
+
+  React.useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function mutate(work: () => Promise<void>) {
+    setBusy(true);
+    setMutationError(null);
+    try {
+      await work();
+      setEditor(null);
+      await refresh();
+    } catch (caught) {
+      setMutationError(readableError(caught));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function goToWeek(offset: number) {
+    const start = shiftDate(weekStart, offset * 7);
+    const end = shiftDate(start, 6);
+    const today = report?.today ?? initialToday;
+    setWeekStart(start);
+    setSelectedDate(today < start ? start : today > end ? end : today);
+    setWholeWeek(false);
+  }
+
+  if (loading && !report) {
+    return <KeelAppShell variant="student" title={t("student_progress.title")}><p>{t("student_progress.loading")}</p></KeelAppShell>;
+  }
+  if (error || !report) {
+    return (
+      <KeelAppShell variant="student" title={t("student_progress.title")}>
+        <Card><ErrorLine message={error ?? "journal_unavailable"} /></Card>
+      </KeelAppShell>
+    );
+  }
+  if (report.floor) {
+    return (
+      <KeelAppShell variant="student" title={t("student_progress.title")}>
+        <Card><p className="text-sm text-ink-soft">{t("student_progress.restricted")}</p></Card>
+      </KeelAppShell>
+    );
+  }
+
+  const shownDays = wholeWeek
+    ? report.days
+    : report.days.filter((day) => day.date === selectedDate);
+  const goalKey = report.target?.direction === "down"
+    ? "student_progress.journal.target_goal_down"
+    : report.target?.direction === "up"
+    ? "student_progress.journal.target_goal_up"
+    : "student_progress.journal.target_goal_other";
+
+  return (
+    <KeelAppShell variant="student" width="wide" title={t("student_progress.title")}>
       <div className="space-y-6">
-        {/* ── LA SEULE FIGUE DE CET ÉCRAN, ET C'EST DE LA NAVIGATION ─────────
-            Ces deux boutons ne mesurent rien: ils choisissent QUELLE VUE on
-            regarde, exactement comme les onglets du shell trois centimètres
-            plus haut. Ils en reprennent donc la forme au mot: `rounded-full`,
-            `bg-fig-700 text-paper` sur l'actif (9,98:1), lavis `fig-50` au
-            survol de l'inactif (`KeelAppShell`, charte §2). C'est ce qui les
-            fait lire comme la suite de la barre de navigation et pas comme un
-            verdict posé sur la semaine.
-            ⛔ Rien d'autre sur cette page ne portera la marque, À UNE EXCEPTION
-            NOMMÉE: le bouton « Noter » de la carte des séances (L2b). Le motif
-            de cette interdiction est que tout le reste de l'écran est un
-            CHIFFRE, une MESURE ou un VERDICT — et un formulaire n'est aucun des
-            trois, c'est une ACTION, le seul rôle auquel la charte accorde la
-            marque (`ui/Button.tsx`, variante `primary`). Une seule action
-            principale ici, comme partout: deux boutons figue côte à côte, c'est
-            zéro hiérarchie. */}
-        <div className="flex gap-2" role="group">
-          {(["week", "month"] as Range[]).map((r) => (
+        <Card>
+          <SectionLabel>{t("student_progress.journal.target")}</SectionLabel>
+          {report.energy.open && report.target && report.target.low !== null && report.target.high !== null
+            ? (
+              <div className="mt-2">
+                <p className="text-3xl font-semibold text-ink">
+                  {report.target.low}–{report.target.high} <span className="text-base text-ink-soft">kcal</span>
+                </p>
+                <p className="mt-1 text-sm text-ink-soft">{t(goalKey as MessageKey)}</p>
+                {report.target.weight_week_start
+                  ? <p className="mt-1 text-xs text-ink-soft">{t("student_progress.journal.target_date", { date: formatDate(report.target.weight_week_start) })}</p>
+                  : null}
+              </div>
+            )
+            : <p className="mt-2 text-sm text-ink-soft">{t("student_progress.journal.target_missing")}</p>}
+        </Card>
+
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <SectionLabel className="mb-0">{t("student_progress.journal.week")}</SectionLabel>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="ghost" onClick={() => goToWeek(-1)} aria-label={t("student_progress.journal.previous")}>←</Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  const today = report.today;
+                  setWeekStart(mondayOf(today));
+                  setSelectedDate(today);
+                  setWholeWeek(false);
+                }}
+              >
+                {t("student_progress.journal.today")}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => goToWeek(1)} aria-label={t("student_progress.journal.next")}>→</Button>
+            </div>
+          </div>
+          <p className="mt-2 text-sm text-ink-soft">
+            {formatDate(weekStart, { year: false })} – {formatDate(weekEnd)}
+          </p>
+
+          <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8" role="tablist">
+            {report.days.map((day) => (
+              <button
+                key={day.date}
+                type="button"
+                role="tab"
+                aria-selected={!wholeWeek && selectedDate === day.date}
+                onClick={() => {
+                  setSelectedDate(day.date);
+                  setWholeWeek(false);
+                }}
+                className={`rounded-card border px-2 py-3 text-center transition-colors ${
+                  !wholeWeek && selectedDate === day.date
+                    ? "border-fig-700 bg-fig-50 text-ink"
+                    : "border-line bg-paper text-ink-soft hover:border-line-strong"
+                }`}
+              >
+                <span className="block text-xs font-semibold uppercase">{formatWeekday(day.date)}</span>
+                <span className="mt-1 block text-lg font-semibold">{Number(day.date.slice(-2))}</span>
+                <span className="mt-1 block text-[10px] leading-3">{t(dayStateKey(day))}</span>
+              </button>
+            ))}
             <button
-              key={r}
               type="button"
-              onClick={() => setRange(r)}
-              aria-pressed={range === r}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                range === r
-                  ? "bg-fig-700 text-paper"
-                  : "text-ink-soft hover:bg-fig-50 hover:text-ink"
+              role="tab"
+              aria-selected={wholeWeek}
+              onClick={() => setWholeWeek(true)}
+              className={`rounded-card border px-2 py-3 text-xs font-semibold transition-colors ${
+                wholeWeek ? "border-fig-700 bg-fig-50 text-ink" : "border-line bg-paper text-ink-soft hover:border-line-strong"
               }`}
             >
-              {t(r === "week" ? "student_progress.range_week" : "student_progress.range_month")}
+              {t("student_progress.journal.all")}
             </button>
-          ))}
-        </div>
+          </div>
 
-        {/* 0. CE QUI A ÉTÉ FAIT — A7, le bloc permanent, pour TOUS les
-            objectifs. Il ne porte aucun chiffre d'énergie: des plans menés au
-            bout, des repas décidés, des séances de cuisine. Il passe avant la
-            régularité parce qu'il décrit ce que le PRODUIT a fait, quand tout
-            le reste de la page décrit ce que la PERSONNE a fait — et qu'on ne
-            met pas quelqu'un devant son propre bilan sans lui avoir d'abord
-            rendu ce qu'il a acheté. */}
-        {report?.permanent
-          ? (
-            <TrackingSummaryCard
-              permanent={report.permanent}
-              leftoverBoxes={report.leftoverBoxes}
-            />
-          )
-          : null}
-
-        {/* 1. LA RÉGULARITÉ — la seule métrique dont on a la preuve qu'elle prédit. */}
-        <Card>
-          <SectionLabel>{t("student_progress.consistency.label")}</SectionLabel>
-          <p className="mt-2 text-3xl font-semibold text-ink">
-            {loggedDays}
-            <span className="text-lg text-ink-soft">
-              {" "}{t("student_progress.consistency.out_of", { total })}
-            </span>
-          </p>
-          <p className="mt-2 text-xs leading-5 text-ink-soft">
-            {t("student_progress.consistency.hint")}
-          </p>
-        </Card>
-
-        {/* 2. LA VIVABILITÉ */}
-        <Card>
-          <SectionLabel>{t("student_progress.pulse.label")}</SectionLabel>
-          {taps === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.pulse.empty")}
-            </p>
-          ) : (
-            <>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge tone={"positive" as BadgeTone}>
-                  {t("student_progress.pulse.good", { count: good })}
-                </Badge>
-                <Badge tone={"caution" as BadgeTone}>
-                  {t("student_progress.pulse.mixed", { count: mixed })}
-                </Badge>
-                <Badge tone={"critical" as BadgeTone}>
-                  {t("student_progress.pulse.hard", { count: hard })}
-                </Badge>
-              </div>
-              {dominantAxis && (mixed + hard) > 0 ? (
-                <p className="mt-3 text-sm text-ink">
-                  {t("student_progress.pulse.dominant_label")}{" "}
-                  <span className="font-medium">{axisLabel(dominantAxis)}</span>.
-                </p>
-              ) : null}
-            </>
-          )}
-        </Card>
-
-        {/* 3bis. LA SEMAINE DANS L'ASSIETTE — ce que les photos construisent.
-            Le payoff visible du geste quotidien: des fréquences et des
-            aliments, pas un score. Aucun kcal ici, par contrat produit. */}
-        <Card>
-          <SectionLabel>
-            {t(range === "week"
-              ? "student_progress.food.label_week"
-              : "student_progress.food.label_month")}
-          </SectionLabel>
-          {food.meals === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.food.empty")}
-            </p>
-          ) : (
-            <div className="mt-3 space-y-2 text-sm text-ink">
-              {/* LES DEUX NOMBRES PORTENT LE GRAS, donc la phrase est composée
-                  de deux morceaux qui s'accordent CHACUN avec son compte. Un
-                  gabarit unique à quatre trous saurait interpoler mais pas
-                  accorder — et en français « 1 repas noté » et « 5 repas
-                  notés » ne s'écrivent pas pareil. */}
-              <p>
-                <span className="font-medium">
-                  {plural(
-                    food.meals,
-                    t("student_progress.food.meals_one", { count: food.meals }),
-                    t("student_progress.food.meals_many", { count: food.meals }),
-                  )}
-                </span>{" "}
-                {t("student_progress.food.across")}{" "}
-                <span className="font-medium">
-                  {plural(
-                    food.daysLogged,
-                    t("student_progress.food.days_one", { count: food.daysLogged }),
-                    t("student_progress.food.days_many", { count: food.daysLogged }),
-                  )}
-                </span>.
-              </p>
-              <p>
-                {t("student_progress.food.groups", {
-                  veg: food.vegMeals,
-                  meals: food.meals,
-                  protein: food.proteinMeals,
-                  fruit: food.fruitMeals,
+          <div className={`mt-4 grid gap-4 ${wholeWeek ? "lg:grid-cols-2" : ""}`}>
+            {shownDays.map((day) => (
+              <DayPanel
+                key={day.date}
+                day={day}
+                today={report.today}
+                signedPhotos={signedPhotos}
+                busy={busy}
+                onAdd={() => {
+                  setMutationError(null);
+                  setEditor({ kind: "add", day });
+                }}
+                onDescribe={(meal) => {
+                  setMutationError(null);
+                  setEditor({ kind: "describe", day, meal });
+                }}
+                onCorrect={(meal) => {
+                  setMutationError(null);
+                  setEditor({ kind: "correct", day, meal });
+                }}
+                onSkip={(meal) => void mutate(() => skipJournalMeal({
+                  date: day.date,
+                  slot: meal.slot ?? "lunch",
+                  mealId: meal.id,
+                  mutationId: crypto.randomUUID(),
+                }))}
+                onPhoto={(meal, file) => void mutate(async () => {
+                  await uploadMealPhoto({
+                    file,
+                    localDate: day.date,
+                    journalMealId: meal.id,
+                    journalRelation: relationFor(meal),
+                    slotKey: meal.slot,
+                    clientUploadId: crypto.randomUUID(),
+                  });
                 })}
-              </p>
-              {/*
-                FF-009 — LES TROIS COMPTES, CÔTE À CÔTE ET JAMAIS ADDITIONNÉS.
-                Une coche est exacte, une photo est biaisée, un repas hors plan
-                est autre chose: trois nombres, jamais un. Aucune somme, aucun
-                taux, aucune étiquette de valeur — le verrou de doctrine interdit
-                déjà les six formes de « cheat meal », et le produit ne les
-                réintroduit pas par un libellé d'écran.
-                Les trois valent 0 tant que rien ne les alimente, et un 0 lu est
-                un 0 compté: la colonne existe sur toutes les lignes neuves.
-              */}
-              <p className="text-ink">
-                {t("student_progress.food.three_counts", {
-                  ticked: food.asPlannedMeals,
-                  offPlan: food.offPlanMeals,
-                  photographed: food.photoMeals,
-                })}
-              </p>
-              {food.topFoods.length > 0 ? (
-                <p className="text-ink">
-                  {t("student_progress.food.seen_most", {
-                    list: food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · "),
-                  })}
-                </p>
-              ) : null}
-              {food.watchCounts.length > 0 ? (
-                // Un COMPTE, pas un commentaire. « Fried food ×3 » est un fait;
-                // la morale reste chez le coach.
-                <p className="text-ink">
-                  {t("student_progress.food.also", {
-                    list: food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · "),
-                  })}
-                </p>
-              ) : null}
-              {food.dinnerLarge && food.dinnerLarge.total >= 2 ? (
-                <p className="text-ink">
-                  {t("student_progress.food.dinners_large", {
-                    large: food.dinnerLarge.large,
-                    total: food.dinnerLarge.total,
-                  })}
-                </p>
-              ) : null}
-              {range === "week" && food.missingDays.length > 0 && food.missingDays.length <= 4 ? (
-                <p className="text-ink">
-                  {t("student_progress.food.missing_days", {
-                    days: food.missingDays.map(dayName).join(", "),
-                  })}
-                </p>
-              ) : null}
-              {food.vegTrend ? (
-                <p className="text-ink">
-                  {t(food.vegTrend === "up"
-                    ? "student_progress.food.veg_up"
-                    : food.vegTrend === "down"
-                    ? "student_progress.food.veg_down"
-                    : "student_progress.food.veg_same")}
-                </p>
-              ) : null}
-              <p className="pt-1 text-xs leading-5 text-ink-soft">
-                {t("student_progress.food.footnote")}
-              </p>
-            </div>
-          )}
+                onRetry={(eventId) => void mutate(() => retryJournalMeal(eventId))}
+              />
+            ))}
+          </div>
+          <ErrorLine message={editor ? null : mutationError} />
         </Card>
 
-        {/* 3bis-b. CE QUE TU AS MANGÉ — le journal, nommément.
-            LE DÉFAUT QUE CETTE CARTE CORRIGE, mesuré sur une vraie ligne: un
-            bol d'avoine au fromage blanc, lu par le modèle avec 0,95 et 0,98
-            de confiance, ne produisait à l'écran que « 1 meal logged » et une
-            ligne de zéros. Les aliments n'étaient nommés nulle part, parce que
-            le seul endroit qui les nommait (`topFoods`) exige de les avoir vus
-            DEUX fois — donc jamais sur une photo. L'élève faisait le geste et
-            ne recevait rien qui prouve qu'on avait regardé. */}
-        <Card>
-          <SectionLabel>{t("student_progress.ate.label")}</SectionLabel>
-          {loggedDaysDetail.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.ate.empty")}
-            </p>
-          ) : (
-            <>
-              <div className="mt-3 space-y-3">
-                {loggedDaysDetail.map((d) => (
-                  <div key={d.date}>
-                    <p className="text-label font-semibold uppercase text-ink-soft">
-                      {dayName(d.date)}
-                    </p>
-                    <ul className="mt-1 space-y-2">
-                      {d.entries.map((e) => {
-                        const thumb = e.cell!.mediaPaths
-                          .map((p) => photoUrls[p])
-                          .find(Boolean) ?? null;
-                        return (
-                          <li key={e.moment} className="flex gap-3">
-                            {/* LA VIGNETTE, à gauche de ce qui en a été lu.
-                                C'est la preuve que la photo a servi à quelque
-                                chose — et le seul endroit du produit où l'élève
-                                peut relire sa propre semaine. */}
-                            {thumb
-                              ? (
-                                <img
-                                  src={thumb}
-                                  alt=""
-                                  data-testid="log-thumb"
-                                  className="h-12 w-12 shrink-0 rounded-card object-cover"
-                                />
-                              )
-                              : null}
-                            <div className="min-w-0 text-sm text-ink">
-                              <p>
-                                <span className="text-ink-soft">
-                                  {momentLabel(e.moment)}
-                                </span>{" "}
-                                —{" "}
-                                {e.cell!.foods.length > 0
-                                  ? e.cell!.foods.join(", ")
-                                  : t("student_progress.ate.unreadable")}
-                                {bandWord(e.cell!.band)
-                                  ? (
-                                    <span className="text-ink-soft">
-                                      {" "}· {bandWord(e.cell!.band)}
-                                    </span>
-                                  )
-                                  : null}
-                              </p>
-                              {/* CE QUE LE MODÈLE A VU DE LA TAILLE, dans ses
-                                  mots. Une phrase observable, jamais un nombre:
-                                  elle dit POURQUOI la portion est classée
-                                  ainsi, là où le jeton seul ressemble à un
-                                  verdict tombé de nulle part. */}
-                              {e.cell!.rationale
-                                ? (
-                                  <p className="mt-0.5 text-xs leading-5 text-ink-soft">
-                                    {e.cell!.rationale}
-                                  </p>
-                                )
-                                : null}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-3 text-xs leading-5 text-ink-soft">
-                {t("student_progress.ate.footnote")}
-              </p>
-            </>
-          )}
-        </Card>
-
-        {/* 3ter. LE RYTHME — quand tu manges, jour par jour.
-            `weekInFood` dit CE QUI a été mangé; ceci dit QUAND. Une grille et
-            pas une moyenne: un coach lit un rythme d'un coup d'œil, il ne le
-            lit pas dans un chiffre. Aucun kcal ici non plus — la taille du
-            bloc est la BANDE de portion, dont le jeton est la barre d'erreur. */}
-        <Card>
-          <SectionLabel>{t("student_progress.rhythm.label")}</SectionLabel>
-          {rhythm.meals === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.rhythm.empty")}
-            </p>
-          ) : (
-            <>
-              {range === "week" ? (
-                <div className="mt-3 overflow-x-auto">
-                  <table className="w-full border-separate border-spacing-1 text-xs">
-                    <thead>
-                      <tr>
-                        <th className="w-20" />
-                        {rhythm.days.map((d) => (
-                          <th
-                            key={d.date}
-                            className="pb-1 text-center font-medium text-ink-soft"
-                          >
-                            {dayName(d.date)}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {MOMENTS.map((moment) => (
-                        <tr key={moment}>
-                          <th className="pr-2 text-right font-normal text-ink-soft">
-                            {momentLabel(moment)}
-                          </th>
-                          {rhythm.days.map((d) => {
-                            const cell = d.cells[moment];
-                            return (
-                              <td key={d.date} className="text-center">
-                                <div
-                                  data-testid="rhythm-cell"
-                                  data-count={cell?.count ?? 0}
-                                  title={cell
-                                    ? [
-                                      cell.foods.join(", ") ||
-                                      t("student_progress.rhythm.cell_count", {
-                                        count: cell.count,
-                                      }),
-                                      bandWord(cell.band),
-                                    ].filter(Boolean).join(" · ")
-                                    : t("student_progress.rhythm.cell_empty")}
-                                  // ⛔ CETTE GRILLE EST UN GRAPHIQUE, ET UN
-                                  // GRAPHIQUE NE PASSE PAS À LA FIGUE (charte
-                                  // §2). Elle ne porte aucun état du système
-                                  // non plus: la BANDE est dite par la TAILLE
-                                  // du point (`BAND_FILL`), exprès, pour que
-                                  // « grande portion » ne devienne pas un
-                                  // verdict rouge. Donc deux neutres et rien
-                                  // d'autre — la case en `line`, le point en
-                                  // `ink`. `rounded-part` (4 px) est le rayon
-                                  // que le kit réserve à une petite pièce dans
-                                  // une figure, et c'est exactement ça.
-                                  className="flex h-7 w-full items-center justify-center rounded-part bg-line"
-                                >
-                                  {cell ? (
-                                    <span
-                                      className={`rounded-full bg-ink ${
-                                        BAND_FILL[cell.band ?? "unclear"]
-                                      }`}
-                                    />
-                                  ) : null}
-                                  {cell && cell.count > 1 ? (
-                                    <span className="ml-1 text-[10px] text-ink-soft">
-                                      ×{cell.count}
-                                    </span>
-                                  ) : null}
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="mt-3 space-y-1 text-sm text-ink">
-                  {MOMENTS.map((moment) => (
-                    <p key={moment}>
-                      <span className="inline-block w-24 text-ink-soft">
-                        {momentLabel(moment)}
-                      </span>
-                      {rhythm.byMoment[moment]}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {rhythm.busiest ? (
-                <p className="mt-3 text-sm text-ink">
-                  {t("student_progress.rhythm.busiest_label")}{" "}
-                  <span className="font-medium">
-                    {momentInSentence(rhythm.busiest)}
-                  </span>.
-                </p>
-              ) : null}
-              {rhythm.unplaced > 0 ? (
-                // On le DIT plutôt que de ranger ces faits dans une case au
-                // hasard: une grille qui invente un horaire est pire qu'une
-                // grille incomplète.
-                <p className="mt-1 text-sm text-ink">
-                  {plural(
-                    rhythm.unplaced,
-                    t("student_progress.rhythm.unplaced_one", { count: rhythm.unplaced }),
-                    t("student_progress.rhythm.unplaced_many", { count: rhythm.unplaced }),
-                  )}
-                </p>
-              ) : null}
-              <p className="mt-2 text-xs leading-5 text-ink-soft">
-                {t("student_progress.rhythm.footnote")}
-              </p>
-            </>
-          )}
-        </Card>
-
-        {/* 3. LES PORTIONS — la réponse à "beaucoup ou peu", sans un kcal. */}
-        <Card>
-          <SectionLabel>{t("student_progress.plates.label")}</SectionLabel>
-          {bands.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.plates.empty")}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm text-ink">
-              {plural(
-                bands.length,
-                t("student_progress.plates.line_one", {
-                  count: bands.length,
-                  small: bandCount("small"),
-                  moderate: bandCount("moderate"),
-                  large: bandCount("large"),
-                }),
-                t("student_progress.plates.line_many", {
-                  count: bands.length,
-                  small: bandCount("small"),
-                  moderate: bandCount("moderate"),
-                  large: bandCount("large"),
-                }),
-              )}
-              {bandCount("unclear") > 0
-                ? t("student_progress.plates.unclear_suffix", {
-                  count: bandCount("unclear"),
-                })
-                : ""}.
-            </p>
-          )}
-        </Card>
-
-        {/* 3ter. L'OBJECTIF, JOUR PAR JOUR — A7, et le SEUL bloc de cette page
-            qui porte un chiffre d'énergie. Il n'existe que si la direction est
-            posée ET si les cinq portes ont ouvert: c'est le serveur qui en
-            décide, `report.objective` vaut `null` sinon.
-            ⚠️ IL EST ICI, ET PAS EN TÊTE. Un total de calories qui ouvre la
-            page ferait de l'écran un compteur — et la régularité, seule
-            métrique dont ce dépôt ait la preuve qu'elle prédit, passerait
-            derrière un chiffre dont le biais est connu. */}
-        {report?.objective
-          ? (
-            <TrackingObjectiveCard
-              objective={report.objective}
-              dayName={dayName}
-              photoUrls={photoUrls}
-              onDescribe={(date, slot) => setDescribing({ date, slot })}
-            />
-          )
-          : null}
-
-        {/* 4. LES SÉANCES — L2b, 2026-08-18. Le consommateur VIVANT de
-            `student_activity_sessions`, et sa surface de saisie.
-            ⚠️ ELLE N'EST RENDUE QU'AVEC UN `userId`, et ce n'est pas de la
-            prudence de type: la carte ÉCRIT, et une écriture sans propriétaire
-            explicite est la même cicatrice que la lecture sans `.eq(user_id)`.
-            ⚠️ ET SEULEMENT DANS LA BRANCHE `ready`, donc APRÈS la lecture du
-            fuseau — c'est la porte de chargement du formulaire, qui sème sa date
-            avec « aujourd'hui chez l'élève » et non chez le navigateur. */}
-        {userId
-          ? (
-            <ActivitySessionsCard
-              userId={userId}
-              today={isoDaysAgo(0, profileTimeZone)}
-              since={windowStart(range, profileTimeZone)}
-              windowDates={rhythmDates}
-              dayName={dayName}
-            />
-          )
-          : null}
-
-        {/* 5. LE POIDS, EN DERNIER — et c'est maintenant une COURBE.
-            La carte d'avant rendait un nombre et un delta, lus dans
-            `weekly_reviews`. Le nombre du jour EST la variation d'eau; la ligne
-            est ce qui la rend lisible comme telle. Le renversement de
-            FF-031 §3 est écrit dans `lib/weightCurve.ts`, avec ce qui ne change
-            pas: sous plancher TCA, le serveur rend `weight: null` et cette
-            carte n'est pas montée. */}
-        {report?.weight && report.weight.length > 0
+        {report.weight
           ? (
             <WeightCurveCard
               points={report.weight}
-              today={isoDaysAgo(0, profileTimeZone)}
+              today={report.today}
+              label={t("student_progress.journal.weight")}
             />
           )
           : null}
-
-        {/* ⚠️ MONTÉ EN PERMANENCE, fermé par `open`. `Modal` rend `null` fermé
-            SANS DÉMONTER: le démonter à chaque fermeture perdrait le texte en
-            cours dès qu'un rechargement de la page passe. */}
-        <TrackingDescribeDialog
-          open={describing !== null}
-          localDate={describing?.date ?? ""}
-          slot={describing?.slot ?? ""}
-          onClose={() => setDescribing(null)}
-          onRecorded={() => setReload((n) => n + 1)}
-        />
       </div>
+
+      <MealEditor
+        editor={editor}
+        today={report.today}
+        busy={busy}
+        error={mutationError}
+        onClose={() => {
+          if (!busy) setEditor(null);
+        }}
+        onDescribe={(args) => mutate(() => describeJournalMeal({ ...args, mutationId: crypto.randomUUID() }))}
+        onCorrect={(args) => mutate(() => correctJournalMeal({ ...args, mutationId: crypto.randomUUID() }))}
+        onPhoto={(args) => mutate(async () => {
+          await uploadMealPhoto({
+            file: args.file,
+            localDate: args.date,
+            journalMealId: args.mealId,
+            journalRelation: args.relation,
+            slotKey: args.slot,
+            clientUploadId: crypto.randomUUID(),
+          });
+        })}
+      />
     </KeelAppShell>
   );
 }

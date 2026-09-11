@@ -17,6 +17,7 @@ import {
   type WavePreparation,
   wavePreparationsFromRows,
   wavesAreMeaningful,
+  describeWrittenWaves,
 } from "./grocery_waves.ts";
 
 // Lundi 2026-08-03. Les jetons de jour suivent donc: mon=03 … sun=09.
@@ -853,4 +854,58 @@ Deno.test("⛔ LOT C — la liste des incongelables, sur les groupes qu'elle peu
     const marked = waves.flatMap((w) => w.freezeOnPurchase.map((i) => i.term));
     assertEquals(marked.includes("sujet"), freezable, `${group} → ${marked.join(",")}`);
   }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CE QUE LES VAGUES ÉCRITES DISENT — 2026-09-09
+//
+// ⛔ LE CAS RAPPORTÉ (poul, brouillon du 2026-09-08): « ce qui se cuisine
+// dimanche s'achète au plus près de ce jour-là » sur une dinde prise à la
+// PREMIÈRE course et congelée en rentrant. La phrase venait de
+// `rawKeepingBreaches`, qui ne sait pas ce que ce module a fait de l'article.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ describeWrittenWaves — la dinde congelée n'est PAS « achetée plus tard », le persil oui", () => {
+  const out = describeWrittenWaves({
+    window: ["wed", "thu", "fri", "sat", "sun", "mon"],
+    shoppingList: [
+      { term: "dinde hachée", buy_on: "2026-09-09", freeze_on_purchase: true },
+      { term: "persil", buy_on: "2026-09-10", freeze_on_purchase: false },
+      { term: "cuisses de poulet désossées", buy_on: "2026-09-09", freeze_on_purchase: false },
+      { term: "huile d’olive", buy_on: "2026-09-09", freeze_on_purchase: false },
+    ],
+    preparations: [
+      { id: "prep_turkey_meatballs", cookOn: "sun", ingredientTerms: ["dinde hachée", "persil", "huile d’olive"] },
+      { id: "prep_chicken", cookOn: "fri", ingredientTerms: ["cuisses de poulet désossées"] },
+      { id: "prep_roast_chicken", cookOn: "wed", ingredientTerms: ["cuisses de poulet désossées"] },
+    ],
+  });
+  assertEquals(out.frozenAtPurchase, [
+    { cookOn: "sun", buyOn: "2026-09-09", terms: ["dinde hachée"] },
+  ]);
+  // Le persil de dimanche est bien acheté après la première course.
+  assertEquals(out.laterShopDays, ["sun"]);
+  assertEquals(out.frozenPreparationIds, ["prep_turkey_meatballs"]);
+});
+
+Deno.test("describeWrittenWaves — un terme nourrit DEUX cuissons: les deux sont rattachées", () => {
+  const out = describeWrittenWaves({
+    window: ["mon", "tue", "wed", "thu", "fri"],
+    shoppingList: [{ term: "poisson", buy_on: "2026-09-07", freeze_on_purchase: true }],
+    preparations: [
+      { id: "a", cookOn: "wed", ingredientTerms: ["Poisson"] },
+      { id: "b", cookOn: "fri", ingredientTerms: ["poisson"] },
+    ],
+  });
+  assertEquals(out.frozenAtPurchase.map((f) => f.cookOn), ["wed", "fri"]);
+  assertEquals(out.frozenPreparationIds.sort(), ["a", "b"]);
+});
+
+Deno.test("describeWrittenWaves — sans date écrite, rien n'est inventé", () => {
+  const out = describeWrittenWaves({
+    window: ["mon", "tue"],
+    shoppingList: [{ term: "x" }],
+    preparations: [{ id: "p", cookOn: "tue", ingredientTerms: ["x"] }],
+  });
+  assertEquals(out, { frozenAtPurchase: [], laterShopDays: [], frozenPreparationIds: [] });
 });

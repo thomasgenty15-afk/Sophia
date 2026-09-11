@@ -143,9 +143,24 @@ function announceSwitchWrite(): void {
 
 export function useMealEnergy(args: {
   planId: string | null;
+  /**
+   * ⟳ 2026-09-08 — L'IDENTIFIANT D'UN BROUILLON RANGÉ, quand ce qu'on regarde
+   * n'est pas encore un plan.
+   *
+   * ⛔ REQUIS, jamais `?`. Les deux appelants existants passent `null` et le
+   * DISENT: un champ facultatif aurait laissé le chiffre du brouillon construit
+   * et débranché, sans qu'aucun appelant ne remonte au compilateur.
+   *
+   * ⚠️ L'UN OU L'AUTRE, jamais les deux: un écran regarde un plan écrit OU un
+   * aperçu. Le plan gagne s'il est là — c'est celui que la personne a adopté.
+   */
+  draftId: string | null;
   dishes: readonly GeneratedDish[];
 }): MealEnergy {
   const { planId } = args;
+  // Le plan écrit fait autorité: si les deux sont posés, le brouillon est un
+  // reste d'état d'écran, pas une demande.
+  const draftId = planId === null ? args.draftId : null;
   const dishes = args.dishes.length > 0 ? args.dishes : NO_DISHES;
 
   const [reading, setReading] = React.useState<EnergyReading | null>(null);
@@ -155,22 +170,29 @@ export function useMealEnergy(args: {
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!planId) {
+      if (!planId && !draftId) {
         // PAS de `setReading(null)` déguisé en refus: sans plan il n'y a rien à
         // demander, et l'état « pas prêt » est exact.
         if (!cancelled) setReading({ show: false, reason: "no_plan", switchOfferable: false, boxes: [] });
         return;
       }
-      const next = await loadMealEnergy([planId]);
+      const next = await loadMealEnergy(
+        planId ? [planId] : [],
+        draftId ? [draftId] : [],
+      );
       if (!cancelled) setReading(next);
     })();
     return () => {
       cancelled = true;
     };
-  }, [planId, reloads]);
+  }, [planId, draftId, reloads]);
 
+  // ⚠️ LE SERVEUR REND LES LIGNES SOUS L'IDENTIFIANT DEMANDÉ, plan ou
+  // brouillon: un brouillon sort sous son `draft_id`. Une seule clé de lecture,
+  // donc, et c'est celle qu'on a envoyée.
+  const askedId = planId ?? draftId;
   const plan = reading?.show === true
-    ? reading.plans.find((p) => p.planId === planId) ?? null
+    ? reading.plans.find((p) => p.planId === askedId) ?? null
     : null;
 
   // ⟳ LOT F — LA TABLE CONTENANT → CHIFFRE, clée sur l'id du couvercle. Elle se
@@ -182,10 +204,10 @@ export function useMealEnergy(args: {
     if (!reading) return map;
     const source = reading.show === true
       ? (plan?.boxes ?? [])
-      : (reading.boxes.find((p) => p.planId === planId)?.boxes ?? []);
+      : (reading.boxes.find((p) => p.planId === askedId)?.boxes ?? []);
     for (const box of source) map.set(box.boxId, box);
     return map;
-  }, [reading, plan, planId]);
+  }, [reading, plan, askedId]);
 
   // LA TABLE PLAT → CHIFFRE, clée sur la RÉFÉRENCE de l'objet plat.
   const byDish = React.useMemo(() => {

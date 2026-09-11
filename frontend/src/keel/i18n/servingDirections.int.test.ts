@@ -50,7 +50,6 @@ const MODULE = path.join(
   REPO,
   "supabase/functions/_shared/keel/household_portions.ts",
 );
-const PAGES = path.join(REPO, "frontend/src/keel/pages");
 
 /**
  * Le seed, lu par clé calculée.
@@ -116,22 +115,12 @@ function servingDirections(source: string): Record<string, string> {
  * (`  generous: "larger",`), ce qui est ce qui rend la comparaison possible
  * sans importer quoi que ce soit. Les commentaires ne matchent pas.
  */
-function wordTable(source: string, declaration: string): Record<string, string> {
-  const body = block(source, declaration, "\n};");
-  const out: Record<string, string> = {};
-  for (const m of body.matchAll(/^ {2}(\w+):\s*"(\w+)",/gm)) out[m[1]] = m[2];
-  return out;
-}
 
 const source = fs.readFileSync(MODULE, "utf8");
 const goals = memberGoals(source);
 const directions = servingDirections(source);
 
 /** Les deux pages qui portent la grammaire, et la forme exacte de leur table. */
-const PORTS = [
-  { page: "MealPrepPage.tsx", qualifiers: "const QUALIFIERS: Record<string, Demand> = {", axes: "const AXIS_WORDS: Record<string, Axis> = {" },
-  { page: "CouplesPage.tsx", qualifiers: "const QUALIFIERS: Record<string, ServingDemand> = {", axes: "const AXIS_WORDS: Record<string, ServingAxis> = {" },
-];
 
 describe("les consignes de service montrées sur la vitrine", () => {
   it("sont extraites du moteur, une par objectif", () => {
@@ -148,86 +137,29 @@ describe("les consignes de service montrées sur la vitrine", () => {
     }
   });
 
-  it("sont rendues MOT POUR MOT par `/meal-prep`", () => {
-    // On boucle sur la constante réelle, pas sur une liste recopiée à côté: un
-    // septième objectif ajouté au CHECK fait échouer ici, ce qu'une liste
-    // écrite à la main n'aurait pas fait.
+  it("sont rendues MOT POUR MOT par `/` (`home.dir.*`)", () => {
+    // ⚠️ `/meal-prep` et `/couples` ont été RETIRÉES le 2026-09-08; la seule
+    // landing porte les consignes sous `home.dir.*`, et c'est elle qu'on
+    // épingle. On boucle sur la constante réelle, pas sur une liste recopiée:
+    // un objectif ajouté au moteur fait échouer ici.
     for (const goal of goals) {
-      expect(seed[`mealprep.dir.${goal}`], `mealprep.dir.${goal}`)
-        .toBe(directions[goal]);
+      expect(seed[`home.dir.${goal}`], `home.dir.${goal}`).toBe(directions[goal]);
     }
   });
 
-  it("sont rendues MOT POUR MOT par `/couples`", () => {
-    // Ne pas « réparer » en retirant ce test: les deux pages montrent les MÊMES
-    // six phrases, et c'est la seule chose qui garantisse qu'elles ne divergent
-    // pas l'une de l'autre.
+  it("existent dans le pack français, une par objectif, et ne recopient pas l'anglais", () => {
+    // La ceinture de la ceinture: une clé absente rendrait `undefined` et la
+    // page rendrait la clé nue. Et une copie de l'anglais serait la
+    // « traduction » qui fait verdir la parité sans rien traduire.
+    const p = fr as Record<string, string | undefined>;
     for (const goal of goals) {
-      expect(seed[`couples.dir.${goal}`], `couples.dir.${goal}`)
-        .toBe(directions[goal]);
-    }
-  });
-
-  /**
-   * ⚠️ AJOUTÉ LE 2026-09-01, ET LA DIVERGENCE QU'IL ATTRAPE ÉTAIT DÉJÀ EN LIGNE.
-   *
-   * Les deux tests ci-dessus comparent le catalogue au moteur — donc au pack
-   * ANGLAIS, puisque le moteur écrit en anglais. Le pack FRANÇAIS n'était lu
-   * par personne, et il avait dérivé: `/meal-prep` disait « légumes en
-   * quantité, part de protéine complète, part de féculent réduite » quand
-   * `/couples` disait « légumes généreux, part de protéine entière, part de
-   * féculent plus petite ». La MÊME consigne du moteur, deux traductions, deux
-   * pages à un clic l'une de l'autre — et une garde verte au-dessus.
-   *
-   * On ne peut pas comparer le français au moteur: ce serait exiger une
-   * traduction figée. Ce qui se vérifie, et qui suffit, c'est que les DEUX
-   * PAGES disent la même chose DANS CHAQUE PACK.
-   *
-   * Cicatrice du dépôt: une garde écrite dans une seule langue ne garde qu'une
-   * seule langue. Quand une règle vaut pour le catalogue, elle se vérifie sur
-   * tous les packs, pas sur celui qui a servi à l'écrire.
-   */
-  it("disent la même chose sur les deux pages, DANS CHAQUE PACK", () => {
-    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
-      const p = pack as Record<string, string | undefined>;
-      for (const goal of goals) {
-        const onMealPrep = p[`mealprep.dir.${goal}`];
-        // La ceinture de la ceinture: une clé absente rendrait `undefined ===
-        // undefined` et verdirait sur deux pages qui n'écrivent rien.
-        expect(onMealPrep, `${name}: mealprep.dir.${goal} absente`).toBeTruthy();
-        expect(p[`couples.dir.${goal}`], `${name}: les deux pages divergent sur ${goal}`)
-          .toBe(onMealPrep);
-      }
+      expect(p[`home.dir.${goal}`], `fr: home.dir.${goal} absente`).toBeTruthy();
+      expect(p[`home.dir.${goal}`]).not.toBe(directions[goal]);
     }
   });
 });
 
-describe("la grammaire qui lit ces consignes", () => {
-  const qualifiers = wordTable(source, "const QUALIFIERS: Record<string, ServingDemand> = {");
-  const axisWords = wordTable(source, "const AXIS_WORDS: Record<string, ServingAxis> = {");
-
-  it("est extraite du moteur, et elle n'est pas vide", () => {
-    // Même ceinture que plus haut: une extraction qui rendrait zéro entrée
-    // ferait comparer `{}` à `{}` et verdirait sur deux pages divergentes.
-    expect(Object.keys(qualifiers).length).toBeGreaterThanOrEqual(7);
-    expect(Object.keys(axisWords).length).toBeGreaterThanOrEqual(3);
-    // Le raccourci qui gouverne les trois axes d'un coup.
-    expect(source).toContain('const EVERY_COMPONENT = "component";');
-  });
-
-  for (const port of PORTS) {
-    it(`est portée à l'identique par \`${port.page}\``, () => {
-      const page = fs.readFileSync(path.join(PAGES, port.page), "utf8");
-      expect(wordTable(page, port.qualifiers), `QUALIFIERS de ${port.page}`)
-        .toEqual(qualifiers);
-      expect(wordTable(page, port.axes), `AXIS_WORDS de ${port.page}`)
-        .toEqual(axisWords);
-      // Le raccourci, sous l'une ou l'autre de ses deux formes portées.
-      expect(
-        page.includes('const EVERY_COMPONENT = "component"') ||
-          page.includes('word === "component"'),
-        `le raccourci \`component\` a disparu de ${port.page}`,
-      ).toBe(true);
-    });
-  }
-});
+// ⚠️ « la grammaire qui lit ces consignes » A ÉTÉ RETIRÉ LE 2026-09-08 avec
+// ses deux ports (`MealPrepPage.tsx`, `CouplesPage.tsx`): la landing unique
+// AFFICHE la consigne traduite, elle ne la LIT plus en axes. Le jour où une
+// page relit `QUALIFIERS`/`AXIS_WORDS`, ce bloc revient avec elle.

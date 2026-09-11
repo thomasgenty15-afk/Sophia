@@ -237,12 +237,14 @@ Deno.test("corps illisible: best-effort, la bouche reste servie", async () => {
     displayName: m.memberId === ANA_MEMBER ? "Ana" : m.memberId === MARC_MEMBER ? "Marc" : "Léo",
     goal: "fat_loss" as const,
     ageState: "adult" as const,
+    lightSlots: [],
     body: got.byMember.get(m.memberId) ?? null,
     eatingSlots: null,
     habits: [],
     habitNote: null,
+    requiredDensity: null,
   }));
-  const brief = buildPortionBrief(members, "one_dish", 0, 1);
+  const brief = buildPortionBrief(members, "one_dish", 0, 1, "legacy_measure");
   assertEquals(brief.split("\n").filter((l) => l.startsWith("- ")).length, 3);
   assert(!brief.includes("["), brief);
 });
@@ -384,9 +386,11 @@ Deno.test("⛔ et ce corps ATTEINT le brief de portions", async () => {
       goal: "maintenance",
       ageState: "adult",
       body: out.byMember.get(LEO_MEMBER) ?? null,
+      lightSlots: [],
       eatingSlots: null,
       habits: [],
       habitNote: null,
+      requiredDensity: null,
     },
     {
       memberId: ANA_MEMBER,
@@ -394,12 +398,14 @@ Deno.test("⛔ et ce corps ATTEINT le brief de portions", async () => {
       goal: "maintenance",
       ageState: "adult",
       body: null,
+      lightSlots: [],
       eatingSlots: null,
       habits: [],
       habitNote: null,
+      requiredDensity: null,
     },
   ];
-  const brief = buildPortionBrief(members, "one_dish", 0, 1);
+  const brief = buildPortionBrief(members, "one_dish", 0, 1, "legacy_measure");
   assert(brief.includes("169 cm"), `la taille n'atteint pas le brief:\n${brief}`);
   assert(brief.includes("59 kg"), `le poids n'atteint pas le brief:\n${brief}`);
 });

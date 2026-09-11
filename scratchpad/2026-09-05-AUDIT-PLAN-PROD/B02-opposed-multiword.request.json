@@ -1,0 +1,11 @@
+{
+  "operation": "compose",
+  "window": {
+    "kind": "days",
+    "count": 7
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": "Des lasagnes et des lentilles pour Alice, avec une boîte adaptée pour Marc.",
+  "one_cooking_session": false
+}

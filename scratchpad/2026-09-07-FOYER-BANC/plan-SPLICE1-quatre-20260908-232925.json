@@ -1,0 +1,1 @@
+{"ok":false,"error":"[keel/household_safety] a household allergy resolves to no catalogued allergen (nuts); the output belt would only match the exact word that was typed, so no meal may be composed. Add its surface forms to ALLERGEN_SURFACE_FORMS.","request_id":"44d60109-c635-4998-971e-d7cb0cd3c962"}

@@ -25,6 +25,15 @@ export const SPLIT_RETRY_MIN_CELLS = 2;
 export function preferenceSplitRetryInstruction(
   rows: readonly SplitRetryRow[],
   cellsChecked: number,
+  /**
+   * ⟳ LOT 14 (2026-09-08) — DANS QUELLE LANGUE ON DEMANDE.
+   *
+   * ⛔ REQUIS, deux valeurs nommées. `boxes` est le texte d'origine, servi tant
+   * que le modèle écrit les couvercles. `standard_recipe` est celui du chemin
+   * où le MOTEUR les autore: la personne n'a plus « une boîte à elle », elle a
+   * un PLAT à elle, et c'est `for_member_id` qui le porte.
+   */
+  wording: "boxes" | "standard_recipe",
 ): string | null {
   const clean = (rows ?? []).filter((r) =>
     r && String(r.term ?? "").trim() && String(r.wanter ?? "").trim()
@@ -33,6 +42,16 @@ export function preferenceSplitRetryInstruction(
   const floor = Math.min(SPLIT_RETRY_MIN_CELLS, cellsChecked);
   const lines = clean.map((r) => {
     const refusers = r.refusers.map((n) => n.trim()).filter(Boolean);
+    if (wording === "standard_recipe") {
+      const never = refusers.length > 0
+        ? ` -- and NEVER in the dish ${refusers.join(", ")} eat`
+        : "";
+      return `- "${r.term}" was asked for ${r.wanter}, and no dish of theirs cites it: ` +
+        `the shared base avoided it for everyone. At least ${floor} lunches or dinners ` +
+        `of the stretch must give ${r.wanter} a dish of their OWN ("for_member_id") ` +
+        `citing "${r.term}": ONE MORE preparation (with its own id and full recipe, ` +
+        `cooked apart) or added fresh on the day${never}.`;
+    }
     const never = refusers.length > 0
       ? ` -- and NEVER from the box of ${refusers.join(", ")}`
       : "";
@@ -43,8 +62,11 @@ export function preferenceSplitRetryInstruction(
       `(with its own id and full recipe, cooked apart) or added fresh on the day${never}.`;
   });
   return [
-    "⛔ SOMEONE ASKED FOR A FOOD IN THEIR OWN BOX AND GOT NONE. Keep every dish, day " +
-    "and slot, keep the shared base exactly as it is, and fix ONLY this:",
+    wording === "standard_recipe"
+      ? "⛔ SOMEONE ASKED FOR A FOOD AND GOT NONE. Keep every dish, day and slot, " +
+        "keep the shared base exactly as it is, and fix ONLY this:"
+      : "⛔ SOMEONE ASKED FOR A FOOD IN THEIR OWN BOX AND GOT NONE. Keep every dish, day " +
+        "and slot, keep the shared base exactly as it is, and fix ONLY this:",
     ...lines,
     "Add the new lines to the cooking sessions and the shopping list. Do NOT drop a " +
     "dish, do NOT shorten the plan, and do NOT mention any of this in a \"why\" -- what " +

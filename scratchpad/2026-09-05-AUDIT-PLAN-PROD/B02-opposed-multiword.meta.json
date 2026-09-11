@@ -1,0 +1,13 @@
+{
+  "id": "B02-opposed-multiword",
+  "uid": "b5e97efb-b941-4315-a405-2b3a8a4984e0",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T18:52:32.363Z",
+  "end": "2026-09-05T18:55:51.226Z",
+  "http": 200,
+  "seconds": 198.82252054200018,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "request_id": "bc4afa88-e803-42e1-bbe2-6770892d6999",
+  "ok": true
+}

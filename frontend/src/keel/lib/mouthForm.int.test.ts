@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  activityIsRequired,
   ageStateOfDraft,
   bodyOfDraft,
   emptyMouthDraft,
@@ -129,34 +128,45 @@ describe("les six blocs, et lesquels retiennent", () => {
     expect([...missingRequiredBlocks(noName)]).toContain("identity");
   });
 
-  it("le CRAN D'ACTIVITÉ retient le bloc 3 SOUS UNE DIRECTION QUI BOUGE", () => {
-    // D1 (2026-08-18) — sans lui, `energy_target.ts` multiplie un métabolisme
-    // par une constante devinée pour VISER un rythme.
-    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+  it("le CRAN D'ACTIVITÉ NE RETIENT PLUS RIEN — sous AUCUNE direction", () => {
+    // ⟳ 2026-09-06 — CE CAS DISAIT L'INVERSE, ET IL AVAIT RAISON JUSQU'ICI:
+    // D1 (2026-08-18) faisait du cran un champ bloquant dès que la balance
+    // devait bouger. Le champ est parti de la fiche, et sa garde avec.
+    //
+    // ⛔ CE QUE LA SUPPRESSION SOLDE, ET C'EST MESURABLE ICI: le cran retenait
+    // l'inscription pendant que `activityFactorOf` le JETTE dès que les deux
+    // axes sont remplis (`crossed` l'emporte sur `legacy`). On bloquait sur une
+    // réponse dont on savait déjà qu'elle ne serait pas lue — et la carte du
+    // titulaire, à côté dans le même entonnoir, ne la demandait même pas.
+    //
+    // ⚠️ LES TROIS DIRECTIONS, PAS DEUX. Une garde retirée sur `fat_loss`
+    // seulement se lirait pareil sur ce cas-ci; les trois jetons la prouvent
+    // morte partout.
+    for (const goal of ["fat_loss", "muscle_gain", "maintenance"] as const) {
       const noActivity = draftOf({
         ...SIXTY_KG_WOMAN,
         activityLevel: "",
         goal,
       });
-      expect([...missingRequiredBlocks(noActivity)]).toEqual(["body"]);
-      expect(submitIsHeld(noActivity, TODAY)).toBe(true);
+      expect([...missingRequiredBlocks(noActivity)], goal).toEqual([]);
+      expect(submitIsHeld(noActivity, TODAY), goal).toBe(false);
     }
   });
 
-  it("…ET IL EST FACULTATIF POUR QUI VEUT MAINTENIR — le cas qui PASSE", () => {
-    // ⚠️ D1 (2026-08-18) — LA MOITIÉ QUI PROUVE LA CONDITION. L'assertion
-    // voisine reste verte si `activityIsRequired` rend `true` en dur: elle ne
-    // regarde que des directions qui bougent. Celle-ci est le seul cas où la
-    // condition DÉCIDE — et le blocage de sortie est vérifié avec, parce qu'un
-    // champ déclaré facultatif au-dessus d'un bouton qui retient quand même
-    // serait un mensonge, pas un assouplissement.
-    const held = draftOf({
+  it("…et les deux AXES ne le retiennent pas non plus — c'est délibéré", () => {
+    // ⛔ LA GARDE N'A PAS DÉMÉNAGÉ SUR LES AXES, et ce cas est là pour qu'on ne
+    // la « rebranche par symétrie » sans le décider. `null` est une lecture
+    // JUSTE (`assumed`, facteur 1,5); forcer une réponse pour sortir de
+    // l'entonnoir ferait cocher au hasard, c'est-à-dire remplacer une hypothèse
+    // annoncée par une déclaration fausse que plus rien ne pourra démentir.
+    const noAxes = draftOf({
       ...SIXTY_KG_WOMAN,
       activityLevel: "",
-      goal: "maintenance",
+      goal: "fat_loss",
     });
-    expect([...missingRequiredBlocks(held)]).toEqual([]);
-    expect(submitIsHeld(held, TODAY)).toBe(false);
+    expect(noAxes.dayActivity).toBe("");
+    expect(noAxes.sportFrequency).toBe("");
+    expect([...missingRequiredBlocks(noAxes)]).toEqual([]);
   });
 
   it("les trois AUTRES champs du bloc 3 retiennent, direction ou pas", () => {
@@ -176,24 +186,21 @@ describe("les six blocs, et lesquels retiennent", () => {
     }
   });
 
-  it("la direction NON CHOISIE ne réclame pas encore le cran", () => {
-    // Elle retient déjà le bouton par SON bloc. Empiler `body` nommerait un
-    // manque que la personne ne peut pas comprendre: on lui réclamerait son
-    // activité pour un objectif qu'elle n'a pas posé.
+  it("la direction NON CHOISIE retient par SON bloc, et par lui seul", () => {
+    // Elle ne fait pas tomber le corps avec elle: nommer deux manques quand un
+    // seul est vrai envoie chercher au mauvais endroit.
     const noGoal = draftOf({ ...SIXTY_KG_WOMAN, activityLevel: "", goal: "" });
     expect([...missingRequiredBlocks(noGoal)]).toEqual(["direction"]);
   });
 
-  it("`activityIsRequired` couvre les TROIS directions, plus le vide", () => {
-    // Les trois jetons, pas un seul: une correspondance codée sur une valeur ne
-    // dit rien des deux autres. `GOAL_TOKENS` est la liste que la base porte.
+  it("les trois jetons de direction sont toujours ceux de la base", () => {
+    // ⟳ 2026-09-06 — CE CAS TENAIT `activityIsRequired`, retirée avec le champ.
+    // La liste, elle, reste vérifiée: c'est elle que `goalsForAge` filtre et
+    // que le CHECK de la base porte, et une correspondance codée sur une seule
+    // valeur ne dirait rien des deux autres.
     expect([...GOAL_TOKENS].sort()).toEqual(
       ["fat_loss", "maintenance", "muscle_gain"],
     );
-    expect(activityIsRequired("fat_loss")).toBe(true);
-    expect(activityIsRequired("muscle_gain")).toBe(true);
-    expect(activityIsRequired("maintenance")).toBe(false);
-    expect(activityIsRequired("")).toBe(false);
   });
 });
 

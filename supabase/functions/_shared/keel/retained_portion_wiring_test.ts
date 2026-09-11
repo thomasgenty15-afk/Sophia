@@ -31,12 +31,17 @@
 // quand on change la constante.
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   envelopeFor,
   type PortionAdjustFor,
   winningPortionAdjust,
+  MAINTENANCE_ENVELOPE_DIRECTION,
 } from "./meal_envelope.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 import { parseRetainedItem, type PortionAdjustItem } from "./retained_item.ts";
@@ -123,6 +128,9 @@ const AXES_ARG = 6;
 /** La position de l'appétit — le 8ᵉ paramètre (lot ⑤, 2026-08-20). */
 const APPETITE_ARG = 7;
 
+/** La position de la direction de balance — le 10ᵉ paramètre (2026-09-09). */
+const DIRECTED_ARG = 9;
+
 Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelopeFor`", async () => {
   // ⚠️ LA MOITIÉ QUI REND CE TEST UTILE: il doit rougir si quelqu'un remet
   // `null`. Vérifié par mutation (voir le rapport du lot): remettre `null` au
@@ -131,15 +139,28 @@ Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelop
   for (
     const [lane, rel] of [
       ["foyer", "generate-household-meal-v1/index.ts"],
-      ["individuelle", "generate-meal-v1/index.ts"],
     ] as const
   ) {
     const src = await source(rel);
     const args = callArgs(src, "envelopeFor");
+    // ⟳ 2026-09-09 — DIX, ET LE DIXIÈME EST `directed`. La bande ne descend
+    // plus d'une fraction du jeton `goal` mais du CRAN de la personne, exécuté
+    // par `executedPaceFor` — c'est-à-dire par le même chemin que la fourchette
+    // affichée sous ses plats. Un appelant qui l'oublierait ne compile pas.
     assertEquals(
       args.length,
-      9,
-      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 9 paramètres`,
+      10,
+      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 10 paramètres`,
+    );
+    // ⛔ ET IL N'EST PAS `null`-ABLE: la garde du 7ᵉ argument existe parce
+    // qu'un lecteur branché sur `null` est un lecteur mort. Le dixième porte la
+    // même exigence — un `MAINTENANCE_ENVELOPE_DIRECTION` posé dans une lane de
+    // GÉNÉRATION servirait la bande d'entretien à qui vise une perte.
+    assert(
+      !args[DIRECTED_ARG].includes("MAINTENANCE_ENVELOPE_DIRECTION"),
+      `LANE ${lane.toUpperCase()} DÉSARMÉE: \`envelopeFor\` reçoit la direction ` +
+        `neutre. Le cran de la personne n'atteint pas sa bande, et deux ` +
+        `\`fat_loss\` de rythmes opposés reçoivent la même enveloppe.`,
     );
     assert(
       args[PORTION_ARG] !== "null",
@@ -158,13 +179,31 @@ Deno.test("LANE FOYER — les deux axes d'activité viennent de la FICHE, pas d'
   // même littéral, le lot serait construit, migré, affiché — et désarmé, sans
   // qu'aucun autre test ne rougisse: le produit rendrait exactement les nombres
   // d'avant, ce qui est précisément le mode d'échec n°1 de ce dépôt.
+  // ⟳ 2026-09-10 · LOT 3 — LE CONTRAT A CHANGÉ DE NOM, PAS DE NATURE.
+  // Ce test épinglait le littéral `lineBodies.get(...)`. Depuis le lot 3, la
+  // fiche n'est plus lue directement par le moteur: elle entre dans
+  // `resolveMouth` avec les pesées datées du compte, et `bodyOfMouth` rend le
+  // résultat. La PROPRIÉTÉ protégée est la même — les axes viennent d'une
+  // LECTURE, jamais d'un littéral neutre — et elle est même plus forte: pour
+  // un compte, ils viennent maintenant de son profil plutôt que de ce que
+  // quelqu'un a tapé sur sa fiche.
   const household = await source("generate-household-meal-v1/index.ts");
   const args = callArgs(household, "envelopeFor");
   assert(
-    /lineBodies\.get\(m\.memberId\)\?\.activityAxes/.test(args[AXES_ARG]),
-    "LANE FOYER DÉBRANCHÉE: `envelopeFor` ne reçoit plus les axes LUS sur la " +
-      "fiche (`lineBodies…activityAxes`), donc la journée et le sport " +
-      `collectés n'atteignent aucune équation. Reçu: ${args[AXES_ARG]}`,
+    /bodyOfMouth\(m\.memberId\)\?\.activityAxes/.test(args[AXES_ARG]),
+    "LANE FOYER DÉBRANCHÉE: `envelopeFor` ne reçoit plus les axes LUS " +
+      "(`bodyOfMouth…activityAxes`), donc la journée et le sport collectés " +
+      `n'atteignent aucune équation. Reçu: ${args[AXES_ARG]}`,
+  );
+  // ⛔ ET LA MOITIÉ QUI COMPTE VRAIMENT: la LECTURE VIENT EN PREMIER. Le
+  // littéral neutre `{day:null, sport:null, asked:false}` est légitime en
+  // REPLI (une bouche sans corps rend alors exactement le nombre d'avant le
+  // lot du 2026-08-20); il serait un désarmement s'il venait seul. C'est
+  // l'ORDRE qui sépare les deux, et rien d'autre.
+  assert(
+    /^\s*bodyOfMouth\(/.test(args[AXES_ARG]),
+    `LANE FOYER DÉSARMÉE: les axes ne commencent pas par une lecture — un ` +
+      `littéral neutre est passé avant elle. Reçu: ${args[AXES_ARG]}`,
   );
   // ⑤ — MÊME GARDE, MÊME RAISON. L'appétit est TRANSITOIRE (le lot ⑦ le
   // remplace), ce qui le rend d'autant plus facile à débrancher « en passant »
@@ -172,7 +211,7 @@ Deno.test("LANE FOYER — les deux axes d'activité viennent de la FICHE, pas d'
   // décoratifs pour toutes les bouches SANS COMPTE, qui sont précisément celles
   // que ⑦ ne couvrira jamais.
   assert(
-    /lineBodies\.get\(m\.memberId\)\?\.appetite/.test(args[APPETITE_ARG]),
+    /bodyOfMouth\(m\.memberId\)\?\.appetite/.test(args[APPETITE_ARG]),
     "LANE FOYER DÉBRANCHÉE: `envelopeFor` ne reçoit plus l'appétit LU sur la " +
       `fiche. Reçu: ${args[APPETITE_ARG]}`,
   );
@@ -240,7 +279,8 @@ Deno.test("LANE FOYER — le compteur du câblage est là, et il compte les BOUC
       "« l'enveloppe ne reçoit rien », ce qui est devenu faux.",
   );
   assert(
-    /portion_applied: composedMembers\.filter\(/.test(household),
+    /portion_applied: composedMembers\s*\n?\s*\.?filter\(|portion_applied: composedMembers\.filter\(/
+      .test(household),
     "la trace du foyer ne compte plus les bouches servies: `portion` non nul " +
       "avec `portion_applied: 0` et `portion_excluded` vide est la seule " +
       "signature lisible d'un câblage rompu, et elle disparaît avec ce champ.",
@@ -252,10 +292,31 @@ Deno.test("LANE FOYER — le compteur du câblage est là, et il compte les BOUC
   // c'est le SYMBOLE nommé qui a vieilli. Un test qui nomme un arbitre le fixe
   // dans le temps: il faut nommer CELUI QUI DÉCIDE, et un seul le décide.
   assert(
-    /portionIndexMoves\(portionIndexFor\(/.test(household),
+    /portionIndexMoves\(portionIndexOf\(/.test(household),
     "le compteur ne passe plus par `portionIndexMoves`: il recompte à la " +
       "main ce que l'enveloppe décide, donc il finira par dire autre chose " +
       "qu'elle — c'est exactement ce qui est arrivé entre M3 et le 2026-09-01.",
+  );
+  // ⟳ 2026-09-08 — ET LA POSITION EST CALCULÉE **UNE SEULE FOIS**, dans un
+  // helper que SIX appelants lisent. Avant ce lot, le couple
+  // `portionAdjustFor` + `portionIndexFor` vivait en clair dans le compteur;
+  // en le recopiant à chaque construction d'ancre, on aurait fabriqué sept
+  // lectures de la même chose — et c'est très exactement le mode d'échec que
+  // le commentaire ci-dessus raconte.
+  assert(
+    /const portionIndexOf = \(/.test(household),
+    "le helper de position a disparu: chaque appelant recalcule, donc ils " +
+      "finiront par ne plus lire la même position.",
+  );
+  // ⛔ ET LA CIBLE DU JOUR LE REÇOIT. Sans cette ligne, le cran s'écrit en
+  // mémoire, se compte dans `portion_applied`… et ne déplace aucune assiette:
+  // `envelopeFor` MESURE depuis le 2026-09-06, et sous `portion_v1` c'est
+  // `mouthTargetKcal` qui dimensionne. C'est la troisième entrée morte de
+  // l'axe « combien », nommée dans le document des retours.
+  assert(
+    /portionIndex: portionIndexOf\(/.test(household),
+    "aucune construction d'ancre ne porte la position: le cran est écrit, " +
+      "compté, et sans effet sur une part.",
   );
   // ⚠️ ET L'ANCIEN ARBITRE NE DOIT PAS REVENIR ICI. Le rebrancher « par
   // symétrie » ramènerait le désaccord sans qu'aucun test ne rougisse.
@@ -264,84 +325,6 @@ Deno.test("LANE FOYER — le compteur du câblage est là, et il compte les BOUC
     "le compteur du foyer est revenu à `winningPortionAdjust`, l'arbitre " +
       "d'AVANT M3: il compterait « servi » des bouches que l'enveloppe " +
       "n'a pas bougées.",
-  );
-});
-
-Deno.test("LANE INDIVIDUELLE — son compteur lit LE MÊME arbitre", async () => {
-  // Le défaut était SYMÉTRIQUE: les deux générateurs affirmaient lire
-  // l'arbitre de l'enveloppe, les deux lisaient l'ancien.
-  const individual = await source("generate-meal-v1/index.ts");
-  assert(
-    /applied: portionIndexMoves\(studentPortionIndex\)/.test(individual),
-    "la lane individuelle ne compte plus par `portionIndexMoves`.",
-  );
-  assert(
-    !/winningPortionAdjust\(/.test(individual),
-    "la lane individuelle est revenue à l'arbitre d'AVANT M3.",
-  );
-  // ⚠️ ET LA POSITION EST DANS LA LIGNE, pas seulement le 0/1: « −1 après une
-  // réponse » et « −1 après trois qui s'annulent presque » sont deux
-  // histoires, et un booléen les rend identiques.
-  for (const field of ["answers:", "position:", "raw:", "factor:"]) {
-    assert(
-      individual.includes(field),
-      `le compteur de portions ne dit plus \`${field}\`: l'indice redevient ` +
-        "illisible depuis les logs.",
-    );
-  }
-
-  // ⛔ ET L'ENVELOPPE SORT AVEC SON CONTREFACTUEL. Sans lui, « l'ajustement
-  // arrive à l'assiette » resterait une phrase qu'aucune mesure ne peut
-  // démentir: comparer deux GÉNÉRATIONS mélangerait la variance du modèle avec
-  // l'effet cherché. Le second appel, seul argument de portion mis à `null`,
-  // est la seule forme où l'écart n'a qu'une cause possible.
-  assert(
-    individual.includes('tag: "keel.meal.envelope"'),
-    "l'enveloppe n'est plus journalisée: c'est le nombre qui JUGE et qui MET " +
-      "À L'ÉCHELLE, et il redevient invisible sur un `draft`.",
-  );
-  assert(
-    /const unadjustedEnvelope = envelopeFor\(/.test(individual),
-    "LE CONTREFACTUEL A DISPARU: sans lui, le facteur de portion n'est plus " +
-      "observable en aval, seulement re-déclaré par le compteur qui le calcule.",
-  );
-});
-
-Deno.test("LANE INDIVIDUELLE — l'âge est LU, et son défaut est `unknown`", async () => {
-  const individual = await source("generate-meal-v1/index.ts");
-  assertEquals(
-    callArgs(individual, "envelopeFor")[PORTION_ARG],
-    "studentPortionAdjust",
-    "la lane individuelle ne passe plus sa bouche à l'enveloppe.",
-  );
-  assert(
-    /studentAgeState = ageStateFromVerdict\(snapshot\.verdict\)/.test(
-      individual,
-    ),
-    "la lane individuelle ne dérive plus l'état d'âge du verdict de " +
-      "naissance: soit elle l'invente, soit elle ne l'a plus.",
-  );
-  // ⚠️ LE DÉFAUT, ÉPINGLÉ À SON LITTÉRAL. C'est LE point de bascule de tout ce
-  // lot: `adult` par défaut retournerait le booléen que ce dépôt a retiré
-  // exprès, et un compte de MINEUR atteint cette lane (contrairement à
-  // `generate-week-plan-v1`, qui rend `409 minor_student`).
-  assert(
-    /let studentAgeState: MemberAgeState = "unknown";/.test(individual),
-    "le défaut d'état d'âge de la lane individuelle n'est plus `unknown`: " +
-      "« je ne sais pas » et « majeur » doivent produire des résultats " +
-      "OPPOSÉS, et un corps illisible ne doit JAMAIS rendre un `down` " +
-      "applicable.",
-  );
-  assert(
-    !/ageState: "adult"/.test(individual),
-    "la lane individuelle déclare une bouche `adult` en dur: c'est le " +
-      "raccourci « pour faire passer le cas », et il retire de la nourriture " +
-      "à un enfant sans qu'une seule ligne ne le dise.",
-  );
-  assert(
-    /mouth: \{ memberId: userId, ageState: studentAgeState \}/.test(individual),
-    "la bouche de la lane individuelle n'est plus construite depuis l'état " +
-      "d'âge lu: elle est fabriquée.",
   );
 });
 
@@ -415,8 +398,13 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     null,
-  );
+  MAINTENANCE_ENVELOPE_DIRECTION
+);
   assert(baseline.mode === "per_kg");
+  // ⟳ 2026-09-10 — L'ÉQUATION DU CORPS, LA MÊME QUE L'ÉCRAN DEPUIS LE
+  // 2026-09-09 après-midi (`ENERGY_TARGET_BASIS_BODY`):
+  //   BMR = 10×80 + 6,25×175 − 5×37 + 5 = 1 713,75 ; M = ×1,5 = **2 571**
+  //   direction nulle ⇒ cible = M ; largeur `maintenance` = 0,10 ⇒ ±128,55
   assertEquals(baseline.energy, { low: 2442, high: 2700 });
 
   // ── LA MOITIÉ QUI PASSE ────────────────────────────────────────────────
@@ -433,7 +421,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("adult", ADULT_ID, items),
-  );
+  MAINTENANCE_ENVELOPE_DIRECTION
+);
   assert(adult.mode === "per_kg");
   // −10 %, écrit en dur: 2442 × 0,90 = 2198, 2700 × 0,90 = 2430.
   assertEquals(adult.energy, { low: 2198, high: 2430 });
@@ -452,7 +441,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("minor", KID_ID, items),
-  );
+  MAINTENANCE_ENVELOPE_DIRECTION
+);
   assert(kid.mode === "per_kg");
   assertEquals(kid.energy, baseline.energy);
 
@@ -469,7 +459,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     { day: null, sport: null, asked: false },
     null,
     forMouth("unknown", KID_ID, items),
-  );
+  MAINTENANCE_ENVELOPE_DIRECTION
+);
   assert(unknown.mode === "per_kg");
   assertEquals(unknown.energy, baseline.energy);
 });
@@ -491,7 +482,8 @@ Deno.test("DE BOUT EN BOUT — la lane individuelle: le verdict décide, pas un 
       { day: null, sport: null, asked: false },
       null,
       forMouth(birthVerdictAge, "u-solo", items),
-    );
+    MAINTENANCE_ENVELOPE_DIRECTION
+  );
     assert(env.mode === "per_kg");
     return env.energy;
   };

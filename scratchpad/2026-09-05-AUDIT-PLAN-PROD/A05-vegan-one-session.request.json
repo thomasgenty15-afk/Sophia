@@ -1,0 +1,11 @@
+{
+  "operation": "compose",
+  "window": {
+    "kind": "days",
+    "count": 7
+  },
+  "intent": "draft",
+  "replaces": null,
+  "preferences": null,
+  "one_cooking_session": true
+}

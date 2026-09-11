@@ -1,0 +1,15 @@
+{
+ "case": "F3",
+ "goal": "maintenance",
+ "weightKg": 88.0,
+ "heightCm": 185,
+ "gender": "male",
+ "ageBand": "30_44",
+ "ageYears": 32,
+ "activityLevel": "trains_hard",
+ "servings": 1,
+ "regime": null,
+ "pace": 0.25,
+ "userId": "48a25621-7f1a-443e-bd6c-490ae9769b34",
+ "email": "camp0909.f3@keeltest.dev"
+}

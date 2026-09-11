@@ -114,6 +114,39 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // prefer@X / exclude@Y). L'empreinte est celle du texte d'arbitrage servi.
   v31_one_wants_what_another_refuses:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-07 — v32 : le brief de service quitte la branche « le moteur
+  // dimensionne » (directions complètes par objectif, « write the grams »).
+  // Le bloc d'arbitrage ne bouge pas, même empreinte.
+  v32_the_plate_differs_by_what_is_on_it:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-07 — v33 : le modèle écrit UNE RECETTE STANDARD, l'algorithme
+  // multiplie. Les faits de corps et le schéma des boîtes quittent le prompt
+  // sous `portion_v1`.
+  //
+  // ⛔ MÊME EMPREINTE QUE v32, ET C'EST VÉRIFIÉ PAR LE TEST, PAS SUPPOSÉ — la
+  // leçon de v24, où une empreinte recopiée « parce que le lot ne touchait pas
+  // l'arbitrage » était fausse: le rang 1 CITE les en-têtes des verrous en
+  // toutes lettres. Ici aucun en-tête de verrou ne bouge; ce qui change est le
+  // BRIEF de portions et un bloc NEUF du message utilisateur, tous deux hors du
+  // texte d'arbitrage. Si cette ligne est fausse, le test rougit, et c'est lui
+  // qui a raison.
+  v33_one_standard_recipe_the_engine_multiplies:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ v34 (2026-09-07, LOT 11) — MÊME EMPREINTE QUE v33, ET C'EST L'AFFIRMATION.
+  //
+  // v34 est une SECONDE STRUCTURE (`household_prompt_v34.ts`: cartes,
+  // calendrier, méthode, schéma), pas une retouche de v33. Le texte
+  // d'arbitrage, lui, n'a pas bougé d'un octet: v34 REPREND les trois blocs de
+  // verrou par appel (`dietBlock`, `restrictionBlock`, `crossContactBlock`), il
+  // les garde EN QUEUE dans le même ordre, et il ne renomme aucun de leurs
+  // en-têtes — ce que le rang 1 cite en toutes lettres.
+  //
+  // ⛔ RECOPIER L'EMPREINTE EST DONC L'AFFIRMATION EXACTE — « la précédence est
+  // celle de v33 » — et une entrée ABSENTE ferait tomber la garde sur un texte
+  // inchangé (`unknown_version`). C'est le patron de v23, écrit à l'époque pour
+  // la même raison.
+  v34_one_card_per_person_the_engine_weighs:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

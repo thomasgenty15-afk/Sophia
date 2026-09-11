@@ -577,25 +577,24 @@ export interface MouthWriters {
     gender: "male" | "female" | "other",
     activityLevel: ActivityLevel | null,
     /**
-     * ── LES DEUX AXES ET LES TROIS CASES (2026-08-20) ──────────────────────
+     * ── LES DEUX AXES ET L'APPÉTIT (2026-08-20) ────────────────────────────
      *
      * ⚠️ REQUIS, comme le cran juste au-dessus, et pour la même cicatrice: il
      * n'y a qu'UNE porte de corps, et un paramètre facultatif aurait laissé
      * l'écran qui la connaît mal enregistrer un corps complet sans jamais
      * porter ce que ce lot collecte.
      *
-     * ⛔ `axesAsked` / `structureAsked` NE SONT PAS DÉCORATIFS: c'est eux que
+     * ⛔ `axesAsked` / `appetiteAsked` NE SONT PAS DÉCORATIFS: c'est eux que
      * la base lit pour décider d'écrire, et eux qui séparent « pas posé » de
      * « pas répondu » dans le compteur du moteur.
+     *
+     * ⟳ 2026-09-10 — les trois cases du repas (`takes_*`) ont disparu d'ici
+     * avec les extras qu'elles portaient. Voir `setMemberBody`.
      */
     extras: {
       dayActivity: DayActivityLevel | null;
       sportFrequency: SportFrequency | null;
       axesAsked: boolean;
-      takesDessert: boolean | null;
-      takesCheese: boolean | null;
-      takesBread: boolean | null;
-      structureAsked: boolean;
       appetite: AppetiteLevel | null;
       appetiteAsked: boolean;
     },
@@ -686,10 +685,6 @@ export interface MouthToPersist {
   /** ② Les deux axes. `null` = pas répondu — le cran ci-dessus reprend la main. */
   dayActivity: DayActivityLevel | null;
   sportFrequency: SportFrequency | null;
-  /** ① Les trois cases. TRI-ÉTAT: `false` répond, `null` ne répond pas. */
-  takesDessert: boolean | null;
-  takesCheese: boolean | null;
-  takesBread: boolean | null;
   /** ⑤ (2026-08-20), TRANSITOIRE — voir `APPETITE_FACTORS`. */
   appetite: AppetiteLevel | null;
   targetWeightKg: number | null;
@@ -698,8 +693,9 @@ export interface MouthToPersist {
   rhythm: readonly EatingOccasionSlot[] | null;
   /**
    * ⟳ 2026-09-01 — `kind` N'EST PLUS SEULEMENT `own_usual`. Une entrée qui ne
-   * porte QUE des extras (« le plat de la maison, plus du pain ») n'a pas de
-   * prose, et la porte REFUSE un `own_usual` vide. Voir `HabitSlotWrite`.
+   * porte qu'un « repas léger » (« le plat de la maison, en plus petit ») n'a
+   * pas de prose, et la porte REFUSE un `own_usual` vide. Voir
+   * `HabitSlotWrite`.
    */
   habits: readonly HabitSlotWrite[];
   /** L'apport fixe déclaré, ou `null` quand la quantité n'est pas connue. */
@@ -807,8 +803,8 @@ export async function persistMouth(
     mouth.weightKg,
     mouth.gender,
     mouth.activityLevel,
-    // ⚠️ `axesAsked` / `structureAsked` À `true` PARCE QUE LE POP-UP PORTE LES
-    // CINQ QUESTIONS. Ce n'est pas « elle a répondu »: c'est « on lui a
+    // ⚠️ `axesAsked` / `appetiteAsked` À `true` PARCE QUE LE POP-UP PORTE LES
+    // QUESTIONS. Ce n'est pas « elle a répondu »: c'est « on lui a
     // demandé ». C'est ce drapeau qui autorise la base à écrire un `null` —
     // donc à DÉ-répondre —, et c'est lui qui sépare `not_answered` de
     // `not_asked` dans le compteur. Un `false` ici ferait passer une fiche
@@ -817,10 +813,6 @@ export async function persistMouth(
       dayActivity: mouth.dayActivity,
       sportFrequency: mouth.sportFrequency,
       axesAsked: true,
-      takesDessert: mouth.takesDessert,
-      takesCheese: mouth.takesCheese,
-      takesBread: mouth.takesBread,
-      structureAsked: true,
       appetite: mouth.appetite,
       appetiteAsked: true,
     },

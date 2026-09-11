@@ -1,21 +1,58 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 
-import {
-  firstBlockingPlan,
-  lastNameableStart,
-  planOverlapVerdict,
-  windowStartsBeyondDayTokens,
-} from "./meal_plan_window.ts";
+import { firstBlockingPlan, planOverlapVerdict } from "./meal_plan_window.ts";
 import {
   buildMergeBlock,
   buildUnmergeBlock,
   mergeWindowWritable,
 } from "./household_merge.ts";
 import {
+  buildMealPrompt,
   emptySlotsIn,
   emptySlotsLine,
   parseGeneratedMeal,
 } from "./meal_generation.ts";
+
+/**
+ * LE MESSAGE NU — tout à vide, pour que les trois cas ② ne mesurent QUE la
+ * commande des jours. Chaque cas surcharge les trois champs qui le concernent.
+ */
+// deno-lint-ignore no-explicit-any
+const BARE_PROMPT_ARGS: any = {
+  safetyConstraints: [],
+  safetyConstraintTable: null,
+  body: null,
+  lightSlots: [],
+  focusAxis: null,
+  dietBlock: "",
+  doctrineBlock: "",
+  protocolBlock: "",
+  beliefKeys: [],
+  goal: "maintenance",
+  situation: null,
+  aspiration: null,
+  context: null,
+  preferences: null,
+  mode: "to_shop",
+  scope: "several_days",
+  slot: null,
+  servings: 1,
+  pantry: [],
+  country: null,
+  budgetAmount: null,
+  coachNoteBlock: null,
+  fixedIntakes: [],
+  dayProperties: [],
+  merge: null,
+  firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
+  contentLocale: "en-GB",
+};
 
 // ===========================================================================
 // C2 — L'INTÉGRITÉ DU PLAN: CE QUI SE DÉCIDE AVANT LE MODÈLE, ET LES TROUS
@@ -47,61 +84,65 @@ const NEXT_MON = "2026-08-17";
 const NEXT_TUE = "2026-08-18";
 
 // ---------------------------------------------------------------------------
-// ② — LES JETONS DE JOUR NE VONT PAS AU-DELÀ DE DIMANCHE
+// ② — LE DÉPART EST LIBRE, ET LA CONSIGNE NE PEUT PLUS SE CONTREDIRE
 // ---------------------------------------------------------------------------
+//
+// ⟳ 2026-09-06 — CE BLOC TENAIT `windowStartsBeyondDayTokens`, retirée. Elle
+// refusait `400 window_beyond_this_week` au-delà du dimanche de la semaine en
+// cours, pour que la contradiction mesurée n'atteigne jamais le modèle: « today
+// is: wed » à trois lignes de « days to fill: tue, wed » et de « Do not start
+// earlier than today » — refus, `422 empty_meal`, **6,2 s facturées**.
+//
+// La demande produit a renversé la décision: la date de départ est libre, seul
+// le passé reste refusé. La contradiction n'est donc plus INTERDITE, elle est
+// rendue IMPOSSIBLE — la liste des jours est ancrée sur la DATE d'ouverture de
+// la fenêtre. Ces deux cas tiennent cet ancrage; sans eux, le retrait de la
+// garde rouvrirait le défaut d'origine sans que rien ne rougisse.
 
-Deno.test("② le départ MESURÉ — 2026-08-26 demandé un mercredi — est refusé", () => {
-  // ⚠️ LE CAS EXACT, ET IL EST LA RAISON D'ÊTRE DE LA GARDE. `starts_on =
-  // 2026-08-26` est un MARDI, quatorze jours plus tard: le message portait
-  // « today is: wed » et « days to fill, in this order: tue, wed ». Le modèle a
-  // refusé en toutes lettres, `422 empty_meal`, après 6,2 s facturées.
-  assert(windowStartsBeyondDayTokens("2026-08-26", WED));
+Deno.test("② la consigne des jours ne dit plus « pas avant aujourd'hui »", () => {
+  // ⛔ LE CAS EXACT DU DÉFAUT DE 2026-08-12, REJOUÉ SUR LE PROMPT: une fenêtre
+  // qui démarre mardi PROCHAIN, demandée un mercredi. La phrase qui rendait ce
+  // message contradictoire ne doit plus s'y trouver.
+  const msg = buildMealPrompt({
+    ...BARE_PROMPT_ARGS,
+    todayToken: "wed",
+    today: WED,
+    windowStartsOn: "2026-08-25",
+    daysToFill: ["tue", "wed"],
+  }).userMessage;
+  assert(!msg.includes("Do not start earlier than today"));
+  assert(msg.includes("the stretch opens on 2026-08-25 (ISO date)"));
+  assert(msg.includes("days to fill, in this order: tue, wed"));
 });
 
-Deno.test("② LE CAS QUI PASSE — aujourd'hui, demain, et jusqu'à dimanche", () => {
-  // ⚠️ SANS CETTE MOITIÉ, LA GARDE POURRAIT REFUSER TOUT et ressembler à une
-  // garde qui marche. Ces trois-là sont les gestes du produit: « jusqu'à
-  // dimanche » démarre aujourd'hui, le sélecteur de dates démarre où l'élève
-  // clique, et le dimanche est le dernier jour que les jetons savent nommer.
-  for (const start of [WED, THU, "2026-08-15", SUN]) {
-    assertEquals(
-      windowStartsBeyondDayTokens(start, WED),
-      false,
-      `${start} doit rester composable`,
-    );
-  }
+Deno.test("② … et à sept jours, la date distingue ce que les jetons ne peuvent pas", () => {
+  // ⚠️ LA MOITIÉ STRUCTURELLE, ET C'EST ELLE QUI JUSTIFIE LA DATE. À sept jours
+  // d'écart, le premier jeton de la fenêtre est celui d'AUJOURD'HUI: « days to
+  // fill: wed » sous « today is: wed ». Aucun jeu de jetons ne les sépare — la
+  // date, si.
+  const msg = buildMealPrompt({
+    ...BARE_PROMPT_ARGS,
+    todayToken: "wed",
+    today: WED,
+    windowStartsOn: "2026-08-19",
+    daysToFill: ["wed"],
+  }).userMessage;
+  assert(msg.includes("today's date: 2026-08-12"));
+  assert(msg.includes("the stretch opens on 2026-08-19 (ISO date)"));
 });
 
-Deno.test("② la borne est DIMANCHE, pas « sept jours »", () => {
-  // ⚠️ C'EST LE CHOIX DU LOT, ET IL SE MESURE ICI. Une borne à `today + 6`
-  // aurait laissé passer « je prépare lundi prochain », demandé un mercredi:
-  // lundi (`mon`) précède mercredi (`wed`) dans la semaine, donc le message
-  // aurait dit « days to fill: mon » sous « do not start earlier than today » —
-  // exactement la contradiction mesurée, à six jours au lieu de quatorze.
-  assertEquals(lastNameableStart(WED), SUN);
-  assert(windowStartsBeyondDayTokens(NEXT_MON, WED), "lundi prochain");
-  assert(windowStartsBeyondDayTokens(NEXT_TUE, WED), "mardi prochain");
-  // Un dimanche, la semaine tient en UN jour: tout le reste est « la semaine
-  // prochaine », et c'est le même mot que `until_sunday` rend déjà.
-  assertEquals(lastNameableStart(SUN), SUN);
-  assert(windowStartsBeyondDayTokens(NEXT_MON, SUN));
-  // Un lundi, elle tient en sept.
-  assertEquals(lastNameableStart("2026-08-10"), SUN);
-});
-
-Deno.test("② `today + 7` porte le jeton d'AUJOURD'HUI, et se refuse aussi", () => {
-  // La seconde moitié structurelle: à sept jours, le jeton n'est pas « en
-  // arrière », il est DÉJÀ PRIS. Le modèle lirait « days to fill: wed » sous
-  // « today is: wed » et composerait pour aujourd'hui.
-  assert(windowStartsBeyondDayTokens("2026-08-19", WED));
-});
-
-Deno.test("② une date illisible ne fabrique pas un refus", () => {
-  // La garde ne se prononce que sur deux dates lisibles: `resolveRequestedWindow`
-  // a déjà refusé le reste, nommément, et doubler son refus par un motif
-  // différent enverrait l'élève chercher la mauvaise chose.
-  assertEquals(windowStartsBeyondDayTokens("pas-une-date", WED), false);
-  assertEquals(windowStartsBeyondDayTokens(WED, ""), false);
+Deno.test("② LE CAS QUI PASSE — sans date d'ouverture, le message reste celui d'avant", () => {
+  // ⚠️ SANS CETTE MOITIÉ, LES DEUX CAS CI-DESSUS SERAIENT VERTS SUR UN PROMPT
+  // QUI AURAIT PERDU SA LISTE DE JOURS. Un appelant qui ne passe pas la date
+  // garde exactement la commande d'avant, ligne d'ancrage en moins.
+  const msg = buildMealPrompt({
+    ...BARE_PROMPT_ARGS,
+    todayToken: "wed",
+    today: WED,
+    daysToFill: ["wed", "thu"],
+  }).userMessage;
+  assert(!msg.includes("the stretch opens on"));
+  assert(msg.includes("days to fill, in this order: wed, thu"));
 });
 
 // ---------------------------------------------------------------------------
@@ -337,6 +378,8 @@ const PARSE_ARGS = {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
 };
@@ -529,7 +572,7 @@ async function edgeSource(fn: string): Promise<string> {
   );
 }
 
-for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
+for (const fn of ["generate-household-meal-v1"]) {
   Deno.test(`② et ③ tombent AVANT le modèle, ARMÉES — ${fn}`, async () => {
     const src = await edgeSource(fn);
     const model = src.indexOf("generateWithGemini(");
@@ -543,11 +586,11 @@ for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
     // le prédicat en tête de son `if` — et pas seulement son nom quelque part.
     for (
       const [guard, token] of [
-        // ② la fenêtre que les jetons ne savent pas nommer.
-        [
-          "if (windowStartsBeyondDayTokens(startsOn, todayDate)) {",
-          '"window_beyond_this_week"',
-        ],
+        // ⟳ 2026-09-06 — ② A ÉTÉ RETIRÉE DE CETTE LISTE AVEC LA GARDE
+        // ELLE-MÊME (`windowStartsBeyondDayTokens`). Elle n'a pas été
+        // « désarmée »: le départ libre est une décision produit, et la
+        // contradiction qu'elle évitait est maintenant impossible par le
+        // prompt. Les trois cas ② au-dessus tiennent ce remplacement.
         // ③ la règle d'écriture de la base, rejouée avant de la payer.
         ["if (blocking) {", '"plan_overlaps_existing"'],
       ] as const
@@ -575,7 +618,7 @@ for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
     }
 
     // Et le calcul qui l'alimente est bien AVANT lui.
-    for (const marker of ["windowStartsBeyondDayTokens(", "firstBlockingPlan("]) {
+    for (const marker of ["firstBlockingPlan("]) {
       const at = src.indexOf(marker);
       assert(at >= 0 && at < model, `${fn}: ${marker} manque avant le modèle`);
     }
@@ -588,7 +631,7 @@ Deno.test("③ la règle de la base n'est écrite qu'UNE fois, et c'est la fonct
   // conditions, dans un générateur, aurait divergé au premier ajustement de la
   // migration — et les deux réponses auraient été plausibles.
   await Promise.all(
-    ["generate-meal-v1", "generate-household-meal-v1"].map(async (fn) => {
+    ["generate-household-meal-v1"].map(async (fn) => {
       const src = (await edgeSource(fn))
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
@@ -670,14 +713,19 @@ Deno.test("④ les trous CALCULÉS sont ceux qu'on passe aux deux blocs", async 
 // serait un journal éteint.
 // ===========================================================================
 
-for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
+for (const fn of ["generate-household-meal-v1"]) {
   Deno.test(`C5 ④ — les deux refus de fenêtre se taisent — ${fn}`, async () => {
     const src = (await edgeSource(fn))
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
     for (
       const [token, status] of [
-        ['"window_beyond_this_week"', 400],
+        // ⟳ 2026-09-06 — `"window_beyond_this_week"` EST SORTI DE CETTE LISTE
+        // AVEC LE REFUS LUI-MÊME. Le départ libre l'a rendu inutile: plus
+        // personne ne l'émet, donc plus personne ne le journalise. L'arbitrage
+        // qu'il illustrait — « une date choisie par l'élève n'est pas un
+        // incident » — reste tenu par le second, qui est atteignable en trois
+        // clics et qui, lui, existe toujours.
         ['"plan_overlaps_existing"', 409],
       ] as const
     ) {
@@ -755,7 +803,7 @@ for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
 // exactement le défaut mesuré (« la ligne bouge sur une requête échouée »), et
 // il n'y aurait plus rien pour le dire.
 for (
-  const fn of ["generate-meal-v1", "generate-household-meal-v1"] as const
+  const fn of ["generate-household-meal-v1"] as const
 ) {
   Deno.test(`LOT C — ${fn} LIT \`student_goals\`, IL NE L'ÉCRIT PLUS`, async () => {
     const src = await edgeSource(fn);

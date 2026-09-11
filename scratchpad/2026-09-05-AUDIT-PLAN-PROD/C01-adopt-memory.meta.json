@@ -1,0 +1,14 @@
+{
+  "id": "C01-adopt-memory",
+  "uid": "101caadd-3cf8-40f9-9108-4c4fdcae9834",
+  "fn": "generate-household-meal-v1",
+  "start": "2026-09-05T18:59:39.033Z",
+  "end": "2026-09-05T19:00:38.361Z",
+  "http": 200,
+  "seconds": 59.268504207999996,
+  "before": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "after": "7dbdcc21e9973759c352173a965520cd1c5d74e05d6606c8c84604d7fb3b6b10",
+  "fresh_runtime": true,
+  "request_id": "38ba3c15-ebf1-4b39-9df3-86cbf04acec9",
+  "ok": true
+}

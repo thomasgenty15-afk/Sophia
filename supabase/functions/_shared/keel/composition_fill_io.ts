@@ -16,6 +16,13 @@
  */
 
 import { generateWithGemini } from "../gemini.ts";
+// ⟳ 2026-09-10 · § 9 DU CHANTIER — « appliquer Fast AUSSI aux appels
+// auxiliaires OpenAI effectués pour un plan ». Mesuré par le banc du lot 8:
+// 19 transmissions sur 63 partaient sans palier, toutes des remplissages de
+// composition. Un plan attend ce remplissage; le laisser en file standard
+// pendant que tout le reste est prioritaire allonge le plan par son maillon
+// le moins prioritaire.
+import { PLAN_SERVICE_TIER } from "./generation_model.ts";
 import {
   COMPOSITION_FILL_SYSTEM_PROMPT,
   compositionFillUserMessage,
@@ -25,6 +32,7 @@ import {
   type FilledComposition,
   type FillRequest,
   fillCompositions,
+  filledFromPendingRow,
   fillRequestsFor,
   groupBandsFrom,
   parseCompositionFillAnswers,
@@ -107,7 +115,14 @@ export async function askCompositionFill(
   // `deno test` le voyait; personne ne le lisait.
   let timer: number | undefined;
   try {
-    const raced = await Promise.race([
+    // ⛔ LE PALIER EST TENTÉ, PUIS LÂCHÉ S'IL DÉRANGE — et cet ordre est le
+    // point. `compositionFillModel()` n'est pas le modèle du plan; rien ici ne
+    // peut vérifier contre l'API réelle qu'il accepte `service_tier` (§ 10:
+    // aucune campagne payante). Un refus du fournisseur ferait perdre le
+    // remplissage ENTIER, c'est-à-dire l'énergie d'un aliment inconnu — le
+    // défaut que ce module existe pour fermer. On réessaie donc UNE fois sans
+    // palier, et la trace dit lequel des deux a servi.
+    const appel = (tier: boolean) =>
       generateWithGemini(
         COMPOSITION_FILL_SYSTEM_PROMPT,
         compositionFillUserMessage(requests),
@@ -125,8 +140,19 @@ export async function askCompositionFill(
           userId: meta.userId,
           model: compositionFillModel(),
           httpTimeoutMs: COMPOSITION_FILL_TIMEOUT_MS,
+          ...(tier ? { serviceTier: PLAN_SERVICE_TIER } : {}),
         },
-      ),
+      );
+    const raced = await Promise.race([
+      appel(true).catch((error) => {
+        console.warn(JSON.stringify({
+          tag: "keel.composition_fill.service_tier_dropped",
+          source: meta.source,
+          request_id: meta.requestId,
+          error: error instanceof Error ? error.message : String(error),
+        }));
+        return appel(false);
+      }),
       // La CEINTURE, en plus du timeout HTTP: `generateWithGemini` porte une
       // chaîne de replis et de backoffs qui peut dépasser son propre plafond
       // par tentative. Ici c'est le plafond TOTAL de la réparation.
@@ -200,12 +226,18 @@ export interface PendingDbClient {
 // ② ⛔ **AUCUN ALIAS.** Rien n'est écrit dans `byAlias`; `withFilledRefs` reste
 //    le seul chemin d'index et il ne fait qu'un `bySlug.set`. La règle 3 du lot
 //    18 est toujours tenue STRUCTURELLEMENT.
-// ③ ⛔ **AUCUNE VALEUR N'EST REPRISE DU SAS.** On lit `food_group_ref`, et
-//    RIEN d'autre — pas l'énergie, pas les macros, pas la classe de rendement.
-//    Reprendre la valeur d'une ligne vue une fois, ce serait promouvoir sans
-//    les trois observations, c'est-à-dire renverser la règle centrale du lot 18
-//    depuis son propre chemin chaud. La ligne remplie garde donc le MILIEU DE
-//    BANDE et son `residualKcal`, comme tout `group_bounds`.
+// ③ ⚠️ **CE CHEMIN-CI NE REPREND TOUJOURS AUCUNE VALEUR.** Il lit
+//    `food_group_ref`, et rien d'autre: armer un groupe et servir une valeur
+//    sont deux gestes, et la ligne qu'il arme garde le MILIEU DE BANDE avec son
+//    `residualKcal`, comme tout `group_bounds`.
+//
+//    ⟳ 2026-09-10 — LA VALEUR, ELLE, EST DÉSORMAIS SERVIE, mais par une AUTRE
+//    porte (`loadPendingFills`, lot 2), et sous une borne différente: on ne
+//    rend une valeur que pour un terme dont le sas porte DÉJÀ la réponse du
+//    modèle, jamais pour un terme qu'il n'a jamais rencontré. Ce que
+//    l'ancienne rédaction de ce point craignait — « promouvoir sans les trois
+//    observations » — reste tenu: une lecture de cache n'incrémente PAS
+//    `sightings`, et une file ne peut donc pas se promouvoir en se relisant.
 // ④ ⛔ **UN GROUPE HORS VOCABULAIRE EST JETÉ.** `FOOD_GROUP_REFS` est fermé;
 //    une valeur qui n'y est pas ne devient pas un groupe « à peu près ».
 //
@@ -216,6 +248,16 @@ export interface PendingDbClient {
 
 /** La table du sas. Écrite une fois, lue une fois, jamais recopiée ailleurs. */
 export const PENDING_TABLE = "food_composition_pending";
+
+/**
+ * LA VUE QUI REND UNE LIGNE DU SAS PAR N'IMPORTE LEQUEL DE SES NOMS.
+ *
+ * Son terme canonique, plus chacune de ses formes de surface. C'est par elle
+ * que `puree d'amandes` retrouve la ligne écrite un jour pour `almond butter`
+ * — sans qu'aucun code ne rapproche deux chaînes: la jointure est une ÉGALITÉ,
+ * et la colonne `form` dit sous quel nom on a trouvé.
+ */
+export const PENDING_BY_FORM_VIEW = "food_composition_pending_by_form";
 
 /**
  * LES GROUPES QUE LE SAS CONNAÎT DÉJÀ, pour les termes qu'on lui nomme.
@@ -233,12 +275,13 @@ export async function loadPendingGroups(
   if (wanted.length === 0) return out;
   if (typeof db.from !== "function") return out;
   try {
-    // ⛔ DEUX COLONNES, ET LA SECONDE EST LA SEULE QU'ON UTILISE. Sélectionner
-    // `*` mettrait l'énergie du sas à portée de main du chemin chaud — et une
-    // valeur à portée de main finit par être lue.
-    const { data, error } = await db.from(PENDING_TABLE)
-      .select("term,food_group_ref")
-      .in("term", wanted);
+    // ⛔ DEUX COLONNES, ET LA SECONDE EST LA SEULE QU'ON UTILISE ICI. La
+    // VALEUR, elle, est lue par `loadPendingFills` — c'est le cache du lot 2 —
+    // mais pas par ce chemin-ci: armer un groupe et servir une valeur sont deux
+    // gestes, et les mélanger ferait servir une valeur là où on n'en a pas.
+    const { data, error } = await db.from(PENDING_BY_FORM_VIEW)
+      .select("form,food_group_ref")
+      .in("form", wanted);
     if (error) {
       console.warn("[keel/composition_fill] sas group read refused", error);
       return out;
@@ -247,7 +290,7 @@ export async function loadPendingGroups(
     const asked = new Set(wanted);
     for (const row of data) {
       const r = row as Record<string, unknown>;
-      const term = String(r?.term ?? "");
+      const term = String(r?.form ?? "");
       const group = String(r?.food_group_ref ?? "");
       // ⛔ `asked.has` EN PLUS DU `in`: on ne retient que ce qu'on a demandé.
       // Une réponse qui porte une ligne de plus est une réponse qu'on n'a pas
@@ -305,7 +348,14 @@ export async function recordPendingSightings(
 ): Promise<{ written: number; failed: boolean }> {
   if (filled.length === 0) return { written: 0, failed: false };
   const rows = filled.map((f) => ({
-    term: f.term,
+    // ⛔ LE TERME CANONIQUE, JAMAIS LA FORME RENCONTRÉE. C'est la seule chose
+    // qui fasse S'ADDITIONNER les vues: trois plans qui écrivent trois formes
+    // du même aliment tombent sur une ligne et font 3, au lieu de 1 + 1 + 1 sur
+    // trois lignes dont aucune n'atteint jamais le seuil.
+    term: f.canonicalTerm,
+    // La forme rencontrée et les deux libellés. La base refuse chacune qui
+    // désigne déjà quelque chose — voir les quatre `not exists` de la RPC.
+    forms: f.forms.map((sf) => ({ form: sf.form, source: sf.source })),
     food_group_ref: f.ref.foodGroupRef,
     label: f.ref.label,
     energy_kcal: f.ref.energyKcal,
@@ -315,6 +365,12 @@ export async function recordPendingSightings(
     fiber_g: f.ref.fiberG,
     yield_class: f.ref.yieldClass,
     fill_source: f.source,
+    // ⚠️ LA MISE EN REVUE VOYAGE AVEC LA LIGNE. Sans elle, un terme dont le
+    // modèle a revendiqué l'identité d'un aliment curé entrerait en `pending`
+    // — donc promouvable par le cron, donc capable de créer un doublon d'un
+    // aliment réel. Le champ est le seul lien entre la garde de code et la file
+    // que relit un humain.
+    review: f.reviewReason,
   }));
   try {
     const { error } = await db.rpc("record_food_composition_sightings", { p_rows: rows });
@@ -425,22 +481,48 @@ export async function repairPlanComposition(args: {
         model: 0,
         group_bounds: 0,
         sas_group_armed: 0,
+        sas_value_reused: 0,
         sas_write_skipped_reused_group: 0,
       },
     };
   }
   const bands = groupBandsFrom(args.baseIndex);
-  // ⛔ L18b · LES DEUX EN PARALLÈLE, ET LA LECTURE DU SAS N'AJOUTE AUCUNE
-  // LATENCE. Elle doit être là AVANT que `fillCompositions` tranche: le repli
-  // par bornes s'exécute dans la même passe que la réponse du modèle, et un
-  // groupe qui arriverait après n'armerait rien. Elle ne coûte qu'une requête
-  // par plan AYANT des inconnus — un plan dont tout résout est sorti quinze
-  // lignes plus haut sans rien payer, ni jeton ni requête.
-  const [answers, known] = await Promise.all([
-    (args.ask ?? askCompositionFill)(requests, args.meta),
+  // ══════════════════════════════════════════════════════════════════════
+  // ① LE SAS EST LU AVANT LE MODÈLE — ET C'EST LE POINT DU LOT 2
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ── CE QUI A CHANGÉ, ET POURQUOI CE N'EST PAS UNE PROMOTION ────────────
+  // Jusqu'ici le sas ne rendait que le GROUPE: on repayait l'appel modèle sur
+  // chaque terme, à chaque plan, y compris sur un terme dont la file portait
+  // déjà la réponse. Mesuré le 2026-09-10: 291 lignes en file, dont
+  // `boisson de soja` vue 12 fois — douze appels pour douze fois le même
+  // nombre.
+  //
+  // L'en-tête de `loadPendingGroups` interdisait de reprendre une valeur, au
+  // motif que ce serait « promouvoir sans les trois observations ». La borne
+  // qui rend ce chemin-ci différent est STRUCTURELLE: on ne demande au sas que
+  // les termes que CE plan ne sait pas lire, et la valeur ne va donc nulle part
+  // où le modèle ne se serait pas prononcé de toute façon. À température 0, le
+  // rappeler rend le même nombre; l'appel n'achète que de la latence.
+  //
+  // ⚠️ ET LE COMPTEUR DE VUES NE BOUGE PAS. Une lecture de cache n'est pas un
+  // avis: `toRecord` plus bas retire ces lignes. La règle des trois compte les
+  // plans où le MODÈLE s'est prononcé, et les deux mécanismes restent
+  // indépendants — c'est ce qui empêche une file de se promouvoir elle-même en
+  // se relisant trois fois.
+  const [cached, known] = await Promise.all([
+    loadPendingFills(args.db, requests.map((r) => r.term)),
     loadPendingGroups(args.db, requests.map((r) => r.term)),
   ]);
-  const armed = requestsWithPendingGroups(requests, known);
+  const cachedTerms = new Set(cached.map((f) => f.term));
+  const toAsk = requests.filter((r) => !cachedTerms.has(r.term));
+  // ⚠️ AUCUN APPEL QUAND LE SAS RÉPOND À TOUT. C'est la même règle qu'en tête
+  // de fonction, un cran plus fin: un plan dont tous les inconnus sont déjà en
+  // file ne paie ni jeton ni latence.
+  const answers = toAsk.length === 0
+    ? []
+    : await (args.ask ?? askCompositionFill)(toAsk, args.meta);
+  const armed = requestsWithPendingGroups(toAsk, known);
   const result = fillCompositions({
     index: args.baseIndex,
     requests: armed.requests,
@@ -448,7 +530,13 @@ export async function repairPlanComposition(args: {
     bands,
     overCap,
   });
-  const { index, kept, refused } = withFilledRefs(args.baseIndex, result.filled);
+  // ⚠️ LE CACHE PASSE PAR LA MÊME PORTE QUE LE MODÈLE. `withFilledRefs` rejoue
+  // ses deux ceintures sur les lignes relues comme sur les neuves: une valeur
+  // du sas qui masquerait un aliment réel est refusée ici, pas crue.
+  const { index, kept, refused } = withFilledRefs(
+    args.baseIndex,
+    [...cached, ...result.filled],
+  );
   // ⚠️ SEULES LES LIGNES RETENUES PARTENT AU SAS. Une ligne refusée par la
   // ceinture (`already_resolved`, `unreachable`) ne doit pas se compter vers une
   // promotion: on promouvrait un aliment que le résolveur n'atteint jamais, ou
@@ -469,7 +557,13 @@ export async function repairPlanComposition(args: {
   // sas ET dont le modèle ne s'est pas prononcé (`group_bounds`) sont retirées.
   // Une ligne que le modèle a remplie hors bande a bien été VUE par lui: elle
   // compte, comme avant ce lot.
+  //
+  // ⛔ ET UNE LIGNE SERVIE PAR LE CACHE N'Y RETOURNE PAS NON PLUS. Même
+  // arbitrage, même raison: le modèle ne s'est pas prononcé sur ce plan-ci. Une
+  // relecture qui compterait ferait promouvoir un terme vu une seule fois par
+  // trois plans qui n'ont fait que relire la même réponse.
   const toRecord = kept.filter((f) =>
+    !cachedTerms.has(f.term) &&
     !(f.source === "group_bounds" && armed.armedTerms.has(f.term))
   );
   const written = await recordPendingSightings(args.db, toRecord);
@@ -477,6 +571,9 @@ export async function repairPlanComposition(args: {
   for (const r of refused) counts[r.reason] = (counts[r.reason] ?? 0) + 1;
   counts.kept = kept.length;
   counts.sas_group_armed = armed.armedTerms.size;
+  // LE COMPTEUR DU LOT 2. Il monte pendant que `requested` baisse — c'est ce
+  // couple, et lui seul, qui dit que le sas SERT au lieu de seulement grossir.
+  counts.sas_value_reused = kept.filter((f) => cachedTerms.has(f.term)).length;
   counts.sas_write_skipped_reused_group = kept.length - toRecord.length;
   counts.sas_written = written.written;
   counts.sas_failed = written.failed ? 1 : 0;
@@ -613,4 +710,132 @@ export async function fillPlanComposition(args: {
       outcome: { measured: false, reason: "threw" },
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// LA RELECTURE — le sas rouvert pour les SEULS termes du plan qu'on relit
+// ---------------------------------------------------------------------------
+//
+// ── ⛔ CE CHEMIN N'EST PAS CELUI DE LA GÉNÉRATION, ET LA RÈGLE ③ TIENT ────
+// L'en-tête de `loadPendingGroups` interdit de reprendre une VALEUR du sas:
+// le faire depuis la génération, ce serait donner à un plan qui n'a jamais
+// rencontré un terme la valeur qu'un autre plan lui a trouvée — promouvoir
+// sans les trois observations.
+//
+// Ici, la question est l'inverse, et c'est pour ça que la réponse l'est aussi:
+// le plan qu'on relit A DÉJÀ ÉTÉ COMPOSÉ sur cette valeur. On ne la répand pas,
+// on cesse de la jeter. La borne est structurelle — `terms` vient du plan lu,
+// et une ligne du sas qu'il ne nomme pas n'est jamais chargée.
+//
+// ⚠️ ET LA VALEUR EST STABLE. `record_food_composition_sightings` ne réécrit
+// JAMAIS une ligne `model` (« une réponse de modèle n'en remplace pas une
+// autre »); seule une ligne `group_bounds` peut être délogée par une première
+// réponse, et `filledFromPendingRow` refuse `group_bounds`. La relecture rend
+// donc le nombre de la génération, pas un nombre voisin.
+
+/**
+ * LES LIGNES REMPLIES QUE LE SAS CONNAÎT, pour les termes qu'on lui nomme.
+ *
+ * ⚠️ NE LÈVE JAMAIS et rend `[]` sur tout échec — client sans `from`, erreur
+ * PostgREST, charge illisible. `[]` est la valeur PLEINE: elle rend exactement
+ * le comportement d'avant ce chemin, c'est-à-dire l'abstention nommée
+ * `unknown_ingredient`.
+ */
+export async function loadPendingFills(
+  db: PendingDbClient,
+  terms: readonly string[],
+): Promise<FilledComposition[]> {
+  const wanted = [...new Set(terms.filter((t) => typeof t === "string" && t.length > 0))];
+  if (wanted.length === 0) return [];
+  if (typeof db.from !== "function") return [];
+  try {
+    // ⛔ LES COLONNES SONT NOMMÉES, jamais `*`. Ce qui n'est pas nommé ici ne
+    // peut pas être lu par mégarde ailleurs — `sightings` et `review_reason`
+    // notamment n'ont rien à faire dans un calcul d'énergie.
+    const { data, error } = await db.from(PENDING_BY_FORM_VIEW)
+      .select(
+        "form,term,label,food_group_ref,energy_kcal,protein_g,carbs_g,fat_g," +
+          "fiber_g,yield_class,fill_source,status",
+      )
+      .in("form", wanted);
+    if (error) {
+      console.warn("[keel/composition_fill] sas fill read refused", error);
+      return [];
+    }
+    if (!Array.isArray(data)) return [];
+    const asked = new Set(wanted);
+    const seen = new Set<string>();
+    const out: FilledComposition[] = [];
+    for (const row of data) {
+      const r = row as Record<string, unknown>;
+      // ⛔ `asked.has` EN PLUS DU `in`, comme pour les groupes: une réponse qui
+      // porte une ligne de plus est une réponse qu'on n'a pas comprise.
+      const form = String(r?.form ?? "");
+      if (!asked.has(form)) continue;
+      // ⛔ DEUX STATUTS NE REPASSENT PAS PAR ICI, POUR DEUX RAISONS OPPOSÉES.
+      //
+      //   `promoted` — elle vit dans `food_composition_refs` maintenant, donc
+      //     l'index de base la porte déjà; `withFilledRefs` la refuserait en
+      //     `already_resolved`, et un refus compté ressemblerait à un incident.
+      //   `rejected` — une lecture HUMAINE l'a jugée fausse. C'est le seul
+      //     statut qui retire une valeur des chiffres affichés, et il existe
+      //     parce qu'aucune garde automatique ne le pouvait: `fromage rape`,
+      //     rangé en `cruciferous_veg` à 28 kcal/100 g, passait la bande de son
+      //     groupe, le plafond absolu et jusqu'à la cohérence d'Atwater. Elle
+      //     était cohérente; elle décrivait un autre aliment.
+      //
+      // ⚠️ `needs_review` PASSE, ET C'EST VOULU. Une garde a mordu sur sa
+      // PROMOTION — la valeur n'entrera pas dans le référentiel pour tout le
+      // monde — mais elle a servi au plan qui la cite, et c'est ce plan-là
+      // qu'on relit.
+      //   `covered`  — le référentiel l'atteint déjà par un alias curé, donc
+      //     l'index de base la porte; `withFilledRefs` la refuserait en
+      //     `already_resolved`, et un refus compté ressemblerait à un incident.
+      const status = String(r?.status ?? "");
+      if (status === "promoted" || status === "rejected" || status === "covered") continue;
+      // ⚠️ LA FORME EST RENDUE À LA LIGNE, et c'est elle qui doit se résoudre:
+      // le plan cite `puree d'amandes`, la valeur vit sous `almond butter`.
+      const filled = filledFromPendingRow(r, form);
+      if (filled === null || seen.has(filled.term)) continue;
+      seen.add(filled.term);
+      out.push(filled);
+    }
+    return out;
+  } catch (error) {
+    console.warn("[keel/composition_fill] sas fill read failed", error);
+    return [];
+  }
+}
+
+/**
+ * L'INDEX D'UNE LECTURE: le référentiel, PLUS ce que le sas sait des termes de
+ * ce plan-là.
+ *
+ * ⚠️ UN SEUL POINT D'ENTRÉE, pour la même raison que `repairPlanComposition`:
+ * le jour où une troisième surface relit un plan, elle doit hériter du même
+ * index, sans avoir à savoir que le sas existe.
+ *
+ * ⚠️ LE COMPTE RENDU EST RENDU, PAS JOURNALISÉ ICI. `kept` vaut zéro sur la
+ * quasi-totalité des plans, et un `kept` qui monte sans qu'aucun terme n'entre
+ * dans le référentiel est le signal qu'il y a une file à curer.
+ */
+export async function indexForReading(args: {
+  db: PendingDbClient;
+  baseIndex: CompositionIndex;
+  inputs: readonly CompositionInput[];
+}): Promise<{ index: CompositionIndex; kept: number; asked: number }> {
+  // ⛔ LA WORKLIST VIENT DU RÉSOLVEUR, jamais d'une liste de termes brute: on
+  // ne demande au sas QUE ce que l'index de base n'a pas su lire. Un terme qui
+  // résout déjà n'a aucune raison d'être cherché, et `withFilledRefs` le
+  // refuserait de toute façon.
+  const { requests } = fillRequestsFor(args.baseIndex, args.inputs);
+  if (requests.length === 0) {
+    return { index: args.baseIndex, kept: 0, asked: 0 };
+  }
+  const filled = await loadPendingFills(args.db, requests.map((r) => r.term));
+  if (filled.length === 0) {
+    return { index: args.baseIndex, kept: 0, asked: requests.length };
+  }
+  const { index, kept } = withFilledRefs(args.baseIndex, filled);
+  return { index, kept: kept.length, asked: requests.length };
 }

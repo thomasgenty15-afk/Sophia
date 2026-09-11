@@ -114,8 +114,19 @@ Deno.test("le cas propre a fait TOURNER les douze dénominateurs (aucun à zéro
   // `energy_unmeasured` est le SEUL champ de `checked` qui n'est pas un
   // dénominateur : c'est le témoin de ce qui a échappé à la mesure, et sur un
   // cas propre il vaut zéro. L'exclure ici est ce qui lui donne son sens.
+  // ⟳ 2026-09-11 · LOT E — LA LISTE DES TÉMOINS EST NOMMÉE, ET ELLE GRANDIT
+  // AVEC LES CAUSES. Un témoin dit ce qui a ÉCHAPPÉ à une mesure; sur un cas
+  // propre il vaut zéro ou presque, et l'exclure ici est ce qui lui donne son
+  // sens. `protein_protected` en est un: une abstention LÉGITIME (plancher TCA,
+  // mineur) n'est pas un trou, et elle vaut zéro sur quatre adultes.
+  const TEMOINS = new Set([
+    "energy_unmeasured",
+    "shopping_unverified",
+    "protein_protected",
+    "protein_unmeasured",
+  ]);
   for (const [name, value] of Object.entries(checked)) {
-    if (name === "energy_unmeasured") continue;
+    if (TEMOINS.has(name)) continue;
     assert(value > 0, `dénominateur « ${name} » à zéro : la règle n'a pas tourné`);
   }
   // Les valeurs exactes, pour que la déformation d'un cas se voie.
@@ -305,20 +316,62 @@ Deno.test("box_missing ne mord pas quand les boîtes ne sont pas le contrat", ()
 // ⑦ LES COURSES — le défaut ② mesuré en production
 // ---------------------------------------------------------------------------
 
-Deno.test("ingredient_not_bought : un aliment qu'aucune ligne n'achète", () => {
-  const outcome = gateWith((plan) => {
-    plan.dishes[1].ingredients.push({ term: "gingembre frais", group: "non_starchy_veg" });
+// ⟳ 2026-09-11 · LOT E — LA DÉCISION D'ACHAT NE LIT PLUS UN LIBELLÉ.
+//
+// ⛔ CE QUI A CHANGÉ DANS CES TESTS, ET POURQUOI. Ils déformaient le PLAN (un
+// ingrédient de plus, pas de ligne de courses) et attendaient que la garde le
+// remarque en comparant des mots. Elle ne compare plus rien: c'est
+// `final_plan_audit.ts` qui résout les identités, et la garde lit son verdict.
+// Le cas qui MORD est donc une LIGNE D'AUDIT, pas un libellé absent — et c'est
+// exactement ce qui tue les 8 faux positifs de pluriel du 2026-09-11.
+
+Deno.test("ingredient_not_bought : une identité que rien n'achète", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.shopping = [...(ctx.shopping ?? []), {
+      identity: "ginger",
+      displayTerm: "gingembre frais",
+      state: "not_bought",
+      reason: "aucune ligne de courses, aucun garde-manger",
+    }];
   });
   assertCauses(outcome, { ingredient_not_bought: 1 });
-  assertEquals(outcome.counters.checked.ingredient_terms, 11);
+  assertEquals(outcome.counters.checked.shopping_identities, 11);
 });
 
-Deno.test("ingredient_not_bought : le garde-manger dispense d'acheter", () => {
-  const outcome = gateWith((plan, ctx) => {
-    plan.dishes[1].ingredients.push({ term: "gingembre frais", group: "non_starchy_veg" });
-    ctx.pantryTerms.push("gingembre");
+Deno.test("ingredient_short_bought : présent, mais pas assez", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.shopping = [...(ctx.shopping ?? []), {
+      identity: "ginger",
+      displayTerm: "gingembre frais",
+      state: "short",
+      reason: "40 g achetés pour 120 g requis",
+    }];
+  });
+  assertCauses(outcome, { ingredient_short_bought: 1 });
+  // ⛔ LE CAS QUI PASSE EST À CÔTÉ: la même identité COUVERTE ne mord pas, et
+  // elle entre quand même au dénominateur des quantités comparées.
+  assertEquals(outcome.counters.checked.shopping_quantified, 10);
+});
+
+Deno.test("une suffisance non vérifiable N'EST PAS un manque", () => {
+  // Le garde-manger de la fixture propre (« huile d'olive ») est déjà dans cet
+  // état: présent, quantité inconnue. Il ne produit AUCUN refus, et il se
+  // compte — c'est la différence entre « non contrôlé » et « manquant ».
+  const outcome = finalPlanGate(CLEAN_HOUSEHOLD_PLAN, CLEAN_HOUSEHOLD_CONTEXT);
+  assertCauses(outcome, {});
+  assertEquals(outcome.counters.checked.shopping_unverified, 1);
+  assertEquals(outcome.counters.checked.shopping_quantified, 9);
+});
+
+Deno.test("aucun audit d'achats : les causes ne tournent PAS, et ça se lit", () => {
+  const outcome = gateWith((_plan, ctx) => {
+    ctx.shopping = null;
   });
   assertCauses(outcome, {});
+  // ⛔ ZÉRO DÉNOMINATEUR = JAMAIS ÉVALUÉ. Et surtout: aucun repli par libellé
+  // n'est resté derrière, donc aucune alerte de pluriel ne peut revenir.
+  assertEquals(outcome.counters.checked.shopping_identities, 0);
+  assertEquals(outcome.counters.checked.shopping_unverified, 0);
 });
 
 Deno.test("shopping_undated : une ligne sans jour d'achat", () => {

@@ -20,8 +20,11 @@
 // `honours_belief_keys`, pour qu'aucun écran ne puisse l'afficher par accident.
 
 import { supabase } from "../../lib/supabase";
-import { readEdgeRefusal } from "./edgeErrors";
-import { type MealWindowRequest, selectMealPlans } from "./mealWindow";
+// ⟳ 2026-09-11 · LOT 7 — `readEdgeRefusal` servait `readInvokeError`, parti
+// avec le client de la lane individuelle.
+// ⟳ 2026-09-11 · LOT 7 — `MealWindowRequest` est parti avec `generateMeal`,
+// le client navigateur de la lane individuelle supprimée.
+import { selectMealPlans } from "./mealWindow";
 import { type DayToken } from "./types";
 
 /** `MEAL_MODES` du moteur. Liste fermée: une valeur hors liste est refusée. */
@@ -215,9 +218,54 @@ function readMinutes(value: unknown): number | null {
 
 export interface DishIngredient {
   term: string;
+  /**
+   * ⛔ CE CHAMP EST DE COMPATIBILITÉ DEPUIS LE LOT C (2026-09-11), ET IL NE SE
+   * REND PLUS DIRECTEMENT. Sur un plan NEUF il est régénéré par le moteur
+   * depuis la donnée structurée finale; sur un plan ANCIEN il est la seule
+   * source. Les écrans passent par `ingredientQuantityText`
+   * (`lib/ingredientQuantity.ts`), qui préfère la donnée quand elle existe.
+   *
+   * Le défaut que ça ferme, mesuré: **64 lignes sur 96** des deux plans de la
+   * campagne affichaient ici une quantité qui n'était plus celle du calcul —
+   * « 360 g » de poulet pour un calcul à 458,66 g, « 2 cuillères à soupe »
+   * d'huile pour 0,770.
+   */
   quantity: string | null;
   /** Vrai quand l'élève l'a déjà. Calculé par le moteur, jamais par le modèle. */
   in_pantry: boolean;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ LOT C (2026-09-11) — LA QUANTITÉ STRUCTURÉE, JUSQU'À L'ÉCRAN
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CES CHAMPS SONT EN BASE DEPUIS FF-038 (`ingredientPayload` les écrit
+   * tous), et ce lecteur ne les recopiait pas. C'est exactement la cicatrice
+   * `null-port-hides-the-collection-too` / `food_group`: un lecteur qui laisse
+   * tomber un champ le fait en SILENCE, et l'écran retombe sur la prose sans
+   * qu'un seul rouge ne le dise.
+   *
+   * `null` = « ce plan n'a pas la donnée » (un plan d'avant FF-038, ou une
+   * ligne non pesée comme « une pincée de sel »). C'est une valeur pleine: le
+   * rendu retombe alors sur le texte historique, et il le NOMME.
+   */
+  amount: number | null;
+  unit: string | null;
+  /** `raw` / `cooked`. Porté, jamais rendu: c'est le périmètre de la mesure. */
+  state: string | null;
+  /** Les grammes crus recalculés par le moteur. Portés pour les lecteurs, pas affichés. */
+  grams_raw: number | null;
+  /**
+   * ⟳ LOT A (2026-09-11), point C3 — L'IDENTITÉ DE LA LIGNE.
+   *
+   * Le lot A a fait traverser `ref` / `ref_refused` jusqu'à la base, et a
+   * laissé le front au point mort. Le lot C les recopie **parce qu'ils sont le
+   * seul moyen d'agréger des courses par ALIMENT plutôt que par libellé** —
+   * ce dont le lot E a besoin, et que les huit fausses alertes singulier/
+   * pluriel de la campagne ont payé. Aucun écran ne les AFFICHE: le slug est
+   * anglais et ne paraît nulle part.
+   */
+  ref: string | null;
+  ref_refused: boolean;
 }
 
 export interface DishBatch {
@@ -733,153 +781,28 @@ export interface PantryItem {
   quantity?: string | null;
 }
 
-export interface GenerateMealInput {
-  mode: MealMode;
-  /**
-   * CE QU'ON DEMANDE, résolu par le SERVEUR avec le fuseau de l'élève.
-   *
-   * `scope` était une entrée et ne l'est plus: il se dérive de la durée, ce qui
-   * rend inexprimable une ligne « un jour » portant une fenêtre de sept jours.
-   */
-  window: MealWindowRequest;
-  /**
-   * `replace_current` refait le plan de l'onglet qu'on REGARDE — d'où
-   * `replaces`. `prepare_next` en crée un second qui démarre plus tard.
-   *
-   * ── `draft` — LE TROISIÈME, ET IL N'ÉCRIT RIEN ──────────────────────────
-   * Toutes les gardes AMONT s'appliquent à l'identique (gel, objectif requis,
-   * méthode publiée, fenêtre, chevauchement, TCA, doctrine, règles de maison):
-   * le SEUL saut est l'écriture. Ni plan, ni parts, ni quota de fusion
-   * consommé. La réponse porte le même contenu, plus `draft: true` et un
-   * `meal.id` nul.
-   *
-   * ⚠️ `replaces` EST REFUSÉ AVEC `draft` (`unknown_intent`), et c'est
-   * cohérent: un aperçu ne remplace rien, puisqu'il n'écrit rien. Passer les
-   * deux serait demander au serveur de retirer un plan au profit d'un plan qui
-   * n'existera pas.
-   */
-  intent: "replace_current" | "prepare_next" | "draft";
-  replaces: string | null;
-  slot: MealSlot | null;
-  servings: number;
-  /** Le contexte du MOMENT, en prose libre. C'est la demande produit. */
-  context: string | null;
-  /** L'envie du moment: « mezze d'été, plein de carottes ». */
-  preferences: string | null;
-  pantry: PantryItem[];
-  /**
-   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
-   *
-   * ⚠️ REQUIS, jamais `?`. Un champ facultatif ici n'aurait fait remonter AUCUN
-   * appelant au compilateur, et l'option se serait construite sans être
-   * branchée — c'est la forme exacte de « paramètre de garde optionnel = garde
-   * désarmée », payée sept fois par ce dépôt.
-   *
-   * ⛔ LE SERVEUR LE REFUSE SANS CONGÉLATEUR DÉCLARÉ, et il le DIT
-   * (`plan_rationale`). L'écran pose la même porte pour ne pas PROPOSER un
-   * geste qui sera refusé; ce n'est pas une garde en double — le corps de la
-   * requête est écrit par le réseau, pas par l'écran.
-   */
-  oneCookingSession: boolean;
-  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
-  // La veille n'est plus une case: `generate-meal-v1` et
-  // `generate-household-meal-v1` la DÉRIVENT (`leadDayFor`) de la date de
-  // départ et de l'heure locale, coupure à 18 h. Le navigateur ne connaît pas
-  // l'heure (`local_date.ts` refuse tout repli UTC) — il ne peut donc pas
-  // reproduire ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
-  // échange est `timing` (`{kind, reason, lead_day}`), que l'écran RÉPÈTE.
-}
-
 /**
- * Demande une composition. Le JWT de l'élève décide de qui il s'agit: aucun
- * `user_id` n'est envoyé, et le moteur n'en accepterait pas.
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-10 · LOT 7 — `GenerateMealInput` ET `generateMeal` SONT RETIRÉS.
+ * ══════════════════════════════════════════════════════════════════════════
  *
- * Les erreurs métier du moteur (`mode_required`, `pantry_required`,
- * `empty_meal`) remontent telles quelles: elles sont NOMMÉES, et les traduire
- * en « une erreur est survenue » ferait perdre la seule information utile.
+ * Ils étaient l'appel client de `generate-meal-v1`, la lane individuelle. Le
+ * produit n'a plus qu'un moteur — `generate-household-meal-v1` — qui sert une
+ * bouche comme il en sert six, et le périmètre est résolu SERVEUR depuis le
+ * foyer rattaché au compte. Cet appel n'avait donc plus d'appelant.
+ *
+ * ⛔ LA FONCTION EDGE, ELLE, N'EST PAS TOUCHÉE PAR CE FICHIER. Son retrait est
+ * une décision serveur, avec sa propre garde `not_owner` et son propre test;
+ * ce qui part ici est le seul CLIENT que le navigateur en avait.
+ *
+ * ⛔ ET TOUT LE RESTE DU MODULE RESTE, EXPRÈS. `loadMealPlans`, `readDishes`,
+ * `readShopping`, `readMemberPortions`, `readPlanTiming`, `PantryItem`,
+ * `MealMode`, `MealSlot`… sont les LECTEURS de l'historique: des plans écrits
+ * par l'ancienne lane sont en base, ils portent `plan_kind = 'personal'`, un
+ * `mode = 'from_pantry'`, un `meal_slot`, et ils doivent continuer de se lire
+ * tels quels. Les retirer « par symétrie » rendrait muets des plans que ce lot
+ * s'engage à laisser lisibles.
  */
-export async function generateMeal(
-  input: GenerateMealInput,
-): Promise<GeneratedMealResult> {
-  const { data, error } = await supabase.functions.invoke("generate-meal-v1", {
-    body: {
-      mode: input.mode,
-      window: input.window.kind === "exact"
-        ? {
-          kind: "exact",
-          starts_on: input.window.startsOn,
-          duration_days: input.window.durationDays,
-        }
-        : input.window,
-      intent: input.intent,
-      replaces: input.replaces,
-      meal_slot: input.slot,
-      servings: input.servings,
-      context: input.context,
-      preferences: input.preferences,
-      pantry: input.pantry,
-      // ⚠️ LE NOM DU SERVEUR, pas celui de l'écran. `generate-meal-v1` lit
-      // `body.one_cooking_session === true`; toute autre orthographe ici serait
-      // une option cochée qui ne part nulle part, et rien ne le dirait.
-      one_cooking_session: input.oneCookingSession,
-    },
-  });
-  if (error) {
-    // `FunctionsHttpError` porte le corps: on va y chercher le motif nommé
-    // plutôt que de rendre « non-2xx status code », qui n'apprend rien.
-    const detail = await readInvokeError(error);
-    throw new Error(detail || `[keel/mealGeneration] ${error.message}`);
-  }
-  const payload = (data ?? {}) as Record<string, unknown>;
-  const dishes = Array.isArray(payload.dishes) ? payload.dishes : [];
-  const shopping = Array.isArray(payload.shopping_list) ? payload.shopping_list : [];
-  const meal = payload.meal as { id?: string } | null | undefined;
-  return {
-    mealId: meal?.id ?? null,
-    preparations: readPreparations(payload.preparations),
-    cookingSessions: readSessions(payload.cooking_sessions),
-    // LOT 3 — `generate-meal-v1` n'écrit AUCUNE `member_portions` (la
-    // bifurcation des parts est l'objet de l'enveloppe foyer, et cette lane
-    // compose pour une seule bouche). Le lecteur est là quand même, et il rend
-    // `[]`: une clé absente et un lot débranché ne se distingueraient pas si
-    // on l'omettait.
-    memberPortions: readMemberPortions(payload.member_portions),
-    // Ce qu'on a DEMANDÉ, pas ce que la réponse raconte: c'est la même valeur
-    // que la ligne vient d'enregistrer, et elle est connue à coup sûr ici.
-    context: input.context,
-    preferences: input.preferences,
-    // Elle vient d'être composée: sa semaine commence aujourd'hui, et
-    // `stretchStartDate(null)` le dit sans avoir à lire une horloge ici.
-    createdAt: null,
-    // La fenêtre RÉSOLUE PAR LE SERVEUR, renvoyée telle quelle: c'est elle qui
-    // fait foi, pas celle que le navigateur avait prévisualisée.
-    startsOn: String(
-      ((payload.window ?? {}) as Record<string, unknown>).starts_on ?? "",
-    ),
-    durationDays: Number(
-      ((payload.window ?? {}) as Record<string, unknown>).duration_days ?? 7,
-    ),
-    // On ne recopie QUE les champs de l'écran. `honours_belief_keys` est
-    // volontairement laissé de côté: la doctrine du coach ne s'affiche pas.
-    dishes: readDishes(dishes),
-    shoppingList: readShopping(shopping),
-    fixedIntakes: readFixedIntakes(payload.fixed_intakes),
-    dayProperties: readDayProperties(payload.day_properties),
-    // A1 — la réponse le porte à la RACINE (`timing`), la ligne dans
-    // `generated_from`: c'est la MÊME expression serveur, écrite aux deux
-    // endroits par le même `const`.
-    timing: readPlanTiming(payload.timing),
-    // `generate-meal-v1` ne compose QUE des plans personnels (D2: le plan du
-    // maître EST le plan du foyer, et il se compose depuis l'écran du foyer).
-    // Écrit en dur plutôt que lu dans la réponse: la fonction ne rend pas la
-    // nature, et la deviner d'un champ absent la rendrait `undefined` — donc
-    // « pas personnel » pour tout lecteur naïf.
-    planKind: "personal",
-    // Une composition neuve n'est JAMAIS validée: prendre la main est un geste
-    // séparé, et l'écran le demande explicitement (O2).
-    validatedAt: null,
-  };
-}
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -989,12 +912,38 @@ function readIngredients(raw: unknown): DishIngredient[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const i = (entry ?? {}) as Record<string, unknown>;
+    // ⟳ LOT C — `null` ET JAMAIS ZÉRO. « 0 g » se lit « n'en mets pas », ce qui
+    // est une affirmation; `null` se lit « ce plan ne porte pas la donnée », ce
+    // qui est la vérité d'un plan d'avant FF-038. Précédent `readMinutes` et
+    // les grammes de `readBoxes`, mot pour mot.
+    // ⟳ 2026-09-11 · LOT F — ET `Number(null)` VAUT ZÉRO. Le commentaire
+    // ci-dessus disait la bonne règle, la ligne faisait le contraire :
+    // `Number(null) === 0`, `Number("") === 0`, tous deux `Number.isFinite`.
+    // Une ligne de condiment (`amount: null`, « une pincée de sel ») ressortait
+    // donc à **zéro** — « n'en mets pas » — au lieu d'« inconnu ». Mesuré sur
+    // les trois plans écrits par le banc du lot F : 6 lignes sur 43 (PERTE) et
+    // 6 sur 68 (foyer de deux). L'écran n'en souffrait pas — `renderQuantity`
+    // traite 0 comme « pas de donnée » et rend le texte historique — mais tout
+    // lecteur qui SOMME ces `amount`, ou qui teste `typeof === "number"` pour
+    // décider qu'une ligne est pesée, comptait une pincée pour une mesure.
+    // `typeof` d'abord : un `jsonb` rend un nombre JSON, jamais une chaîne.
+    const amount = typeof i.amount === "number" ? i.amount : Number.NaN;
+    const grams = typeof i.grams_raw === "number" ? i.grams_raw : Number.NaN;
     return {
       term: String(i.term ?? ""),
       quantity: i.quantity === null || i.quantity === undefined
         ? null
         : String(i.quantity),
       in_pantry: i.in_pantry === true,
+      amount: Number.isFinite(amount) ? amount : null,
+      unit: typeof i.unit === "string" && i.unit !== "" ? i.unit : null,
+      state: typeof i.state === "string" && i.state !== "" ? i.state : null,
+      grams_raw: Number.isFinite(grams) ? grams : null,
+      ref: typeof i.ref === "string" && i.ref !== "" ? i.ref : null,
+      // ⚠️ `=== true` ET PAS UNE COERCITION: la charge vient du réseau, et la
+      // chaîne « false » est vraie en JavaScript. Même garde que
+      // `freeze_on_purchase` vingt lignes plus bas.
+      ref_refused: i.ref_refused === true,
     };
   });
 }
@@ -1315,11 +1264,9 @@ export function readSessions(raw: unknown): CookingSession[] {
  * supabase-js (« Edge Function returned a non-2xx status code ») au lieu d'une
  * phrase sur sa session. Voir `api/edgeErrors.ts`.
  */
-async function readInvokeError(error: unknown): Promise<string | null> {
-  const refusal = await readEdgeRefusal(error);
-  if (!refusal) return null;
-  return refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token;
-}
+// ⟳ 2026-09-11 · LOT 7 — `readInvokeError` lisait le corps d'erreur de
+// `generate-meal-v1`. Son seul appelant (`generateMeal`) est parti avec la
+// lane; la lane du foyer a sa propre lecture d'erreur.
 
 /** Les colonnes qu'un plan doit rendre pour être affichable ET situable. */
 export const MEAL_COLUMNS =

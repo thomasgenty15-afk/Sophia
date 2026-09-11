@@ -38,9 +38,6 @@ import { type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import {
   type GeneratedMealResult,
-  type MealMode,
-  type MealSlot,
-  type PantryItem,
   readDayProperties,
   readDishes,
   readFixedIntakes,
@@ -237,6 +234,92 @@ export interface DraftEnvelope {
    * demanderait de rejouer la garde ici, c'est-à-dire de l'écrire deux fois.
    */
   droppedClauses: number;
+  /**
+   * ⟳ 2026-09-08 — L'IDENTIFIANT DE LA LIGNE RANGÉE (`student_meal_drafts`).
+   *
+   * ⛔ SANS LUI, AUCUN CHIFFRE SUR UN APERÇU. `meal-energy-v1` lit une LIGNE
+   * que le serveur a écrite; il ne chiffre pas des grammes qu'un écran lui
+   * enverrait, et c'est délibéré — le référentiel de composition est révoqué
+   * pour `anon` et `authenticated`.
+   *
+   * `null` = le serveur n'a pas rangé l'aperçu (panne de magasin, ou version
+   * antérieure au 2026-09-08). L'écran montre alors le plan sans ses chiffres,
+   * ce qui est le comportement d'hier.
+   */
+  draftId: string | null;
+  /**
+   * ⟳ 2026-09-09 — CE QU'UNE REPRISE LOCALE A PRIS ET LAISSÉ. `null` sur une
+   * composition : « pas une reprise » n'est pas « rien pris ».
+   */
+  edit: DraftEdit | null;
+}
+
+/** L'issue d'une note lue par `keel-read-note-v1`. */
+export interface NoteOutcome {
+  ok: boolean;
+  reason: string;
+  announced: ReadonlyArray<{ text: string; who: string | null; kind: string }>;
+  /** Combien d'entrées le modèle a proposées, et combien ont été gardées. */
+  proposed: number;
+  kept: number;
+  /** Une part dont on ne sait pas la bouche: refusée, jamais devinée. */
+  whoUnknown: number;
+  /**
+   * ⟳ 2026-09-08 — DEUX ISSUES QUI NE SONT NI « RIEN » NI UN ÉCHEC, mesurées
+   * au banc de phrases. `atEdge`: compris, mais déjà au bout de l'échelle
+   * (« trop compliqué » sur un style déjà minimal). `skipped`: lu et
+   * volontairement pas rangé (les jours de cuisine, un objectif de poids, un
+   * merci).
+   */
+  atEdge: number;
+  skipped: number;
+  /**
+   * ⟳ 2026-09-08 (lot 4) — CE QUE LE SERVEUR DEMANDE AVANT D'ÉCRIRE. Une part
+   * dont il ne sait pas la bouche: rien n'a été écrit pour elle, et rien ne
+   * le sera sans réponse (`answerNote`). Le dialogue la pose SOUS LE CHAMP,
+   * avec un bouton par bouche — et ne compose pas tant qu'elle est ouverte:
+   * composer avant la réponse ferait un plan pour la mauvaise assiette.
+   */
+  questions: ReadonlyArray<NoteQuestion>;
+  /**
+   * ⟳ 2026-09-09 (chirurgie locale, pièce 4) — LES CASES DE CE PLAN-CI que la
+   * phrase désigne (jour ET moment). Rien n'a été écrit pour elles : le
+   * dialogue les donne au composeur par `editCells`, qui ne refait que ces
+   * cases et garde le reste. Mesuré : une recomposition ne garde RIEN (0 plat
+   * commun sur 6 entre deux runs identiques).
+   */
+  cells: ReadonlyArray<NoteCell>;
+}
+
+export interface NoteCell {
+  day: string;
+  slot: string;
+  text: string;
+}
+
+/** Ce qu'une reprise locale a pris et laissé — `DraftEnvelope.edit`. */
+export interface DraftEdit {
+  /** Les cases refaites, `day/slot`. */
+  taken: ReadonlyArray<string>;
+  notRendered: ReadonlyArray<string>;
+  unknown: ReadonlyArray<string>;
+  /** Les plats du plan de départ gardés tels quels. */
+  untouched: number;
+}
+
+export interface NoteQuestion {
+  kind: "portion";
+  /** Le morceau de phrase sur lequel le serveur a buté — cité, jamais la note entière. */
+  text: string;
+  direction: "down" | "up";
+  options: ReadonlyArray<{ memberId: string; label: string }>;
+}
+
+/** Un tap sur une question: la bouche choisie, et le sens déjà lu. */
+export interface NoteAnswer {
+  kind: "portion";
+  memberId: string;
+  direction: "down" | "up";
 }
 
 /** Un brouillon: le plan tel qu'il serait, et ce que le serveur en dit. */
@@ -265,6 +348,19 @@ function readLines(raw: unknown): { lines: string[]; refusal: string | null } {
  * L'ENVELOPPE, LUE D'UN PAYLOAD BRUT. PURE — c'est ce qui la rend testable
  * sans pile, et c'est là que vivent les décisions de lecture.
  */
+/** `edit`, lu s'il arrive ; absent ou illisible ⇒ `null` (pas une reprise). */
+function readDraftEdit(raw: unknown): DraftEdit | null {
+  if (!raw || typeof raw !== "object") return null;
+  const e = raw as Record<string, unknown>;
+  const list = (v: unknown) => Array.isArray(v) ? v.map((x) => String(x ?? "")).filter((x) => x !== "") : [];
+  return {
+    taken: list(e.taken),
+    notRendered: list(e.not_rendered),
+    unknown: list(e.unknown),
+    untouched: Number(e.untouched_dishes) || 0,
+  };
+}
+
 export function readDraftEnvelope(raw: unknown): DraftEnvelope {
   const payload = (raw ?? {}) as Record<string, unknown>;
   const rationale = readLines(payload.rationale);
@@ -282,6 +378,7 @@ export function readDraftEnvelope(raw: unknown): DraftEnvelope {
   const dropped = Number(payload.dropped_clauses);
   return {
     draft: payload.draft === true,
+    edit: readDraftEdit(payload.edit),
     rationale: rationale.lines,
     rationaleRefusal: rationale.refusal,
     requestReport: report.lines,
@@ -313,6 +410,12 @@ export function readDraftEnvelope(raw: unknown): DraftEnvelope {
     suggestedShifted: typeof suggested.shifted === "string" &&
       suggested.shifted.trim() !== "",
     droppedClauses: Number.isFinite(dropped) && dropped > 0 ? Math.floor(dropped) : 0,
+    // ⟳ 2026-09-08 — L'IDENTIFIANT DE LA LIGNE RANGÉE. Lu S'IL ARRIVE: une
+    // réponse d'avant ce lot n'en porte pas, et l'aperçu s'affiche alors sans
+    // ses chiffres — le comportement d'hier, jamais une erreur.
+    draftId: typeof payload.draft_id === "string" && payload.draft_id.trim() !== ""
+      ? payload.draft_id.trim()
+      : null,
   };
 }
 
@@ -379,29 +482,31 @@ export function readDraftPlan(raw: unknown): GeneratedMealResult {
   };
 }
 
-/** Sur quelle lane le brouillon se compose. Décidé par `chooseGenerator`. */
-export type DraftLane = "personal" | "household";
-
 export interface ComposeDraftInput {
   /**
-   * LA LANE. REQUISE, jamais déduite ici: `chooseGenerator` (`api/planRouting`)
-   * porte la règle, et une seconde décision à cet endroit en ferait deux.
+   * ⟳ 2026-09-10 · LOT 7 — `lane` A DISPARU DE CETTE INTERFACE.
+   *
+   * ⛔ Elle disait sur quel moteur composer, et il n'y en a plus qu'un:
+   * `generate-household-meal-v1`. Le champ est retiré plutôt que figé à
+   * `"household"` parce qu'un champ à valeur unique se relit comme un choix —
+   * et le premier qui le relira essaiera de le rendre configurable.
+   *
+   * ⛔ ET LES QUATRE CHAMPS DE L'ANCIENNE LANE INDIVIDUELLE PARTENT AVEC
+   * ELLE — `mode`, `slot`, `servings`, `pantry`. Ce n'est pas une perte de
+   * fonctionnalité: VÉRIFIÉ le 2026-09-10, les trois sites de montage
+   * (`SetupPage`, `StudentWeekPlanPage`, `MealBuilder`) les posaient tous les
+   * trois en CONSTANTES (`"to_shop"`, `null`, `1`, `[]`) depuis que leurs
+   * questions ont été retirées de l'écran. Aucun écran n'avait plus de quoi
+   * les remplir; les garder aurait envoyé quatre champs inertes que le
+   * serveur ne lit pas — la forme exacte du « champ visible qui ne va nulle
+   * part », en pire, parce qu'invisible.
    */
-  lane: DraftLane;
   window: MealWindowRequest;
-  /**
-   * LA PHRASE ÉCRITE SUR LE BROUILLON. `null` = premier tour, rien à reprendre.
-   *
-   * ⚠️ ELLE NE REMPLACE RIEN. Côté serveur elle s'ajoute en queue du message,
-   * par le même point de composition que la relance de correction: les blocs
-   * corps / objectif / doctrine / allergies / budget / rythme sont byte-
-   * identiques à ceux du tour 1. C'est ce qui fait que « je veux des pizzas
-   * tous les midis » SE HEURTE à l'objectif au lieu de le remplacer.
-   *
-   * ⛔ NE JAMAIS N'ENVOYER QUE LA NOTE AU SECOND TOUR. Un sous-ensemble des
-   * entrées ferait composer un plan pour une vie que la personne n'a pas.
-   */
-  note: string | null;
+  // ⛔ PAS DE `note` ICI (lot 4, 2026-09-08). La phrase ne voyage plus dans
+  // le corps de composition: elle est lue par `readNote` (et répondue par
+  // `answerNote`) depuis le dialogue, et le composeur relit le magasin qui
+  // porte déjà son effet. La remettre ici la ferait relire à l'adoption —
+  // et un cran d'appétit relu est un cran appliqué deux fois.
   /**
    * ── LOT B · LE MODE DE CUISSON DEMANDÉ ──────────────────────────────────
    * `null` = rien n'est demandé, et le calcul du moteur gouverne seul.
@@ -435,13 +540,19 @@ export interface ComposeDraftInput {
   // l'heure (`local_date.ts` refuse tout repli UTC) — il ne peut donc pas
   // reproduire ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
   // échange est `timing` (`{kind, reason, lead_day}`), que l'écran RÉPÈTE.
-  /** Les entrées de la lane individuelle. Ignorées sur la lane foyer. */
-  mode: MealMode;
-  slot: MealSlot | null;
-  servings: number;
+  /**
+   * CE QUI SE PASSE CETTE SEMAINE — prose libre, lue par le serveur
+   * (`String(body.context …)`). `null` = rien à dire.
+   */
   context: string | null;
+  /**
+   * L'ENVIE DU MOMENT — prose libre. `generate-household-meal-v1` la relit à
+   * TROIS endroits (la consigne `:3582`, le compte-rendu de la demande `:4569`,
+   * la colonne écrite du plan `:4976`), et c'est MESURÉ: un commentaire de ce
+   * fichier a longtemps affirmé le contraire, et l'affirmation avait survécu à
+   * la lecture qu'elle déclarait impossible.
+   */
   preferences: string | null;
-  pantry: PantryItem[];
 }
 
 /**
@@ -461,13 +572,196 @@ export interface ComposeDraftInput {
  * l'appelant découpe sur le premier `:` et traduit le jeton. Ne pas inventer
  * une seconde convention pour un seul appelant.
  */
+/**
+ * LIRE LA NOTE, AVANT DE COMPOSER — `keel-read-note-v1` (2026-09-08).
+ *
+ * ⛔ C'EST LE GESTE QUI SORT LA PHRASE DU COMPOSEUR. Jusqu'ici `draft_note`
+ * partait dans le corps de la composition, et le modèle qui compose la lisait
+ * brute — c'est ce qui a produit le plan « en vrille » (les grammes des boîtes
+ * sortis dans les phrases). Maintenant: on lit la phrase (~4 s), on l'applique
+ * — goûts, appétit d'une bouche, réglages de cuisine — on répond ce qu'on a
+ * fait, PUIS on compose sans elle. Le composeur relit le magasin, qui porte
+ * déjà l'effet: c'est la recomposition immédiate.
+ *
+ * ⚠️ DEUX APPELS PARCE QUE C'EST UNE HORLOGE: un plan à quatre bouches met
+ * 180–280 s et la passerelle coupe à 150 s. Lire la phrase dans le même appel
+ * n'aurait fait qu'ajouter au dépassement.
+ *
+ * ⛔ UN REFUS DE LA NOTE (`note_unusable`) LÈVE, comme avant: c'est le seul
+ * refus que la personne répare elle-même, et le dialogue le rend sous le champ.
+ * Le reste (« rien à changer », « je n'ai pas compris de qui ») ne lève pas:
+ * ce sont des issues, rendues avec l'aperçu.
+ */
+export async function readNote(
+  note: string,
+  window: MealWindowRequest,
+): Promise<NoteOutcome> {
+  const startsOn = window.kind === "exact" ? window.startsOn : null;
+  const { data, error } = await supabase.functions.invoke("keel-read-note-v1", {
+    body: {
+      draft_note: note,
+      today: localTodayIso(),
+      ...(startsOn ? { starts_on: startsOn } : {}),
+    },
+  });
+  if (error) {
+    const refusal = await readEdgeRefusal(error);
+    const named = refusal
+      ? (refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token)
+      : "";
+    throw new Error(named || `[keel/readNote] ${error.message}`);
+  }
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const reason = String(raw.reason ?? "");
+  if (raw.ok !== true && reason === "note_unusable") {
+    throw new Error("note_unusable");
+  }
+  return readNoteOutcome(raw);
+}
+
+/**
+ * ⟳ 2026-09-08 (lot 4) — RÉPONDRE À « C'EST POUR QUI ? ». Même fonction edge,
+ * sans `draft_note` et sans appel modèle: la phrase a déjà été lue, il ne
+ * manquait que la bouche. Rend la même issue que `readNote`, donc les mêmes
+ * lignes sous le champ.
+ */
+export async function answerNote(answer: NoteAnswer): Promise<NoteOutcome> {
+  const { data, error } = await supabase.functions.invoke("keel-read-note-v1", {
+    body: {
+      answer: { kind: answer.kind, member_id: answer.memberId, direction: answer.direction },
+    },
+  });
+  if (error) {
+    const refusal = await readEdgeRefusal(error);
+    const named = refusal
+      ? (refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token)
+      : "";
+    throw new Error(named || `[keel/answerNote] ${error.message}`);
+  }
+  return readNoteOutcome((data ?? {}) as Record<string, unknown>);
+}
+
+/**
+ * L'ISSUE, LUE D'UN PAYLOAD BRUT — UN SEUL LECTEUR pour la lecture et la
+ * réponse. Défensif dans une seule direction: ce qu'on ne sait pas lire tombe
+ * SEUL (une option sans prénom, une question sans option), jamais la réponse
+ * entière.
+ */
+function readNoteOutcome(raw: Record<string, unknown>): NoteOutcome {
+  const reason = String(raw.reason ?? "");
+  const counters = (raw.counters ?? {}) as Record<string, unknown>;
+  const announced = Array.isArray(raw.announced)
+    ? raw.announced.map((a) => {
+      const row = (a ?? {}) as Record<string, unknown>;
+      return {
+        text: String(row.text ?? ""),
+        who: row.who === null || row.who === undefined ? null : String(row.who),
+        kind: String(row.kind ?? ""),
+      };
+    }).filter((a) => a.text !== "")
+    : [];
+  const questions: NoteQuestion[] = [];
+  for (const q of Array.isArray(raw.questions) ? raw.questions : []) {
+    const row = (q ?? {}) as Record<string, unknown>;
+    const direction = String(row.direction ?? "");
+    const text = String(row.text ?? "").trim();
+    if (row.kind !== "portion" || (direction !== "down" && direction !== "up") || !text) continue;
+    const options = (Array.isArray(row.options) ? row.options : [])
+      .map((o) => {
+        const opt = (o ?? {}) as Record<string, unknown>;
+        return { memberId: String(opt.memberId ?? "").trim(), label: String(opt.label ?? "").trim() };
+      })
+      .filter((o) => o.memberId !== "" && o.label !== "");
+    if (options.length === 0) continue;
+    questions.push({ kind: "portion", text, direction, options });
+  }
+  const cells: NoteCell[] = [];
+  for (const c of Array.isArray(raw.cells) ? raw.cells : []) {
+    const row = (c ?? {}) as Record<string, unknown>;
+    const day = String(row.day ?? "").trim();
+    const slot = String(row.slot ?? "").trim();
+    const text = String(row.text ?? "").trim();
+    if (!day || !slot || !text) continue;
+    cells.push({ day, slot, text });
+  }
+  return {
+    ok: raw.ok === true,
+    reason,
+    announced,
+    proposed: Number(counters.proposed) || 0,
+    kept: Number(counters.kept) || 0,
+    whoUnknown: Number(counters.portions_refused_unknown_member) || 0,
+    atEdge: Number(counters.at_edge) || 0,
+    skipped: Number(counters.skipped) || 0,
+    questions,
+    cells,
+  };
+}
+
+/** Le jour LOCAL de la personne, `YYYY-MM-DD` — celui que le serveur ancre. */
+function localTodayIso(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
 export async function composeDraft(input: ComposeDraftInput): Promise<PlanDraft> {
+  // ⛔ AUCUNE NOTE ICI, NI DANS LE CORPS NI AVANT (lot 4). La phrase est lue
+  // par `readNote` depuis le DIALOGUE, qui attend la réponse à une éventuelle
+  // question avant d'appeler ceci. Lire ici « au cas où » a déjà coûté un
+  // double cran: la reprise lisait, puis l'adoption relisait la même phrase.
   const payload = await callGenerator(input, "draft");
   return {
     plan: {
       ...readDraftPlan(payload),
-      planKind: input.lane === "household" ? "household" : "personal",
+      // ⟳ 2026-09-10 · LOT 7 — TOUJOURS `household`, ET CE N'EST PAS UNE
+      // CONSTANTE PARESSEUSE: c'est la nature de la LANE APPELÉE, et il n'y en
+      // a plus qu'une. La réponse ne porte pas ce champ de façon fiable
+      // (`readDraftPlan` le lisait de `plan_kind`, absent sur un aperçu), et le
+      // déduire d'un champ absent le rendrait `undefined`.
+      //
+      // ⚠️ CE CHAMP NE REQUALIFIE AUCUN PLAN DÉJÀ ÉCRIT. Les plans personnels
+      // d'avant ce lot gardent `plan_kind = 'personal'` en base et se lisent
+      // tels quels; c'est ici la nature de ce qu'on vient de COMPOSER.
+      planKind: "household" as const,
     },
+    envelope: readDraftEnvelope(payload),
+  };
+}
+
+/**
+ * ⟳ 2026-09-09 — LA REPRISE LOCALE : une case refaite, le reste intact.
+ *
+ * `operation: "edit_cells"` sur le brouillon `draftId`, avec les cases que la
+ * phrase désigne. Le serveur donne le plan entier au modèle, ne prend de sa
+ * réponse que ces cases, recopie le reste depuis le plan de départ, rejoue ses
+ * ceintures, et range un nouveau brouillon. `envelope.edit` dit ce qui a été
+ * pris et laissé.
+ *
+ * ⟳ 2026-09-10 · LOT 7 — LE REPLI « RECOMPOSE TOUT » A DISPARU. Il existait
+ * pour la lane individuelle, qui n'avait pas `edit_cells`; il n'y a plus de
+ * lane individuelle. Le garder aurait laissé un chemin par lequel une reprise
+ * locale se transforme en recomposition COMPLÈTE sans que rien ne le dise —
+ * `edit` serait `null`, le dialogue dirait « refait », et personne ne saurait
+ * pourquoi les autres cases ont bougé.
+ *
+ * ⛔ UN REFUS LÈVE (`cell_not_rendered`, `cell_unknown`, `draft_has_no_source`,
+ * `draft_mismatch`…) et l'aperçu courant reste : rien n'a été composé à la
+ * place.
+ */
+export async function editCells(
+  input: ComposeDraftInput,
+  draftId: string,
+  cells: ReadonlyArray<NoteCell>,
+): Promise<PlanDraft> {
+  const payload = await callGenerator(input, "draft", null, {
+    operation: "edit_cells",
+    draft_id: draftId,
+    cells: cells.map((c) => ({ day: c.day, slot: c.slot, text: c.text })),
+  });
+  return {
+    plan: { ...readDraftPlan(payload), planKind: "household" },
     envelope: readDraftEnvelope(payload),
   };
 }
@@ -508,6 +802,10 @@ export async function writeFromDraft(
   intent: "replace_current" | "prepare_next",
   replaces: string | null,
 ): Promise<{ ok: boolean; mealId: string | null }> {
+  // ⛔ ET SURTOUT PAS DE `readNote` ICI (lot 4). Lire la phrase c'est
+  // L'APPLIQUER (un cran d'appétit, un réglage): la relire à l'adoption
+  // appliquait le même cran une seconde fois. La phrase a fait son effet à la
+  // reprise; l'adoption recompose depuis le magasin, qui le porte déjà.
   const payload = await callGenerator(input, intent, replaces);
   const meal = (payload.meal ?? null) as Record<string, unknown> | null;
   return {
@@ -525,16 +823,25 @@ export async function writeFromDraft(
  * laquelle l'aperçu et l'adoption partagent ce constructeur: deux corps écrits
  * séparément divergeraient, et la divergence se paierait dans le sens le plus
  * cher — un plan composé pour une vie que la personne n'a pas, parce que
- * l'adoption aurait « oublié » le mode, le garde-manger ou le créneau.
+ * l'adoption aurait « oublié » la fenêtre, le mode de cuisson ou l'envie.
  */
 async function callGenerator(
   input: ComposeDraftInput,
   intent: "draft" | "replace_current" | "prepare_next",
   replaces: string | null = null,
+  /**
+   * ⟳ 2026-09-09 — CE QUE LA REPRISE LOCALE AJOUTE AU MÊME CORPS : `operation`,
+   * `draft_id`, `cells`. Le reste du corps est celui de la composition, par
+   * construction : `edit_cells` est une composition à tous les autres égards.
+   */
+  extra: Record<string, unknown> = {},
 ): Promise<Record<string, unknown>> {
-  const fn = input.lane === "household"
-    ? "generate-household-meal-v1"
-    : "generate-meal-v1";
+  // ⟳ 2026-09-10 · LOT 7 — UN SEUL MOTEUR, ÉCRIT EN CONSTANTE.
+  // Il n'y a plus de branche à se tromper: `generate-household-meal-v1` sert
+  // une bouche comme il en sert six. Nommer la fonction dans une constante
+  // plutôt qu'en ligne garde la chaîne grep-able — trois tests lisent ce
+  // fichier pour vérifier qui est appelé.
+  const fn = "generate-household-meal-v1";
   const window = input.window.kind === "exact"
     ? {
       kind: "exact",
@@ -547,9 +854,15 @@ async function callGenerator(
   // un aperçu ne remplace rien, puisqu'il n'écrit rien.
   const replacing = intent === "draft" ? null : replaces;
 
-  // LE CORPS DE LA LANE FOYER EST PLUS ÉTROIT, et c'est le contrat de la
-  // fonction: elle relit le mode, les bouches et les règles de maison en base.
-  // `mode`, `meal_slot`, `servings` et `pantry` n'ont donc rien à faire ici.
+  // ══════════════════════════════════════════════════════════════════════
+  // LE CORPS — UN SEUL, PARCE QU'IL N'Y A PLUS QU'UN MOTEUR (lot 7).
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Il est ÉTROIT, et c'est le contrat de la fonction: elle relit le mode, les
+  // bouches, les présences et les règles de maison EN BASE. C'est pour ça que
+  // `mode`, `meal_slot`, `servings` et `pantry` ne sont pas ici — ils ont
+  // quitté `ComposeDraftInput` avec l'ancienne lane, faute d'écran pour les
+  // remplir.
   //
   // ⛔ CE COMMENTAIRE DISAIT AUSSI « lui envoyer les champs de la lane
   // individuelle ne les ferait pas lire ». C'ÉTAIT FAUX POUR `preferences`, ET
@@ -563,61 +876,39 @@ async function callGenerator(
   // ⚠️ LA LEÇON, PLUS QUE LE CHAMP: un commentaire qui EXPLIQUE une absence
   // est une affirmation à vérifier, pas une décision à respecter. Celui-ci a
   // survécu à la lecture qu'il déclarait impossible.
-  //
-  // ⚠️ EFFET RÉEL AUJOURD'HUI: NUL, et c'est dit exprès. Les deux appelants de
-  // `composeDraft` (`SetupPage`, `StudentWeekPlanPage`) passent
-  // `preferences: null` en dur — l'aperçu n'a pas encore de champ d'envie. Le
-  // corps cesse simplement de MENTIR sur ce que la fonction lit; le jour où un
-  // écran d'aperçu pose la question, elle arrive.
-  const body: Record<string, unknown> = input.lane === "household"
-    ? {
-      operation: "compose",
-      window,
-      intent,
-      replaces: replacing,
-      context: input.context,
-      // ── LOT B · LE MODE DE CUISSON DEMANDÉ ───────────────────────────
-      // ⛔ IL PART SUR LES TROIS GESTES, ET C'EST LA MOITIÉ QUI COMPTE.
-      // L'aperçu, la reprise et l'adoption passent tous par ici: sans lui
-      // sur l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de
-      // montrer — le défaut exact que la fenêtre d'aperçu existe pour
-      // empêcher, et qui est déjà écrit noir sur blanc pour `draft_note`.
-      //
-      // ⚠️ LA LANE INDIVIDUELLE NE LE REÇOIT PAS, et c'est le contrat: une
-      // bouche n'a jamais eu la question « un plat ou deux ». L'envoyer
-      // quand même laisserait croire ici qu'il compte.
-      cooking_shape: input.cookingShape,
-      // ⛔ SUR LES DEUX LANES, ET SUR LES TROIS GESTES. Contrairement à
-      // `cooking_shape` (qui n'a de sujet qu'à plusieurs bouches), « tout dans
-      // une session » vaut aussi pour quelqu'un qui mange seul: c'est une
-      // question de CONSERVATION, pas de nombre d'assiettes. Et sans lui sur
-      // l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de montrer.
-      one_cooking_session: input.oneCookingSession,
-      // L'ENVIE — LE MÊME NOM QUE SUR LA LANE INDIVIDUELLE, parce que c'est le
-      // nom que le serveur lit. Les deux lanes traversent `buildMealPrompt`.
-      preferences: input.preferences,
-    }
-    : {
-      mode: input.mode,
-      window,
-      intent,
-      replaces: replacing,
-      meal_slot: input.slot,
-      servings: input.servings,
-      context: input.context,
-      preferences: input.preferences,
-      pantry: input.pantry,
-      one_cooking_session: input.oneCookingSession,
-    };
+  const body: Record<string, unknown> = {
+    operation: "compose",
+    window,
+    intent,
+    replaces: replacing,
+    context: input.context,
+    // ── LOT B · LE MODE DE CUISSON DEMANDÉ ─────────────────────────────
+    // ⛔ IL PART SUR LES TROIS GESTES, ET C'EST LA MOITIÉ QUI COMPTE.
+    // L'aperçu, la reprise et l'adoption passent tous par ici: sans lui sur
+    // l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de montrer —
+    // le défaut exact que la fenêtre d'aperçu existe pour empêcher, et qui est
+    // déjà écrit noir sur blanc pour `draft_note`.
+    cooking_shape: input.cookingShape,
+    // ⛔ SUR LES TROIS GESTES AUSSI. « Tout dans une session » est une question
+    // de CONSERVATION, pas de nombre d'assiettes: elle se pose exactement
+    // pareil à qui mange seul. Sans lui sur l'adoption, le plan ÉCRIT ne
+    // serait pas celui qu'on vient de montrer.
+    one_cooking_session: input.oneCookingSession,
+    preferences: input.preferences,
+  };
   // Une adoption vient après un aperçu déjà validé par la personne. Le
   // serveur doit encore recomposer aujourd'hui, mais il ne doit pas lancer
   // ensuite une seconde génération d'amélioration: sur une semaine complète,
   // les deux appels dépassent la durée de vie de la fonction avant l'écriture.
   if (intent !== "draft") body.adopting_draft = true;
+  Object.assign(body, extra);
   // LA NOTE N'EST POSÉE QUE SI ELLE EXISTE. Un `draft_note: ""` serait lu comme
   // une phrase illisible et rendrait `note_unusable` au premier aperçu, avant
   // que quiconque ait écrit quoi que ce soit.
-  if (input.note !== null && hasNote(input.note)) body.draft_note = input.note;
+  // ⛔ PLUS DE `draft_note` ICI — LA RÈGLE QUI TIENT TOUT LE DOCUMENT DES
+  // RETOURS: « le composeur ne reçoit jamais la phrase ». Elle est lue AVANT,
+  // par `readNote`, et appliquée; le composeur relit le magasin. Mesuré avant
+  // ce lot: la phrase brute dans un prompt de 23 833 caractères.
 
   const { data, error } = await supabase.functions.invoke(fn, {
     body,

@@ -1,0 +1,63 @@
+{
+  "profile": [
+    {
+      "id": "c15719eb-9b13-4647-bbb2-646c27338114",
+      "full_name": "Alice Audit",
+      "birth_date": "1988-05-12",
+      "gender": "female",
+      "height_cm": 168,
+      "activity_level": "trains_some",
+      "timezone": "America/Montreal",
+      "locale": "fr-FR"
+    }
+  ],
+  "goal": [
+    {
+      "id": "be661d75-eb8e-437d-9c86-0233431e2f3a",
+      "user_id": "c15719eb-9b13-4647-bbb2-646c27338114",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "diet_asked": true,
+        "cooking_days": [
+          "sun",
+          "wed"
+        ],
+        "grocery_runs": 1,
+        "allergy_check": {
+          "self": true,
+          "members": []
+        },
+        "budget_amount": 25,
+        "cooking_style": "minimal",
+        "eating_rhythm": [
+          {
+            "size": "medium",
+            "slot": "breakfast"
+          },
+          {
+            "size": "medium",
+            "slot": "lunch"
+          },
+          {
+            "size": "medium",
+            "slot": "dinner"
+          }
+        ],
+        "kitchen_equipment": [
+          "stovetop",
+          "fridge",
+          "freezer"
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-05T18:22:38.43101+00:00",
+      "updated_at": "2026-09-05T18:22:38.43101+00:00",
+      "target_weight_kg": 62,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  ]
+}

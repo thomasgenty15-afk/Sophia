@@ -1,0 +1,838 @@
+{
+ "cas": "F1",
+ "gen": 1,
+ "lane": "household",
+ "plan": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-F1-20260910-142922.json",
+ "refDir": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref",
+ "sasFile": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref/food_composition_pending_by_form.ndjson",
+ "sasCutoff": "2026-09-10T12:31:07Z",
+ "declaredSlots": [
+  "breakfast",
+  "lunch",
+  "dinner"
+ ],
+ "lightSlots": [],
+ "mouths": [
+  {
+   "memberId": "91a10d8a-f7e0-4b00-9f7c-9afb1a3fcfd0",
+   "name": "Paul",
+   "ageYears": 40,
+   "weightKg": 78,
+   "heightCm": 177,
+   "gender": "male",
+   "activityLevel": "on_feet",
+   "dayActivity": "seated",
+   "sportFrequency": "1_2",
+   "appetite": "average",
+   "goal": "maintenance",
+   "restriction": "clear",
+   "paceKgPerWeek": null,
+   "targetKcalOverride": null
+  },
+  {
+   "memberId": "78c29399-26a6-47bf-9207-51f216b53654",
+   "name": "Claire",
+   "ageYears": 38,
+   "weightKg": 63,
+   "heightCm": 166,
+   "gender": "female",
+   "activityLevel": "on_feet",
+   "dayActivity": "seated",
+   "sportFrequency": "1_2",
+   "appetite": "average",
+   "goal": "maintenance",
+   "restriction": "no_account",
+   "paceKgPerWeek": null,
+   "targetKcalOverride": null
+  },
+  {
+   "memberId": "7e305317-8a2c-4273-a789-61799aaf5545",
+   "name": "Hugo",
+   "ageYears": 34,
+   "weightKg": 75,
+   "heightCm": 180,
+   "gender": "male",
+   "activityLevel": "sedentary",
+   "dayActivity": "seated",
+   "sportFrequency": "none",
+   "appetite": "average",
+   "goal": "maintenance",
+   "restriction": "no_account",
+   "paceKgPerWeek": null,
+   "targetKcalOverride": null
+  },
+  {
+   "memberId": "096534ee-e142-450d-862a-c06a9c2f690f",
+   "name": "Nina",
+   "ageYears": 31,
+   "weightKg": 61,
+   "heightCm": 170,
+   "gender": "female",
+   "activityLevel": "trains_some",
+   "dayActivity": "seated",
+   "sportFrequency": "3_4",
+   "appetite": "average",
+   "goal": "maintenance",
+   "restriction": "no_account",
+   "paceKgPerWeek": null,
+   "targetKcalOverride": null
+  }
+ ],
+ "windowStartsOn": "2026-09-10",
+ "windowDurationDays": 2,
+ "leadDays": 0,
+ "todayLocalDate": "2026-09-10",
+ "hourNow": 14,
+ "request_id": "ed11b1d4-bd13-440c-b89f-95eefc5b778f",
+ "archive": {
+  "requete": {
+   "lane": "household",
+   "window": {
+    "kind": "exact",
+    "starts_on": "2026-09-10",
+    "duration_days": 2
+   },
+   "one_cooking_session": false,
+   "cooking_shape": null,
+   "intent": "draft"
+  },
+  "empreinte_referentiel": "# R\u00c9F\u00c9RENTIEL FIG\u00c9 \u2014 extrait le 2026-09-10T11:59:43Z\nfood_composition_refs  lignes=943  sha256=e8b838e73aa96c75f3a033b7292a04f6cb8ee50922e46d30d6a914b6d895719f\nfood_composition_aliases  lignes=2715  sha256=b39220eb9ea5c7cbb32d45517f226009c72934398ff86ea2850dbdf77fa57026",
+  "empreinte_code_keel": "4619ed297f76",
+  "empreinte_sas": "food_composition_pending_by_form lignes=291",
+  "payload_final": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-F1-20260910-142922.json",
+  "brouillon": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/draft-F1-20260910-142922.json",
+  "journal": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/log-F1-20260910-142922.json",
+  "generated_from": {
+   "goal": "maintenance",
+   "names": {
+    "kept": 4,
+    "dishes": 4,
+    "refused": 0,
+    "declared": 4
+   },
+   "intent": "draft",
+   "issues": [
+    "shopping_waves: 1 (2026-09-10)",
+    "freeze_on_purchase: 0/29",
+    "raw_keeping_needs_later_shop: 0/2 preparations",
+    "waves_kept_for_freshness: 0/29",
+    "sessions_fed_from_freezer: 0/0 name the freezer",
+    "preparations[prep_lemon_chicken]: the sized meals would take 3766 g but the batch makes about 2418 g, every share that draws on it scaled back to fit",
+    "model_returned_no_box: 0/3 -- 3 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+    "uses_kept_freezer: 0/3",
+    "portion_standard_recipe:91a10d8a-f7e0-4b00-9f7c-9afb1a3fcfd0",
+    "portion_standard_recipe:78c29399-26a6-47bf-9207-51f216b53654",
+    "portion_standard_recipe:7e305317-8a2c-4273-a789-61799aaf5545",
+    "portion_standard_recipe:096534ee-e142-450d-862a-c06a9c2f690f"
+   ],
+   "timing": {
+    "kind": "same_morning",
+    "reason": "starts_today",
+    "lead_day": null
+   },
+   "coach_id": "00000000-0000-4000-8000-00000000d15c",
+   "same_day": {
+    "dishes": 4,
+    "invalid": 0,
+    "declared": 4,
+    "minutes_missing": 0
+   },
+   "household": {
+    "id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+    "hand": {
+     "taken": [],
+     "partial": [],
+     "unmerged": [],
+     "reclaimed": []
+    },
+    "swap": {
+     "flagrant": false,
+     "strictest": null,
+     "free_mouths": 0,
+     "absent_cells": [],
+     "bound_mouths": 0,
+     "cells_checked": 0,
+     "cells_carrying": 0,
+     "retry_accepted": 0,
+     "retry_attempts": 0,
+     "retry_reverted": false,
+     "cells_swap_absent": 0,
+     "retry_rejected_by": null,
+     "retry_merged_cells": 0
+    },
+    "boxes": {
+     "boxes": 0,
+     "items": 0,
+     "meals": 3,
+     "names": 0,
+     "capped": 0,
+     "mouths": 4,
+     "refused": 0,
+     "delivery": "none_delivered",
+     "expected": 3,
+     "sum_over": 0,
+     "with_box": 0,
+     "mouth_slots": 0,
+     "sum_checked": 0,
+     "cells_no_box": 4,
+     "preparations": 2,
+     "items_refused": 0,
+     "legacy_folded": 0,
+     "mouths_double": 0,
+     "names_refused": 0,
+     "mouths_unboxed": 0,
+     "sum_unverifiable": 0,
+     "mouths_no_box_cell": 16,
+     "mouths_double_model": 0
+    },
+    "shares": {
+     "shares": 0,
+     "unknown": 0,
+     "regime_refused": 0
+    },
+    "voices": {
+     "heard": 0,
+     "lines_in": 0,
+     "over_cap": 0,
+     "withheld": 0,
+     "lines_used": 0,
+     "per_member": [],
+     "accounts_at_table": 1
+    },
+    "cooking": {
+     "asked": null,
+     "capped": false,
+     "served": "one_dish",
+     "unused": false,
+     "computed": "one_dish",
+     "diverging": [],
+     "dish_bearing": []
+    },
+    "kitchen": {
+     "missing": [
+      "air_fryer",
+      "pressure_cooker"
+     ],
+     "declared": [
+      "oven",
+      "stovetop",
+      "microwave",
+      "freezer",
+      "blender"
+     ]
+    },
+    "presence": {
+     "members": [],
+     "deserted": [],
+     "servings": 4
+    },
+    "why_rule": {
+     "valid": 0,
+     "dishes": 4,
+     "holders": 0,
+     "refused": 0,
+     "declared": 0
+    },
+    "envy_week": "2026-09-07",
+    "box_sizing": {
+     "boxes": 4,
+     "items": 23,
+     "share": {
+      "sized": 4,
+      "no_body": 0,
+      "age_unknown": 0,
+      "no_reference": 0,
+      "restriction_floor": 0,
+      "restriction_unknown": 0
+     },
+     "sized": 10,
+     "unmet": {
+      "both": 0,
+      "none": 0,
+      "pot_ceiling": 0,
+      "not_anchored": 0,
+      "tub_estimate": 8,
+      "factor_clamped": 0
+     },
+     "anchor": {
+      "clamped": 0,
+      "no_body": 0,
+      "anchored": 0,
+      "pregnancy": 0,
+      "age_unknown": 0,
+      "no_delivery": 0,
+      "breastfeeding": 0,
+      "common_pot_day": 8,
+      "day_incomplete": 0,
+      "restriction_floor": 0,
+      "restriction_unknown": 0
+     },
+     "common": 4,
+     "mouths": {
+      "minor": 0,
+      "sized": 0,
+      "no_body": 0,
+      "no_pace": 0,
+      "pregnancy": 0,
+      "age_unknown": 0,
+      "no_direction": 4,
+      "breastfeeding": 0,
+      "restriction_floor": 0,
+      "implausible_factor": 0,
+      "sized_default_pace": 0,
+      "restriction_unknown": 0,
+      "doctrine_no_counting": 0
+     },
+     "densify": {
+      "skipped": "standard_recipe"
+     },
+     "activity": {
+      "partial": 0,
+      "answered": 4,
+      "not_asked": 0,
+      "not_answered": 0
+     },
+     "appetite": {
+      "declared": 4,
+      "not_asked": 0,
+      "not_answered": 0
+     },
+     "unchanged": 13,
+     "anchor_cap": {
+      "none": 8,
+      "density": 0,
+      "factor_bound": 0,
+      "density_floor": 0,
+      "assumed_density": 0
+     },
+     "lost_slots": {
+      "slots": 0,
+      "mouth_days": 0,
+      "kcal_lt_200": 0,
+      "kcal_gte_200": 0,
+      "kcal_unknown": 0
+     },
+     "note_boost": {
+      "detail": [],
+      "applied": 0,
+      "applied_pot": 0,
+      "member_days": 0,
+      "unknown_member": 0,
+      "household_dated": 0
+     },
+     "pot_growth": {
+      "capped": 0,
+      "passes": 1,
+      "scaled": 2,
+      "shopping": 24,
+      "regrammed": 10,
+      "short_after": 0,
+      "unrewritable": 2
+     },
+     "pot_shrink": {
+      "kept": 2,
+      "pots": 0,
+      "removed": 0,
+      "unreadable": 0,
+      "unboxed_use": 0,
+      "lines_scaled": 24,
+      "lines_dropped": 0,
+      "sessions_emptied": 0,
+      "lines_unattributed": 0,
+      "lines_unrewritable": 2
+     },
+     "unmet_band": {
+      "lt_200": 2,
+      "gte_200": 4
+     },
+     "lost_by_line": {
+      "kcal": 0,
+      "slots": 0,
+      "mouth_days": 0,
+      "kcal_unknown": 0
+     },
+     "unverifiable": 0,
+     "capped_by_pot": 1,
+     "share_clamped": 0,
+     "anchor_applied": 0,
+     "activity_source": {
+      "legacy": 0,
+      "assumed": 0,
+      "crossed": 4
+     },
+     "pot_attribution": {
+      "ratio": 1,
+      "drawnGrams": 3998,
+      "potsUnreadable": 0,
+      "attributedGrams": 4004
+     }
+    },
+    "eating_out": {
+     "cells": 0,
+     "mouths": 0
+    },
+    "precedence": {
+     "exact": true,
+     "place": "tail",
+     "by_rank": {
+      "rank_1": 0,
+      "rank_2": 6,
+      "rank_3": 2,
+      "rank_4": 0,
+      "rank_5": 0
+     },
+     "blocks_after": 0,
+     "ranks_with_object": 2,
+     "ranks_without_object": 3
+    },
+    "traditions": {
+     "declared": 0,
+     "honoured": 0,
+     "not_composed": 0,
+     "out_of_window": 0,
+     "composed_without_label": 0
+    },
+    "work_lunch": {
+     "cold": 0,
+     "mouths": 0
+    },
+    "dish_owners": {
+     "asked": 0,
+     "refused": 0,
+     "declared": 0,
+     "attributed": 0
+    },
+    "minor_count": 0,
+    "regime_belt": {
+     "kept": 0,
+     "bites": 0,
+     "mouths": 0,
+     "checked": 0,
+     "refused": 0,
+     "silenced": 0,
+     "separated": 0,
+     "box_scoped": 0,
+     "groups_valid": 0,
+     "item_repaired": 0,
+     "not_separated": 0,
+     "unknown_mouth": 0,
+     "group_excluded": 0,
+     "groups_refused": 0,
+     "group_undecided": 0,
+     "groups_declared": 0,
+     "group_plant_only": 0,
+     "citation_repaired": 0,
+     "silenced_spelling": 0,
+     "silenced_homograph": 0
+    },
+    "member_count": 4,
+    "member_deltas": [],
+    "envy_line_used": false,
+    "exclusion_belt": {
+     "kept": 0,
+     "bites": 0,
+     "mouths": 0,
+     "checked": 0,
+     "refused": 0,
+     "separated": 0,
+     "box_scoped": 0,
+     "final_bites": 0,
+     "not_separated": 0
+    },
+    "portion_sizing": {
+     "lids": {
+      "tub_of_one": 0,
+      "own_expected": 0,
+      "tub_expected": 4
+     },
+     "apply": {
+      "regrammed": 38,
+      "pots_scaled": 2,
+      "fresh_scaled": 20,
+      "own_authored": 0,
+      "tubs_authored": 4,
+      "boxes_authored": 4,
+      "dishes_unsized": 0,
+      "eaters_unsized": 0,
+      "fresh_unweighed": 0,
+      "pots_unreadable": 0,
+      "items_unresolved": 0,
+      "servings_rewritten": 2
+     },
+     "slots": {
+      "light": 0,
+      "composed": 3,
+      "declared": 0,
+      "without_target": 0
+     },
+     "dishes": 4,
+     "mouths": 4,
+     "reason": "one_mouth",
+     "target": {
+      "anchored": 0,
+      "no_target": 0
+     },
+     "applied": true,
+     "clamped": {
+      "max": 0,
+      "min": 0
+     },
+     "repairs": {
+      "asked": 0,
+      "splice": {
+       "pot_missing": 0,
+       "dish_missing": 0,
+       "pots_spliced": 0,
+       "fresh_spliced": 0,
+       "shopping_added": 0,
+       "shopping_pruned": 0
+      },
+      "accepted": 0,
+      "attempts": 0,
+      "rejected": {
+       "belt": 0,
+       "no_cell": 0,
+       "degraded": 0,
+       "missing_pot": 0,
+       "unparseable": 0,
+       "unmeasurable": 0,
+       "title_changed": 0,
+       "dedicated_lost": 0,
+       "frozen_rewritten": 0
+      },
+      "still_out": 0,
+      "pot_forked": 0,
+      "pots_frozen": 0,
+      "fresh_frozen": 0,
+      "pot_unforked": 0,
+      "recipe_terms": 0,
+      "stuck_dishes": 0,
+      "stuck_eaters": 0,
+      "fill_absorbed": null,
+      "retried_after": null,
+      "skipped_stuck": 0,
+      "residual_stuck": 0,
+      "skipped_budget": 0,
+      "residual_eaters": 0,
+      "recipe_quantified": 0,
+      "retry_skipped_small": 0
+     },
+     "day_kcal": {
+      "rows": 8,
+      "over_5pct": 0,
+      "per_mouth": [
+       {
+        "n": 1,
+        "day": "fri",
+        "pct": 100,
+        "served": 2162,
+        "target": 2162,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 2,
+        "day": "thu",
+        "pct": 100,
+        "served": 757,
+        "target": 757,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 3,
+        "day": "fri",
+        "pct": 100,
+        "served": 2022,
+        "target": 2022,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 4,
+        "day": "thu",
+        "pct": 100,
+        "served": 708,
+        "target": 708,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 5,
+        "day": "fri",
+        "pct": 100,
+        "served": 2458,
+        "target": 2458,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 6,
+        "day": "thu",
+        "pct": 100,
+        "served": 860,
+        "target": 860,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 7,
+        "day": "fri",
+        "pct": 100,
+        "served": 2611,
+        "target": 2611,
+        "eater_bucket": "adult_maintenance"
+       },
+       {
+        "n": 8,
+        "day": "thu",
+        "pct": 100,
+        "served": 914,
+        "target": 914,
+        "eater_bucket": "adult_maintenance"
+       }
+      ],
+      "within_5pct": 8
+     },
+     "measured": 4,
+     "verdicts": {
+      "over_max": 0,
+      "in_bounds": 16,
+      "under_min": 0,
+      "unmeasurable": 0
+     },
+     "gap_closed": 0,
+     "unmet_band": {
+      "lt_200": 0,
+      "gte_200": 0
+     },
+     "sizing_path": "portion_v1",
+     "repair_needs": {
+      "by_reason": {
+       "none": 4,
+       "conflict": 0,
+       "over_max": 0,
+       "all_under_min": 0,
+       "partial_under_min": 0,
+       "minor_blocks_lighten": 0
+      },
+      "would_ask": 0,
+      "by_direction": {
+       "densify": 0,
+       "lighten": 0
+      },
+      "clamped_eaters": 0
+     },
+     "verification": {
+      "anchored": 0,
+      "pot_shrunk": 0,
+      "unmet_none": 0,
+      "pot_removed": 0,
+      "would_resize": 0,
+      "anchor_clamped": 0,
+      "densify_touched": 0,
+      "pot_short_after": 0,
+      "shopping_scaled": 24,
+      "shopping_unattributed": 0
+     },
+     "bounds_source": {
+      "age_known": 16,
+      "age_unknown": 0
+     },
+     "fixed_covered": 0,
+     "repair_effect": {
+      "ran": false,
+      "after": {
+       "over_max": 0,
+       "in_bounds": 16,
+       "under_min": 0,
+       "unmeasurable": 0
+      },
+      "before": {
+       "over_max": 0,
+       "in_bounds": 16,
+       "under_min": 0,
+       "unmeasurable": 0
+      }
+     },
+     "bounds_applied": false,
+     "eaters_by_dish": {
+      "dishes": 4,
+      "placed": 4,
+      "excluded": 0,
+      "fed_hist": {
+       "0": 0,
+       "1": 0,
+       "2": 0,
+       "3_plus": 4
+      },
+      "off_cell": 0,
+      "complements": 0,
+      "shared_fed_nobody": 0,
+      "dedicated_off_cell": 0
+     },
+     "fixed_conflict": 0,
+     "fixed_slot_kcal": {
+      "loose": 0,
+      "off_day": 0,
+      "declared": 0,
+      "unresolved": 0,
+      "referential": 0,
+      "loose_ignored_kcal": 0
+     },
+     "served_over_max": 0,
+     "unmeasurable_by": {},
+     "dedicated_repair": {
+      "asked": 0,
+      "accepted": 0,
+      "rejected": {
+       "degraded": 0,
+       "unsolvable": 0,
+       "missing_pot": 0,
+       "unparseable": 0,
+       "unmeasurable": 0,
+       "bearer_missing": 0
+      },
+      "still_out": 0,
+      "complement": {
+       "solved": 0,
+       "moved_kcal": 0,
+       "clamped_max": 0,
+       "clamped_min": 0,
+       "unsolvable_by": {}
+      },
+      "missed_aim": 0,
+      "fill_absorbed": null,
+      "fill_unknowns": null,
+      "shopping_added": 0,
+      "skipped_budget": 0
+     },
+     "pot_ingredients_without_amount": 0
+    },
+    "vague_portions": {
+     "notes": 0,
+     "vague": 0,
+     "box_ids": 0,
+     "quantified": 0
+    },
+    "meals_delivered": {
+     "fed": 16,
+     "rows": [],
+     "mouths": 4,
+     "missing": 0,
+     "rehomed": 0,
+     "retried": false,
+     "by_cause": {
+      "double": 0,
+      "no_dish": 0,
+      "not_named": 0,
+      "held_off_regime": 0,
+      "held_off_exclusion": 0
+     },
+     "expected": 16,
+     "restored": 0,
+     "retry_on": {},
+     "retry_accepted": 0,
+     "retry_attempts": 0,
+     "restored_fallback": 0,
+     "cells_without_dish": 0,
+     "retry_merged_cells": 0
+    },
+    "preference_split": {
+     "pairs": 0,
+     "wanters": 0,
+     "composed": 0,
+     "pairs_fresh": 0,
+     "refuser_clean": 0,
+     "refuser_bitten": 0,
+     "retry_accepted": 0,
+     "retry_attempts": 0,
+     "pairs_from_stores": 0,
+     "retry_rejected_by": null,
+     "retry_merged_cells": 0
+    },
+    "accountless_count": 3,
+    "restriction_count": 0,
+    "unknown_age_count": 0,
+    "portion_quantities": {
+     "notes": 0,
+     "model_quantity": 0,
+     "model_size_word": 0
+    },
+    "cross_contact_block": {
+     "emitted": 0,
+     "skipped_no_medical": 1,
+     "skipped_no_dedicated": 0
+    },
+    "unquantified_dish_ingredients": {
+     "ingredients": 20,
+     "unquantified": 0
+    }
+   },
+   "rationale": {
+    "lines": [
+     "This plan covers 2 days, starting today.",
+     "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+     "For today, breakfast is off the plan: the day is already under way.",
+     "For today, lunch is not in the plan: there has to be time to shop first.",
+     "One shop, on Thursday: everything this plan asks for keeps until it is cooked.",
+     "Quantities are made for 4 people.",
+     "Everyone has every one of their meals.",
+     "The shares in this plan are served at the plate, as close as they can be, rather than adjusted mouth by mouth."
+    ],
+    "refusal": null
+   },
+   "belief_keys": [
+    "whole_foods_first",
+    "protein_at_every_meal",
+    "regular_meals_beat_perfect_meals",
+    "one_change_at_a_time",
+    "a_missed_day_is_data",
+    "this_is_a_discovery_program"
+   ],
+   "empty_slots": [],
+   "explanation": {
+    "kept": 0,
+    "lines": [],
+    "refusal": null,
+    "declared": 0
+   },
+   "food_groups": {
+    "lines": 38,
+    "valid": 0,
+    "refused": 0,
+    "declared": 0,
+    "persisted": 0
+   },
+   "hunger_days": 0,
+   "plan_budget": {
+    "charged": [],
+    "total_ms": 380000,
+    "usable_ms": 255627,
+    "elapsed_ms": 94373,
+    "reserve_ms": 30000,
+    "remaining_ms": 285627,
+    "repairs_used": 0,
+    "repairs_asked": 0,
+    "repairs_allowed": 2,
+    "repairs_refused": {},
+    "provider_attempts": 0
+   },
+   "prompt_version": "meal.en.v30_one_shop_freezes_on_purchase+household.v34_one_card_per_person_the_engine_weighs",
+   "request_report": {
+    "lines": [],
+    "refusal": null
+   },
+   "doctrine_reason": "loaded",
+   "doctrine_version": 1,
+   "satiety_priority": false,
+   "hunger_window_end": "2026-09-10",
+   "hunger_window_days": 7,
+   "hunger_window_start": "2026-09-04",
+   "protein_anchor_retry": false,
+   "protein_anchor_missing": []
+  },
+  "composition_energy_sources": {
+   "kcal": 4530,
+   "model": 0,
+   "table": 0.932,
+   "promoted": 0,
+   "group_bounds": 0.068
+  },
+  "composition_unknowns": 3
+ }
+}

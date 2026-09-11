@@ -93,6 +93,138 @@ Deno.test("désarmement: sous le plafond, une seule requête par table", () => {
   return loadCompositionIndex(db as never).then((index) => {
     assertEquals(index.bySlug.size, 200);
     assertEquals(index.byAlias.size, 700);
-    assertEquals(db.calls.length, 2, "une requête par table, pas plus");
+    // ⟳ LOT A (2026-09-11): TROIS tables, plus deux. La troisième est
+    // `food_composition_false_friends` — les formes où le lexique d'une langue
+    // parle avant le slug nu. Le compte est là pour qu'une quatrième lecture ne
+    // s'ajoute pas sans qu'on la voie.
+    assertEquals(db.calls.length, 3, "une requête par table, pas plus");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LOT A — CE QUE LE CHARGEUR DÉCIDE EN PLUS, ET QUI NE SE VOIT PAS AILLEURS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Un client qui rend exactement les lignes qu'on lui donne, par table. */
+function fixedDb(tables: Record<string, Record<string, unknown>[]>) {
+  return {
+    from(table: string) {
+      return {
+        select(_columns: string) {
+          return {
+            range(from: number, to: number) {
+              return Promise.resolve({
+                data: (tables[table] ?? []).slice(from, to + 1),
+                error: null,
+              });
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
+const ROW = {
+  food_group_ref: "other_fruit",
+  label: "x",
+  source: "ciqual",
+  energy_kcal: 100,
+  yield_class: "neutral",
+  atwater_discount: 1,
+};
+
+Deno.test("LOT A — un `ciqual_code` porté par DEUX slugs rend les deux suspects", () => {
+  // ⛔ LE DÉFAUT MESURÉ: `20039` était porté par `leek` ET `pear`, et `pear`
+  // avait bien les cinq macronutriments du poireau. Un `alim_code` ANSES
+  // désigne UN aliment; deux lignes qui le portent disent la même mesure de
+  // deux aliments, et rien dans le produit ne peut dire laquelle ment.
+  const db = fixedDb({
+    food_composition_refs: [
+      { ...ROW, slug: "leek", ciqual_code: "20039" },
+      { ...ROW, slug: "pear", ciqual_code: "20039" },
+      { ...ROW, slug: "apple", ciqual_code: "13004" },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    assertEquals(index.bySlug.get("leek")?.validation, "a_verifier");
+    assertEquals(index.bySlug.get("pear")?.validation, "a_verifier");
+    // Et un code porté UNE fois ne rend personne suspect.
+    assertEquals(index.bySlug.get("apple")?.validation, "verifie");
+  });
+});
+
+Deno.test("LOT A — l'exception écrite en base gagne sur la règle du doublon", () => {
+  // « Jusqu'à arbitrage nominatif »: une fois qu'un humain a tranché, la règle
+  // générale ne doit plus re-condamner la ligne. Sans ça, aucun doublon ne
+  // pourrait JAMAIS sortir de la suspicion.
+  const db = fixedDb({
+    food_composition_refs: [
+      { ...ROW, slug: "leek", ciqual_code: "20039" },
+      {
+        ...ROW,
+        slug: "pear",
+        ciqual_code: "20039",
+        validation_state: "verifie",
+        validation_reason: "arbitre a la main le 2026-09-11",
+        validation_decided_on: "2026-09-11",
+      },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    assertEquals(index.bySlug.get("pear")?.validation, "verifie");
+    assertEquals(index.bySlug.get("leek")?.validation, "a_verifier");
+  });
+});
+
+Deno.test("LOT A — un `validation_state` hors vocabulaire retombe sur la RÈGLE", () => {
+  // ⛔ ET PAS SUR `rejete` « par prudence ». Une colonne mal lue qui fermerait
+  // la composition ferait passer un défaut de lecture pour une décision
+  // produit — et le référentiel entier pourrait disparaître du catalogue sur
+  // une faute de frappe.
+  const db = fixedDb({
+    food_composition_refs: [
+      { ...ROW, slug: "a", validation_state: "VERIFIÉ!" },
+      { ...ROW, slug: "b", source: "sas" },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [],
+  });
+  return loadCompositionIndex(db as never).then((index) => {
+    assertEquals(index.bySlug.get("a")?.validation, "verifie");
+    assertEquals(index.bySlug.get("b")?.validation, "a_verifier");
+  });
+});
+
+Deno.test("LOT A — les faux amis sont filtrés par LANGUE, et `fr` est le défaut", () => {
+  // Mesuré le 2026-09-11 sur tous les plans de la base: 195 occurrences des
+  // quatre termes en fr-FR contre 1 en en-GB. Le défaut va du côté où la
+  // mesure dit qu'il coûte le moins — et il est écrit, pas deviné.
+  const tables = {
+    food_composition_refs: [
+      { ...ROW, slug: "grapes", energy_kcal: 68.9 },
+      { ...ROW, slug: "raisin", energy_kcal: 321 },
+    ],
+    food_composition_aliases: [],
+    food_composition_false_friends: [
+      { term: "raisin", lang: "fr", slug: "grapes" },
+      // Une ligne d'une AUTRE langue ne doit pas fuir dans l'index français.
+      { term: "grapes", lang: "en", slug: "raisin" },
+      // Un faux ami vers un slug absent est jeté, comme un alias orphelin.
+      { term: "zzz", lang: "fr", slug: "inexistant" },
+    ],
+  };
+  return loadCompositionIndex(fixedDb(tables) as never).then((fr) => {
+    assertEquals(fr.falseFriends?.size, 1);
+    assertEquals(fr.falseFriends?.get("raisin"), "grapes");
+    return loadCompositionIndex(fixedDb(tables) as never, { lang: "en" });
+  }).then((en) => {
+    assertEquals(en.falseFriends?.size, 1);
+    assertEquals(en.falseFriends?.get("grapes"), "raisin");
+    assertEquals(en.falseFriends?.has("raisin"), false);
   });
 });

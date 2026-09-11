@@ -48,6 +48,7 @@
 
 import {
   buildPortionBrief,
+  densityFloorsOf,
   type CookingShape,
   type PortionMember,
   // LE MÊME PRÉDICAT QUE `boxMemberIds` CÔTÉ PARSEUR — appelé, jamais recopié.
@@ -635,7 +636,26 @@ import {
 // distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
 // le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
 // `explanation.asked` sépare les deux dernières.
-export const HOUSEHOLD_PROMPT_VERSION = "v31_one_wants_what_another_refuses";
+// ⟳ v32 (2026-09-07) — LE BRIEF DE SERVICE PARLE DE NOUVEAU DE TAILLE. Le
+// moteur ne redimensionne plus les boîtes; le brief quitte donc sa branche
+// « le moteur dimensionne » (mots de taille retirés, « never a weight ») pour
+// celle où le modèle porte le nombre: directions complètes par objectif et
+// « write the grams ». Mesuré avant: 45 boîtes sur 45 identiques pour trois
+// corps et trois objectifs différents. Le bloc d'arbitrage ne bouge pas.
+/**
+ * ⟳ v33 (2026-09-07) — LE MODÈLE ÉCRIT UNE RECETTE, L'ALGORITHME MULTIPLIE.
+ *
+ * v32 disait « l'assiette diffère par ce qu'il y a dessus »: le modèle écrivait
+ * les grammes de chaque boîte à partir de faits de corps qu'on lui donnait.
+ * v33 lui retire les deux — les faits de corps ET les boîtes — et lui demande
+ * UNE portion standard par plat. Le dimensionnement est passé au moteur
+ * (`portion_sizing.ts`), qui sait le mesurer, le borner et le compter.
+ *
+ * ⚠️ LA BASCULE EST BORNÉE À UNE BOUCHE (`PORTION_SIZING_MAX_MOUTHS`). À deux
+ * et plus, le prompt est celui de v32 à l'octet près — une empreinte SHA-256
+ * le tient sur trois foyers canoniques.
+ */
+export const HOUSEHOLD_PROMPT_VERSION = "v33_one_standard_recipe_the_engine_multiplies";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -697,7 +717,7 @@ export interface DecidedBeforeYou {
  * d'avant ce lot. C'est ce qui rend l'ajout mesurable: un appelant qui ne passe
  * pas les faits produit le prompt de v25, et le compteur `asked` le dit.
  */
-function decidedBeforeYouBlock(decided: DecidedBeforeYou | null): string {
+export function decidedBeforeYouBlock(decided: DecidedBeforeYou | null): string {
   if (decided === null) return "";
   const or = (xs: readonly string[], none: string) =>
     xs.length === 0 ? none : xs.join(", ");
@@ -727,6 +747,195 @@ function decidedBeforeYouBlock(decided: DecidedBeforeYou | null): string {
     'Explain only what YOU chose among what these leave open, in "explanation".',
   ].join("\n");
 }
+
+/**
+ * LA DENSITÉ MINIMALE D'UN PLAT ORDINAIRE, EN KCAL POUR 100 G SERVIS.
+ *
+ * ⛔ POURQUOI UN PLANCHER DE DENSITÉ PLUTÔT QU'UN PLANCHER DE KCAL. Le modèle
+ * n'a plus le corps de personne: il ne peut pas viser un nombre de calories, et
+ * lui en donner un rouvrirait exactement la porte que v33 ferme. Une DENSITÉ,
+ * elle, est une propriété du plat — vraie quelle que soit la personne qui le
+ * mange — et c'est la seule contrainte de ce genre qu'on puisse lui donner sans
+ * lui redonner le corps.
+ *
+ * ⚠️ DÉRIVÉ, PAS MESURÉ: un repas d'adulte plausible pèse 650 g pour ~650 kcal,
+ * soit 100 kcal/100 g. Les plats réels du corpus tiennent entre 113 et 156
+ * kcal/100 g — le plancher est donc sous la population, ce qui est la place
+ * d'un plancher. ⛔ Si la réparation du lot 5 se met à mordre souvent, c'est
+ * CE nombre qu'il faut relever, pas la borne d'assiette.
+ */
+export const NORMAL_DISH_MIN_KCAL_PER_100G = 100;
+
+/**
+ * LE MÊME PLANCHER POUR UN MOMENT MARQUÉ « LÉGER ».
+ *
+ * ⚠️ 60 ET PAS 0. « Léger » veut dire « moins que d'habitude », jamais « une
+ * soupe claire »: sous 60 kcal/100 g, la quantité à manger pour atteindre même
+ * une petite cible devient énorme, et c'est le défaut que ce plancher existe
+ * pour empêcher. Une pomme de terre, un filet d'huile, une cuillère de crème
+ * suffisent à le franchir.
+ */
+export const LIGHT_DISH_MIN_KCAL_PER_100G = 60;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * v33 · « ÉCRIS UNE RECETTE, PAS UNE PORTION » — le bloc du lot 3
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ MESSAGE UTILISATEUR, ET COLLÉ AU BRIEF DE PORTIONS. La promesse et la clé
+ * de schéma doivent se toucher: ce dépôt a mesuré 0 % de conformité quand une
+ * consigne était séparée de la phrase qui promet la matière, et un « ci-dessus »
+ * ne traverse pas la frontière système↔utilisateur.
+ *
+ * ⛔ L'ÉCHAPPATOIRE EST NOMMÉE, littéralement. « Écris une recette standard »
+ * sans dire ce qu'on refuse se fait satisfaire par « une portion standard pour
+ * Alex ». Les trois interdits sont donc écrits en toutes lettres: jamais une
+ * portion pour une personne nommée, jamais une boîte, jamais un chiffre par
+ * personne.
+ *
+ * ⚠️ LES DEUX PLANCHERS SONT INTERPOLÉS, jamais recopiés. Une consigne qui
+ * promet 100 et une garde qui accepte 90 laisseraient passer un plat que le
+ * moteur devra réparer — et le modèle aurait raison contre le moteur.
+ */
+/**
+ * ⟳ 2026-09-08 — LES PLANCHERS ENTRENT EN ARGUMENT, ET LE BLOC DEVIENT UNE
+ * FONCTION.
+ *
+ * ⛔ CE N'EST PAS UNE GÉNÉRALISATION GRATUITE. Une bouche sous plancher TCA a
+ * une densité requise qu'on ne peut écrire en face de son nom
+ * (`RequiredDensity.floorOnly`); le seul endroit où son exigence peut atteindre
+ * le modèle est ce plancher COMMUN, où elle se confond avec celle des autres.
+ * Sans ce paramètre, la protéger d'un chiffre revenait à la sous-nourrir.
+ *
+ * `STANDARD_RECIPE_BLOCK` reste, avec les planchers de base: c'est ce que
+ * `household_prompt_v34.ts` joint, et ce que les tests du prompt v33 lisent.
+ */
+export function standardRecipeBlock(
+  floors: { normal: number; light: number },
+): readonly string[] {
+  return Object.freeze([
+    "== WRITE ONE STANDARD RECIPE PER DISH ==",
+    "Write every dish and every preparation as ONE standard recipe: ingredients in",
+    "grams (or ml, units, spoons) with their state, raw as bought for rice, pasta,",
+    "dry legumes, meat and fish. A preparation is written for the dishes that draw",
+    "on it; each dish draws one serving. The app multiplies each recipe to what the",
+    "person eats and works out the batch and the shopping.",
+    // ⛔ MESURÉ AU PREMIER TIR v33 (2026-09-07): sur 4 plats, 2 sont devenus
+    // ILLISIBLES parce que le modèle listait « poulet rôti », « semoule cuite »
+    // et « légumes rôtis » comme ingrédients du PLAT, sans quantité, en plus de
+    // citer les trois casseroles dans `uses`. Il nommait le contenu du pot deux
+    // fois. `dishEnergy` voit une quantité manquante et s'abstient sur le plat
+    // ENTIER — `missing_quantity`, 2 sur 4.
+    //
+    // ⚠️ CE N'EST PAS UNE DÉSOBÉISSANCE, C'EST UNE AMBIGUÏTÉ DE LA CONSIGNE
+    // au-dessus: « each dish draws one serving » se lit aussi comme « dis ce que
+    // le plat contient ». La phrase qui suit lève l'ambiguïté au lieu de gronder.
+    "When a dish draws on a preparation, that link is the whole statement: do NOT",
+    "also list the preparation's food among the dish's own ingredients. The dish's",
+    "ingredients are only what is added fresh on top of it.",
+    "Never write a portion for a named person, never a box, never a per-person",
+    "figure. Those are computed, not written.",
+    "Every lunch and dinner is a complete plate in ONE dish: a starch, a protein, a",
+    `fat. A normal dish carries at least ${floors.normal} kcal per 100 g as served. A soup is`,
+    "possible but it comes complete (croutons, grated cheese, a poached egg, or",
+    "bread and cheese beside it).",
+    `A slot marked (light) calls for a light recipe: still nourishing, at least ${floors.light} kcal`,
+    "per 100 g as served (a potato, a drizzle of oil, a spoon of cream). Below that",
+    "the amount to eat becomes enormous.",
+      "There is no starter: the dish is the unit.",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-10 — LA MÉTHODE DE CALCUL, ET LA TABLE SUR LAQUELLE LA POSER
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE MODÈLE NE CALCULAIT PAS, IL DEVINAIT — MESURÉ. Sur 40 densités
+    // demandées puis mesurées (`qa-genty-clone`, 2026-09-09/10), l'écart entre
+    // la consigne et la recette rendue va de **−23 % à +63 %**; médiane +3,1 %,
+    // 17 en dessous, 23 au-dessus. Une médiane juste et une amplitude pareille,
+    // c'est la signature d'un tirage au sort, pas d'une visée.
+    //
+    // ⚠️ UNE MARGE NE RÉPARE PAS ÇA. `REPAIR_DENSITY_HEADROOM` déplace le
+    // centre; ici le centre est bon et c'est la dispersion qui coûte. On ne
+    // corrige pas une dispersion en poussant la cible.
+    //
+    // ⛔ ON NOMME CIQUAL PARCE QUE C'EST *NOTRE* SOURCE. `food_composition_refs`
+    // porte 881 lignes `ciqual` sur 943: la table de l'ANSES est exactement ce
+    // avec quoi le moteur pèse ensuite. Sans elle, le modèle calcule avec les
+    // valeurs qu'il a en tête et les deux calculs ne parlent pas de la même
+    // chose. Elle est publique, et il la connaît.
+    //
+    // ⛔ ET ON DIT « CUIT », PARCE QUE « AS SERVED » NE SUFFISAIT PAS. 100 g de
+    // riz sec font 350 kcal/100 g; cuits, 130. Un modèle qui pose son calcul sur
+    // le cru se croit dense et rend une recette qui ne l'est pas — c'est la
+    // moitié basse de la dispersion mesurée.
+    "",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT C (2026-09-11) — LE PRORATA DE CHAQUE CASSEROLE, ÉCRIT
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ L'ÉTAPE 1 DISAIT « chaque ingrédient de chaque préparation », SANS
+    // DIRE COMBIEN ON EN PREND. L'enquête du 2026-09-11 le nomme: « le bloc de
+    // calcul n'explicite pas le prorata de chaque préparation partagée; la
+    // réparation cite des quantités de casseroles ENTIÈRES sans afficher le
+    // nombre de tirages ni la contribution de chaque composant ». Un modèle qui
+    // additionne la casserole entière calcule une densité de CASSEROLE et la
+    // déclare comme une densité d'ASSIETTE.
+    //
+    // ⚠️ SON IMPACT CHIFFRÉ N'EST PAS ISOLÉ, et l'enquête le dit aussi. On
+    // répare une ambiguïté ÉVITABLE du contrat, pas un coût mesuré: c'est faux,
+    // donc ça part. Prétendre le contraire serait inventer une mesure.
+    //
+    // ⛔ ET LE NOMBRE DE TIRAGES EST DIT PAR SON NOM DE CLÉ (`servings_made`),
+    // pas par une périphrase: la promesse et la clé de schéma doivent se
+    // toucher, ce dépôt a mesuré 0 % de conformité quand elles étaient séparées.
+    "HOW TO CHECK A DISH'S DENSITY, AND DO IT BEFORE YOU MOVE ON:",
+    "  1. For EACH preparation the dish draws on: take the WHOLE pot, its cooked",
+    "     grams and its kcal, and divide BOTH by that pot's \"servings_made\".",
+    "     That quotient is the one serving this dish takes from it. A dish takes",
+    "     ONE serving from each pot it names — never the whole pot.",
+    "  2. Add the dish's OWN ingredients, at full weight: they are added fresh on",
+    "     the day, so nothing divides them.",
+    "  3. Use the CIQUAL food composition table (ANSES, the French reference) for",
+    "     their energy. It is the table this kitchen weighs with.",
+    "  4. Weigh them COOKED, ready to serve — not raw. Dry rice is 350 kcal per",
+    "     100 g; cooked it is about 130. Meat and vegetables lose water too.",
+    "  5. density = (total kcal) ÷ (total cooked grams) × 100.",
+    "Write that number in EVERY dish's \"density_check\" field — it is required,",
+    "and a dish without it is an unchecked dish.",
+    // ⛔ CE QUE `density_check` EST, DIT AU MODÈLE LUI-MÊME. Le chantier
+    // l'exige: « `density_check` reste une déclaration, jamais une preuve ». Le
+    // taire laisse croire qu'écrire le nombre suffit — et l'enquête a mesuré
+    // exactement ça: 141 déclarés contre 105,4 pesés, 159 contre 92,2.
+    "That number is what you DECLARE, not what you prove. The app weighs the",
+    "dish again from the ingredients you wrote, and compares the two. A number",
+    "you did not actually compute buys nothing: it only hides which dish to fix.",
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-10 — LES DEUX CÔTÉS, PARCE QU'UN SEUL A ÉTÉ MESURÉ INSUFFISANT
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ « SI C'EST TROP BAS » N'A PAS DE HAUT. Sur 40 densités demandées puis
+    // pesées, 23 étaient AU-DESSUS de la consigne, jusqu'à +63 %. Un plat trop
+    // dense n'est pas un bonus: la part tient dans trois cuillères, passe sous
+    // le plancher d'assiette, et déclenche une réparation « allège » qui coûte
+    // le même appel qu'une réparation « densifie ».
+    //
+    // ⚠️ ET LE REMÈDE N'EST PAS SYMÉTRIQUE. Descendre se fait en ajoutant du
+    // légume et de l'eau; monter se fait en retirant de l'eau. Dire « ajuste »
+    // sans dire le geste laisse le modèle servir moins — ce qui rabote
+    // l'assiette par l'autre bout au lieu de changer la recette.
+    "If your number is OUTSIDE the range the line above asks for, fix the recipe",
+    "BEFORE you answer, and fix the RECIPE, not the amount served:",
+    "  · below the range: less water and watery vegetable, more starch, protein",
+    "    or fat;",
+    "  · above the range: more vegetable and more water-rich food, less oil and",
+    "    less dense starch.",
+    "Do not answer with a dish you already know is outside its range.",
+  ]);
+}
+
+export const STANDARD_RECIPE_BLOCK: readonly string[] = standardRecipeBlock({
+  normal: NORMAL_DISH_MIN_KCAL_PER_100G,
+  light: LIGHT_DISH_MIN_KCAL_PER_100G,
+});
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
@@ -1041,6 +1250,14 @@ export interface HouseholdPromptInput {
    * dans l'assiette. Deux natures, deux blocs.
    */
   notes: readonly string[];
+  /**
+   * ⟳ 2026-09-07 — QUEL CHEMIN DE DIMENSIONNEMENT (lot 3 du plan solo).
+   *
+   * ⛔ REQUIS. Le prompt CHANGE DE FORME selon ce verdict; un `?` ferait servir
+   * la forme v32 à un moteur qui attend une recette standard, c'est-à-dire les
+   * deux moitiés d'un même lot désaccordées en production.
+   */
+  sizingPath: "portion_v1" | "legacy_measure";
 }
 
 /** Ce que la fusion apporte au prompt. Décidé ailleurs — voir `household_merge.ts`. */
@@ -1125,7 +1342,7 @@ const HOUSEHOLD_RULES_HEADER = [
   "not put these foods on these people's plates.",
 ] as const;
 
-function restrictionBlock(restrictions: readonly HouseholdRestriction[]): string {
+export function restrictionBlock(restrictions: readonly HouseholdRestriction[]): string {
   if (restrictions.length === 0) return "";
   const byMember = new Map<string, { name: string; labels: string[] }>();
   for (const r of restrictions) {
@@ -1181,7 +1398,7 @@ function restrictionBlock(restrictions: readonly HouseholdRestriction[]): string
  * RÉFÉRENCE (« above ») qui pointait hors du message. Le taux mesuré est bien
  * zéro.
  */
-function memberIdRosterLines(
+export function memberIdRosterLines(
   members: readonly { memberId: string; displayName: string }[],
   /**
    * ⛔ VRAI DÈS QU'UN AUTRE BLOC RENVOIE À CETTE LISTE (2026-08-19).
@@ -1227,7 +1444,7 @@ function memberIdRosterLines(
  * sous ses propres mots et l'aperçu bégaie — la cicatrice
  * `redirect-appends-contradict-the-model-guess`, prise à l'endroit.
  */
-const EXPLANATION_SCHEMA_BLOCK = [
+export const EXPLANATION_SCHEMA_BLOCK = [
   "== ONE MORE OUTPUT FIELD (household): WHAT YOU HAD TO WEIGH UP ==",
   "Add ONE more top-level key to the JSON you return:",
   '  "explanation": [ "<one short line>", ... ]',
@@ -1250,7 +1467,7 @@ const EXPLANATION_SCHEMA_BLOCK = [
   "and do not contradict the DECIDED BEFORE YOU block.",
 ] as const;
 
-const PORTION_SCHEMA_BLOCK = [
+export const PORTION_SCHEMA_BLOCK = [
   "== ADDITIONAL OUTPUT FIELD (household) ==",
   "Add ONE more top-level key to the JSON you return:",
   '  "member_portions": [',
@@ -1480,7 +1697,7 @@ function boxSchemaBlock(
  * collée au brief qui promet le plat — exactement le partage de
  * `PORTION_SCHEMA_BLOCK` / `buildPortionBrief`, qui est rempli 100 % du temps.
  */
-function dishOwnerSchemaBlock(
+export function dishOwnerSchemaBlock(
   dishBearers: readonly { memberId: string; displayName: string }[],
 ): readonly string[] {
   if (dishBearers.length === 0) return [];
@@ -1559,7 +1776,7 @@ function preferenceSplitBlock(splits: readonly PreferenceSplit[] | undefined): s
   return lines.join("\n");
 }
 
-function dedicatedDishBlock(
+export function dedicatedDishBlock(
   dishBearers: readonly { memberId: string; displayName: string }[],
   dedicatedDishesAsked: number,
 ): string {
@@ -1651,7 +1868,7 @@ export interface HouseholdRuleHolder {
  * la liste fermée ci-dessus — le patron de `for_member_id`, de `same_day` et de
  * `preparation_id`, qui fonctionnent en production.
  */
-function whyRuleSchemaBlock(
+export function whyRuleSchemaBlock(
   ruleHolders: readonly HouseholdRuleHolder[],
 ): readonly string[] {
   if (ruleHolders.length === 0) return [];
@@ -1669,7 +1886,7 @@ function whyRuleSchemaBlock(
 }
 
 /** LOT C ② — LA MOITIÉ CONSIGNE, dans le groupe des verrous. Voir ci-dessus. */
-function whyRuleBlock(ruleHolders: readonly HouseholdRuleHolder[]): string {
+export function whyRuleBlock(ruleHolders: readonly HouseholdRuleHolder[]): string {
   if (ruleHolders.length === 0) return "";
   return [
     "== WHAT A \"why\" IS ALLOWED TO SAY ==",
@@ -1832,7 +2049,7 @@ const TOOL_PROSE: Record<KitchenTool, string> = {
   blender: "a blender or food processor",
 };
 
-function kitchenBlock(
+export function kitchenBlock(
   equipment: readonly KitchenTool[] | null,
 ): { block: string; missing: readonly KitchenTool[] } {
   const missing = missingKitchenTools(equipment);
@@ -2014,6 +2231,18 @@ export function workLunchBlock(
 }
 
 export interface HouseholdPromptBlocks {
+  /**
+   * ⟳ LOT 11 (2026-09-07) — LA STRUCTURE SERVIE DIT SON NOM.
+   *
+   * ⛔ REQUIS, ET RENDU PAR LE CONSTRUCTEUR, JAMAIS LU DEPUIS LA LANE. Deux
+   * constructeurs coexistent désormais — celui-ci (blocs empilés, v33) et
+   * `household_prompt_v34.ts` (cartes, calendrier, méthode) — et le MÊME foyer
+   * peut recevoir l'un ou l'autre selon le chemin de dimensionnement. Une
+   * version lue depuis `index.ts` dirait le code déployé; celle-ci dit ce que
+   * le modèle a RÉELLEMENT reçu, et c'est la seule qui permette de relire une
+   * ligne en base trois jours plus tard.
+   */
+  promptVersion: string;
   /** À concaténer au `userMessage` de `buildMealPrompt`. */
   userSuffix: string;
   /** À concaténer au `systemPrompt`: le schéma de sortie supplémentaire. */
@@ -2180,7 +2409,7 @@ const NOTES_FOOTER = [
  */
 
 /** Le bloc des notes par bouche. `""` quand il n'y en a aucune. */
-function notesBlock(notes: readonly string[]): { block: string; served: number } {
+export function notesBlock(notes: readonly string[]): { block: string; served: number } {
   const lines = (notes ?? []).map((n) => String(n ?? "").trim()).filter((n) => n);
   if (lines.length === 0) return { block: "", served: 0 };
   return {
@@ -2218,7 +2447,17 @@ export function buildHouseholdPromptBlocks(
   // seule rend les deux vides, et le prompt est celui de v13 au caractère près.
   // LA MÊME LISTE QUE `boxMemberIds` CÔTÉ PARSEUR — dérivée ici de `members`
   // par le MÊME prédicat, jamais recopiée à la main.
-  const boxSchema = boxSchemaBlock(input.members, weighedPortionMembers(input.members));
+  // ⛔ AUCUN SCHÉMA DE BOÎTE SOUS `portion_v1`. Le moteur les autore (lot 4);
+  // en demander au modèle ferait écrire une sortie qu'on jette, et un modèle à
+  // qui on jette la moitié de sa sortie finit par mal écrire l'autre.
+  // ⚠️ À une seule bouche, `boxSchemaBlock` rendait DÉJÀ vide (mesuré au tir
+  // BASE du 2026-09-07: ni `ONE BOX PER GROUP` ni `THE MEMBER IDS` n'atteignent
+  // le modèle). Cette garde n'est donc pas ce qui ferme la porte aujourd'hui —
+  // elle la ferme le jour où la borne monte, et c'est pour ce jour-là qu'elle
+  // est écrite.
+  const boxSchema = input.sizingPath === "portion_v1"
+    ? []
+    : boxSchemaBlock(input.members, weighedPortionMembers(input.members));
   // LA MÊME LISTE QUE `boxSchema` ET `dishOwner` RÉCLAMENT, imprimée une fois
   // au-dessus d'eux. Même plancher de deux bouches: à une seule, le suffixe
   // système reste identique à l'octet près (un test le tient).
@@ -2274,7 +2513,24 @@ export function buildHouseholdPromptBlocks(
       input.cooking,
       input.divergingCount,
       input.weightGroups,
+      input.sizingPath,
     ),
+    // ── v33 · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ──────────
+    // Le brief ci-dessus promet « how much of which component goes on their
+    // plate »; ce bloc-ci dit sous quelle FORME l'écrire. Les séparer par la
+    // présence, la fusion ou l'envie remettrait la promesse et la forme à deux
+    // endroits du prompt — c'est très exactement l'état de v12, où le modèle
+    // n'a composé aucun second plat onze fois sur douze.
+    // ⟳ 2026-09-08 — LES PLANCHERS SONT CALCULÉS, PAS CONSTANTS. `densityFloorsOf`
+    // relève la base avec les densités qu'aucune ligne ne peut nommer (plancher
+    // TCA). Sans bouche concernée, il rend la base au bit près — et le test
+    // d'empreinte du prompt le vérifie.
+    ...(input.sizingPath === "portion_v1"
+      ? ["", ...standardRecipeBlock(densityFloorsOf(input.members, {
+        normal: NORMAL_DISH_MIN_KCAL_PER_100G,
+        light: LIGHT_DISH_MIN_KCAL_PER_100G,
+      }))]
+      : []),
     // ── LOT 3C · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ────────
     // La ligne de forme PROMET un plat dédié à l'intérieur du brief ci-dessus;
     // ce bloc-ci le COMMANDE, nomme les bouches et dit quelle clé le porte. Les
@@ -2441,6 +2697,7 @@ export function buildHouseholdPromptBlocks(
   ].filter((p) => p && p.trim().length > 0);
 
   return {
+    promptVersion: HOUSEHOLD_PROMPT_VERSION,
     userSuffix: `\n\n${parts.join("\n\n")}`,
     // LOT C — LE BLOC D'ATTRIBUTION REJOINT LE SCHÉMA, et il n'existe que
     // quand un plat dédié est réclamé (voir `dishOwnerSchemaBlock`).
@@ -2451,7 +2708,30 @@ export function buildHouseholdPromptBlocks(
         // vers le message UTILISATEUR et le modèle recopiait des prénoms. Voir
         // `memberIdRosterLines`.
         ...(idRoster.length === 0 ? [] : [...idRoster, ""]),
-        ...PORTION_SCHEMA_BLOCK,
+        // ⟳ 2026-09-07 (lot 8) — `member_portions` NE SORT PLUS SOUS
+        // `portion_v1`, ET CE N'EST PAS DU RANGEMENT: c'était une SECONDE
+        // AUTORITÉ sur les grammes, et elle contredisait la première.
+        //
+        // ⛔ MESURÉ SUR LE TIR `L6` DU 2026-09-07, sur le même plan:
+        //
+        //     phrase lue à table  →  boîte calculée
+        //     200 g de yaourt     →  326 g          (+63 %)
+        //      45 g de flocons    →   81 g          (+80 %)
+        //     150 g de poulet     →  108 g          (−28 %)
+        //
+        // La `portion_note` porte les grammes que le MODÈLE a écrits — donc
+        // sans le corps de personne, puisque v33 le lui a retiré. Le couvercle,
+        // lui, porte ceux que l'algorithme a CALCULÉS. Les deux partent dans le
+        // même plan, et c'est la phrase qui est lue à voix haute.
+        //
+        // ⚠️ CICATRICE DATÉE ET REPRODUITE: `portion-note-contradicts-the-lid`.
+        // Ce n'est pas une redondance qu'on nettoie, c'est une contradiction
+        // qui atteint la personne.
+        //
+        // ⚠️ RIEN N'EST SUPPRIMÉ: le bloc reste servi à toute la lane legacy,
+        // et `reconcilePortions` continue de tourner (voir son bloc: il compte
+        // désormais l'absence attendue plutôt que de la traiter en défaut).
+        ...(input.sizingPath === "portion_v1" ? [] : PORTION_SCHEMA_BLOCK),
         // ⟳ 2026-09-04 · L'EXPLICATION VIENT APRÈS LE SCHÉMA DES PORTIONS ET
         // AVANT CELUI DES BOÎTES. Elle parle de ce que le modèle a ARBITRÉ,
         // pas de qui reçoit quoi: la coller entre les deux schémas de portion

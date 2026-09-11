@@ -24,8 +24,9 @@ import { CheckboxField } from "./ui/CheckboxField";
  *
  * ⚠️ DÉSACTIVÉE ET VISIBLE, JAMAIS CACHÉE. Ce dépôt a mesuré ce que coûte un
  * champ rendu incollectable: la question disparaît, et personne ne sait qu'il
- * lui manque une réponse ailleurs. La ligne sous la case dit donc CE QU'IL
- * MANQUE et OÙ — un refus près du geste, comme partout ici.
+ * lui manque une réponse ailleurs. Une PARENTHÈSE à côté du libellé dit donc CE
+ * QU'IL MANQUE et OÙ le cocher — un refus près du geste, comme partout ici —,
+ * et elle s'efface dès que le congélateur est déclaré.
  *
  * ── UN SEUL COMPOSANT POUR LES DEUX ÉCRANS ────────────────────────────────
  * `MealBuilder` (`/app/plan`) et l'entonnoir posent la MÊME question. Deux
@@ -33,6 +34,19 @@ import { CheckboxField } from "./ui/CheckboxField";
  * celui qu'on regarde le moins qui garderait l'ancien mot. Patron de
  * `CookingShapeField`, y compris pour le namespace: les clés sont `plan.*`, et
  * l'entonnoir monte déjà ce vocabulaire-là.
+ *
+ * ── ⟳ 2026-09-04 — SA PLACE: SOUS « COMMENT VOULEZ-VOUS CUISINER ? » ───────
+ * Elle vivait avec les DATES, au motif que « quand la cuisine a lieu » est une
+ * question de calendrier. Elle y était pourtant lue comme une question de plein
+ * droit, à trois champs de la seule qu'elle précise: le sélecteur de style
+ * annonce déjà « le nombre de fois où le plan vous demande de cuisiner », et
+ * cette case en est le cas extrême. Elle est donc posée JUSTE SOUS le
+ * sélecteur, en plus petit (`CheckboxField` est passé en `text-xs` pour ça).
+ *
+ * ⛔ SUR LES DEUX ÉCRANS, ET DANS LE MÊME ORDRE. « Deux écrans qui demandent la
+ * même chose dans deux ordres se relisent comme deux formulaires » — l'étape 3
+ * fait foi, `/app/plan` la suit. Le garde-fou est
+ * `oneCookingSessionField.int.test.ts`, qui lit les deux sources.
  *
  * ⛔ ET CE N'EST PAS UN RÉGLAGE DE PROFIL. La réponse ne s'enregistre nulle
  * part: elle part avec la demande (`one_cooking_session`), et la semaine
@@ -90,15 +104,18 @@ export default function OneCookingSessionField(props: OneCookingSessionFieldProp
       disabled={props.disabled || !hasFreezer}
       onChange={onChange}
       label={t("plan.cooking.one_session_label")}
-      /* ⛔ DEUX PHRASES, ET JAMAIS LES DEUX EN MÊME TEMPS. Avec congélateur, on
-         dit ce que la case FAIT (le surplus part au congélateur); sans, on dit
-         ce qui MANQUE et où le déclarer. Servir l'aide générale à quelqu'un
-         dont la case est grise décrirait un geste qu'il ne peut pas faire. */
-      hint={t(
-        hasFreezer
-          ? "plan.cooking.one_session_hint"
-          : "plan.cooking.one_session_needs_freezer",
-      )}
+      /* ⛔ DEUX PHRASES, ET JAMAIS LES DEUX EN MÊME TEMPS, ET PAS AU MÊME
+         ENDROIT. Avec congélateur, la ligne du dessous dit ce que la case FAIT
+         (le surplus part au congélateur); sans, une PARENTHÈSE à côté du
+         libellé dit ce qui MANQUE et où le cocher — et rien d'autre ne
+         s'affiche. Servir l'aide générale à quelqu'un dont la case est grise
+         décrirait un geste qu'il ne peut pas faire.
+
+         ⚠️ LA PARENTHÈSE EST LE REFUS, PAS UNE DÉCORATION. Elle disparaît au
+         moment où le congélateur est déclaré: une condition qui reste affichée
+         une fois remplie apprend à ne plus la lire. */
+      note={hasFreezer ? null : t("plan.cooking.one_session_needs_freezer")}
+      hint={hasFreezer ? t("plan.cooking.one_session_hint") : null}
     />
   );
 }

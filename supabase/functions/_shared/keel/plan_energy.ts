@@ -37,6 +37,26 @@
  * portes AVANT d'arriver ici. Les fondre ferait une fonction qui, appelée pour
  * une raison, répondrait à l'autre.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-11 · LOT B — ⛔ CE MODULE NE MESURE **AUCUNE MASSE**
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `dishEnergy` reste la seule primitive d'ÉNERGIE du moteur, et tout le monde
+ * l'appelle. La masse PRÊTE d'une casserole, elle, vit dans
+ * `preparation_mass.ts` (`measurePreparation`, `measurePlate`), parce que c'est
+ * là que se décide le traitement de l'eau — et que cette décision porte sur UNE
+ * unité de cuisson, jamais sur une liste aplatie (voir le § 4 de l'enquête du
+ * 2026-09-11 et le cas 811/901 g).
+ *
+ * ⚠️ POURQUOI `planEnergy` GARDE SON PLIAGE (`foldPreparationsIntoDishes`), ÉCRIT
+ * ICI POUR QU'ON NE LE REDÉCOUVRE PAS: il ne rend que des kcal, et l'eau n'en
+ * porte aucune. Le défaut d'aplatissement ne l'atteint donc pas. Ce qu'il rend
+ * de FAUX est autre chose et l'enquête le nomme en § 1: `uses.servings /
+ * servingsMade` est une part CONVENTIONNELLE, pas le prélèvement réel d'une
+ * boîte. La question « combien y a-t-il dans CE contenant » a un autre lecteur,
+ * et c'est lui qu'il faut appeler: `boxNutrition` (`mouth_energy.ts`) sur
+ * `readEnergyBoxDishes` (`plan_energy_read.ts`).
+ *
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
@@ -48,7 +68,7 @@ import {
   normalizeTerm,
   type NutrientsOrUnknown,
   nutrientsOf,
-  resolveIngredient,
+  resolveCompositionLine,
   resolveIngredients,
   YIELD_CLASSES,
 } from "./food_composition.ts";
@@ -84,8 +104,23 @@ export type PlanEnergyBasis = typeof PLAN_ENERGY_BASIS;
  * confondre ferait chercher des alias pour un problème de prompt — la même
  * distinction que `unresolvedTerms` / `unweighedTerms` dans FF-038.
  */
+/**
+ * ⟳ LOT A (2026-09-11) — `ref_refused` EST LE QUATRIÈME, et il se répare
+ * autrement que les trois autres: ni alias, ni prompt de quantité, ni plat
+ * vide. Le modèle a écrit un identifiant que le référentiel refuse (inventé, ou
+ * non composable), et la ligne n'a donc AUCUN aliment. La compter dans
+ * `unknown_ingredient` l'enverrait au sas, qui paierait un appel pour estimer
+ * un libellé sans rendre la ligne valide.
+ *
+ * ⛔ ET ELLE N'EST PAS BORNABLE PAR SON GROUPE. Un terme inconnu tolère une
+ * borne de groupe sous 5 % du plat (voir `UNRESOLVED_ENERGY_TOLERANCE`); une
+ * ligne à identifiant refusé, non — « aucun repli silencieux vers le terme, une
+ * moyenne de groupe ou une estimation modèle » est la consigne du chantier, et
+ * c'est le seul des quatre motifs où quelqu'un a AFFIRMÉ savoir de quel aliment
+ * il parlait.
+ */
 export const ENERGY_GAPS = Object.freeze(
-  ["unknown_ingredient", "missing_quantity", "no_ingredients"] as const,
+  ["unknown_ingredient", "missing_quantity", "no_ingredients", "ref_refused"] as const,
 );
 export type EnergyGap = (typeof ENERGY_GAPS)[number];
 
@@ -201,6 +236,11 @@ function boundGramsOf(ing: EnergyIngredient): number | null {
       unit: ing.unit ?? null,
       state: ing.state ?? null,
       yieldClass,
+      // ⛔ `null` EST LE BON VERDICT ICI, et c'est le seul endroit du produit.
+      // On borne un terme que le référentiel NE RÉSOUT PAS: il n'y a pas de
+      // fiche, donc pas de rendement par aliment à lire. On balaie les six
+      // classes et on garde le maximum — une BORNE, jamais une estimation.
+      yieldFactor: null,
       unitGrams: ing.unitGrams ?? null,
     });
     if (g === null) continue;
@@ -455,6 +495,16 @@ export function dishEnergyAtTolerance(
 
   const r = resolveIngredients(index, named);
 
+  // ── ⟳ LOT A · ① bis · UN IDENTIFIANT REFUSÉ ÉTEINT LE PLAT ──────────────
+  // AVANT la borne de groupe, et c'est tout l'arbitrage: la borne est le repli
+  // d'un terme que PERSONNE n'a prétendu connaître. Quand une ligne porte un
+  // identifiant refusé, quelqu'un a affirmé savoir de quel aliment il s'agit et
+  // s'est trompé — lui donner la moyenne de son groupe serait exactement le
+  // repli que le chantier interdit.
+  if (r.refusedTerms.length > 0) {
+    return emptyDish("ref_refused", [...r.refusedTerms].sort());
+  }
+
   // ── ① LES TERMES INCONNUS — bornés, ou l'abstention d'avant ─────────────
   let boundHigh = 0;
   let boundMid = 0;
@@ -464,7 +514,14 @@ export function dishEnergyAtTolerance(
       // LE MÊME PRÉDICAT QUE `resolveIngredients`, appelé sur la même fonction:
       // rejouer « ce terme est-il connu ? » à la main ferait deux réponses le
       // jour où le résolveur change.
-      if (resolveIngredient(index, ing.term) !== null) continue;
+      //
+      // ⟳ LOT A (2026-09-11) — `resolveCompositionLine` ET PLUS
+      // `resolveIngredient(term)`. La boucle ci-dessus lit maintenant
+      // l'identifiant de la ligne; interroger encore le libellé ici rendrait
+      // « connu » une ligne que `resolveIngredients` vient de compter inconnue
+      // (identifiant absent de l'index, libellé présent), et le plat sortirait
+      // avec un ingrédient dans aucune somme.
+      if (resolveCompositionLine(index, ing).ref !== null) continue;
       const b = boundOf(index, ing);
       // ⛔ UN SEUL INBORNABLE ÉTEINT LE PLAT. Ignorer celui-là et borner les
       // autres rendrait une somme amputée qui a l'air d'un résultat — le mode
@@ -575,6 +632,13 @@ export function memberAddonEnergy(
     method: "",
     ingredients: addons.map((a) => ({
       term: a.foodRef,
+      // ⟳ LOT A (2026-09-11) — `foodRef` EST DÉJÀ UN SLUG, pas un libellé:
+      // `memberDeltasPayload` n'écrit que des identifiants de
+      // `food_composition_refs`. Le poser ici le fait chercher par ÉGALITÉ
+      // EXACTE au lieu de passer par la normalisation et les alias — donc plus
+      // d'alias orphelin, plus de faux ami, et un `food_ref` disparu du
+      // référentiel devient un refus NOMMÉ au lieu d'un terme introuvable.
+      ref: a.foodRef,
       amount: a.grams,
       unit: "g" as const,
       // Les grammes du delta sont CRUS — `DELTA_CATALOGUE` les dimensionne sur

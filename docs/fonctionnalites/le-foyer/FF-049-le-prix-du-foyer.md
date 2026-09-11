@@ -191,7 +191,7 @@ son foyer couvert sans les 12,99 €. Population négligeable aujourd'hui.
 | **⚠️ `keel-daily-pulse-v1` et `keel-weekly-flow-v1`** | **TROU CONNU n°7, NON REFERMÉ.** Ni l'un ni l'autre ne porte une seule occurrence de `household` : ils tournent à l'identique sur un foyer gelé. D4 nomme **deux** portes, et ce sont exactement les deux qui ont été fermées. Reste à trancher si le tap du soir et le bilan hebdo comptent comme **production**. |
 | **⚠️ Un mineur avec un compte** | **Compté comme facturable.** Facturer 2 € l'accès d'un enfant est une décision commerciale ; elle est rendue **lisible et non prise**. |
 | Une bouche dont le compte est supprimé | Elle **cesse de compter** comme facturable — `user_id` passe à NULL — et **la ligne reste**. C'était faux avant `e2899897` : la cascade emportait la ligne entière, et le foyer maigrissait sans que personne l'ait décidé (ancien trou n°5, voir [FF-048](FF-048-reclamer-son-profil.md) §7). Le compte facturable était juste ; le foyer, lui, avait maigri. |
-| Quelqu'un veut payer **pendant** son essai | **Refusé**, `409 household_in_trial` (`stripe-create-checkout-session/index.ts:285`). Décision produit non tranchée (§11 n°4) : l'alternative — `subscription_data.trial_end` — fait dépendre la promesse d'une contrainte Stripe sur la date et la viole en silence. |
+| Quelqu'un veut payer **pendant** son essai | ✅ **ACCEPTÉ.** ⟳ **RENVERSÉ le 2026-09-09** (FF-064, décision du propriétaire) : le tunnel accepte désormais un paiement anticipé, et `subscription_data[trial_end]` tombe le lendemain de `free_until` à 00:00 UTC. L'objection ci-contre était juste ; sa réponse est le repli à 49 h de `householdStripeTrialEnd`, qui ne peut que **dépasser** la promesse, jamais la raccourcir. Ne pas effacer le texte d'origine : on doit pouvoir lire pourquoi c'était l'inverse. *(Texte d'avant : « Refusé, `409 household_in_trial`. Décision produit non tranchée (§11 n°4). »)* |
 | Le job tourne **sans prix configuré** | `500 « Missing env var »`, **zéro foyer traité**. Vérifié par un run réel contre la vraie base. Un job de facturation qui démarre à moitié configuré est pire qu'un job qui ne démarre pas. |
 | Le job trouve un foyer **en essai** | Sauté, `skip_reason=in_trial`, `pushed_quantity` NULL — lu **en base**, pas dans la réponse HTTP. Deux passages sur un essai expiré laissent **une** seule ligne. |
 | Les deux secrets portent **le même** `price_id` | La fonction **refuse**. Deux articles au même prix produiraient une facture plausible et fausse. |
@@ -321,11 +321,14 @@ Et ZÉRO foyer est traité
    le bilan hebdo ne sautent pas les foyers gelés (trou n°7, §7).
 3. **Facture-t-on l'accès d'un mineur ?** Décision commerciale, rendue lisible,
    non prise.
-4. **Le tunnel refuse pendant l'essai** (`409 household_in_trial`). Décision
-   produit non tranchée, et la conséquence est assumée : quelqu'un qui **veut**
-   payer pendant son essai est renvoyé. L'alternative
-   (`subscription_data.trial_end`) fait dépendre la promesse d'une contrainte
-   Stripe sur la date, et la viole en silence.
+4. ✅ **TRANCHÉ le 2026-09-09** — le tunnel accepte pendant l'essai.
+   Le refus `409 household_in_trial` est **retiré**. L'objection qui l'avait
+   créé était juste — Stripe exige un `trial_end` à plus de 48 h — et sa
+   réponse est le **repli à 49 h** : quand il reste moins de 48 h, on repousse
+   la bascule, donc le prélèvement ne tombe **jamais** avant la fin de la
+   semaine offerte (au pire un ou deux jours après). `households.free_until`
+   n'est pas réécrit : il n'existe toujours qu'une horloge d'accès.
+   Détail : [FF-064](../abonnement-et-facturation/FF-064-le-mur-de-paiement-du-foyer.md).
 5. **Tout foyer neuf naît avec 30 jours** — c'est une **extrapolation** de
    D4bis, qui ne parle que des foyers d'avant Stripe. Réversible d'une ligne,
    et personne ne l'a re-validée.

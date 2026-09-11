@@ -1,0 +1,349 @@
+[
+ {
+  "tag": "keel.draft_store",
+  "event": "reused",
+  "userId": "3eb361a7-6489-4264-bd72-0be2274588a9",
+  "draftId": "b58ee9e9-6aed-4eb2-af76-232a65fa5657"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "cf52e98c-da53-49f5-9a3c-f3315e79d030",
+  "draftId": "4b7bbe54-2d7b-4ddd-a1fe-1aa5752c1125",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+  "draftId": "50020196-4953-4428-82a3-fdcbc83595cc",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "420efafa-ba6d-4d91-bc32-782bc84c0f71",
+  "draftId": "fd254862-96e8-46e4-ba16-d5c9ca276c5b",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "f1c5ee11-2113-4824-9ed8-300b687a2a3e",
+  "draftId": "9ead66c5-bab9-4449-b6fd-9e4698767e60",
+  "lane": "meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.household_meal.member_bodies",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "members": 4,
+  "accounts": 1,
+  "with_body": 4,
+  "reads": 8
+ },
+ {
+  "tag": "keel.household_meal.condition_gate",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "pregnancy": 0,
+  "breastfeeding": 0,
+  "other": 0,
+  "none": 4
+ },
+ {
+  "tag": "keel.household_meal.composition",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "mode": "per_portion",
+  "deltas": 0,
+  "family_service": false,
+  "residual_gaps_count": 0,
+  "residual_gaps_max_band": "none"
+ },
+ {
+  "tag": "keel.household_meal.retained_items",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "composition": 0,
+  "portion": 0,
+  "rhythm": 0,
+  "logistics": 0,
+  "craving": 0,
+  "unrouted": 0,
+  "portion_excluded": [],
+  "refused": 0,
+  "legacy_notes": 0,
+  "other_subjects": 0,
+  "portion_applied": 0
+ },
+ {
+  "tag": "keel.household_meal.structure",
+  "derived": 4,
+  "capped": 0,
+  "no_target": 0,
+  "no_body": 0,
+  "opened_total": 0,
+  "mouths_opened": 0
+ },
+ {
+  "tag": "keel.household_meal.cells",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "cells": 9,
+  "non_empty": 9,
+  "empty": 0,
+  "light": 0,
+  "light_mixed": 0,
+  "eaters_hist": {
+   "1": 0,
+   "2": 0,
+   "3": 0,
+   "4_plus": 9
+  },
+  "dedicated_cells": 0,
+  "dedicated_mouths": 0,
+  "dedicated_by_reason": {
+   "regime": 0,
+   "own_meal": 0
+  },
+  "one_eater_cells": 0,
+  "cook_day_cells": 0,
+  "spent_cells": 0,
+  "regime_by_cell": {
+   "none": 9
+  },
+  "dish_bearing_delta": 0,
+  "dish_bearing_only_cells": 0,
+  "dish_bearing_only_current": 0
+ },
+ {
+  "tag": "keel.household_meal.cooking_shape",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "weekly_cooking_minutes": null,
+  "time_allows_second_dish": true,
+  "shape": "one_dish",
+  "asked_shape": null,
+  "computed_shape": "one_dish",
+  "shape_capped": false,
+  "shape_unused": false,
+  "diverging": [],
+  "dish_bearing": [],
+  "from_merge": false,
+  "strictest_regime": null,
+  "regimes": 0
+ },
+ {
+  "tag": "keel.household_meal.member_voices",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "accounts_at_table": 1,
+  "with_lines": 0,
+  "lines_raw": 0,
+  "reads": 0
+ },
+ {
+  "tag": "keel.household_meal.voices_used",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "heard": 0,
+  "linesIn": 0,
+  "linesUsed": 0,
+  "linesWithheld": 0,
+  "linesOverCap": 0,
+  "linesTooLong": 0,
+  "perMember": []
+ },
+ {
+  "tag": "keel.draft_store",
+  "event": "opened",
+  "userId": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "draftId": "d40b2e57-4861-4f1b-9f3f-04b5dcc9ea59",
+  "lane": "household_meal",
+  "mode": "sync"
+ },
+ {
+  "tag": "keel.household_meal.notes",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "lines": 0,
+  "household_lines": 0,
+  "member_lines": 0,
+  "served": 0,
+  "block_served": 0,
+  "other_subjects": 0
+ },
+ {
+  "tag": "keel.household_meal.precedence",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "intent": "draft",
+  "place": "tail",
+  "exact": true,
+  "blocks_after": 0,
+  "ranks_with_object": 2,
+  "ranks_without_object": 3,
+  "by_rank": {
+   "rank_1": 0,
+   "rank_2": 6,
+   "rank_3": 2,
+   "rank_4": 0,
+   "rank_5": 0
+  }
+ },
+ {
+  "tag": "keel.household_meal.swap_presence",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "strictest": null,
+  "bound_mouths": 0,
+  "free_mouths": 0,
+  "cells_checked": 0,
+  "cells_carrying": 0,
+  "cells_swap_absent": 0,
+  "flagrant": false,
+  "absent_cells": [],
+  "retry_attempts": 0,
+  "retry_accepted": 0,
+  "retry_rejected_by": null,
+  "retry_reverted": false,
+  "retry_merged_cells": 0
+ },
+ {
+  "tag": "keel.household_meal.meals_delivered",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "mouths": 4,
+  "cook_day_cells_dropped": 0,
+  "expected": 36,
+  "fed": 36,
+  "missing": 0,
+  "missing_before": 0,
+  "held_off_regime": 0,
+  "held_off_exclusion": 0,
+  "not_named": 0,
+  "double": 0,
+  "no_dish": 0,
+  "cells_without_dish": 0,
+  "missing_rows": [],
+  "unplaced_dishes": 0,
+  "retried": false,
+  "retry_attempts": 0,
+  "retry_accepted": 0,
+  "retry_merged_cells": 0,
+  "retry_on": {},
+  "restored": 0,
+  "restored_fallback": 0,
+  "rehomed": 0
+ },
+ {
+  "tag": "keel.household_meal.composition_fill",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "intent": "draft",
+  "measured": true,
+  "unknowns": 0,
+  "requested": 0,
+  "answered": 0,
+  "model": 0,
+  "group_bounds": 0,
+  "sas_group_armed": 0,
+  "sas_write_skipped_reused_group": 0,
+  "shares": {
+   "kcal": 6348,
+   "table": 1,
+   "promoted": 0,
+   "model": 0,
+   "group_bounds": 0
+  }
+ },
+ {
+  "tag": "keel.household_meal.dietary_regime",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "lock": "clean",
+  "dishes": 9,
+  "mouths": 0,
+  "checked": 0,
+  "kept": 0,
+  "refused": 0,
+  "bites": 0,
+  "separated": 0,
+  "not_separated": 0,
+  "silenced": 0,
+  "silenced_homograph": 0,
+  "silenced_spelling": 0,
+  "unknown_mouth": 0,
+  "box_scoped": 0,
+  "citation_repaired": 0,
+  "item_repaired": 0,
+  "groups_declared": 0,
+  "groups_valid": 0,
+  "groups_refused": 0,
+  "group_excluded": 0,
+  "group_plant_only": 0,
+  "group_undecided": 0
+ },
+ {
+  "tag": "keel.household_meal.fridge_window",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "household_id": "92a8751e-ebcc-4135-a13a-9170a66a815f",
+  "dishes": 9,
+  "violations": 0,
+  "within": 7,
+  "not_evaluated": 0,
+  "routed": 35,
+  "unknown_group": 0
+ },
+ {
+  "tag": "keel.household_meal.density_repair_ask",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "dish": "Herby cannellini beans, sourdough, feta and rocket",
+  "direction": "densify",
+  "aim_per_100g": 127,
+  "fresh_reworkable": true,
+  "pots_total": 1,
+  "pots_reworkable": 1,
+  "stuck": false
+ },
+ {
+  "tag": "keel.household_meal.density_repair_ask",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "dish": "Herby cannellini beans, pitta, feta, cucumber and red pepper",
+  "direction": "densify",
+  "aim_per_100g": 145,
+  "fresh_reworkable": true,
+  "pots_total": 1,
+  "pots_reworkable": 1,
+  "stuck": false
+ },
+ {
+  "tag": "keel.household_meal.density_repair_titles",
+  "user_id": "93c224ed-4c9a-48c3-96ff-3f9e91ed766f",
+  "request_id": "367fd3a5-a6a9-4041-8fc0-cd7e800a0446",
+  "pairs": [
+   {
+    "cell": "thu/dinner",
+    "before": "Herby cannellini beans, sourdough, feta and rocket",
+    "after": "Roast chicken, potatoes, peppers and lemon",
+    "survived_g": 215,
+    "of_g": 1895
+   },
+   {
+    "cell": "sat/lunch",
+    "before": "Herby cannellini beans, pitta, feta, cucumber and red pepper",
+    "after": "Tuna, sourdough bread, avocado and tomatoes",
+    "survived_g": 635,
+    "of_g": 2055
+   }
+  ]
+ }
+]

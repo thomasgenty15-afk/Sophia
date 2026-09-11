@@ -1,0 +1,15 @@
+{
+ "case": "S3",
+ "goal": "muscle_gain",
+ "weightKg": 72.0,
+ "heightCm": 186,
+ "gender": "male",
+ "ageBand": "18_29",
+ "ageYears": 27,
+ "activityLevel": "trains_hard",
+ "servings": 1,
+ "regime": null,
+ "pace": 0.25,
+ "userId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+ "email": "camp0909.s3@keeltest.dev"
+}

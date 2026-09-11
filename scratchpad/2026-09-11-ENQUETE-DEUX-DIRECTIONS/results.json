@@ -1,0 +1,365 @@
+[
+  {
+    "name": "perte",
+    "final": [
+      {
+        "day": "fri",
+        "slot": "breakfast",
+        "title": "Skyr, flocons d'avoine, pêche et noix",
+        "engineTarget": 614,
+        "engineExpectedG": 609,
+        "engineDensity": 100.7,
+        "reportKcal": 613,
+        "boxKcal": 613,
+        "boxG": 609,
+        "boxDensity": 100.6568144499179,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "fri",
+        "slot": "lunch",
+        "title": "Thon, pain complet, tomate, concombre et olives",
+        "engineTarget": 982,
+        "engineExpectedG": 666,
+        "engineDensity": 147.3,
+        "reportKcal": 982,
+        "boxKcal": 982,
+        "boxG": 667,
+        "boxDensity": 147.2263868065967,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "title": "Poulet, quinoa, courgette, poivron, yaourt et citron",
+        "engineTarget": 859,
+        "engineExpectedG": 660,
+        "engineDensity": 130.1,
+        "reportKcal": 757,
+        "boxKcal": 857.9456724287148,
+        "boxG": 660,
+        "boxDensity": 129.9917685498053,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_poulet_quinoa"
+          }
+        ]
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "title": "Fromage blanc, pain complet, prune et graines de courge",
+        "engineTarget": 614,
+        "engineExpectedG": 345,
+        "engineDensity": 177.9,
+        "reportKcal": 614,
+        "boxKcal": 614,
+        "boxG": 345,
+        "boxDensity": 177.97101449275362,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+        "engineTarget": 982,
+        "engineExpectedG": 624,
+        "engineDensity": 157.2,
+        "reportKcal": 1056,
+        "boxKcal": 981.6863072139208,
+        "boxG": 625,
+        "boxDensity": 157.06980915422733,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_poulet_quinoa"
+          }
+        ]
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "title": "Saumon, pommes de terre, haricots verts et yaourt",
+        "engineTarget": 859,
+        "engineExpectedG": 691,
+        "engineDensity": 124.4,
+        "reportKcal": 788,
+        "boxKcal": 858.9866312645066,
+        "boxG": 690,
+        "boxDensity": 124.4908161252908,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_saumon_pommes_de_terre"
+          }
+        ]
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "title": "Yaourt grec, flocons d'avoine, raisin et amandes",
+        "engineTarget": 614,
+        "engineExpectedG": 272,
+        "engineDensity": 225.3,
+        "reportKcal": 613,
+        "boxKcal": 613,
+        "boxG": 272,
+        "boxDensity": 225.36764705882354,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "title": "Poulet, quinoa, courgette, poivron, tomate et pain complet",
+        "engineTarget": 982,
+        "engineExpectedG": 672,
+        "engineDensity": 146.1,
+        "reportKcal": 1011,
+        "boxKcal": 981.4859847894185,
+        "boxG": 672,
+        "boxDensity": 146.05446202223487,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_poulet_quinoa"
+          }
+        ]
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "title": "Saumon, pommes de terre, haricots verts, tomate et pain complet",
+        "engineTarget": 859,
+        "engineExpectedG": 664,
+        "engineDensity": 129.4,
+        "reportKcal": 931,
+        "boxKcal": 857.1109301643982,
+        "boxG": 663,
+        "boxDensity": 129.27766669146277,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_saumon_pommes_de_terre"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gain",
+    "final": [
+      {
+        "day": "fri",
+        "slot": "breakfast",
+        "title": "Fromage blanc, avoine, poire et amandes",
+        "engineTarget": 728,
+        "engineExpectedG": 676,
+        "engineDensity": 107.7,
+        "reportKcal": 728,
+        "boxKcal": 728,
+        "boxG": 675,
+        "boxDensity": 107.85185185185185,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "sat",
+        "slot": "breakfast",
+        "title": "Skyr, avoine, raisins, noix et miel",
+        "engineTarget": 728,
+        "engineExpectedG": 383,
+        "engineDensity": 190.1,
+        "reportKcal": 728,
+        "boxKcal": 728,
+        "boxG": 383,
+        "boxDensity": 190.07832898172325,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "sun",
+        "slot": "breakfast",
+        "title": "Cottage cheese, muesli, prunes et graines de courge",
+        "engineTarget": 728,
+        "engineExpectedG": 373,
+        "engineDensity": 195.3,
+        "reportKcal": 728,
+        "boxKcal": 728,
+        "boxG": 373,
+        "boxDensity": 195.17426273458446,
+        "gap": null,
+        "uses": []
+      },
+      {
+        "day": "fri",
+        "slot": "lunch",
+        "title": "Poulet, quinoa, salade verte, feta et citron",
+        "engineTarget": 1165,
+        "engineExpectedG": 624,
+        "engineDensity": 186.7,
+        "reportKcal": 1172,
+        "boxKcal": 1163.2573978884145,
+        "boxG": 623,
+        "boxDensity": 186.71868344918371,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_quinoa"
+          }
+        ]
+      },
+      {
+        "day": "fri",
+        "slot": "dinner",
+        "title": "Lentilles mijotées, pain complet et feta",
+        "engineTarget": 1019,
+        "engineExpectedG": 585,
+        "engineDensity": 174.3,
+        "reportKcal": 1021,
+        "boxKcal": 1019.0854819389782,
+        "boxG": 584,
+        "boxDensity": 174.5009386881812,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentil_ratatouille"
+          }
+        ]
+      },
+      {
+        "day": "sat",
+        "slot": "lunch",
+        "title": "Saumon avec couscous, légumes rôtis et amandes",
+        "engineTarget": 1165,
+        "engineExpectedG": 657,
+        "engineDensity": 177.2,
+        "reportKcal": 1067,
+        "boxKcal": 1162.4122169418943,
+        "boxG": 727,
+        "boxDensity": 159.8916391942083,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentil_ratatouille"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_couscous"
+          }
+        ]
+      },
+      {
+        "day": "sat",
+        "slot": "dinner",
+        "title": "Lentilles, couscous, feta, amandes et pain",
+        "engineTarget": 1019,
+        "engineExpectedG": 492,
+        "engineDensity": 207.3,
+        "reportKcal": 1144,
+        "boxKcal": 1014.9417001466768,
+        "boxG": 488,
+        "boxDensity": 207.97985658743374,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_salmon"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_couscous"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_roasted_vegetables"
+          }
+        ]
+      },
+      {
+        "day": "sun",
+        "slot": "lunch",
+        "title": "Poulet, quinoa, salade, houmous et feta",
+        "engineTarget": 1165,
+        "engineExpectedG": 677,
+        "engineDensity": 172.1,
+        "reportKcal": 1157,
+        "boxKcal": 1164.726106968796,
+        "boxG": 677,
+        "boxDensity": 172.04226099982216,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_quinoa"
+          }
+        ]
+      },
+      {
+        "day": "sun",
+        "slot": "dinner",
+        "title": "Saumon, couscous, légumes rôtis, feta et tahini",
+        "engineTarget": 1019,
+        "engineExpectedG": 554,
+        "engineDensity": 184.1,
+        "reportKcal": 998,
+        "boxKcal": 1012.0244901590663,
+        "boxG": 549,
+        "boxDensity": 184.339615693819,
+        "gap": null,
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_salmon"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_couscous"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_roasted_vegetables"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -212,9 +212,14 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
     // ⚠️ « Retirer l'accès » vit dans `MemberAccess`, écrit AVANT `MemberRow`
     // dans le fichier: il est donc hors de `src` par construction, et le cas
     // suivant le compte à part. Ici on garde les deux qui vivent DANS la ligne.
+    // ⟳ 2026-09-09 — LA PRÉSENCE EST DEVENUE UN COMPOSANT (`MemberAwayOpener`),
+    // parce qu'elle est montée DEUX FOIS: sur la fiche du titulaire et sur la
+    // ligne d'une bouche. On vise donc son MONTAGE et plus son titre, qui vit
+    // maintenant dans le composant. La propriété gardée n'a pas bougé d'un
+    // mot: un geste n'est pas une réponse à un formulaire.
     for (
       const key of [
-        't("household.away.title")',
+        "<MemberAwayOpener",
         't("household.member.remove")',
       ]
     ) {
@@ -243,7 +248,7 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    */
   it("le déjeuner de semaine reste au-dessus de la grille de présence", () => {
     const card = src.indexOf("<MemberWorkLunchCard");
-    const away = src.indexOf('t("household.away.title")');
+    const away = src.indexOf("<MemberAwayOpener");
     const lastFrameEnd = src.lastIndexOf("</SheetFrame>");
     expect(card).toBeGreaterThan(0);
     expect(card, "la carte du déjeuner est sortie du cadre des préférences")

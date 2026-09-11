@@ -103,3 +103,56 @@ describe("un seul écrivain pour les entrées d'habitude", () => {
       .toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("le « + repas léger » traverse CHAQUE écrivain", () => {
+  // ⛔ MÊME RAISON QUE LE TEST AU-DESSUS, UN CRAN PLUS LOIN. Le sérialiseur est
+  // unique, mais il a DEUX entrées (`habits`, `light`), et un appelant qui en
+  // oublie une n'a pas d'erreur: il écrit une fiche amputée.
+  // Le typecheck l'attrape sur le code de production — pas sur les tests, qui
+  // sont compilés à part. Ce scan couvre les deux.
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const files = globSync("**/*.{ts,tsx}", { cwd: root })
+    .filter((f) => !f.endsWith(".int.test.ts") && !f.endsWith(".test.ts"))
+    .map((f) => resolve(root, f));
+
+  it("aucun appel à `habitEntriesToWrite` n'oublie `light`", () => {
+    const coupables: string[] = [];
+    for (const file of files) {
+      const src = readFileSync(file, "utf8");
+      let i = src.indexOf("habitEntriesToWrite({");
+      while (i !== -1) {
+        // Le bloc d'arguments s'arrête à `})` — ces appels sont tous à plat.
+        const fin = src.indexOf("})", i);
+        const bloc = src.slice(i, fin === -1 ? src.length : fin);
+        if (!bloc.includes("light:")) coupables.push(file.replace(root, ""));
+        i = src.indexOf("habitEntriesToWrite({", i + 1);
+      }
+    }
+    expect(coupables).toEqual([]);
+  });
+
+  it("aucun appel à `habitPayload` n'oublie `light`", () => {
+    // `habitPayload` prend un OBJET (`{light}`) et pas un argument positionnel,
+    // précisément pour que le compilateur recense ses appelants.
+    // Ce test est la ceinture: il attrape aussi ceux des fichiers de test.
+    const coupables: string[] = [];
+    for (const file of files) {
+      const src = readFileSync(file, "utf8");
+      let i = src.indexOf("habitPayload(");
+      while (i !== -1) {
+        const bloc = src.slice(i, src.indexOf(")", src.indexOf("}", i)) + 1);
+        if (!bloc.includes("light:")) coupables.push(file.replace(root, ""));
+        i = src.indexOf("habitPayload(", i + 1);
+      }
+    }
+    expect(coupables).toEqual([]);
+  });
+
+  it("⛔ LE SCAN N'EST PAS MORT — il voit bien des appels", () => {
+    // Une garde d'absence sur une liste vide est verte pour rien.
+    const total = files
+      .map((f) => readFileSync(f, "utf8"))
+      .filter((s) => s.includes("habitEntriesToWrite({") || s.includes("habitPayload(")).length;
+    expect(total).toBeGreaterThan(0);
+  });
+});

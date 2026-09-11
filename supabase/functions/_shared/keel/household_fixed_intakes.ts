@@ -108,6 +108,21 @@ export interface HouseholdFixedIntakes {
    * d'écrire, pour une raison qui ne la regarde pas.
    */
   byMouth: Readonly<Record<string, number>>;
+  /**
+   * ⟳ LOT 10 (2026-09-07) — LES APPORTS EUX-MÊMES, PAR BOUCHE.
+   *
+   * `byMouth` COMPTE, celui-ci PORTE. Le dimensionnement doit retrancher le
+   * shaker de la cible du moment où il tombe (`fixedIntakeSlotKcal`), et cette
+   * soustraction est celle d'UNE bouche: la liste à plat `intakes` dit ce que
+   * la TABLE a déclaré, jamais qui. À une bouche les deux coïncidaient, et le
+   * chemin solo s'en est servi en le disant; à plusieurs, s'en servir
+   * retrancherait le shaker de Marc à la cible de Julie.
+   *
+   * ⚠️ AVANT LE PLAFOND DU PROMPT, comme `byMouth`, et pour la même raison: un
+   * apport écarté faute de place au prompt a QUAND MÊME été déclaré, donc il
+   * est quand même mangé, donc il se retranche quand même.
+   */
+  perMouth: Readonly<Record<string, FixedIntake[]>>;
 }
 
 function counting(
@@ -305,8 +320,10 @@ export async function loadHouseholdFixedIntakes(
     loaded.map((entry) => entry.intakes),
   );
   const byMouth: Record<string, number> = {};
+  const perMouth: Record<string, FixedIntake[]> = {};
   for (const entry of loaded) {
     byMouth[entry.mouth.memberId] = entry.intakes.length;
+    perMouth[entry.mouth.memberId] = entry.intakes;
   }
   return {
     intakes,
@@ -316,5 +333,6 @@ export async function loadHouseholdFixedIntakes(
     issues: loaded.flatMap((e) => e.issues),
     reads: tally.reads,
     byMouth,
+    perMouth,
   };
 }

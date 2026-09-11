@@ -46,16 +46,40 @@ describe("les deux cartes du compte sont montées, et gardées deux fois", () =>
   });
 
   /**
-   * ⛔ LA DOUBLE GARDE, SUR LA MÊME LIGNE DE CODE: `isMe` (la bonne personne)
-   * ET `practicalConstraints !== null` (la lecture faite). Retirer l'une des
-   * deux est une régression différente, et les deux sont mesurées ici.
+   * ⛔ LA DOUBLE GARDE — LA BONNE PERSONNE, ET LA LECTURE FAITE.
+   *
+   * ⟳ 2026-09-09 — ELLES SONT MONTÉES À DEUX ENDROITS, ET LA PREMIÈRE MOITIÉ
+   * DE LA GARDE N'A PLUS LA MÊME FORME AUX DEUX. La fiche du titulaire est
+   * sortie de la liste (`MeFiche`): elle N'EST rendue que pour `me` — la bonne
+   * personne y est structurelle, pas conditionnelle —, donc sa garde à elle est
+   * la lecture. La ligne d'une bouche, elle, se rend pour n'importe qui: la
+   * sienne garde les DEUX moitiés sur la même ligne de code.
+   *
+   * Ce qui est mesuré ici est donc: AUCUN des deux montages ne se fait sans la
+   * lecture, et celui de la LIGNE porte encore `isMe`.
    */
-  it("elles sont derrière `isMe` ET derrière la lecture de la colonne", () => {
-    const at = src.indexOf("<EatingRhythmCard");
-    expect(at).toBeGreaterThan(0);
-    const before = src.slice(Math.max(0, at - 900), at);
-    expect(before, "elles se montent sur la ligne de n'importe qui")
-      .toContain("isMe && practicalConstraints !== null");
+  it("aucun montage sans la lecture, et la ligne garde `isMe`", () => {
+    const mounts = [...src.matchAll(/<EatingRhythmCard/g)].map((m) => m.index!);
+    expect(mounts.length, "les deux montages ne sont plus là").toBe(2);
+    for (const at of mounts) {
+      expect(
+        src.slice(Math.max(0, at - 900), at),
+        "une carte qui FUSIONNE est montée sur une lecture non faite",
+      ).toContain("practicalConstraints !== null");
+    }
+    // ⛔ LA LIGNE D'UNE BOUCHE — c'est le second montage, dans `MemberRow`.
+    const row = src.indexOf("function MemberRow(");
+    const onRow = mounts.find((at) => at > row);
+    expect(onRow, "la ligne d'une bouche ne les monte plus").toBeGreaterThan(0);
+    expect(
+      src.slice(Math.max(0, onRow! - 900), onRow!),
+      "elles se montent sur la ligne de n'importe qui",
+    ).toContain("isMe && practicalConstraints !== null");
+    // ⚠️ ET LA FICHE DU TITULAIRE N'EST RENDUE QUE POUR `me`: c'est ce qui
+    // remplace `isMe` sur ce montage-là.
+    const fiche = src.indexOf("<MeFiche");
+    expect(fiche, "la fiche du titulaire n'est plus montée").toBeGreaterThan(0);
+    expect(src.slice(fiche, fiche + 300)).toContain("me={me}");
   });
 
   it("elles reçoivent la colonne LUE, pas un objet fabriqué", () => {

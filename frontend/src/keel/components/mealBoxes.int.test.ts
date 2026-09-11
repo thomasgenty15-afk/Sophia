@@ -849,6 +849,8 @@ describe("le jour suit l'ordre des gestes", () => {
       },
     ],
     moments: [],
+    // ⟳ 2026-09-09 — la phrase de timing du jour: aucune ici.
+    timingLine: null,
     portions: ROSTER,
   });
 
@@ -889,17 +891,66 @@ describe("le jour suit l'ordre des gestes", () => {
     expect(groceries, `courses=${groceries} session=${session}`).toBeLessThan(session);
   });
 
-  it("le Boxing est DANS la carte de session, et il porte ses deux contenants", () => {
-    const text = textOf(dayBlock);
-    expect(text).toContain(en["meals.boxes.title"]);
-    expect(text).toContain(en["meals.boxes.count_many"].replace("{n}", "2"));
+  // ⟳ 2026-09-09 — LA CARTE DE SESSION EST REPLIÉE, SUR DEMANDE.
+  //
+  // « Les sessions de cuisine étaient automatiquement déroulées, il faut que ce
+  // soit déroulé sur commande. » Les deux tests qui suivaient lisaient le RENDU
+  // de la carte; ils lisent maintenant la SOURCE, exactement comme le fait déjà
+  // `DayGroceriesCard` un cran plus haut et pour la même raison: un rendu
+  // statique d'une carte fermée ne montre rien, donc une assertion de rendu y
+  // serait verte quoi qu'on écrive dedans.
+  //
+  // ⚠️ CE QUI EST RÉELLEMENT PERDU EST NOMMÉ, ET IL EST PETIT: le CONTENU de la
+  // table de pesée reste couvert par les tests qui montent `BoxTable`
+  // directement (section 3 de ce fichier). Ce qui passe à la source, c'est sa
+  // PRÉSENCE dans la carte et sa POSITION après la casserole.
+  it("le Boxing est DANS le pli de la carte de session, après la casserole (câblage)", () => {
+    const src = readFileSync(resolve(__dirname, "./plan/PlanDayBlock.tsx"), "utf8");
+    const card = src.slice(
+      src.indexOf("function DaySessionCard("),
+      src.indexOf("function DayGroceriesCard("),
+    );
+    expect(card, "le scanner ne trouve plus la carte").not.toBe("");
+    const fold = card.indexOf("{open && hasBody && (");
+    const preps = card.indexOf("{preps.map((prep) => (");
+    const boxes = card.indexOf("<BoxTable");
+    const run = card.indexOf("{session.run_through && (");
+    expect(fold, "le pli a disparu").toBeGreaterThan(-1);
+    // Les trois morceaux sont DANS le pli, et dans cet ordre: ce qu'il y a dans
+    // la casserole, comment on la cuit, PUIS dans quoi on la répartit.
+    // L'inverse ferait peser avant d'avoir cuit.
+    expect(preps).toBeGreaterThan(fold);
+    expect(boxes).toBeGreaterThan(preps);
+    expect(run).toBeGreaterThan(boxes);
+    // La pesée lit la valeur DÉJÀ calculée pour `hasBody`: deux appels à
+    // `boxLinesForSession` divergeraient le jour où l'un des deux change.
+    expect(card).toContain("lines={boxLines}");
   });
 
-  it("⛔ le Boxing vient APRÈS la matière et la méthode de la casserole", () => {
-    // On lit ce qu'il y a dans la casserole, comment on la cuit, PUIS dans quoi
-    // on la répartit. L'inverse ferait peser avant d'avoir cuit.
+  it("⛔ REPLIÉE, LA CARTE NE REND QUE CE QU'ON LIT SANS OUVRIR", () => {
+    // C'est le fait produit demandé, et il se mesure sur le rendu: fermée, la
+    // carte porte son titre, sa durée et son bouton — rien d'autre. Sans cette
+    // assertion, le pli pourrait être retiré sans qu'un seul test rougisse.
     const text = textOf(dayBlock);
-    expect(text.indexOf("Roast it.")).toBeLessThan(text.indexOf(en["meals.boxes.title"]));
+    expect(text).toContain(en["meals.result.day_session"]);
+    expect(text).toContain(en["meals.result.day_session_show"]);
+    expect(text, text).not.toContain(en["meals.boxes.title"]);
+    expect(text, text).not.toContain("Roast it.");
+    expect(text, text).not.toContain("Chicken first, then the rice.");
+  });
+
+  it("⛔ LE BOUTON N'EST PLUS GARDÉ PAR `run_through` SEUL", () => {
+    // Le piège exact: la garde d'origine était `session.run_through &&`. Le
+    // corps entier étant passé sous le pli, cette garde-là aurait replié les
+    // casseroles et la pesée d'une session sans déroulé DERRIÈRE AUCUN BOUTON.
+    const src = readFileSync(resolve(__dirname, "./plan/PlanDayBlock.tsx"), "utf8");
+    const card = src.slice(
+      src.indexOf("function DaySessionCard("),
+      src.indexOf("function DayGroceriesCard("),
+    );
+    expect(card).toContain("{hasBody && (");
+    expect(card).toContain("const hasBody = preps.length > 0 || boxLines.length > 0 ||");
+    expect(card).toContain("Boolean(session.run_through)");
   });
 });
 

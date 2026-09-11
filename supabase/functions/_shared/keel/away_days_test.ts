@@ -91,9 +91,11 @@ Deno.test("`isAway` distingue le moment, le jour entier, et le plat sans crénea
 });
 
 Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => {
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -107,7 +109,7 @@ Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => 
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",
@@ -160,6 +162,7 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   });
@@ -213,6 +216,7 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   });
@@ -247,6 +251,7 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   kitchenEquipment: null,
   cookOnlyDay: null,
   soloBoxes: false,
+  standardRecipe: false,
   boxMemberDiets: [],
   boxMemberExclusions: [],
   };
@@ -257,9 +262,11 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   assertEquals(withNone.dishes.map((d) => d.title), ["A", "B"]);
 
   // Et la consigne ne porte AUCUNE ligne d'absence quand il n'y en a pas.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+  const { userMessage } = buildMealPrompt({ budgetFloor: null, contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
     cookOnlyDay: null,
     soloBoxes: false,
+    groceryCadence: null,
+    standardRecipe: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -273,7 +280,7 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     merge: null,
     protocolBlock: "",
     beliefKeys: [],
-    goal: "health",
+    goal: "maintenance",
     situation: null,
     context: null,
     mode: "to_shop",

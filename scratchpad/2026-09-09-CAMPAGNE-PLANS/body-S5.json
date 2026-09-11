@@ -1,0 +1,15 @@
+{
+ "case": "S5",
+ "goal": "fat_loss",
+ "weightKg": 95.0,
+ "heightCm": 175,
+ "gender": "male",
+ "ageBand": "45_59",
+ "ageYears": 45,
+ "activityLevel": "sedentary",
+ "servings": 1,
+ "regime": "gluten_free",
+ "pace": 0.75,
+ "userId": "f1c5ee11-2113-4824-9ed8-300b687a2a3e",
+ "email": "camp0909.s5@keeltest.dev"
+}

@@ -5,6 +5,10 @@
 // repli qui écraserait tout le monde ressemblerait trait pour trait à un repli
 // qui marche — c'est la cicatrice « une garde a besoin d'un cas qui passe ».
 
+// ⟳ 2026-09-11 · LOT 7 — LES CAS QUI N'ÉPROUVAIENT QUE `generate-meal-v1`
+// SONT PARTIS AVEC ELLE. Aucune assertion métier n'a été retirée pour faire
+// taire un rouge: chacun avait son jumeau FOYER, qui reste. Le détail de
+// l'audit est dans `scratchpad/2026-09-11-LOT7-SUPPRESSION/`.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
@@ -214,7 +218,7 @@ Deno.test("O7 — LA VARIANTE SUIT L'APPELANT, JAMAIS L'OBJECTIF DU MAÎTRE", as
   );
 });
 
-Deno.test("O7 — un objectif ABSENT sert la variante `default`, pas `health`", async () => {
+Deno.test("O7 — un objectif ABSENT sert la variante `default`, pas une direction", async () => {
   const { db } = world({ callerCoach: null, ownerCoach: "coach-of-owner" });
   const out = await loadDoctrineForCaller(db, {
     userId: CALLER,
@@ -366,51 +370,6 @@ Deno.test("O7 — LE REPLI N'ÉCRIT AUCUNE LIGNE, ET LA FACTURATION NE BOUGE PAS
   // quoi la garde ci-dessus serait verte sur un fichier vide.
   assert(src.includes("household_members"), "le module ne lit plus le foyer");
   assert(src.includes("loadPublishedDoctrine"), "le module ne charge plus de doctrine");
-});
-
-Deno.test("O7 — LE GÉNÉRATEUR PASSE PAR LA PORTE, et ne rouvre pas le chemin direct", async () => {
-  // Si `generate-meal-v1` réimportait `loadPublishedDoctrine`, le repli
-  // deviendrait un appel qu'un futur relecteur peut retirer sans que rien
-  // n'échoue — et le secondaire retomberait sur `no_coach` en silence.
-  const src = stripComments(
-    await Deno.readTextFile(
-      new URL("../../generate-meal-v1/index.ts", import.meta.url),
-    ),
-  );
-  assert(
-    src.includes("loadDoctrineForCaller"),
-    "le générateur n'appelle plus la résolution par le foyer",
-  );
-  assert(
-    !src.includes("loadPublishedDoctrine"),
-    "le générateur a rouvert le chemin direct vers le chargeur de doctrine: " +
-      "le repli par le foyer est alors contournable.",
-  );
-  assert(
-    !src.includes("coach_clients") && !src.includes("keel_role"),
-    "le générateur écrit dans la table des sièges ou dans le rôle.",
-  );
-  // ⚠️ LE MAPPING ALIMENTAIRE SUIT LE MÊME COMPTE QUE LA DOCTRINE. Lire celui
-  // de l'appelant sur un repli rendrait un HYBRIDE que personne n'a écrit — les
-  // convictions d'un coach et les aliments d'aucun. Le défaut serait
-  // parfaitement silencieux: pas de mapping = pas de bloc.
-  assert(
-    !/loadPublishedProtocol\(\s*admin,\s*userId/.test(src),
-    "le mapping alimentaire est lu sur l'APPELANT: sur un repli par le foyer, " +
-      "le plan suivrait la méthode d'un coach et les aliments d'aucun.",
-  );
-  assert(
-    src.includes("resolvedDoctrine.subjectUserId"),
-    "le mapping alimentaire ne suit plus le compte dont la doctrine a servi.",
-  );
-  // LE FOYER N'EST RÉSOLU QU'UNE FOIS: `resolveHouseholdIdFor` apparaît une
-  // seule fois hors import.
-  assertEquals(
-    src.split("resolveHouseholdIdFor").length - 1,
-    2,
-    "`resolveHouseholdIdFor` n'est plus appelée exactement une fois (import " +
-      "compris): une seconde résolution du foyer a été ajoutée.",
-  );
 });
 
 // ---------------------------------------------------------------------------

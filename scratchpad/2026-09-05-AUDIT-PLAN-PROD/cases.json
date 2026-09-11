@@ -1,0 +1,10 @@
+[
+ {"id":"A01-solo3","fixture":"solo","days":3},
+ {"id":"A02-duo7","fixture":"duo","days":7},
+ {"id":"A03-vegan4-7","fixture":"quatre","days":7},
+ {"id":"A04-allergy5-7","fixture":"cinq","days":7},
+ {"id":"A05-vegan-one-session","fixture":"quatre","days":7,"body":{"one_cooking_session":true}},
+ {"id":"A06-allergy-pizza","fixture":"cinq","days":3,"body":{"preferences":"Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea."}},
+ {"id":"A07-solo-one-session","fixture":"solo","days":7,"body":{"one_cooking_session":true}},
+ {"id":"A08-duo-craving","fixture":"duo","days":3,"body":{"preferences":"De vrais raviolis aux champignons, avec une boîte adaptée pour Julie qui n'aime pas les champignons."}}
+]

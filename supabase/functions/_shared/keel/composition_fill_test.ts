@@ -54,6 +54,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     b12Source: false,
     folateSource: false,
     yieldClass: "neutral",
+    yieldFactor: null,
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
@@ -214,10 +215,17 @@ Deno.test("⛔ un terme qui résout DÉJÀ ne peut pas être rempli (aucun masqu
   // On force la main: une ligne remplie qui viserait un aliment réel.
   const forged = {
     term: "lemon",
+    canonicalTerm: "lemon",
+    forms: [],
     ref: ref({ slug: "lemon", energyKcal: 9999, source: "model" }),
     source: "model" as const,
     residualKcal: 0,
     rejectedModelKcal: null,
+    // ⟳ 2026-09-10 — REQUIS depuis que `FilledComposition` porte le motif de
+    // mise en revue. `null` = rien à relire, et c'est le cas de ce décor: il
+    // force la main sur un aliment DÉJÀ résolu, donc le refus vient de la
+    // ceinture (`already_resolved`), pas d'une revue.
+    reviewReason: null,
   };
   const { index, kept, refused } = withFilledRefs(INDEX, [forged]);
   assertEquals(kept.length, 0);

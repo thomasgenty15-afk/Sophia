@@ -1,0 +1,41 @@
+[
+  {
+    "id": "A03-vegan4-7-r2",
+    "fixture": "quatre",
+    "days": 7
+  },
+  {
+    "id": "A06-allergy-pizza-r2",
+    "fixture": "cinq",
+    "days": 3,
+    "body": {
+      "preferences": "Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea."
+    }
+  },
+  {
+    "id": "A03-vegan4-7-r3",
+    "fixture": "quatre",
+    "days": 7
+  },
+  {
+    "id": "A06-allergy-pizza-r3",
+    "fixture": "cinq",
+    "days": 3,
+    "body": {
+      "preferences": "Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea."
+    }
+  },
+  {
+    "id": "A03-vegan4-7-r4",
+    "fixture": "quatre",
+    "days": 7
+  },
+  {
+    "id": "A06-allergy-pizza-r4",
+    "fixture": "cinq",
+    "days": 3,
+    "body": {
+      "preferences": "Une vraie pizza et des raviolis aux champignons. Respecter les allergies de Tom et Zoe et le régime de Lea."
+    }
+  }
+]

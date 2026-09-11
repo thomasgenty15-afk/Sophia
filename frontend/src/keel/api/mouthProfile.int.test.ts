@@ -103,9 +103,6 @@ const MOUTH: MouthToPersist = {
   activityLevel: "sedentary",
   dayActivity: "seated",
   sportFrequency: "1_2",
-  takesDessert: true,
-  takesCheese: false,
-  takesBread: null,
   appetite: "large",
   targetWeightKg: 55,
   paceKgPerWeek: 0.45,
@@ -155,22 +152,22 @@ describe("l'ordre des écritures est une garde", () => {
     }) as MouthWriters["setBody"];
     await persistMouth(MOUTH, writers);
     expect(seen).toHaveLength(1);
-    // ⚠️ LES CINQ QUESTIONS DU 2026-08-20 PARTENT DANS LE MÊME APPEL, et le
-    // test l'épingle pour la même raison que le cran: il n'y a qu'UNE porte de
+    // ⚠️ LES QUESTIONS DU 2026-08-20 PARTENT DANS LE MÊME APPEL, et le test
+    // l'épingle pour la même raison que le cran: il n'y a qu'UNE porte de
     // corps, et un second appel finirait par écraser ce que le premier écrit.
     //
-    // ⛔ ET LES DEUX DRAPEAUX SONT `true`. Ils ne disent pas « elle a répondu »
-    // — `takesBread` vaut `null` juste au-dessus — mais « le pop-up a posé les
-    // questions ». C'est eux qui autorisent la base à écrire un `null`, donc à
-    // dé-répondre, et eux qui séparent `not_answered` de `not_asked`.
+    // ⛔ ET LES DEUX DRAPEAUX SONT `true`. Ils ne disent pas « elle a
+    // répondu » mais « le pop-up a posé les questions ». C'est eux qui
+    // autorisent la base à écrire un `null`, donc à dé-répondre, et eux qui
+    // séparent `not_answered` de `not_asked`.
+    //
+    // ⟳ 2026-09-10 — `takes_*` ET `structureAsked` NE PARTENT PLUS. Le plan
+    // ne réserve plus d'énergie pour ce qui est pris à côté du plat, et la RPC
+    // laisse les colonnes intactes quand on ne les nomme pas.
     expect(seen[0]).toEqual(["m-1", 165, 60, "female", "sedentary", {
       dayActivity: "seated",
       sportFrequency: "1_2",
       axesAsked: true,
-      takesDessert: true,
-      takesCheese: false,
-      takesBread: null,
-      structureAsked: true,
       // ⑤ — même appel, même drapeau. Une seconde porte pour l'appétit
       // finirait par écraser ce que celle-ci écrit.
       appetite: "large",
@@ -518,11 +515,9 @@ describe("`draftFromKnown` — ce qui n'est pas semé est EFFACÉ au Save", () =
       activityLevel: null,
       dayActivity: null,
       sportFrequency: null,
-      takesDessert: null,
-      takesCheese: null,
-      takesBread: null,
       appetite: null,
       habits: {},
+      light: {},
     });
     // `String(null)` rendrait « null », `Number(null)` rendrait 0 — et un zéro
     // traverse `targetWeightRefusal` comme un poids réel.

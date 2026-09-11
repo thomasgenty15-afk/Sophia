@@ -1,0 +1,1738 @@
+{
+  "ok": true,
+  "draft": true,
+  "meal": null,
+  "window": {
+    "starts_on": "2026-09-06",
+    "duration_days": 2
+  },
+  "timing": {
+    "kind": "starts_tomorrow",
+    "reason": "today_already_spent",
+    "lead_day": null
+  },
+  "suggested_window": {
+    "starts_on": "2026-09-06",
+    "shifted": "shopping_cutoff"
+  },
+  "rationale": {
+    "lines": [
+      "Ce plan couvre 2 jours, à partir de dimanche 2026-09-06.",
+      "Tu en avais demandé 3 : samedi était déjà entamé, le plan commence donc demain et en couvre 2.",
+      "Le plan pose 2 sessions de cuisine : dimanche et lundi.",
+      "Cette fenêtre est courte : 2 session de cuisine, pas plus — deux le même jour ne feraient qu'une.",
+      "Une seule course, dimanche : tout ce que le plan demande tient jusqu'à sa cuisson.",
+      "Les quantités sont faites pour 3 bouches.",
+      "Chaque personne a chacun de ses repas.",
+      "Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."
+    ],
+    "refusal": null
+  },
+  "request_report": {
+    "lines": [],
+    "refusal": null
+  },
+  "explanation": {
+    "lines": [
+      "Les fajitas sont préparées avec du poulet, des poivrons, des oignons et des tortillas, sans noix de cajou, pour conserver le plat demandé avec des ingrédients compatibles."
+    ],
+    "refusal": null
+  },
+  "names": {
+    "dishes": 12,
+    "declared": 12,
+    "kept": 11,
+    "refused": 1
+  },
+  "food_groups": {
+    "declared": 0,
+    "valid": 0,
+    "refused": 0,
+    "persisted": 0,
+    "lines": 55
+  },
+  "household": {
+    "id": "91e39c0c-8430-4a58-98b0-cde7334dc6d3",
+    "member_count": 3,
+    "dish_owners": {
+      "asked": 0,
+      "declared": 0,
+      "attributed": 0,
+      "refused": 0
+    },
+    "kitchen": {
+      "declared": [
+        "oven",
+        "stovetop",
+        "freezer"
+      ],
+      "missing": [
+        "microwave",
+        "air_fryer",
+        "pressure_cooker",
+        "blender"
+      ]
+    },
+    "eating_out": {
+      "mouths": 0,
+      "cells": 0
+    },
+    "work_lunch": {
+      "mouths": 0,
+      "cold": 0
+    },
+    "why_rule": {
+      "holders": 0,
+      "dishes": 12,
+      "declared": 0,
+      "valid": 0,
+      "refused": 0
+    },
+    "cross_contact_block": {
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0
+    },
+    "precedence": {
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 4,
+      "ranks_without_object": 1,
+      "by_rank": {
+        "rank_1": 0,
+        "rank_2": 6,
+        "rank_3": 7,
+        "rank_4": 1,
+        "rank_5": 1
+      }
+    },
+    "boxes": {
+      "meals": 3,
+      "with_box": 3,
+      "boxes": 6,
+      "expected": 6,
+      "delivery": "served",
+      "refused": 0,
+      "names": 9,
+      "names_refused": 0,
+      "items": 10,
+      "items_refused": 0,
+      "capped": 0,
+      "legacy_folded": 0,
+      "preparations": 2,
+      "sum_checked": 0,
+      "sum_over": 0,
+      "sum_unverifiable": 2,
+      "mouth_slots": 9,
+      "mouths_unboxed": 0,
+      "mouths_double": 0,
+      "mouths_double_model": 0,
+      "cells_no_box": 9,
+      "mouths_no_box_cell": 27,
+      "mouths": 3
+    },
+    "unquantified_dish_ingredients": {
+      "ingredients": 40,
+      "unquantified": 2
+    },
+    "vague_portions": {
+      "notes": 9,
+      "vague": 0,
+      "quantified": 0,
+      "box_ids": 0
+    },
+    "shares": {
+      "shares": 6,
+      "unknown": 0,
+      "regime_refused": 0
+    },
+    "regime_belt": {
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 0,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 0,
+      "groups_valid": 0,
+      "groups_refused": 0,
+      "group_excluded": 0,
+      "group_plant_only": 0,
+      "group_undecided": 0
+    },
+    "swap": {
+      "strictest": null,
+      "bound_mouths": 0,
+      "free_mouths": 0,
+      "cells_checked": 0,
+      "cells_carrying": 0,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": [],
+      "retry_attempts": 0,
+      "retry_accepted": 0
+    },
+    "exclusion_belt": {
+      "mouths": 1,
+      "checked": 3,
+      "kept": 3,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "box_scoped": 3
+    },
+    "meals_delivered": {
+      "mouths": 3,
+      "expected": 28,
+      "fed": 28,
+      "missing": 0,
+      "by_cause": {
+        "held_off_regime": 0,
+        "held_off_exclusion": 0,
+        "not_named": 0,
+        "double": 0
+      },
+      "cells_without_dish": 0,
+      "retried": false,
+      "retry_attempts": 0,
+      "retry_accepted": 0,
+      "retry_merged_cells": 0,
+      "retry_on": {},
+      "restored": 0,
+      "restored_fallback": 0,
+      "rows": []
+    },
+    "box_sizing": {
+      "boxes": 6,
+      "common": 3,
+      "items": 10,
+      "sized": 10,
+      "unchanged": 0,
+      "capped_by_pot": 0,
+      "unverifiable": 2,
+      "mouths": {
+        "sized": 1,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 1,
+        "doctrine_no_counting": 0,
+        "age_unknown": 0,
+        "no_direction": 1,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 3,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 0,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 0,
+        "clamped": 2,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 4
+      },
+      "anchor_applied": 3,
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 2,
+        "pot_ceiling": 0,
+        "both": 0,
+        "not_anchored": 4
+      },
+      "unmet_band": {
+        "lt_200": 1,
+        "gte_200": 1
+      },
+      "densify": {
+        "mouth_days": 2,
+        "boxes_touched": 2,
+        "moved_g": 117,
+        "closed_kcal": 234,
+        "stopped": {
+          "closed": 1,
+          "floor": 0,
+          "ceiling": 0,
+          "pot_exhausted": 0,
+          "no_dense_target": 1,
+          "no_box": 0,
+          "no_density": 0
+        },
+        "remaining_lt_200": 1,
+        "remaining_gte_200": 0
+      },
+      "extras_floored": 0,
+      "activity": {
+        "answered": 3,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 3,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "meal_structure": {
+        "answered": 0,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 3
+      },
+      "meal_extras_source": {
+        "per_slot": 0,
+        "legacy_booleans": 0,
+        "mixed": 0,
+        "none": 3
+      },
+      "appetite": {
+        "declared": 3,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    "traditions": {
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    "portion_quantities": {
+      "notes": 3,
+      "model_quantity": 0,
+      "model_size_word": 0
+    }
+  },
+  "dishes": [
+    {
+      "name": "Bol yaourt pêche et avoine",
+      "title": "Yaourt grec, pêche, avoine et amandes",
+      "slot": "breakfast",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "yaourt grec",
+          "quantity": "450 g de yaourt grec",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pêche",
+          "quantity": "3 pêches",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 390,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "90 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 90,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "30 g d'amandes",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt dans trois bols, puis ajouter les pêches coupées, les flocons d'avoine et les amandes.",
+      "why": "Un petit-déjeuner simple associe un aliment protéiné et des produits peu transformés.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Amandes et prunes",
+      "title": "Prunes et amandes",
+      "slot": "snack_am",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "prune",
+          "quantity": "4 prunes",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 32,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "amandes",
+          "quantity": "40 g d'amandes",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les prunes et les servir avec les amandes.",
+      "why": "Une collation fruitée se prépare sans cuisson et garde un rythme régulier.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Salade pois chiches et thon",
+      "title": "Thon, pois chiches, tomates, concombre et pain",
+      "slot": "lunch",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "thon au naturel",
+          "quantity": "360 g de thon au naturel égoutté",
+          "in_pantry": false,
+          "amount": 360,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 360,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pois chiches cuits",
+          "quantity": "450 g de pois chiches cuits",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "g",
+          "state": "cooked",
+          "grams_raw": 450,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "tomate",
+          "quantity": "450 g de tomates",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "concombre",
+          "quantity": "300 g de concombre",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pain complet",
+          "quantity": "240 g de pain complet",
+          "in_pantry": false,
+          "amount": 240,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 240,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "une pincée de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "une pincée de poivre noir",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Mélanger le thon, les pois chiches, les tomates et le concombre. Assaisonner avec l'huile, le jus de citron, le sel et le poivre, puis servir avec le pain.",
+      "why": "Cette salade fournit un déjeuner complet à assembler, avec deux aliments protéinés et des légumes de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Raisins et yaourt",
+      "title": "Raisins et yaourt nature",
+      "slot": "snack_pm",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "raisin",
+          "quantity": "300 g de raisins",
+          "in_pantry": false,
+          "amount": 300,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "2 yaourts nature",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les raisins et les servir avec les yaourts.",
+      "why": "Une collation fraîche et rapide aide à garder l'horaire prévu sans préparation compliquée.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Fajitas de poulet colorées",
+      "title": "Poulet, poivrons, oignons et tortillas",
+      "slot": "dinner",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "tortilla de blé",
+          "quantity": "6 tortillas de blé",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 360,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron vert",
+          "quantity": "2 citrons verts",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 90,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "150 g de yaourt nature",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "coriandre",
+          "quantity": "10 g de coriandre",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la garniture de poulet à la poêle pendant 8 minutes. Réchauffer les tortillas dans une poêle sèche, puis ajouter le citron vert, le yaourt et la coriandre.",
+      "why": "Des fajitas maison gardent le plat demandé tout en reposant sur une garniture de poulet et de légumes.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_fajita_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_sun_dinner_alice",
+          "member_ids": [
+            "2ff52786-d077-4fbd-b57a-32840f12baa1"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fajita_chicken",
+              "term": "garniture de poulet et légumes",
+              "grams": 280
+            },
+            {
+              "preparation_id": null,
+              "term": "tortillas de blé",
+              "grams": 147
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_sun_dinner_marc_tom",
+          "member_ids": [
+            "11effb1a-17f8-4f03-aec0-22e43c745fb0",
+            "9c2af298-121c-4a49-9cc6-821cc104d7e7"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fajita_chicken",
+              "term": "garniture de poulet et légumes",
+              "grams": 724
+            },
+            {
+              "preparation_id": null,
+              "term": "tortillas de blé",
+              "grams": 290
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Bol yaourt poire et avoine",
+      "title": "Yaourt grec, poire, avoine et graines de courge",
+      "slot": "breakfast",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "yaourt grec",
+          "quantity": "450 g de yaourt grec",
+          "in_pantry": false,
+          "amount": 450,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "3 poires",
+          "in_pantry": false,
+          "amount": 3,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 450,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "flocons d'avoine",
+          "quantity": "90 g de flocons d'avoine",
+          "in_pantry": false,
+          "amount": 90,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 90,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "graines de courge",
+          "quantity": "30 g de graines de courge",
+          "in_pantry": false,
+          "amount": 30,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Répartir le yaourt dans trois bols, puis ajouter les poires coupées, les flocons d'avoine et les graines de courge.",
+      "why": "Ce petit-déjeuner reprend un rythme simple avec un produit laitier protéiné et des fruits de saison.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "assemble",
+        "minutes": 5
+      }
+    },
+    {
+      "name": "Pomme et noisettes",
+      "title": "Pommes et noisettes",
+      "slot": "snack_am",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "pomme",
+          "quantity": "4 pommes",
+          "in_pantry": false,
+          "amount": 4,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 600,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "noisettes",
+          "quantity": "40 g de noisettes",
+          "in_pantry": false,
+          "amount": 40,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 40,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les pommes et les servir avec les noisettes.",
+      "why": "Une collation sans cuisson permet de conserver des horaires réguliers avec des aliments simples.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 1
+      }
+    },
+    {
+      "name": "Fajitas réchauffées au citron vert",
+      "title": "Poulet, poivrons, oignons et tortillas",
+      "slot": "lunch",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "tortilla de blé",
+          "quantity": "6 tortillas de blé",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 360,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "citron vert",
+          "quantity": "2 citrons verts",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 90,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "150 g de yaourt nature",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "coriandre",
+          "quantity": "10 g de coriandre",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer la garniture dans une poêle pendant 8 minutes, réchauffer les tortillas dans une poêle sèche, puis ajouter le citron vert, le yaourt et la coriandre.",
+      "why": "Le même lot devient un déjeuner différent par son service en tortillas, sans refaire une cuisson complète.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_fajita_chicken",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_lunch_alice",
+          "member_ids": [
+            "2ff52786-d077-4fbd-b57a-32840f12baa1"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fajita_chicken",
+              "term": "garniture de poulet et légumes",
+              "grams": 234
+            },
+            {
+              "preparation_id": null,
+              "term": "tortillas de blé",
+              "grams": 222
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_lunch_marc_tom",
+          "member_ids": [
+            "11effb1a-17f8-4f03-aec0-22e43c745fb0",
+            "9c2af298-121c-4a49-9cc6-821cc104d7e7"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_fajita_chicken",
+              "term": "garniture de poulet et légumes",
+              "grams": 828
+            },
+            {
+              "preparation_id": null,
+              "term": "tortillas de blé",
+              "grams": 331
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 10
+      }
+    },
+    {
+      "name": "Yaourt aux figues",
+      "title": "Yaourt nature et figues",
+      "slot": "snack_pm",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "figue",
+          "quantity": "6 figues",
+          "in_pantry": false,
+          "amount": 6,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 300,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "yaourt nature",
+          "quantity": "2 yaourts nature",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Laver les figues, les couper et les servir avec les yaourts.",
+      "why": "Une collation de fin d'été reste fraîche, rapide et facile à tenir à l'heure prévue.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 3
+      }
+    },
+    {
+      "name": "Saumon au four et pommes de terre",
+      "title": "Saumon, pommes de terre et haricots verts",
+      "slot": "dinner",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "citron",
+          "quantity": "1 citron",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 60,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "1 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 15,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "aneth",
+          "quantity": "10 g d'aneth",
+          "in_pantry": false,
+          "amount": 10,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Réchauffer le saumon, les pommes de terre et les haricots verts au four à 180 °C pendant 12 minutes, puis ajouter le citron et l'aneth.",
+      "why": "Un dîner au four apporte un nouveau plat protéiné avec des légumes et une garniture rassasiante.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [
+        {
+          "preparation_id": "prep_salmon_tray",
+          "servings": 1,
+          "kept": "fridge"
+        }
+      ],
+      "boxes": [
+        {
+          "id": "box_mon_dinner_alice",
+          "member_ids": [
+            "2ff52786-d077-4fbd-b57a-32840f12baa1"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_tray",
+              "term": "saumon, pommes de terre et haricots verts",
+              "grams": 488
+            }
+          ],
+          "legacy_total_grams": null
+        },
+        {
+          "id": "box_mon_dinner_marc_tom",
+          "member_ids": [
+            "11effb1a-17f8-4f03-aec0-22e43c745fb0",
+            "9c2af298-121c-4a49-9cc6-821cc104d7e7"
+          ],
+          "items": [
+            {
+              "preparation_id": "prep_salmon_tray",
+              "term": "saumon, pommes de terre et haricots verts",
+              "grams": 1014
+            }
+          ],
+          "legacy_total_grams": null
+        }
+      ],
+      "member_id": null,
+      "same_day": {
+        "kind": "reheat_only",
+        "minutes": 15
+      }
+    },
+    {
+      "name": null,
+      "title": "Fromage blanc et raisin",
+      "slot": "before_bed",
+      "day": "sun",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "150 g de fromage blanc",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "raisin",
+          "quantity": "100 g de raisins",
+          "in_pantry": false,
+          "amount": 100,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 100,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le fromage blanc dans un bol et ajouter les raisins lavés.",
+      "why": "Une petite prise alimentaire simple ferme la journée sans cuisson.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    },
+    {
+      "name": "Fromage blanc aux poires",
+      "title": "Fromage blanc et poire",
+      "slot": "before_bed",
+      "day": "mon",
+      "ingredients": [
+        {
+          "term": "fromage blanc",
+          "quantity": "150 g de fromage blanc",
+          "in_pantry": false,
+          "amount": 150,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poire",
+          "quantity": "1 poire",
+          "in_pantry": false,
+          "amount": 1,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 150,
+          "group": null,
+          "quantity_source": "structured"
+        }
+      ],
+      "method": "Verser le fromage blanc dans un bol et ajouter la poire coupée.",
+      "why": "Une collation du soir régulière reste fraîche et demande seulement un assemblage.",
+      "honours_belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals"
+      ],
+      "uses": [],
+      "boxes": [],
+      "member_id": null,
+      "same_day": {
+        "kind": "none",
+        "minutes": 2
+      }
+    }
+  ],
+  "preparations": [
+    {
+      "id": "prep_fajita_chicken",
+      "title": "Garniture de poulet pour fajitas",
+      "servings_made": 6,
+      "ingredients": [
+        {
+          "term": "blanc de poulet",
+          "quantity": "1275 g",
+          "in_pantry": false,
+          "amount": 1275,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1275,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "poivron",
+          "quantity": "1090 g",
+          "in_pantry": false,
+          "amount": 1090,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1090,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "oignon",
+          "quantity": "365 g",
+          "in_pantry": false,
+          "amount": 365,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 365,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "3.5 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 3.5,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 52.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "paprika fumé",
+          "quantity": "2.5 c. à café de paprika fumé",
+          "in_pantry": false,
+          "amount": 2.5,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 12.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "cumin moulu",
+          "quantity": "2.5 c. à café de cumin moulu",
+          "in_pantry": false,
+          "amount": 2.5,
+          "unit": "tsp",
+          "state": "raw",
+          "grams_raw": 12.5,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "2 pincées de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "2 pincées de poivre noir",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Émincer le poulet, les poivrons et les oignons. Chauffer l'huile dans une grande poêle, saisir le poulet avec les épices, puis ajouter les légumes et cuire jusqu'à ce qu'ils soient tendres. Laisser refroidir et portionner dans les boîtes nommées.",
+      "active_minutes": 20,
+      "total_minutes": 40,
+      "cook_on": "sun"
+    },
+    {
+      "id": "prep_salmon_tray",
+      "title": "Plaque de saumon et légumes",
+      "servings_made": 3,
+      "ingredients": [
+        {
+          "term": "filet de saumon",
+          "quantity": "670 g",
+          "in_pantry": false,
+          "amount": 670,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 670,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "pomme de terre",
+          "quantity": "1000 g",
+          "in_pantry": false,
+          "amount": 1000,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 1000,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "haricot vert",
+          "quantity": "500 g",
+          "in_pantry": false,
+          "amount": 500,
+          "unit": "g",
+          "state": "raw",
+          "grams_raw": 500,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "huile d'olive",
+          "quantity": "2 c. à soupe d'huile d'olive",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "tbsp",
+          "state": "raw",
+          "grams_raw": 30,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "ail",
+          "quantity": "2 gousses d'ail",
+          "in_pantry": false,
+          "amount": 2,
+          "unit": "unit",
+          "state": "raw",
+          "grams_raw": 10,
+          "group": null,
+          "quantity_source": "structured"
+        },
+        {
+          "term": "sel",
+          "quantity": "2 pincées de sel",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        },
+        {
+          "term": "poivre noir",
+          "quantity": "2 pincées de poivre noir",
+          "in_pantry": false,
+          "amount": null,
+          "unit": null,
+          "state": "raw",
+          "grams_raw": null,
+          "group": null,
+          "quantity_source": null
+        }
+      ],
+      "method": "Chauffer le four à 200 °C. Couper les pommes de terre, les mélanger avec l'huile, l'ail, le sel et le poivre, puis les rôtir 20 minutes. Ajouter les haricots verts et le saumon, poursuivre la cuisson 15 minutes, puis portionner dans les boîtes nommées.",
+      "active_minutes": 15,
+      "total_minutes": 40,
+      "cook_on": "mon"
+    }
+  ],
+  "cooking_sessions": [
+    {
+      "day": "sun",
+      "preparation_ids": [
+        "prep_fajita_chicken"
+      ],
+      "run_through": "Émincer le poulet et les légumes, chauffer la poêle, cuire le poulet puis les légumes, laisser tiédir et portionner dans les boîtes nommées.",
+      "total_minutes": 40
+    },
+    {
+      "day": "mon",
+      "preparation_ids": [
+        "prep_salmon_tray"
+      ],
+      "run_through": "Chauffer le four, préparer les pommes de terre sur la plaque, les rôtir, ajouter les haricots verts et le saumon, terminer la cuisson et portionner dans les boîtes nommées.",
+      "total_minutes": 40
+    }
+  ],
+  "shopping_list": [
+    {
+      "term": "yaourt grec",
+      "quantity": "1045 g de yaourt grec",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "yaourt nature",
+      "quantity": "7 yaourts nature",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "fromage blanc",
+      "quantity": "350 g de fromage blanc",
+      "aisle": "dairy",
+      "food_group": "dairy_yogurt",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "blanc de poulet",
+      "quantity": "1 050 g de blanc de poulet",
+      "aisle": "protein",
+      "food_group": "poultry",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "filet de saumon",
+      "quantity": "700 g de filet de saumon",
+      "aisle": "protein",
+      "food_group": "fatty_fish",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "thon au naturel",
+      "quantity": "420 g de thon au naturel égoutté",
+      "aisle": "protein",
+      "food_group": "white_fish",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pêche",
+      "quantity": "3 pêches",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poire",
+      "quantity": "5 poires",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "prune",
+      "quantity": "5 prunes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "raisin",
+      "quantity": "465 g de raisins",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "figue",
+      "quantity": "7 figues",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pomme",
+      "quantity": "5 pommes",
+      "aisle": "produce",
+      "food_group": "other_fruit",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivron",
+      "quantity": "1045 g de poivrons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "oignon",
+      "quantity": "350 g d'oignons",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tomate",
+      "quantity": "525 g de tomates",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "concombre",
+      "quantity": "350 g de concombre",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pomme de terre",
+      "quantity": "1045 g de pommes de terre",
+      "aisle": "produce",
+      "food_group": "starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "haricot vert",
+      "quantity": "525 g de haricots verts",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citron",
+      "quantity": "2 citrons",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "citron vert",
+      "quantity": "5 citrons verts",
+      "aisle": "produce",
+      "food_group": "citrus",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "coriandre",
+      "quantity": "25 g de coriandre",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "aneth",
+      "quantity": "12 g d'aneth",
+      "aisle": "produce",
+      "food_group": "leafy_greens",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "ail",
+      "quantity": "2 gousses d'ail",
+      "aisle": "produce",
+      "food_group": "non_starchy_veg",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "flocons d'avoine",
+      "quantity": "210 g de flocons d'avoine",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pain complet",
+      "quantity": "280 g de pain complet",
+      "aisle": "grains",
+      "food_group": "whole_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "tortilla de blé",
+      "quantity": "14 tortillas de blé",
+      "aisle": "grains",
+      "food_group": "refined_grain",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "pois chiches cuits",
+      "quantity": "525 g de pois chiches cuits",
+      "aisle": "pantry",
+      "food_group": "legumes",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "amandes",
+      "quantity": "80 g d'amandes",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "noisettes",
+      "quantity": "45 g de noisettes",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "graines de courge",
+      "quantity": "35 g de graines de courge",
+      "aisle": "pantry",
+      "food_group": "nuts_seeds",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "huile d'olive",
+      "quantity": "9 c. à soupe d'huile d'olive",
+      "aisle": "pantry",
+      "food_group": "olive_oil",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "paprika fumé",
+      "quantity": "2 c. à café de paprika fumé",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "cumin moulu",
+      "quantity": "2 c. à café de cumin moulu",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "sel",
+      "quantity": "sel",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    },
+    {
+      "term": "poivre noir",
+      "quantity": "poivre noir",
+      "aisle": "pantry",
+      "food_group": "sauce_dressing",
+      "buy_on": "2026-09-06",
+      "freeze_on_purchase": false
+    }
+  ],
+  "member_portions": [
+    {
+      "member_id": "2ff52786-d077-4fbd-b57a-32840f12baa1",
+      "display_name": "Alice",
+      "portion_note": "Au petit-déjeuner, au déjeuner et au dîner, mettre les légumes en premier, puis le poulet ou le saumon, puis le pain, les tortillas ou les pommes de terre.",
+      "eating_slots": [
+        "breakfast",
+        "lunch",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_fajita_chicken",
+          "note": "Prendre la boîte individuelle de garniture de poulet et légumes."
+        },
+        {
+          "preparation_id": "prep_salmon_tray",
+          "note": "Prendre la boîte individuelle de saumon, pommes de terre et haricots verts."
+        }
+      ]
+    },
+    {
+      "member_id": "11effb1a-17f8-4f03-aec0-22e43c745fb0",
+      "display_name": "Marc",
+      "portion_note": "Servir ensemble les composants prévus dans le bol, l'assiette ou les tortillas.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_fajita_chicken",
+          "note": "Prendre la boîte partagée de garniture de poulet et légumes."
+        },
+        {
+          "preparation_id": "prep_salmon_tray",
+          "note": "Prendre la boîte partagée de saumon, pommes de terre et haricots verts."
+        }
+      ]
+    },
+    {
+      "member_id": "9c2af298-121c-4a49-9cc6-821cc104d7e7",
+      "display_name": "Tom",
+      "portion_note": "Servir ensemble les composants prévus dans le bol, l'assiette ou les tortillas.",
+      "eating_slots": [
+        "breakfast",
+        "snack_am",
+        "lunch",
+        "snack_pm",
+        "dinner",
+        "before_bed"
+      ],
+      "preparation_shares": [
+        {
+          "preparation_id": "prep_fajita_chicken",
+          "note": "Prendre la boîte partagée de garniture de poulet et légumes."
+        },
+        {
+          "preparation_id": "prep_salmon_tray",
+          "note": "Prendre la boîte partagée de saumon, pommes de terre et haricots verts."
+        }
+      ]
+    }
+  ],
+  "member_deltas": [],
+  "merged_members": [],
+  "issues": [
+    "body_from_sheet:11effb1a-17f8-4f03-aec0-22e43c745fb0",
+    "spent_first_day_dropped: sat (shopping_cutoff)",
+    "shopping_waves: 1 (2026-09-06)",
+    "freeze_on_purchase: 0/35",
+    "raw_keeping_needs_later_shop: 0/2 preparations",
+    "dishes[1]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[3]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[6]: same_day says none but announces 1 minute(s) -- nothing to prepare cannot take time",
+    "dishes[8]: same_day says none but announces 3 minute(s) -- nothing to prepare cannot take time",
+    "dishes[10]: name repeats the title (\"Fromage blanc et raisin\") -- dropped, one line is enough",
+    "dishes[10]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[11]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "structured_quantity_missing: 2/40 ingredients",
+    "unquantified_terms: sel, poivre noir",
+    "uses_kept_freezer: 0/3"
+  ],
+  "request_id": "543cd082-1ba0-4b20-9a24-c03785e121d2"
+}

@@ -431,6 +431,8 @@ const PROMPT_ARGS = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: 90,
   dietBlock: "",
@@ -441,7 +443,7 @@ const PROMPT_ARGS = {
   merge: null,
   protocolBlock: "",
   beliefKeys: ["satiety_first"],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: "Works late three nights a week.",
   context: null,
   mode: "to_shop" as const,
@@ -495,7 +497,7 @@ const PROMPT_ARGS = {
  * est idempotent et ne change rien à ce que ce test mesure).
  */
 function turnMessage(note: string | null): string {
-  const built = buildMealPrompt({ ...PROMPT_ARGS, safetyConstraintTable: null });
+  const built = buildMealPrompt({ budgetFloor: null, ...PROMPT_ARGS, safetyConstraintTable: null });
   const suffix = note === null ? "" : `\n\n${draftNoteInstruction(note)}`;
   return `${built.userMessage}${suffix}`;
 }

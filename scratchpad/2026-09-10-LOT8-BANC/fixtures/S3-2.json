@@ -1,0 +1,198 @@
+{
+ "cas": "S3",
+ "gen": 2,
+ "lane": "solo",
+ "plan": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-S3-20260910-141226.json",
+ "refDir": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref",
+ "sasFile": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-10-LOT8-BANC/ref/food_composition_pending_by_form.ndjson",
+ "sasCutoff": "2026-09-10T12:13:15Z",
+ "declaredSlots": [
+  "breakfast",
+  "snack_am",
+  "lunch",
+  "snack_pm",
+  "dinner"
+ ],
+ "lightSlots": [],
+ "mouths": [
+  {
+   "memberId": "a3efb08f-f3a3-438a-a4c3-14ffbd9dccfb",
+   "name": "Ilan Surplus",
+   "ageYears": 27,
+   "weightKg": 72.0,
+   "heightCm": 186,
+   "gender": "male",
+   "activityLevel": "trains_hard",
+   "dayActivity": null,
+   "sportFrequency": null,
+   "appetite": null,
+   "goal": "muscle_gain",
+   "restriction": "clear",
+   "paceKgPerWeek": 0.25,
+   "targetKcalOverride": 3810
+  }
+ ],
+ "windowStartsOn": "2026-09-10",
+ "windowDurationDays": 3,
+ "leadDays": 0,
+ "todayLocalDate": "2026-09-10",
+ "hourNow": 14,
+ "request_id": "bf7d39be-dfe1-4b3f-91c9-0c3d34c4e04d",
+ "archive": {
+  "requete": {
+   "lane": "solo",
+   "window": {
+    "kind": "exact",
+    "starts_on": "2026-09-10",
+    "duration_days": 3
+   },
+   "one_cooking_session": false,
+   "cooking_shape": null,
+   "intent": "draft"
+  },
+  "empreinte_referentiel": "# R\u00c9F\u00c9RENTIEL FIG\u00c9 \u2014 extrait le 2026-09-10T11:59:43Z\nfood_composition_refs  lignes=943  sha256=e8b838e73aa96c75f3a033b7292a04f6cb8ee50922e46d30d6a914b6d895719f\nfood_composition_aliases  lignes=2715  sha256=b39220eb9ea5c7cbb32d45517f226009c72934398ff86ea2850dbdf77fa57026",
+  "empreinte_code_keel": "4619ed297f76",
+  "empreinte_sas": "food_composition_pending_by_form lignes=291",
+  "payload_final": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/plan-S3-20260910-141226.json",
+  "brouillon": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/draft-S3-20260910-141226.json",
+  "journal": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-09-CAMPAGNE-PLANS/log-S3-20260910-141226.json",
+  "generated_from": {
+   "goal": "muscle_gain",
+   "boxes": {
+    "boxes": 5,
+    "items": 13,
+    "meals": 5,
+    "names": 0,
+    "capped": 0,
+    "refused": 0,
+    "delivery": "served",
+    "expected": 5,
+    "sum_over": 1,
+    "with_box": 5,
+    "mouth_slots": 0,
+    "sum_checked": 1,
+    "cells_no_box": 7,
+    "preparations": 5,
+    "items_refused": 0,
+    "legacy_folded": 0,
+    "mouths_double": 0,
+    "names_refused": 0,
+    "mouths_unboxed": 0,
+    "sum_unverifiable": 4,
+    "mouths_no_box_cell": 0,
+    "mouths_double_model": 0
+   },
+   "names": {
+    "kept": 12,
+    "dishes": 12,
+    "refused": 0,
+    "declared": 12
+   },
+   "access": {
+    "state": "coach_seat",
+    "household": false,
+    "coach_solvent": true,
+    "app_write_access": true
+   },
+   "intent": "draft",
+   "issues": [
+    "shopping_waves: 1 (2026-09-10)",
+    "freeze_on_purchase: 0/41",
+    "raw_keeping_needs_later_shop: 0/5 preparations",
+    "waves_kept_for_freshness: 0/41",
+    "sessions_fed_from_freezer: 0/0 name the freezer",
+    "dishes[0]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "dishes[4]: same_day says none but announces 2 minute(s) -- nothing to prepare cannot take time",
+    "shopping_list_unattributed: 4/41 lines match no kept and no dropped ingredient -- kept, not guessed",
+    "preparations[2]: the meals that take from \"Herb couscous\" hold 720 g but it makes about 654 g ready -- the boxes cannot all be filled",
+    "uses_kept_freezer: 0/13"
+   ],
+   "timing": {
+    "kind": "same_morning",
+    "reason": "starts_today",
+    "lead_day": null
+   },
+   "coach_id": "00000000-0000-4000-8000-00000000d15c",
+   "same_day": {
+    "dishes": 12,
+    "invalid": 0,
+    "declared": 12,
+    "minutes_missing": 0
+   },
+   "rationale": {
+    "lines": [
+     "This plan covers 3 days, starting today.",
+     "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+     "For today, breakfast is off the plan: the day is already under way.",
+     "For today, the morning snack and lunch are not in the plan: there has to be time to shop first.",
+     "One shop, on Thursday: everything this plan asks for keeps until it is cooked."
+    ],
+    "refusal": null
+   },
+   "belief_keys": [
+    "whole_foods_first",
+    "protein_at_every_meal",
+    "regular_meals_beat_perfect_meals",
+    "one_change_at_a_time",
+    "a_missed_day_is_data",
+    "this_is_a_discovery_program"
+   ],
+   "empty_slots": [],
+   "explanation": {
+    "lines": [
+     "Thursday morning is left empty because you are away then, while the remaining eating times stay regular.",
+     "The fish is cooked on Friday rather than held from the first shop, keeping the fresh-food plan practical and varied."
+    ],
+    "refusal": null
+   },
+   "food_groups": {
+    "lines": 67,
+    "valid": 0,
+    "refused": 0,
+    "declared": 0,
+    "persisted": 0
+   },
+   "hunger_days": 0,
+   "plan_budget": {
+    "charged": [],
+    "total_ms": 380000,
+    "usable_ms": 304564,
+    "elapsed_ms": 45436,
+    "reserve_ms": 30000,
+    "remaining_ms": 334564,
+    "repairs_used": 0,
+    "repairs_asked": 0,
+    "repairs_allowed": 2,
+    "repairs_refused": {},
+    "provider_attempts": 0
+   },
+   "fixed_intakes": [],
+   "day_properties": [],
+   "prompt_version": "meal.en.v30_one_shop_freezes_on_purchase",
+   "request_report": {
+    "lines": [],
+    "refusal": null
+   },
+   "doctrine_reason": "loaded",
+   "doctrine_version": 1,
+   "satiety_priority": false,
+   "hunger_window_end": "2026-09-10",
+   "hunger_window_days": 7,
+   "hunger_window_start": "2026-09-04",
+   "protein_anchor_retry": false,
+   "protein_anchor_missing": [],
+   "unquantified_dish_ingredients": {
+    "ingredients": 42,
+    "unquantified": 0
+   }
+  },
+  "composition_energy_sources": {
+   "kcal": 8155,
+   "model": 0,
+   "table": 0.986,
+   "promoted": 0,
+   "group_bounds": 0.014
+  },
+  "composition_unknowns": 3
+ }
+}

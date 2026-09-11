@@ -299,11 +299,62 @@ describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => 
     { day: "thu", slots: ["lunch"], source: "household" },
   ];
 
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-04 — `kind` EST NOMMÉ, ET CE N'EST PAS UNE TRANSCRIPTION.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Ces attendus rendaient `{ day, slots }` et le lot L3 a fait de `awayFrom`
+   * un lecteur à TROIS ÉTATS (`AwayMark extends AwayDay { kind }`): « dehors »
+   * n'est pas « absent », et ce qui les sépare est ce que le produit DIT — le
+   * plan ne compose de part dans aucun des deux cas, mais il a le droit
+   * d'annoncer un nombre pour le premier.
+   *
+   * Les deux tests sont restés rouges DEUX SEMAINES, tolérés nominativement
+   * par `scripts/.vitest-red-baseline` au motif que le lot était « en vol » et
+   * le fichier `M` dans l'arbre. Il a été commité depuis: la tolérance a
+   * survécu à sa cause, et un rouge dont la cause est commitée cesse d'être
+   * celui de quelqu'un d'autre.
+   *
+   * ⛔ ON NOMME `kind`, ON NE L'IGNORE PAS. `objectContaining` aurait rendu ces
+   * tests verts en une ligne — et aurait désarmé la garde qu'ils portent: elle
+   * tient que la vue du maître ne contient QUE ce que le maître a déclaré, et
+   * un attendu qui ne regarde plus la forme entière laisse passer une clé de
+   * trop aussi bien qu'une clé qui manque.
+   *
+   * ⚠️ ET LE JETON EST `away` PARTOUT ICI PARCE QUE LES ENTRÉES N'EN PORTENT
+   * PAS: `awayKindOf` retombe sur `away`, la direction sûre (une ligne d'avant
+   * L3 lue « dehors » ferait apparaître un conseil chiffré au milieu de
+   * vacances). Le cas qui passe pour l'AUTRE valeur est le test suivant —
+   * sans lui, ces trois `kind: "away"` seraient une constante recopiée, pas
+   * une garde.
+   */
   it("ne rend que la source demandée", () => {
     expect(awayFrom(TAGGED, "household")).toEqual([
-      { day: "thu", slots: ["lunch"] },
+      { day: "thu", slots: ["lunch"], kind: "away" },
     ]);
-    expect(awayFrom(TAGGED, "self")).toEqual([{ day: "sun", slots: [] }]);
+    expect(awayFrom(TAGGED, "self")).toEqual([
+      { day: "sun", slots: [], kind: "away" },
+    ]);
+  });
+
+  it("⛔ LE CAS QUI PASSE: « dehors » traverse le filtre de source, et se DIT", () => {
+    // Sans ce test, les `kind: "away"` d'à côté ne prouveraient rien: ils
+    // seraient vrais même si `awayFrom` écrivait le jeton en dur. Ici la
+    // colonne porte `eating_out`, et il doit RESSORTIR — c'est la distinction
+    // que le lot L3 existe pour tenir.
+    const OUT = [
+      { day: "tue", slots: ["lunch"], kind: "eating_out", source: "self" },
+      { day: "tue", slots: ["lunch"], kind: "eating_out", source: "household" },
+    ];
+    expect(awayFrom(OUT, "self")).toEqual([
+      { day: "tue", slots: ["lunch"], kind: "eating_out" },
+    ]);
+    // ⚠️ ET LA SÉPARATION DES DEUX SOURCES TIENT SUR LE JETON AUSSI: la vue du
+    // maître ne doit pas hériter du « dehors » que la personne a déclaré pour
+    // elle-même, sinon la grille le recopierait dans sa colonne au premier
+    // enregistrement — le défaut que tout ce bloc existe pour attraper.
+    expect(awayFrom([OUT[0]], "household")).toEqual([]);
   });
 
   it("une entrée sans source n'appartient à personne", () => {
@@ -323,7 +374,7 @@ describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => 
         ],
         "household",
       ),
-    ).toEqual([{ day: "wed", slots: [] }]);
+    ).toEqual([{ day: "wed", slots: [], kind: "away" }]);
   });
 
   it("une colonne illisible ne fait pas exploser l'écran", () => {

@@ -5,9 +5,28 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- ══ LES ICÔNES DE LA MARQUE ═══════════════════════════════════════
+         Les quatre fichiers sont composés par `scripts/brand-icons.mjs` depuis
+         `public/brand/sophia-mark.svg`. Ne pas les retoucher à la main.
+
+         ⚠️ CE QU'ILS REMPLACENT: le yin-yang VIOLET du produit grand public
+         supprimé, servi jusqu'ici dans chaque onglet, dans chaque résultat
+         Google et comme `logo` de l'organisation. Aucun `grep` ne le trouvait:
+         la marque morte y était un PIXEL, pas une classe.
+
+         ⚠️ LE SVG EN PREMIER, ET IL DOIT ÊTRE UN VRAI SVG. `vercel.json`
+         réécrivait `/favicon.svg` vers `/favicon.png` — l'ancien `favicon.svg`
+         n'était qu'une enveloppe autour du PNG. La réécriture est retirée avec
+         ce lot; la remettre servirait des octets PNG sous un type déclaré
+         `image/svg+xml`.
+
+         ⚠️ `favicon.png` FAIT 192×192, ET C'EST UNE EXIGENCE DE GOOGLE: pour
+         l'icône du résultat de recherche, l'image doit être CARRÉE et son côté
+         un multiple de 48. L'ancienne (1024×1024, 267 Ko) l'était par hasard;
+         celle-ci l'est par construction. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <!-- Le papier de la marque, et non l'ancien violet #6D28D9 — un jeton mort
          du produit grand public supprimé. C'est la couleur de la chrome du
@@ -55,8 +74,8 @@
          citation dans ce commentaire en devenait une seconde, laissée en
          français au milieu des pages anglaises.) -->
     <!-- PRERENDER:HEAD:START -->
-    <title>Sophia — la semaine de repas de votre maison, décidée</title>
-    <meta name="description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <title>Ton objectif, à table | Sophia</title>
+    <meta name="description" content="Perdre du poids ou prendre du muscle : Sophia compose tes repas, calcule les quantités et organise tes courses et ta cuisine. 7 jours d’essai." />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://sophia-coach.ai/" />
 
@@ -73,8 +92,8 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://sophia-coach.ai/" />
-    <meta property="og:title" content="Sophia — la semaine de repas de votre maison, décidée" />
-    <meta property="og:description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <meta property="og:title" content="Ton objectif, à table | Sophia" />
+    <meta property="og:description" content="Perdre du poids ou prendre du muscle : Sophia compose tes repas, calcule les quantités et organise tes courses et ta cuisine. 7 jours d’essai." />
     <!-- « Sophia », et pas « Sophia Coach »: c'est le nom que porte déjà
          l'organisation dans les données structurées (`lib/legalEntity.ts`
          `organizationStructuredData`), et le mot « coach » n'apparaît nulle
@@ -95,14 +114,14 @@
          `src/keel/seo/head.ts`, d'où le prérendu et `SEO.tsx` les lisent. -->
     <meta property="og:image:width" content="2400" />
     <meta property="og:image:height" content="1260" />
-    <meta property="og:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta property="og:image:alt" content="Ton objectif, à table | Sophia" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sophia — la semaine de repas de votre maison, décidée" />
-    <meta name="twitter:description" content="Repas, équilibre, objectifs, contraintes et courses : Sophia compose une semaine qui s’adapte à votre maison et aux imprévus." />
+    <meta name="twitter:title" content="Ton objectif, à table | Sophia" />
+    <meta name="twitter:description" content="Perdre du poids ou prendre du muscle : Sophia compose tes repas, calcule les quantités et organise tes courses et ta cuisine. 7 jours d’essai." />
     <meta name="twitter:image" content="https://sophia-coach.ai/og-image.png" />
-    <meta name="twitter:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta name="twitter:image:alt" content="Ton objectif, à table | Sophia" />
     <!-- PRERENDER:HEAD:END -->
   </head>
   <body>

@@ -75,6 +75,15 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     // lit pas non plus (on achète pour la semaine, pas pour un soir), et une
     // fixture qui le remplirait ferait croire à une surface qui l'affiche.
     sameDay: null,
+    // ⟳ 2026-09-10 — REQUIS depuis que le modèle déclare la densité qu'il a
+    // calculée (`density_check`). `null` = le plat n'en porte pas, et c'est le
+    // cas d'une fixture de PDF: ce champ est une TÉLÉMÉTRIE, jamais la mesure
+    // qui fait foi, et aucune surface imprimée ne le lit.
+    densityCheck: null,
+    // ⟳ LOT D (2026-09-11) — REQUIS depuis que le modèle déclare la structure
+    // de cuisson. `[]` = aucun composant déclaré, ce qu'est tout plan antérieur
+    // au contrat; aucune surface imprimée ne lit ce champ.
+    components: [],
     ...over,
   };
 }

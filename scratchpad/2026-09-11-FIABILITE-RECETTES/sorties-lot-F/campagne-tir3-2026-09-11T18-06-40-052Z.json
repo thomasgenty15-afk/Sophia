@@ -1,0 +1,3644 @@
+{
+  "cas": "perte",
+  "tir": 3,
+  "titre": "PERTE · grand appétit · journées entières",
+  "reel": true,
+  "lance_le": "2026-09-11T18:06:40.052Z",
+  "jour_local": "2026-09-11",
+  "heure_locale": "20:06",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "duree_ms": 104221,
+  "plafond_heberge_ms": 150000,
+  "statut": 200,
+  "erreur_reseau": null,
+  "reponse": {
+    "ok": true,
+    "meal": {
+      "id": "581feef7-3666-4cf5-922c-c4c7c70720c0"
+    },
+    "window": {
+      "starts_on": "2026-09-12",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "suggested_window": {
+      "starts_on": "2026-09-12",
+      "shifted": "shopping_cutoff"
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+        "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Chaque personne a chacun de ses repas."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "5031c5eb-e367-4ae1-b6cf-e2e8371cde1c",
+      "member_count": 1
+    },
+    "dishes": [
+      {
+        "name": "Bol pêche-amandes",
+        "title": "Yaourt, avoine, pêche et amandes",
+        "slot": "breakfast",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "304,72 g de yaourt nature",
+            "in_pantry": false,
+            "amount": 304.71854304635764,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 304.71854304635764,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "flocons d'avoine",
+            "ref": "oats",
+            "ref_refused": false,
+            "quantity": "60,94 g de flocons d'avoine",
+            "in_pantry": false,
+            "amount": 60.943708609271525,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60.943708609271525,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "pêche",
+            "ref": "peach",
+            "ref_refused": false,
+            "quantity": "264,09 g de pêche",
+            "in_pantry": false,
+            "amount": 264.08940397350995,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 264.08940397350995,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "fruit_side"
+          },
+          {
+            "term": "amandes",
+            "ref": "almonds",
+            "ref_refused": false,
+            "quantity": "20,31 g d'amandes",
+            "in_pantry": false,
+            "amount": 20.31456953642384,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20.31456953642384,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "nut_finish"
+          }
+        ],
+        "method": "Mélanger le yaourt nature et les flocons d'avoine, ajouter la pêche en morceaux et terminer avec les amandes.",
+        "why": "Le yaourt apporte une base rassasiante et la pêche de saison garde ce petit-déjeuner simple et agréable.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 305,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "flocons d'avoine",
+                "grams": 61,
+                "ref": "oats",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pêche",
+                "grams": 264,
+                "ref": "peach",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "amandes",
+                "grams": 20,
+                "ref": "almonds",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "fruit_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "nut_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Poulet rôti du marché",
+        "title": "Poulet rôti, pommes de terre, poivrons, salade, pain et feta",
+        "slot": "lunch",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "53,96 g de feta",
+            "in_pantry": false,
+            "amount": 53.95877233165369,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 53.95877233165369,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          },
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "1,8 tranches de pain complet",
+            "in_pantry": false,
+            "amount": 1.7986257443884563,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 71.94502977553826,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "44,97 g de laitue",
+            "in_pantry": false,
+            "amount": 44.96564360971141,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 44.96564360971141,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "tomate",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "89,93 g de tomate",
+            "in_pantry": false,
+            "amount": 89.93128721942281,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 89.93128721942281,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,45/2 citron",
+            "in_pantry": false,
+            "amount": 0.4496564360971141,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 26.979386165826845,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "0,9 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 0.8993128721942282,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 13.489693082913423,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          }
+        ],
+        "method": "Assembler la laitue et la tomate avec le citron et l'huile d'olive. Ajouter une portion de poulet et de légumes rôtis, puis servir avec le pain complet et la feta.",
+        "why": "Le poulet rôti devient un déjeuner complet avec les légumes de saison, le pain et la feta.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti, pommes de terre et poivrons",
+                "grams": 370,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 54,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 72,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 45,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 90,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 27,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 13,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Salade tiède de lentilles",
+        "title": "Lentilles, légumes rôtis, pain, feta et salade",
+        "slot": "dinner",
+        "day": "sat",
+        "ingredients": [
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "1,14 tranche de pain complet",
+            "in_pantry": false,
+            "amount": 1.1398805573988056,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 45.595222295952226,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "68,39 g de yaourt nature",
+            "in_pantry": false,
+            "amount": 68.39283344392834,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 68.39283344392834,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "yogurt_sauce"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "28,5 g de feta",
+            "in_pantry": false,
+            "amount": 28.497013934970138,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 28.497013934970138,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "56,99 g de laitue",
+            "in_pantry": false,
+            "amount": 56.994027869940275,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 56.994027869940275,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,57/2 citron",
+            "in_pantry": false,
+            "amount": 0.5699402786994028,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 34.19641672196417,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1,14 cuillère à café",
+            "in_pantry": false,
+            "amount": 1.1398805573988056,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5.699402786994028,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          }
+        ],
+        "method": "Assembler la laitue avec le citron et l'huile d'olive. Ajouter une portion de lentilles et de légumes rôtis, puis servir avec le pain, le yaourt nature et la feta.",
+        "why": "Les lentilles et les légumes rôtis composent un dîner végétal simple, relevé par le yaourt, la feta et le citron.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_lentils",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_lentils",
+                "term": "Lentilles et légumes rôtis",
+                "grams": 407,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 46,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 68,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 28,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 57,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 34,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 6,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Œufs au pain complet",
+        "title": "Œufs, pain complet, tomates et épinards",
+        "slot": "breakfast",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "œufs entiers",
+            "ref": "whole_eggs",
+            "ref_refused": false,
+            "quantity": "3,54 œufs entiers",
+            "in_pantry": false,
+            "amount": 3.5360230547550433,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 194.4812680115274,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "1,77 tranche de pain complet",
+            "in_pantry": false,
+            "amount": 1.7680115273775217,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 70.72046109510086,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "bread_side"
+          },
+          {
+            "term": "tomate",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "265,2 g de tomate",
+            "in_pantry": false,
+            "amount": 265.20172910662825,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 265.20172910662825,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "vegetable_side"
+          },
+          {
+            "term": "épinards",
+            "ref": "spinach",
+            "ref_refused": false,
+            "quantity": "88,4 g d'épinards",
+            "in_pantry": false,
+            "amount": 88.40057636887609,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 88.40057636887609,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "vegetable_side"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1,77 cuillère à café",
+            "in_pantry": false,
+            "amount": 1.7680115273775217,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 8.840057636887607,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "cooking_fat"
+          }
+        ],
+        "method": "Faire tomber les épinards dans l'huile d'olive, ajouter les œufs et les brouiller. Servir avec la tomate et le pain complet.",
+        "why": "Les œufs donnent un ancrage salé au petit-déjeuner, tandis que la tomate et les épinards apportent les légumes du moment.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "œufs entiers",
+                "grams": 194,
+                "ref": "whole_eggs",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 71,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 265,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "épinards",
+                "grams": 80,
+                "ref": "spinach",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 9,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "vegetable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Pitas aux lentilles",
+        "title": "Lentilles, pitas, salade, tahini et yaourt",
+        "slot": "lunch",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pita complet",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "2 pitas complets",
+            "in_pantry": false,
+            "amount": 2.0022437531871495,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 120.13462519122898,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "pita_side"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "50,06 g de laitue",
+            "in_pantry": false,
+            "amount": 50.05609382967874,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 50.05609382967874,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "60,07 g de yaourt nature",
+            "in_pantry": false,
+            "amount": 60.06731259561449,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60.06731259561449,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "tahini_yogurt_sauce"
+          },
+          {
+            "term": "tahini",
+            "ref": "tahini",
+            "ref_refused": false,
+            "quantity": "1 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 1.0011218765935748,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 15.016828148903622,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "tahini_yogurt_sauce"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1 cuillère à café",
+            "in_pantry": false,
+            "amount": 1.0011218765935748,
+            "unit": "tsp",
+            "state": "raw",
+            "grams_raw": 5.005609382967874,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "finishing_oil"
+          }
+        ],
+        "method": "Mélanger le yaourt nature et le tahini. Garnir les pitas avec la laitue, les lentilles et les légumes rôtis, puis ajouter la sauce et l'huile d'olive.",
+        "why": "Les pitas changent la présentation des lentilles et offrent un déjeuner pratique avec une sauce au tahini et au yaourt.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_lentils",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_lentils",
+                "term": "Lentilles et légumes rôtis",
+                "grams": 357,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pita complet",
+                "grams": 120,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 50,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 60,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tahini",
+                "grams": 15,
+                "ref": "tahini",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 5,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tahini_yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "finishing_oil",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ]
+      },
+      {
+        "name": "Pita de poulet rôti",
+        "title": "Poulet rôti, légumes, pita, salade et yaourt",
+        "slot": "dinner",
+        "day": "sun",
+        "ingredients": [
+          {
+            "term": "pita complet",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "0,95 pita complet",
+            "in_pantry": false,
+            "amount": 0.9495854063018242,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 56.97512437810945,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "pita_side"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "47,48 g de laitue",
+            "in_pantry": false,
+            "amount": 47.47927031509121,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 47.47927031509121,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "tomate",
+            "ref": null,
+            "ref_refused": false,
+            "quantity": "94,96 g de tomate",
+            "in_pantry": false,
+            "amount": 94.95854063018243,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 94.95854063018243,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "yaourt nature",
+            "ref": "plain_yogurt",
+            "ref_refused": false,
+            "quantity": "56,98 g de yaourt nature",
+            "in_pantry": false,
+            "amount": 56.97512437810945,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 56.97512437810945,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "yogurt_sauce"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "0,47/2 citron",
+            "in_pantry": false,
+            "amount": 0.4747927031509121,
+            "unit": "unit",
+            "state": "raw",
+            "grams_raw": 28.487562189054724,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "0,95 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 0.9495854063018242,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 14.243781094527362,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "salad_dressing"
+          }
+        ],
+        "method": "Mélanger la laitue et la tomate avec le citron et l'huile d'olive. Garnir le pita avec le poulet et les légumes rôtis, puis ajouter le yaourt nature.",
+        "why": "Le poulet rôti revient sous forme de pita frais, ce qui donne au dîner une texture et une présentation différentes.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5",
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti, pommes de terre et poivrons",
+                "grams": 390,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pita complet",
+                "grams": 57,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 47,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 95,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "yaourt nature",
+                "grams": 57,
+                "ref": "plain_yogurt",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 28,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 14,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          }
+        ]
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti, pommes de terre et poivrons",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "blanc de poulet",
+            "ref": "chicken_breast",
+            "ref_refused": false,
+            "quantity": "460 g",
+            "in_pantry": false,
+            "amount": 460,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 460,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "pomme de terre",
+            "ref": "potato",
+            "ref_refused": false,
+            "quantity": "230 g",
+            "in_pantry": false,
+            "amount": 230,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 230,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "poivron",
+            "ref": "bell_pepper",
+            "ref_refused": false,
+            "quantity": "140 g",
+            "in_pantry": false,
+            "amount": 140,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 140,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "oignon",
+            "ref": "onion",
+            "ref_refused": false,
+            "quantity": "75 g",
+            "in_pantry": false,
+            "amount": 75,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 75,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1,85 cuillère à soupe",
+            "in_pantry": false,
+            "amount": 1.8488982784960524,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 27.733474177440787,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roast_fat"
+          }
+        ],
+        "method": "Préchauffer le four. Répartir le poulet, les pommes de terre, le poivron et l'oignon sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit et les légumes tendres. Laisser refroidir et répartir en portions égales.",
+        "active_minutes": 15,
+        "total_minutes": 45,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_vegetables",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roast_fat",
+            "role": "garnish_fat",
+            "part_of": "roasted_vegetables"
+          }
+        ]
+      },
+      {
+        "id": "prep_lentils",
+        "title": "Lentilles et légumes rôtis",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "lentilles sèches",
+            "ref": "lentils_dry",
+            "ref_refused": false,
+            "quantity": "192,69 g de lentilles sèches",
+            "in_pantry": false,
+            "amount": 192.69021905931422,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 192.69021905931422,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "main"
+          },
+          {
+            "term": "carotte",
+            "ref": "carrot",
+            "ref_refused": false,
+            "quantity": "107,05 g de carotte",
+            "in_pantry": false,
+            "amount": 107.05012169961901,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 107.05012169961901,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "oignon",
+            "ref": "onion",
+            "ref_refused": false,
+            "quantity": "85,64 g d'oignon",
+            "in_pantry": false,
+            "amount": 85.6400973596952,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 85.6400973596952,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "poivron",
+            "ref": "bell_pepper",
+            "ref_refused": false,
+            "quantity": "107,05 g de poivron",
+            "in_pantry": false,
+            "amount": 107.05012169961901,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 107.05012169961901,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roasted_vegetables"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "2,14 cuillères à soupe",
+            "in_pantry": false,
+            "amount": 2.14100243399238,
+            "unit": "tbsp",
+            "state": "raw",
+            "grams_raw": 32.1150365098857,
+            "group": null,
+            "quantity_source": "structured",
+            "part": "roast_fat"
+          }
+        ],
+        "method": "Cuire les lentilles dans l'eau puis les égoutter. Rôtir la carotte, l'oignon et le poivron avec l'huile d'olive jusqu'à ce qu'ils soient tendres, mélanger avec les lentilles et répartir en portions égales.",
+        "active_minutes": 20,
+        "total_minutes": 40,
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_vegetables",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roast_fat",
+            "role": "garnish_fat",
+            "part_of": "roasted_vegetables"
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_lentils"
+        ],
+        "run_through": "Préchauffer le four et lancer la plaque de poulet, de pommes de terre et de poivrons. Pendant la cuisson, mettre les lentilles à cuire, préparer la carotte et les autres légumes, puis les rôtir avec leur huile. Égoutter les lentilles, mélanger avec les légumes, laisser refroidir les deux préparations et les répartir en portions pour le réfrigérateur.",
+        "total_minutes": 55
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "blanc de poulet",
+        "quantity": "460 g",
+        "aisle": "protein",
+        "food_group": "poultry",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "lentilles sèches",
+        "quantity": "195 g",
+        "aisle": "pantry",
+        "food_group": "legumes",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "œufs entiers",
+        "quantity": "4 œufs",
+        "aisle": "protein",
+        "food_group": "eggs",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt nature",
+        "quantity": "490 g",
+        "aisle": "dairy",
+        "food_group": "dairy_yogurt",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "quantity": "110 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "quantity": "5 tranches",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pitas complets",
+        "quantity": "3 pitas",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d'avoine",
+        "quantity": "60 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pomme de terre",
+        "quantity": "230 g",
+        "aisle": "produce",
+        "food_group": "starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivron",
+        "quantity": "250 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "quantity": "160 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carotte",
+        "quantity": "105 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "quantity": "200 g",
+        "aisle": "produce",
+        "food_group": "leafy_greens",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomate",
+        "quantity": "450 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "épinards",
+        "quantity": "90 g",
+        "aisle": "produce",
+        "food_group": "leafy_greens",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêche",
+        "quantity": "265 g",
+        "aisle": "produce",
+        "food_group": "other_fruit",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "citron",
+        "quantity": "2 citrons",
+        "aisle": "produce",
+        "food_group": "citrus",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "amandes",
+        "quantity": "20 g",
+        "aisle": "pantry",
+        "food_group": "nuts_seeds",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tahini",
+        "quantity": "1 c. à soupe",
+        "aisle": "pantry",
+        "food_group": "nuts_seeds",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d'olive",
+        "quantity": "8 c. à soupe",
+        "aisle": "pantry",
+        "food_group": "olive_oil",
+        "buy_on": "2026-09-12",
+        "freeze_on_purchase": false
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "b199e386-f629-408e-a86b-6d9607962ad6",
+        "display_name": "Paul",
+        "portion_note": null,
+        "eating_slots": null,
+        "preparation_shares": []
+      }
+    ],
+    "member_deltas": [],
+    "merged_members": [],
+    "issues": [
+      "spent_first_day_dropped: fri (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-12)",
+      "freeze_on_purchase: 0/20",
+      "raw_keeping_needs_later_shop: 0/2 preparations",
+      "waves_kept_for_freshness: 0/20",
+      "sessions_fed_from_freezer: 0/0 name the freezer",
+      "quantity_prose_stale:37",
+      "final_gate_flagged:2",
+      "final_gate_delivery:deliverable_with_gaps",
+      "shopping_list_unattributed: 1/20 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "ref_absent: 3/42 ingredients",
+      "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/4"
+    ],
+    "request_id": "1a422c88-b527-4445-adbf-9971edd8fefe"
+  },
+  "reponse_brute": "{\n  \"dishes\": [\n    {\n      \"name\": \"Bol pêche-amandes\",\n      \"title\": \"Yaourt, avoine, pêche et amandes\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"150 g de yaourt nature\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"flocons d'avoine\",\n          \"quantity\": \"30 g de flocons d'avoine\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"oats\"\n        },\n        {\n          \"term\": \"pêche\",\n          \"quantity\": \"130 g de pêche\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"fruit_side\",\n          \"ref\": \"peach\"\n        },\n        {\n          \"term\": \"amandes\",\n          \"quantity\": \"10 g d'amandes\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"nut_finish\",\n          \"ref\": \"almonds\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"fruit_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"nut_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Mélanger le yaourt nature et les flocons d'avoine, ajouter la pêche en morceaux et terminer avec les amandes.\",\n      \"why\": \"Le yaourt apporte une base rassasiante et la pêche de saison garde ce petit-déjeuner simple et agréable.\",\n      \"density_check\": 99.5,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Poulet rôti du marché\",\n      \"title\": \"Poulet rôti, pommes de terre, poivrons, salade, pain et feta\",\n      \"slot\": \"lunch\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"60 g de feta\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"feta_finish\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"2 tranches de pain complet\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g de laitue\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"100 g de tomate\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"1/2 citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"lemon\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"1 c. à soupe d'huile d'olive\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_dressing\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"salad_side\"\n        },\n        {\n          \"id\": \"feta_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Assembler la laitue et la tomate avec le citron et l'huile d'olive. Ajouter une portion de poulet et de légumes rôtis, puis servir avec le pain complet et la feta.\",\n      \"why\": \"Le poulet rôti devient un déjeuner complet avec les légumes de saison, le pain et la feta.\",\n      \"density_check\": 146.0,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Salade tiède de lentilles\",\n      \"title\": \"Lentilles, légumes rôtis, pain, feta et salade\",\n      \"slot\": \"dinner\",\n      \"day\": \"sat\",\n      \"ingredients\": [\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"1 tranche de pain complet\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"60 g de yaourt nature\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"yogurt_sauce\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"25 g de feta\",\n          \"amount\": 25,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"feta_finish\",\n          \"ref\": \"feta\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g de laitue\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"1/2 citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"lemon\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"1 c. à café d'huile d'olive\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"yogurt_sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"salad_dressing\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"salad_side\"\n        },\n        {\n          \"id\": \"feta_finish\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Assembler la laitue avec le citron et l'huile d'olive. Ajouter une portion de lentilles et de légumes rôtis, puis servir avec le pain, le yaourt nature et la feta.\",\n      \"why\": \"Les lentilles et les légumes rôtis composent un dîner végétal simple, relevé par le yaourt, la feta et le citron.\",\n      \"density_check\": 132.8,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentils\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Œufs au pain complet\",\n      \"title\": \"Œufs, pain complet, tomates et épinards\",\n      \"slot\": \"breakfast\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"œufs entiers\",\n          \"quantity\": \"2 œufs entiers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"whole_eggs\"\n        },\n        {\n          \"term\": \"pain complet\",\n          \"quantity\": \"1 tranche de pain complet\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"bread_side\",\n          \"ref\": \"wholemeal_bread\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"150 g de tomate\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"vegetable_side\"\n        },\n        {\n          \"term\": \"épinards\",\n          \"quantity\": \"50 g d'épinards\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"vegetable_side\",\n          \"ref\": \"spinach\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"1 c. à café d'huile d'olive\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\",\n          \"part\": \"cooking_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"bread_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"vegetable_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"cooking_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Faire tomber les épinards dans l'huile d'olive, ajouter les œufs et les brouiller. Servir avec la tomate et le pain complet.\",\n      \"why\": \"Les œufs donnent un ancrage salé au petit-déjeuner, tandis que la tomate et les épinards apportent les légumes du moment.\",\n      \"density_check\": 99.1,\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pitas aux lentilles\",\n      \"title\": \"Lentilles, pitas, salade, tahini et yaourt\",\n      \"slot\": \"lunch\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pita complet\",\n          \"quantity\": \"2 pitas complets\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"pita_side\",\n          \"ref\": \"pita_wholemeal\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g de laitue\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"60 g de yaourt nature\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"tahini_yogurt_sauce\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"tahini\",\n          \"quantity\": \"1 c. à soupe de tahini\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"tahini_yogurt_sauce\",\n          \"ref\": \"tahini\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"1 c. à café d'huile d'olive\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\",\n          \"part\": \"finishing_oil\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"pita_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"tahini_yogurt_sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"finishing_oil\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"main\"\n        }\n      ],\n      \"method\": \"Mélanger le yaourt nature et le tahini. Garnir les pitas avec la laitue, les lentilles et les légumes rôtis, puis ajouter la sauce et l'huile d'olive.\",\n      \"why\": \"Les pitas changent la présentation des lentilles et offrent un déjeuner pratique avec une sauce au tahini et au yaourt.\",\n      \"density_check\": 167.3,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentils\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    },\n    {\n      \"name\": \"Pita de poulet rôti\",\n      \"title\": \"Poulet rôti, légumes, pita, salade et yaourt\",\n      \"slot\": \"dinner\",\n      \"day\": \"sun\",\n      \"ingredients\": [\n        {\n          \"term\": \"pita complet\",\n          \"quantity\": \"1 pita complet\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"pita_side\",\n          \"ref\": \"pita_wholemeal\"\n        },\n        {\n          \"term\": \"laitue\",\n          \"quantity\": \"50 g de laitue\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\",\n          \"ref\": \"lettuce\"\n        },\n        {\n          \"term\": \"tomate\",\n          \"quantity\": \"100 g de tomate\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"salad_side\"\n        },\n        {\n          \"term\": \"yaourt nature\",\n          \"quantity\": \"60 g de yaourt nature\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"yogurt_sauce\",\n          \"ref\": \"plain_yogurt\"\n        },\n        {\n          \"term\": \"citron\",\n          \"quantity\": \"1/2 citron\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"lemon\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"1 c. à soupe d'huile d'olive\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"salad_dressing\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"pita_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"salad_side\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"yogurt_sauce\",\n          \"role\": \"sauce\",\n          \"part_of\": \"main\"\n        },\n        {\n          \"id\": \"salad_dressing\",\n          \"role\": \"seasoning\",\n          \"part_of\": \"salad_side\"\n        }\n      ],\n      \"method\": \"Mélanger la laitue et la tomate avec le citron et l'huile d'olive. Garnir le pita avec le poulet et les légumes rôtis, puis ajouter le yaourt nature.\",\n      \"why\": \"Le poulet rôti revient sous forme de pita frais, ce qui donne au dîner une texture et une présentation différentes.\",\n      \"density_check\": 124.5,\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"kept\": \"fridge\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"whole_foods_first\",\n        \"protein_at_every_meal\",\n        \"regular_meals_beat_perfect_meals\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Poulet rôti, pommes de terre et poivrons\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"blanc de poulet\",\n          \"quantity\": \"500 g de blanc de poulet\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"chicken_breast\"\n        },\n        {\n          \"term\": \"pomme de terre\",\n          \"quantity\": \"250 g de pommes de terre\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"potato\"\n        },\n        {\n          \"term\": \"poivron\",\n          \"quantity\": \"150 g de poivron\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"bell_pepper\"\n        },\n        {\n          \"term\": \"oignon\",\n          \"quantity\": \"80 g d'oignon\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"onion\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"2 c. à soupe d'huile d'olive\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"roast_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"roasted_vegetables\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"roast_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"roasted_vegetables\"\n        }\n      ],\n      \"method\": \"Préchauffer le four. Répartir le poulet, les pommes de terre, le poivron et l'oignon sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit et les légumes tendres. Laisser refroidir et répartir en portions égales.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"sat\"\n    },\n    {\n      \"id\": \"prep_lentils\",\n      \"title\": \"Lentilles et légumes rôtis\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"lentilles sèches\",\n          \"quantity\": \"180 g de lentilles sèches\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"main\",\n          \"ref\": \"lentils_dry\"\n        },\n        {\n          \"term\": \"carotte\",\n          \"quantity\": \"100 g de carotte\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"carrot\"\n        },\n        {\n          \"term\": \"oignon\",\n          \"quantity\": \"80 g d'oignon\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"onion\"\n        },\n        {\n          \"term\": \"poivron\",\n          \"quantity\": \"100 g de poivron\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\",\n          \"part\": \"roasted_vegetables\",\n          \"ref\": \"bell_pepper\"\n        },\n        {\n          \"term\": \"huile d'olive\",\n          \"quantity\": \"2 c. à soupe d'huile d'olive\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\",\n          \"part\": \"roast_fat\",\n          \"ref\": \"olive_oil\"\n        }\n      ],\n      \"components\": [\n        {\n          \"id\": \"main\",\n          \"role\": \"main\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"roasted_vegetables\",\n          \"role\": \"separable_side\",\n          \"part_of\": null\n        },\n        {\n          \"id\": \"roast_fat\",\n          \"role\": \"garnish_fat\",\n          \"part_of\": \"roasted_vegetables\"\n        }\n      ],\n      \"method\": \"Cuire les lentilles dans l'eau puis les égoutter. Rôtir la carotte, l'oignon et le poivron avec l'huile d'olive jusqu'à ce qu'ils soient tendres, mélanger avec les lentilles et répartir en portions égales.\",\n      \"active_minutes\": 20,\n      \"total_minutes\": 40,\n      \"cook_on\": \"sat\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"sat\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_lentils\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Préchauffer le four et lancer la plaque de poulet, de pommes de terre et de poivrons. Pendant la cuisson, mettre les lentilles à cuire, préparer la carotte et les autres légumes, puis les rôtir avec leur huile. Égoutter les lentilles, mélanger avec les légumes, laisser refroidir les deux préparations et les répartir en portions pour le réfrigérateur.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"blanc de poulet\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"lentilles sèches\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"œufs entiers\",\n      \"quantity\": \"2 œufs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"yaourt nature\",\n      \"quantity\": \"330 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"115 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"pain complet\",\n      \"quantity\": \"4 tranches\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pitas complets\",\n      \"quantity\": \"3 pitas\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"flocons d'avoine\",\n      \"quantity\": \"30 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pomme de terre\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"poivron\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"oignon\",\n      \"quantity\": \"160 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carotte\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"laitue\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomate\",\n      \"quantity\": \"350 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"épinards\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pêche\",\n      \"quantity\": \"130 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"citron\",\n      \"quantity\": \"2 citrons\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"amandes\",\n      \"quantity\": \"10 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tahini\",\n      \"quantity\": \"1 c. à soupe\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"huile d'olive\",\n      \"quantity\": \"7 c. à soupe\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sat\",\n      \"slot\": \"breakfast\",\n      \"instruction\": \"Servir 150 g de yaourt, 30 g d'avoine, 130 g de pêche et 10 g d'amandes.\",\n      \"density_check\": 99.5\n    },\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sat\",\n      \"slot\": \"lunch\",\n      \"instruction\": \"Déposer 50 g de salade, puis 180 g de poulet rôti, puis 231 g de pommes de terre et légumes rôtis; ajouter 80 g de pain complet et 60 g de feta.\",\n      \"density_check\": 146.0\n    },\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sat\",\n      \"slot\": \"dinner\",\n      \"instruction\": \"Déposer 50 g de salade, puis 216 g de lentilles, puis 141 g de légumes rôtis; ajouter 40 g de pain complet, 60 g de yaourt et 25 g de feta.\",\n      \"density_check\": 132.8\n    },\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sun\",\n      \"slot\": \"breakfast\",\n      \"instruction\": \"Servir 50 g d'épinards et 150 g de tomate, puis 110 g d'œufs; ajouter 40 g de pain complet.\",\n      \"density_check\": 99.1\n    },\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sun\",\n      \"slot\": \"lunch\",\n      \"instruction\": \"Déposer 50 g de salade, puis 216 g de lentilles et 141 g de légumes rôtis; ajouter 120 g de pitas, 60 g de yaourt, 15 g de tahini et 5 g d'huile d'olive.\",\n      \"density_check\": 167.3\n    },\n    {\n      \"member_id\": \"b199e386-f629-408e-a86b-6d9607962ad6\",\n      \"day\": \"sun\",\n      \"slot\": \"dinner\",\n      \"instruction\": \"Déposer 50 g de salade, puis 180 g de poulet rôti et 231 g de légumes rôtis; ajouter 60 g de pita et 60 g de yaourt.\",\n      \"density_check\": 124.5\n    }\n  ],\n  \"explanation\": []\n}",
+  "ligne_ecrite": {
+    "id": "581feef7-3666-4cf5-922c-c4c7c70720c0",
+    "user_id": "c6f8214b-5271-4033-8c05-48adb61c7df3",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 1,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "sat",
+        "why": "Le yaourt apporte une base rassasiante et la pêche de saison garde ce petit-déjeuner simple et agréable.",
+        "name": "Bol pêche-amandes",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sat_breakfast_0",
+            "items": [
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 305,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "flocons d'avoine",
+                "grams": 61,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "peach",
+                "term": "pêche",
+                "grams": 264,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "almonds",
+                "term": "amandes",
+                "grams": 20,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Yaourt, avoine, pêche et amandes",
+        "method": "Mélanger le yaourt nature et les flocons d'avoine, ajouter la pêche en morceaux et terminer avec les amandes.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "fruit_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "nut_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "plain_yogurt",
+            "part": "main",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 304.71854304635764,
+            "quantity": "304,72 g de yaourt nature",
+            "grams_raw": 304.71854304635764,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": "main",
+            "term": "flocons d'avoine",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 60.943708609271525,
+            "quantity": "60,94 g de flocons d'avoine",
+            "grams_raw": 60.943708609271525,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "peach",
+            "part": "fruit_side",
+            "term": "pêche",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 264.08940397350995,
+            "quantity": "264,09 g de pêche",
+            "grams_raw": 264.08940397350995,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "almonds",
+            "part": "nut_finish",
+            "term": "amandes",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 20.31456953642384,
+            "quantity": "20,31 g d'amandes",
+            "grams_raw": 20.31456953642384,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "Le poulet rôti devient un déjeuner complet avec les légumes de saison, le pain et la feta.",
+        "name": "Poulet rôti du marché",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_lunch_1",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti, pommes de terre et poivrons",
+                "grams": 370,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 54,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 72,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 45,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": null,
+                "term": "tomate",
+                "grams": 90,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 27,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 13,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet rôti, pommes de terre, poivrons, salade, pain et feta",
+        "method": "Assembler la laitue et la tomate avec le citron et l'huile d'olive. Ajouter une portion de poulet et de légumes rôtis, puis servir avec le pain complet et la feta.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 53.95877233165369,
+            "quantity": "53,96 g de feta",
+            "grams_raw": 53.95877233165369,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.7986257443884563,
+            "quantity": "1,8 tranches de pain complet",
+            "grams_raw": 71.94502977553826,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 44.96564360971141,
+            "quantity": "44,97 g de laitue",
+            "grams_raw": 44.96564360971141,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": null,
+            "part": "salad_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 89.93128721942281,
+            "quantity": "89,93 g de tomate",
+            "grams_raw": 89.93128721942281,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "salad_dressing",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.4496564360971141,
+            "quantity": "0,45/2 citron",
+            "grams_raw": 26.979386165826845,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "salad_dressing",
+            "term": "huile d'olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 0.8993128721942282,
+            "quantity": "0,9 cuillère à soupe",
+            "grams_raw": 13.489693082913423,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sat",
+        "why": "Les lentilles et les légumes rôtis composent un dîner végétal simple, relevé par le yaourt, la feta et le citron.",
+        "name": "Salade tiède de lentilles",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentils"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sat_dinner_2",
+            "items": [
+              {
+                "ref": null,
+                "term": "Lentilles et légumes rôtis",
+                "grams": 407,
+                "ref_refused": false,
+                "preparation_id": "prep_lentils"
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 46,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 68,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 28,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 57,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 34,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 6,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Lentilles, légumes rôtis, pain, feta et salade",
+        "method": "Assembler la laitue avec le citron et l'huile d'olive. Ajouter une portion de lentilles et de légumes rôtis, puis servir avec le pain, le yaourt nature et la feta.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.1398805573988056,
+            "quantity": "1,14 tranche de pain complet",
+            "grams_raw": 45.595222295952226,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "plain_yogurt",
+            "part": "yogurt_sauce",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 68.39283344392834,
+            "quantity": "68,39 g de yaourt nature",
+            "grams_raw": 68.39283344392834,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 28.497013934970138,
+            "quantity": "28,5 g de feta",
+            "grams_raw": 28.497013934970138,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 56.994027869940275,
+            "quantity": "56,99 g de laitue",
+            "grams_raw": 56.994027869940275,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "salad_dressing",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.5699402786994028,
+            "quantity": "0,57/2 citron",
+            "grams_raw": 34.19641672196417,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "salad_dressing",
+            "term": "huile d'olive",
+            "unit": "tsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.1398805573988056,
+            "quantity": "1,14 cuillère à café",
+            "grams_raw": 5.699402786994028,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Les œufs donnent un ancrage salé au petit-déjeuner, tandis que la tomate et les épinards apportent les légumes du moment.",
+        "name": "Œufs au pain complet",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_sun_breakfast_3",
+            "items": [
+              {
+                "ref": "whole_eggs",
+                "term": "œufs entiers",
+                "grams": 194,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 71,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": null,
+                "term": "tomate",
+                "grams": 265,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "spinach",
+                "term": "épinards",
+                "grams": 80,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 9,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Œufs, pain complet, tomates et épinards",
+        "method": "Faire tomber les épinards dans l'huile d'olive, ajouter les œufs et les brouiller. Servir avec la tomate et le pain complet.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "vegetable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "cooking_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "whole_eggs",
+            "part": "main",
+            "term": "œufs entiers",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 3.5360230547550433,
+            "quantity": "3,54 œufs entiers",
+            "grams_raw": 194.4812680115274,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 1.7680115273775217,
+            "quantity": "1,77 tranche de pain complet",
+            "grams_raw": 70.72046109510086,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": null,
+            "part": "vegetable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 265.20172910662825,
+            "quantity": "265,2 g de tomate",
+            "grams_raw": 265.20172910662825,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "spinach",
+            "part": "vegetable_side",
+            "term": "épinards",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 88.40057636887609,
+            "quantity": "88,4 g d'épinards",
+            "grams_raw": 88.40057636887609,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "cooking_fat",
+            "term": "huile d'olive",
+            "unit": "tsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.7680115273775217,
+            "quantity": "1,77 cuillère à café",
+            "grams_raw": 8.840057636887607,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Les pitas changent la présentation des lentilles et offrent un déjeuner pratique avec une sauce au tahini et au yaourt.",
+        "name": "Pitas aux lentilles",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentils"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_lunch_4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Lentilles et légumes rôtis",
+                "grams": 357,
+                "ref_refused": false,
+                "preparation_id": "prep_lentils"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complet",
+                "grams": 120,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 50,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 60,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tahini",
+                "term": "tahini",
+                "grams": 15,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 5,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Lentilles, pitas, salade, tahini et yaourt",
+        "method": "Mélanger le yaourt nature et le tahini. Garnir les pitas avec la laitue, les lentilles et les légumes rôtis, puis ajouter la sauce et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tahini_yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "finishing_oil",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "pita_side",
+            "term": "pita complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 2.0022437531871495,
+            "quantity": "2 pitas complets",
+            "grams_raw": 120.13462519122898,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 50.05609382967874,
+            "quantity": "50,06 g de laitue",
+            "grams_raw": 50.05609382967874,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "plain_yogurt",
+            "part": "tahini_yogurt_sauce",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 60.06731259561449,
+            "quantity": "60,07 g de yaourt nature",
+            "grams_raw": 60.06731259561449,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tahini",
+            "part": "tahini_yogurt_sauce",
+            "term": "tahini",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.0011218765935748,
+            "quantity": "1 cuillère à soupe",
+            "grams_raw": 15.016828148903622,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "finishing_oil",
+            "term": "huile d'olive",
+            "unit": "tsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.0011218765935748,
+            "quantity": "1 cuillère à café",
+            "grams_raw": 5.005609382967874,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "sun",
+        "why": "Le poulet rôti revient sous forme de pita frais, ce qui donne au dîner une texture et une présentation différentes.",
+        "name": "Pita de poulet rôti",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_sun_dinner_5",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti, pommes de terre et poivrons",
+                "grams": 390,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complet",
+                "grams": 57,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 47,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": null,
+                "term": "tomate",
+                "grams": 95,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "plain_yogurt",
+                "term": "yaourt nature",
+                "grams": 57,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 28,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 14,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "b199e386-f629-408e-a86b-6d9607962ad6"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet rôti, légumes, pita, salade et yaourt",
+        "method": "Mélanger la laitue et la tomate avec le citron et l'huile d'olive. Garnir le pita avec le poulet et les légumes rôtis, puis ajouter le yaourt nature.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "pita_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "yogurt_sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "salad_dressing",
+            "role": "seasoning",
+            "part_of": "salad_side"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "pita_side",
+            "term": "pita complet",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.9495854063018242,
+            "quantity": "0,95 pita complet",
+            "grams_raw": 56.97512437810945,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 47.47927031509121,
+            "quantity": "47,48 g de laitue",
+            "grams_raw": 47.47927031509121,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": null,
+            "part": "salad_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 94.95854063018243,
+            "quantity": "94,96 g de tomate",
+            "grams_raw": 94.95854063018243,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "plain_yogurt",
+            "part": "yogurt_sauce",
+            "term": "yaourt nature",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 56.97512437810945,
+            "quantity": "56,98 g de yaourt nature",
+            "grams_raw": 56.97512437810945,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "salad_dressing",
+            "term": "citron",
+            "unit": "unit",
+            "group": null,
+            "state": "raw",
+            "amount": 0.4747927031509121,
+            "quantity": "0,47/2 citron",
+            "grams_raw": 28.487562189054724,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "salad_dressing",
+            "term": "huile d'olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 0.9495854063018242,
+            "quantity": "0,95 cuillère à soupe",
+            "grams_raw": 14.243781094527362,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "blanc de poulet",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "460 g",
+        "food_group": "poultry",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "lentilles sèches",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "195 g",
+        "food_group": "legumes",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "œufs entiers",
+        "aisle": "protein",
+        "buy_on": "2026-09-12",
+        "quantity": "4 œufs",
+        "food_group": "eggs",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "yaourt nature",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "490 g",
+        "food_group": "dairy_yogurt",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "feta",
+        "aisle": "dairy",
+        "buy_on": "2026-09-12",
+        "quantity": "110 g",
+        "food_group": "dairy_cheese",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pain complet",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "5 tranches",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pitas complets",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "3 pitas",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "flocons d'avoine",
+        "aisle": "grains",
+        "buy_on": "2026-09-12",
+        "quantity": "60 g",
+        "food_group": "whole_grain",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pomme de terre",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "230 g",
+        "food_group": "starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "poivron",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "250 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "oignon",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "160 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "carotte",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "105 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "laitue",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "200 g",
+        "food_group": "leafy_greens",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tomate",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "450 g",
+        "food_group": "non_starchy_veg",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "épinards",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "90 g",
+        "food_group": "leafy_greens",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "pêche",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "265 g",
+        "food_group": "other_fruit",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "citron",
+        "aisle": "produce",
+        "buy_on": "2026-09-12",
+        "quantity": "2 citrons",
+        "food_group": "citrus",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "amandes",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "20 g",
+        "food_group": "nuts_seeds",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "tahini",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "1 c. à soupe",
+        "food_group": "nuts_seeds",
+        "freeze_on_purchase": false
+      },
+      {
+        "term": "huile d'olive",
+        "aisle": "pantry",
+        "buy_on": "2026-09-12",
+        "quantity": "8 c. à soupe",
+        "food_group": "olive_oil",
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "fat_loss",
+      "names": {
+        "kept": 6,
+        "dishes": 6,
+        "refused": 0,
+        "declared": 6
+      },
+      "intent": "prepare_next",
+      "issues": [
+        "spent_first_day_dropped: fri (shopping_cutoff)",
+        "shopping_waves: 1 (2026-09-12)",
+        "freeze_on_purchase: 0/20",
+        "raw_keeping_needs_later_shop: 0/2 preparations",
+        "waves_kept_for_freshness: 0/20",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "quantity_prose_stale:37",
+        "shopping_list_unattributed: 1/20 lines match no kept and no dropped ingredient -- kept, not guessed",
+        "ref_absent: 3/42 ingredients",
+        "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/4"
+      ],
+      "timing": {
+        "kind": "starts_tomorrow",
+        "reason": "today_already_spent",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 6,
+        "invalid": 0,
+        "declared": 6,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "5031c5eb-e367-4ae1-b6cf-e2e8371cde1c",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": null,
+          "free_mouths": 0,
+          "absent_cells": [],
+          "bound_mouths": 0,
+          "cells_checked": 0,
+          "cells_carrying": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "retry_reverted": false,
+          "cells_swap_absent": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 4,
+          "names": 0,
+          "capped": 0,
+          "mouths": 1,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 4,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 6,
+          "preparations": 2,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 6,
+          "mouths_double_model": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_dish",
+          "unused": false,
+          "computed": "one_dish",
+          "diverging": [],
+          "dish_bearing": []
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 1
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 6,
+          "holders": 0,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-07",
+        "box_sizing": {
+          "boxes": 6,
+          "items": 36,
+          "share": {
+            "sized": 0,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 1,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 0,
+          "unmet": {
+            "both": 0,
+            "none": 2,
+            "pot_ceiling": 0,
+            "not_anchored": 0,
+            "tub_estimate": 0,
+            "factor_clamped": 0
+          },
+          "anchor": {
+            "clamped": 0,
+            "no_body": 0,
+            "anchored": 2,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 36,
+          "anchor_cap": {
+            "none": 2,
+            "density": 0,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 1,
+            "shopping": 14,
+            "regrammed": 4,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 2,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 0,
+            "unboxed_use": 0,
+            "lines_scaled": 14,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 1,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 6,
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 1
+          },
+          "pot_attribution": {
+            "ratio": 1,
+            "drawnGrams": 1524,
+            "potsUnreadable": 0,
+            "attributedGrams": 1524
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 0,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 1,
+          "ranks_without_object": 4
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 0,
+          "refused": 0,
+          "declared": 0,
+          "attributed": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 0,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 0,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "silenced_homograph": 0
+        },
+        "member_count": 1,
+        "member_deltas": [],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "apply": {
+            "regrammed": 42,
+            "pots_scaled": 2,
+            "fresh_scaled": 32,
+            "own_authored": 0,
+            "tubs_authored": 0,
+            "boxes_authored": 6,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "servings_rewritten": 0
+          },
+          "final": {
+            "boxes": 6,
+            "water": {
+              "kept": 2,
+              "absorbed": 0,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 6,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 6,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 0,
+            "composed": 3,
+            "declared": 0,
+            "without_target": 0
+          },
+          "dishes": 6,
+          "mouths": 1,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 1,
+            "no_target": 0
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 0,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 0,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 0,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 0,
+            "recipe_quantified": 0,
+            "retry_skipped_small": 0
+          },
+          "measured": 6,
+          "verdicts": {
+            "over_max": 0,
+            "in_bounds": 6,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "verification": {
+            "anchored": 2,
+            "pot_shrunk": 0,
+            "unmet_none": 2,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 0,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 14,
+            "shopping_unattributed": 1
+          },
+          "bounds_source": {
+            "age_known": 6,
+            "age_unknown": 0
+          },
+          "fixed_covered": 0,
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 0,
+            "loose_ignored_kcal": 0
+          },
+          "unmeasurable_by": {},
+          "contract_missing": 0,
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 6,
+          "rows": [],
+          "mouths": 1,
+          "missing": 0,
+          "rehomed": 0,
+          "retried": false,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 6,
+          "restored": 0,
+          "retry_on": {},
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "restored_fallback": 0,
+          "cells_without_dish": 0,
+          "retry_merged_cells": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "retry_accepted": 0,
+          "retry_attempts": 0,
+          "pairs_from_stores": 0,
+          "retry_rejected_by": null,
+          "retry_merged_cells": 0
+        },
+        "accountless_count": 0,
+        "restriction_count": 0,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 1,
+          "skipped_no_dedicated": 0
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 32,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 2 jours, à partir de samedi 2026-09-12.",
+          "Tu en avais demandé 3 : vendredi était déjà entamé, le plan commence donc demain et en couvre 2.",
+          "Une seule course, samedi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 0,
+        "lines": [],
+        "refusal": null,
+        "declared": 0
+      },
+      "food_groups": {
+        "lines": 42,
+        "valid": 0,
+        "refused": 0,
+        "declared": 0,
+        "persisted": 0
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "gender.personal": 1,
+        "ageYears.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "activityAxes.personal": 1,
+        "appetite.member_sheet": 1,
+        "activityLevel.personal": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 246288,
+        "elapsed_ms": 103712,
+        "reserve_ms": 30000,
+        "remaining_ms": 276288,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 5.3,
+        "plausible": 7.54,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v32_the_recipe_says_what_holds_it+household.v33_one_standard_recipe_the_engine_multiplies",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-11",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 1,
+        "master_member_id": "b199e386-f629-408e-a86b-6d9607962ad6",
+        "served_member_ids": [
+          "b199e386-f629-408e-a86b-6d9607962ad6"
+        ],
+        "plan_owner_user_id": "c6f8214b-5271-4033-8c05-48adb61c7df3",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-05",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-11T18:08:24.710173+00:00",
+    "updated_at": "2026-09-11T18:08:24.710173+00:00",
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti, pommes de terre et poivrons",
+        "method": "Préchauffer le four. Répartir le poulet, les pommes de terre, le poivron et l'oignon sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit et les légumes tendres. Laisser refroidir et répartir en portions égales.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_vegetables",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roast_fat",
+            "role": "garnish_fat",
+            "part_of": "roasted_vegetables"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "chicken_breast",
+            "part": "main",
+            "term": "blanc de poulet",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 460,
+            "quantity": "460 g",
+            "grams_raw": 460,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "potato",
+            "part": "roasted_vegetables",
+            "term": "pomme de terre",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 230,
+            "quantity": "230 g",
+            "grams_raw": 230,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "roasted_vegetables",
+            "term": "poivron",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 140,
+            "quantity": "140 g",
+            "grams_raw": 140,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "roasted_vegetables",
+            "term": "oignon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 75,
+            "quantity": "75 g",
+            "grams_raw": 75,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "roast_fat",
+            "term": "huile d'olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 1.8488982784960524,
+            "quantity": "1,85 cuillère à soupe",
+            "grams_raw": 27.733474177440787,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 45,
+        "active_minutes": 15
+      },
+      {
+        "id": "prep_lentils",
+        "title": "Lentilles et légumes rôtis",
+        "method": "Cuire les lentilles dans l'eau puis les égoutter. Rôtir la carotte, l'oignon et le poivron avec l'huile d'olive jusqu'à ce qu'ils soient tendres, mélanger avec les lentilles et répartir en portions égales.",
+        "cook_on": "sat",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_vegetables",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roast_fat",
+            "role": "garnish_fat",
+            "part_of": "roasted_vegetables"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "lentils_dry",
+            "part": "main",
+            "term": "lentilles sèches",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 192.69021905931422,
+            "quantity": "192,69 g de lentilles sèches",
+            "grams_raw": 192.69021905931422,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "carrot",
+            "part": "roasted_vegetables",
+            "term": "carotte",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 107.05012169961901,
+            "quantity": "107,05 g de carotte",
+            "grams_raw": 107.05012169961901,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "roasted_vegetables",
+            "term": "oignon",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 85.6400973596952,
+            "quantity": "85,64 g d'oignon",
+            "grams_raw": 85.6400973596952,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "roasted_vegetables",
+            "term": "poivron",
+            "unit": "g",
+            "group": null,
+            "state": "raw",
+            "amount": 107.05012169961901,
+            "quantity": "107,05 g de poivron",
+            "grams_raw": 107.05012169961901,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "roast_fat",
+            "term": "huile d'olive",
+            "unit": "tbsp",
+            "group": null,
+            "state": "raw",
+            "amount": 2.14100243399238,
+            "quantity": "2,14 cuillères à soupe",
+            "grams_raw": 32.1150365098857,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 40,
+        "active_minutes": 20
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "sat",
+        "run_through": "Préchauffer le four et lancer la plaque de poulet, de pommes de terre et de poivrons. Pendant la cuisson, mettre les lentilles à cuire, préparer la carotte et les autres légumes, puis les rôtir avec leur huile. Égoutter les lentilles, mélanger avec les légumes, laisser refroidir les deux préparations et les répartir en portions pour le réfrigérateur.",
+        "total_minutes": 55,
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_lentils"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-12",
+    "duration_days": 2,
+    "retired_at": null,
+    "ends_on": "2026-09-13",
+    "household_id": "5031c5eb-e367-4ae1-b6cf-e2e8371cde1c",
+    "member_portions": [
+      {
+        "member_id": "b199e386-f629-408e-a86b-6d9607962ad6",
+        "display_name": "Paul",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 4379,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  },
+  "meta_bouche": {
+    "member_id": "b199e386-f629-408e-a86b-6d9607962ad6",
+    "second_member": null,
+    "user_id": "c6f8214b-5271-4033-8c05-48adb61c7df3",
+    "email": "lotf.camp3@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178,
+    "appetite": "large",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

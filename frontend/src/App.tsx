@@ -12,9 +12,6 @@ import { AuthProvider } from "./context/AuthProvider";
 // (`FunnelBranch = solo | pair | family`, onboarding.ts:84): la promesse d'une
 // page est donc tenue par l'écran suivant.
 import HomePage from "./keel/pages/HomePage";
-import MealPrepPage from "./keel/pages/MealPrepPage";
-import CouplesPage from "./keel/pages/CouplesPage";
-import FamiliesPage from "./keel/pages/FamiliesPage";
 // LE MONDE DES PROFESSIONNELS. Trois acheteurs distincts: qui vend une
 // formation (douleur: le one-shot), une salle indépendante (le churn), une
 // communauté payante (un fil ne répond pas à une personne — c'est de
@@ -41,6 +38,7 @@ import {
   RequireAppAccess,
 } from "./security/RouteGuards";
 import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudioContext";
+import { HouseholdAccessProvider } from "./context/HouseholdAccessProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import PlanImportPage from "./keel/pages/PlanImportPage";
 import TodayPage from "./keel/pages/TodayPage";
@@ -57,16 +55,18 @@ import CoachStudentPage from "./keel/pages/CoachStudentPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import { KeelHouseholdRoute } from "./keel/components/KeelHouseholdRoute";
 import { KeelOnboardingGate } from "./keel/components/KeelOnboardingGate";
+import { KeelPaywallGate } from "./keel/components/KeelPaywallGate";
 import JoinHouseholdPage from "./keel/pages/JoinHouseholdPage";
+import UnsubscribePage from "./keel/pages/UnsubscribePage";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
 import CoachProtocolPage from "./keel/pages/CoachProtocolPage";
 import CoachWeeklyPage from "./keel/pages/CoachWeeklyPage";
 import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
-import StudentHealthPage from "./keel/pages/StudentHealthPage";
 import StudentKnownPage from "./keel/pages/StudentKnownPage";
 import HouseholdPage from "./keel/pages/HouseholdPage";
+import HouseholdBillingPage from "./keel/pages/HouseholdBillingPage";
 import SetupPage from "./keel/pages/SetupPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
@@ -87,6 +87,13 @@ function App() {
   return (
     <ToastProvider>
     <AuthProvider>
+      {/* FF-064 — LA COUVERTURE DU FOYER, LUE UNE FOIS POUR TOUTE LA SESSION.
+          DANS `AuthProvider` parce qu'il lit `useAuth()`, et AU-DESSUS du
+          routeur pour la même raison que `ConsentBanner`: monté par route, il
+          relirait la couverture à chaque navigation, et le mur de paiement
+          clignoterait entre deux écrans.
+          ⚠️ Il ne DÉCIDE rien — la définition de « couvert » est en SQL. */}
+      <HouseholdAccessProvider>
       <Router>
         <OnboardingAmbientAudioProvider>
           {/* ⛔ `bg-paper text-ink` ET PAS `bg-white text-black`. C'est le
@@ -125,11 +132,12 @@ function App() {
                   son espace. Les six pages segment sont des liens qu'on envoie:
                   y renvoyer un lecteur connecté ferait passer le lien pour
                   cassé. */}
+              {/* ⚠️ UNE SEULE PAGE DE VENTE DEPUIS LE 2026-09-08. `/meal-prep`,
+                  `/couples` et `/families` sont retirées (routes, pages,
+                  namespaces); `vercel.json` les redirige vers le hall, en
+                  permanent, pour les liens en circulation. */}
               <Route path="/" element={<HomePage />} />
-              <Route path="/meal-prep" element={<MealPrepPage />} />
-              <Route path="/couples" element={<CouplesPage />} />
-              <Route path="/families" element={<FamiliesPage />} />
-              {/* ── LES MÊMES QUATRE PAGES, EN ANGLAIS, SOUS `/en` ────────
+              {/* ── LA MÊME PAGE, EN ANGLAIS, SOUS `/en` ──────────────────
                   MÊMES COMPOSANTS, ET C'EST TOUT LE POINT: la langue ne vient
                   pas d'un arbre parallèle mais de l'URL, que `uiLocaleForPath`
                   lit (voir `LOCALE_ROUTED_PATHS` dans `i18n/catalog.ts`). Un
@@ -149,9 +157,6 @@ function App() {
                   l'index. Le sélecteur de `PublicHeader` est le seul passage
                   d'une langue à l'autre, et il navigue. */}
               <Route path="/en" element={<HomePage />} />
-              <Route path="/en/meal-prep" element={<MealPrepPage />} />
-              <Route path="/en/couples" element={<CouplesPage />} />
-              <Route path="/en/families" element={<FamiliesPage />} />
               {/* ── LANCEMENT B2C: LES QUATRE PAGES PRO SONT OCCULTÉES ────
                   `VITE_B2C_ONLY` (voir `security/proSurface.ts`). Les pages
                   restent dans l'arbre et continuent de typechecker; seules
@@ -204,9 +209,11 @@ function App() {
                 path="/app/today"
                 element={
                   <KeelStudentRoute>
-                    <KeelOnboardingGate>
-                      <TodayPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <TodayPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
                   </KeelStudentRoute>
                 }
               />
@@ -233,9 +240,11 @@ function App() {
                 path="/app/chat"
                 element={
                   <KeelHouseholdRoute>
-                    <KeelOnboardingGate>
-                      <KeelChatPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <KeelChatPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -248,21 +257,29 @@ function App() {
                   écrit en toutes lettres dans 20260811060000. Un compte
                   secondaire tombait donc sur « tu n'es pas un élève » ICI,
                   c'est-à-dire sur le seul écran où le modèle lui demande
-                  d'agir: D2 dit que `generate-meal-v1` ne sert QUE les comptes
-                  secondaires qui prennent la main et les comptes individuels
-                  sans foyer. Sans cette ligne, la prise de main (D7) et donc
-                  toute la chaîne de fusion restent inatteignables par un vrai
+                  d'agir. Sans cette ligne, la prise de main (D7) et donc toute
+                  la chaîne de fusion restent inatteignables par un vrai
                   utilisateur — le trou O2 du registre.
 
+                  ⟳ 2026-09-10 · LOT 7 — CE BLOC INVOQUAIT `generate-meal-v1`
+                  (« il ne sert QUE les comptes secondaires et les comptes sans
+                  foyer »). Ce moteur n'a plus de client: la composition passe
+                  par une seule lane, et un secondaire n'y a PAS droit. Ce qu'il
+                  vient faire sur `/app/plan` reste entier — lire sa part, ses
+                  plats, ses anciens plans personnels, valider — et c'est
+                  exactement ce que cette route lui ouvre.
+
                   C'est de la NAVIGATION, pas de la sécurité: RLS reste la
-                  frontière, et `generate-meal-v1` garde ses propres refus. */}
+                  frontière, et le générateur garde ses propres refus. */}
               <Route
                 path="/app/plan"
                 element={
                   <KeelHouseholdRoute>
-                    <KeelOnboardingGate>
-                      <StudentWeekPlanPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <StudentWeekPlanPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -275,25 +292,12 @@ function App() {
                 path="/app/progress"
                 element={
                   <KeelHouseholdRoute>
-                    <KeelOnboardingGate>
-                      <StudentProgressPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <StudentProgressPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
                   </KeelHouseholdRoute>
-                }
-              />
-              {/* KEEL — /app/health. Ce que l'élève ne peut pas manger:
-                  allergies, intolérances, médicaments. La table existait et
-                  alimentait déjà le verrou de sortie; il n'existait aucune
-                  surface pour la remplir. Même garde que les écrans
-                  au-dessus — RLS reste la vraie frontière. */}
-              <Route
-                path="/app/health"
-                element={
-                  <KeelStudentRoute>
-                    <KeelOnboardingGate>
-                      <StudentHealthPage />
-                    </KeelOnboardingGate>
-                  </KeelStudentRoute>
                 }
               />
               {/* KEEL — `/app/about-you`: CE QUE SOPHIA SAIT DE TOI.
@@ -315,9 +319,11 @@ function App() {
                 path="/app/about-you"
                 element={
                   <KeelHouseholdRoute>
-                    <KeelOnboardingGate>
-                      <StudentKnownPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <StudentKnownPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -339,9 +345,30 @@ function App() {
                 path="/app/household"
                 element={
                   <KeelHouseholdRoute>
-                    <KeelOnboardingGate>
-                      <HouseholdPage />
-                    </KeelOnboardingGate>
+                    <KeelPaywallGate>
+                      <KeelOnboardingGate>
+                        <HouseholdPage />
+                      </KeelOnboardingGate>
+                    </KeelPaywallGate>
+                  </KeelHouseholdRoute>
+                }
+              />
+              {/* KEEL — FF-064, `/app/billing`: l'abonnement du foyer.
+                  ⛔ NI `KeelOnboardingGate`, NI (lot 3) le mur de paiement, et
+                  les deux absences sont le sujet de cette route. Payer ne
+                  demande pas d'avoir répondu à l'entonnoir, et cette page est
+                  la SORTIE du mur: la garder derrière lui enfermerait dehors
+                  exactement les gens venus payer.
+                  `KeelHouseholdRoute` et pas `KeelStudentRoute`, comme
+                  `/app/household`: un profil réclamé n'est l'élève de personne,
+                  et il doit pouvoir lire l'état de l'abonnement qui le couvre
+                  — même s'il ne peut pas l'ouvrir (403 `not_household_owner`,
+                  que l'écran DIT au lieu de le laisser découvrir). */}
+              <Route
+                path="/app/billing"
+                element={
+                  <KeelHouseholdRoute>
+                    <HouseholdBillingPage />
                   </KeelHouseholdRoute>
                 }
               />
@@ -362,7 +389,9 @@ function App() {
                 path="/app/setup"
                 element={
                   <KeelHouseholdRoute>
-                    <SetupPage />
+                    <KeelPaywallGate>
+                      <SetupPage />
+                    </KeelPaywallGate>
                   </KeelHouseholdRoute>
                 }
               />
@@ -508,6 +537,16 @@ function App() {
                   PAYS, que /auth ne demandait pas et que le numéro de téléphone
                   déduisait avant le pivot. */}
               <Route path="/start" element={<StartPage />} />
+              {/* FF-063 — /unsubscribe?token=… — LA SORTIE DES E-MAILS DE
+                  CYCLE DE VIE. PUBLIQUE, et pour une raison plus forte encore
+                  que /join: quelqu'un qui ne veut plus de nos mails ne va pas
+                  retrouver son mot de passe pour nous le dire. Lui demander une
+                  session, c'est ne lui offrir aucune sortie — donc le pousser
+                  vers le bouton « spam », qui dégrade la réputation du domaine
+                  d'envoi pour TOUT ce qui part, reçus compris. Elle parle à UNE
+                  seule RPC anon, `keel_lifecycle_unsubscribe`, qui rend un
+                  booléen et rien d'autre: jamais un fait sur le compte. */}
+              <Route path="/unsubscribe" element={<UnsubscribePage />} />
               {/* KEEL — a coach reading ONE student's space (W6.6). No route
                   guard wrapper: the page is gated by RLS itself, and it writes
                   a coach_access_events line through log_coach_student_access
@@ -603,6 +642,7 @@ function App() {
           </div>
         </OnboardingAmbientAudioProvider>
       </Router>
+      </HouseholdAccessProvider>
     </AuthProvider>
     </ToastProvider>
   );

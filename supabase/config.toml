@@ -400,6 +400,20 @@ STRIPE_PRICE_ID_ALLIANCE_MONTHLY = "env(STRIPE_PRICE_ID_ALLIANCE_MONTHLY)"
 STRIPE_PRICE_ID_ALLIANCE_YEARLY = "env(STRIPE_PRICE_ID_ALLIANCE_YEARLY)"
 STRIPE_PRICE_ID_ARCHITECTE_MONTHLY = "env(STRIPE_PRICE_ID_ARCHITECTE_MONTHLY)"
 STRIPE_PRICE_ID_ARCHITECTE_YEARLY = "env(STRIPE_PRICE_ID_ARCHITECTE_YEARLY)"
+# ── LE FOYER, ET POURQUOI CES DEUX LIGNES MANQUAIENT ──────────────────────
+# Les six lignes au-dessus vendent les paliers du produit grand public, qui
+# n'existe plus. Les deux ci-dessous vendent le SEUL produit du dépôt — et
+# elles n'étaient déclarées NULLE PART ici depuis le chantier 1 (2026-08-11),
+# alors que les valeurs existent dans `supabase/.env`.
+#
+# Ça marche quand même *si* on sert avec `--env-file supabase/.env`
+# (docs/keel/PLAN-CORPS-MANQUANT.md). Ça ne marche PAS sur le runtime que
+# `supabase start` démarre seul: `requireEnv` lève, la fonction rend 500
+# « Missing env var », et le seul tunnel de vente du produit paraît en panne
+# alors qu'il est simplement non branché. Même défaut, même remède et même
+# date que le bloc EMAIL plus haut.
+STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY = "env(STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY)"
+STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY = "env(STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY)"
 MEMORY_OBSERVABILITY_ON = "env(MEMORY_OBSERVABILITY_ON)"
 memory_v2_loader_enabled = "env(memory_v2_loader_enabled)"
 memory_v2_memorizer_enabled = "env(memory_v2_memorizer_enabled)"
@@ -557,6 +571,17 @@ verify_jwt = false
 [functions.coach-invite-student-v1]
 verify_jwt = false
 
+# 2026-09-09 — l'invitation d'un foyer part enfin par e-mail (FF-048).
+# ⚠️ `verify_jwt = true`, ET C'EST LA DIFFÉRENCE AVEC SA VOISINE DU DESSUS.
+# `coach-invite-student-v1` porte DEUX portes (le secret interne pour les
+# semences, le jeton du coach sinon), donc la passerelle ne peut pas trancher
+# pour elle. Celle-ci n'en a qu'une: elle appelle `keel_household_invite` SOUS
+# LE JETON DE L'APPELANT, parce que la RPC lit `auth.uid()` — sous
+# `service_role` elle rendrait `not_authenticated`. Un jeton absent n'a donc
+# rien à faire au-delà de la passerelle.
+[functions.keel-household-invite-v1]
+verify_jwt = true
+
 # KEEL W4 — internal cron surfaces (called with X-Internal-Secret, never by a
 # browser). Listed so their gateway setting is explicit rather than defaulted.
 [functions.provision-day-v1]
@@ -570,6 +595,13 @@ verify_jwt = false
 # pour les deux: §1 de la fiche nomme le défaut que deux crons produisent —
 # une convention de coordination écrite dans le commentaire d'un seul des deux.
 [functions.keel-proactive-v1]
+verify_jwt = false
+# FF-063 — les e-mails de cycle de vie. UN job pour les onze types, même motif
+# que `keel-proactive-v1` juste au-dessus: la règle « une personne, un e-mail
+# par passage » est du CODE ici, alors qu'avec un job par segment elle serait
+# une convention écrite dans le commentaire d'un seul d'entre eux.
+# Invoquée par cron, donc sans JWT: la garde est `x-internal-secret`.
+[functions.keel-lifecycle-email-v1]
 verify_jwt = false
 # `keel-cards-v1` a été RETIRÉE ici: la fonction est partie avec le retrait des
 # résidus grand public (2026-08-08, 0 utilisateur grand public confirmé), ses

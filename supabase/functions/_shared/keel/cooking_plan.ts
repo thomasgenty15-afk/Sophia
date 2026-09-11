@@ -57,6 +57,27 @@ export type CookingStyle = typeof COOKING_STYLES[number];
 export const GROCERY_RUNS = [1, 2, 3] as const;
 export type GroceryRuns = typeof GROCERY_RUNS[number];
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * « PEU IMPORTE » — une RÉPONSE, et surtout pas une absence de réponse.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI CE N'EST PAS `null`, ET LA RAISON EST DANS LE CODE JUSTE EN BAS.
+ * `resolveCookingCapacity` rend `plan: null` quand `runs === null` — « une
+ * cadence sans style ne dit pas combien de temps », donc AUCUN plan de cuisine
+ * n'est dérivé. Mapper « peu importe » sur `null` ne ferait donc pas « le
+ * moteur choisit »: ça éteindrait la dérivation entière, et le prompt partirait
+ * muet sur les sessions. C'est le piège exact de la cicatrice
+ * `jsonb default '[]' cache « répondu » vs « pas demandé »`, pris par le
+ * nombre plutôt que par le tableau.
+ *
+ * ⚠️ ET CE N'EST PAS NON PLUS UN QUATRIÈME NOMBRE. « Peu importe » ne dit pas
+ * « trois »: il dit « je n'impose rien ». La différence se voit le jour où le
+ * plafond du style bouge — un `3` figé garderait l'ancien monde, `"any"` suit.
+ */
+export const GROCERY_RUNS_ANY = "any" as const;
+export type GroceryRunsAnswer = GroceryRuns | typeof GROCERY_RUNS_ANY;
+
 /** Le plafond dur du nombre de sessions, quel que soit ce qu'on demande. */
 export const MAX_COOKING_SESSIONS = 3;
 
@@ -149,6 +170,77 @@ export function readGroceryRuns(
   return (GROCERY_RUNS as readonly number[]).includes(raw)
     ? raw as GroceryRuns
     : null;
+}
+
+/**
+ * LA RÉPONSE TELLE QU'ELLE A ÉTÉ DONNÉE — nombre, « peu importe », ou `null`.
+ *
+ * ⛔ CE LECTEUR-CI DISTINGUE TROIS ÉTATS; `readGroceryRuns` n'en distingue que
+ * deux, ET C'EST VOULU. Les deux existent côte à côte parce qu'ils répondent à
+ * deux questions différentes:
+ *
+ *   · `readGroceryRuns`       → « quel NOMBRE a été demandé ? » — `null` pour
+ *                               « peu importe », qui n'en demande aucun.
+ *   · `readGroceryRunsAnswer` → « la question a-t-elle une RÉPONSE ? » — c'est
+ *                               celui que l'écran et la garde de l'entonnoir
+ *                               lisent, sinon « peu importe » bloquerait le
+ *                               parcours comme un champ vide.
+ *
+ * ⚠️ UN APPELANT QUI SE TROMPE DE LECTEUR NE PLANTE PAS, il se trompe en
+ * silence — d'où les deux noms explicites plutôt qu'un drapeau.
+ */
+export function readGroceryRunsAnswer(
+  pc: Record<string, unknown> | null | undefined,
+): GroceryRunsAnswer | null {
+  if (pc?.grocery_runs === GROCERY_RUNS_ANY) return GROCERY_RUNS_ANY;
+  return readGroceryRuns(pc);
+}
+
+/**
+ * CE QUE « PEU IMPORTE » VAUT POUR LE MOTEUR — LE HAUT DE L'OFFRE.
+ *
+ * ⛔ CONTRE L'OFFRE, ET PAS CONTRE LE PLAFOND DU STYLE — DÉFAUT MESURÉ LE
+ * 2026-09-09, SIGNALÉ AVANT D'AVOIR MORDU EN RÉEL.
+ *
+ * Première version: « peu importe » valait `COOKING_STYLE_PROFILE[style]
+ * .sessionCap`. Le style, tout seul, ne sait rien de la FENÊTRE. Mesuré, en
+ * `balanced`:
+ *
+ *     plan     l'écran offre    résolvait à    le plan sortait
+ *     2 jours  [1]              3              runs=2 + note « raboté »
+ *     3 jours  [1]              3              runs=3, AUCUNE note
+ *     5 jours  [1, 2]           3              runs=3, AUCUNE note
+ *
+ * Deux défauts, et le second est le pire. À 2 jours, la note
+ * `runs_capped_by_sessions` dit « tu en as demandé plus, j'ai raboté » à
+ * quelqu'un qui n'a RIEN demandé — c'est le sens même de « peu importe ». À 3
+ * et 5 jours, rien ne rabote: trois passages au magasin pour un plan que
+ * l'écran annonce couvrable en une seule course, et pas une phrase pour
+ * l'expliquer.
+ *
+ * ⚠️ LA CORRECTION N'EST PAS UNE SECONDE RÈGLE. On lit `offerableGroceryRuns`
+ * — LA MÊME fonction que le champ à l'écran — et on prend le haut de sa liste.
+ * L'écran et le moteur ne peuvent donc plus diverger par construction: « peu
+ * importe » vaut exactement « le maximum de ce qu'on m'aurait proposé ».
+ * Recopier ici `min(styleCap, ceil(jours / conservation))` aurait refait le
+ * jumeau que ce dépôt a déjà supprimé une fois.
+ *
+ * ⛔ ET LES RABOTS FINS RESTENT EN AVAL. `deriveCookingPlan` borne encore
+ * (`runs <= sessions`, congélateur) et NOMME chaque coup. Résoudre au haut de
+ * l'offre ne saute aucune garde: ça donne au moteur la marge que la personne
+ * lui laisse, sans lui faire dire qu'elle a réclamé quoi que ce soit.
+ */
+export function resolveGroceryRunsAnswer(
+  answer: GroceryRunsAnswer | null,
+  offer: GroceryRunsOffer,
+): GroceryRuns | null {
+  if (answer === null) return null;
+  if (answer !== GROCERY_RUNS_ANY) return answer;
+  // ⚠️ UNE OFFRE VIDE N'EXISTE PAS (le module en rend toujours au moins une),
+  // mais s'y fier sans le dire ferait un `undefined` silencieux dans un champ
+  // qui décide du nombre de courses.
+  const top = offer.values[offer.values.length - 1];
+  return top ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -451,7 +543,187 @@ export function deriveCookingPlan(input: {
  * à quelqu'un qui en avait demandé une seule.
  */
 export function unusedGroceryRuns(runs: GroceryRuns, plan: CookingPlan): number {
-  return Math.max(0, runs - plan.sessions);
+  // ⟳ LOT C — CONTRE `plan.runs`, PLUS CONTRE `plan.sessions`. Les deux étaient
+  // le même nombre tant que les courses semaient les sessions; ils ont divergé
+  // avec le renversement, et c'est bien l'écart entre CE QUI A ÉTÉ DEMANDÉ et
+  // CE QUE LE PLAN ORGANISE que la rationale doit dire.
+  return Math.max(0, runs - plan.runs);
+}
+
+// ---------------------------------------------------------------------------
+// CE QU'ON A LE DROIT DE PROPOSER — l'offre, 2026-09-04
+// ---------------------------------------------------------------------------
+
+/**
+ * CE QUI A RESSERRÉ LA LISTE. Il existe pour être DIT, jamais pour être deviné
+ * à l'écran: une option qui disparaît sans motif se lit comme une panne.
+ */
+export type GroceryRunsLimit =
+  /** La case « tout cuisiner en une seule fois » est cochée. */
+  | "one_session"
+  /** La fenêtre est plus courte que trois jours. */
+  | "days"
+  /** Le style plafonne les sessions sous trois. */
+  | "style";
+
+export interface GroceryRunsOffer {
+  /** Les cadences proposables, croissantes. JAMAIS vide: `1` reste toujours. */
+  values: GroceryRuns[];
+  /** La seule réponse possible, ou `null` tant qu'il reste un choix. */
+  forced: GroceryRuns | null;
+  /** Ce qui a resserré, ou `null` quand les trois tiennent. */
+  limit: GroceryRunsLimit | null;
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * COMBIEN DE COURSES ON A LE DROIT DE PROPOSER — et quand il n'y a plus rien
+ * à demander.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QU'ELLE FERME ───────────────────────────────────────────────
+ * L'écran proposait les TROIS cadences à tout le monde. On demandait donc
+ * « trois courses ? » pour un plan de deux jours, et « trois courses ? » à
+ * quelqu'un qui venait de cocher « je cuisine tout en une seule fois ». Le
+ * moteur rabotait ensuite en silence (`deriveCookingPlan` plafonne), et la
+ * personne lisait dans l'explication du plan le refus d'une option qu'on lui
+ * avait proposée deux écrans plus tôt.
+ *
+ * ── LA RÈGLE, EN UNE LIGNE ────────────────────────────────────────────────
+ *   `max = min(3, plafond(style), ⌈jours ÷ conservation⌉)`, puis `1` si la
+ *   case est cochée.
+ *
+ * ── ⚠️ LE PLAFOND DE FENÊTRE N'EST PAS « LE NOMBRE DE JOURS » ─────────────
+ * Il l'a été une demi-journée, le 2026-09-04, et c'était faux — mesuré à
+ * l'écran sur un plan du 4 au 5 septembre: DEUX courses proposées pour DEUX
+ * jours, alors qu'un seul lot les couvre tous les deux. Compter les jours
+ * répond à « combien de courses tiennent dans la fenêtre » ; la vraie question
+ * est « combien il en FAUT », et c'est la CONSERVATION qui la tranche: un plat
+ * cuisiné tient `maxFridgeDays` jours (jour de cuisson compris, décision
+ * produit n° 14). Une session couvre donc trois jours, et sept jours en
+ * demandent trois — pas sept.
+ *
+ * ⛔ ELLE EST LE MIROIR DE `deriveCookingPlan`, PAS UNE SECONDE RÈGLE, et
+ * c'est pour ça qu'elle vit dans CE fichier. Les deux lisent les mêmes
+ * constantes (`MAX_COOKING_SESSIONS`, `COOKING_STYLE_PROFILE[].sessionCap`):
+ * un plafond retouché là-haut change l'offre ici sans que personne y pense.
+ * Écrite dans le composant, elle aurait recopié `2` et `3` en dur — le jumeau
+ * que ce dépôt a déjà supprimé une fois (`groceryWaves.ts`, 2026-08-10).
+ *
+ * ── ⚠️ CE QU'ELLE COÛTE, ÉCRIT ICI PARCE QUE C'EST UN RENVERSEMENT ────────
+ * `unusedGroceryRuns` existe (dix lignes au-dessus) pour dire « trois courses,
+ * deux sessions n'est PAS une erreur: la troisième est du frais du jour ».
+ * Cette offre-ci REND CE CAS INATTEIGNABLE depuis l'écran: on ne propose plus
+ * une cadence que le plan ne suivra pas. Décision produit du 2026-09-04, prise
+ * en connaissance de cause. `unusedGroceryRuns` reste appelée — les comptes
+ * qui portent déjà « 3 » avec un style `minimal` gardent leur phrase, et rien
+ * n'efface leur réponse.
+ *
+ * ⛔ LE CONGÉLATEUR N'ENTRE PAS ICI. « Une seule course » sans congélateur est
+ * une demande LÉGITIME: le moteur sert alors deux sessions et le DIT
+ * (`runs_1_needs_freezer`). Le retirer de l'offre en ferait une quatrième
+ * implémentation de la porte du congélateur — trois sont déjà alignées par
+ * `freezerMirror.int.test.ts` —, et surtout un refus muet là où il existe une
+ * phrase.
+ *
+ * @param style le style DÉCLARÉ, `null` = jamais demandé ⇒ aucun plafond de
+ *   style. Une clé absente n'est pas « le moins possible » (cicatrice
+ *   `20260818110000:48-51`), et la traiter comme telle retirerait la troisième
+ *   cadence à tout compte qui n'a pas encore répondu.
+ * @param oneCookingSession la case telle qu'elle est COCHÉE à l'écran — pas le
+ *   verdict du serveur. C'est une intention de semaine, et l'offre suit ce que
+ *   la personne vient de dire, pas ce que le moteur en fera.
+ * @param daysToEat combien de jours la fenêtre demande.
+ * @param maxFridgeDays `MAX_FRIDGE_DAYS` — combien de jours un plat cuisiné
+ *   tient, jour de cuisson compris.
+ *
+ *   ⛔ PASSÉE, JAMAIS IMPORTÉE, et c'est la posture EXPLICITE de ce dépôt
+ *   (`fridge_window.ts`, en-tête): la constante vit dans `meal_generation.ts`
+ *   depuis l'origine et cinq fichiers la ré-exportent. En importer une ici
+ *   ferait entrer tout le moteur dans le paquet du navigateur — ce module est
+ *   monté par deux composants React —, et la redéclarer en ferait une SECONDE
+ *   définition, « celle qu'on regarde le moins qui garde l'ancienne ».
+ *   Côté test, elle est épinglée par un LITTÉRAL: paramétrer le test par sa
+ *   propre constante le laisserait vert le jour où elle change.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function offerableGroceryRuns(input: {
+  style: CookingStyle | null;
+  oneCookingSession: boolean;
+  daysToEat: number;
+  maxFridgeDays: number;
+}): GroceryRunsOffer {
+  if (!Number.isFinite(input.daysToEat)) {
+    throw new Error(
+      `[keel/cooking_plan] daysToEat non fini: ${JSON.stringify(input.daysToEat)}`,
+    );
+  }
+  if (!Number.isFinite(input.maxFridgeDays) || input.maxFridgeDays < 1) {
+    throw new Error(
+      "[keel/cooking_plan] `maxFridgeDays` est REQUIS et >= 1: " +
+        JSON.stringify(input.maxFridgeDays),
+    );
+  }
+  if (typeof input.oneCookingSession !== "boolean") {
+    throw new Error(
+      "[keel/cooking_plan] `oneCookingSession` est REQUIS et booléen — " +
+        "un `?` en ferait une garde désarmée",
+    );
+  }
+
+  let max: number = MAX_COOKING_SESSIONS;
+  let limit: GroceryRunsLimit | null = null;
+
+  // ── ① LE STYLE PLAFONNE, quand il a été déclaré ─────────────────────────
+  if (input.style !== null) {
+    const profile = COOKING_STYLE_PROFILE[input.style];
+    if (!profile) {
+      throw new Error(
+        `[keel/cooking_plan] style inconnu: ${JSON.stringify(input.style)}`,
+      );
+    }
+    if (profile.sessionCap < max) {
+      max = profile.sessionCap;
+      limit = "style";
+    }
+  }
+
+  // ── ② LA CONSERVATION PLAFONNE AUSSI ────────────────────────────────────
+  // ⛔ COMBIEN DE SESSIONS IL EN FAUT, pas combien il en tiendrait. Un lot
+  // couvre `maxFridgeDays` jours: deux jours n'en demandent qu'UNE, et sept
+  // en demandent trois. Compter les jours proposait deux courses pour deux
+  // jours — le défaut mesuré à l'écran le 2026-09-04.
+  //
+  // ⚠️ `<=` ET PAS `<`, ET C'EST LE MOTIF QUI EST LU À L'ÉCRAN. Quand les deux
+  // plafonds tombent sur le même nombre, c'est la FENÊTRE qu'on nomme: elle
+  // est concrète, datée, et la personne vient de la régler trois champs plus
+  // haut. « Ton style ne permet pas trois courses » devant un plan trop court
+  // envoie corriger la mauvaise réponse.
+  const days = Math.max(1, Math.floor(input.daysToEat));
+  const needed = Math.ceil(days / input.maxFridgeDays);
+  if (needed < MAX_COOKING_SESSIONS && needed <= max) {
+    max = needed;
+    limit = "days";
+  }
+
+  // ── ③ « TOUT EN UNE SEULE FOIS » TRANCHE, ET IL PASSE DERNIER ───────────
+  // Une seule cuisson veut dire une seule vague de courses: le module des
+  // vagues ne sait pas en produire plus d'une par session. Il gagne sur les
+  // deux autres motifs parce que c'est le seul que la personne vient de
+  // COCHER — nommer la fenêtre devant une case qu'on active à l'instant ferait
+  // chercher la cause au mauvais endroit.
+  if (input.oneCookingSession) {
+    max = 1;
+    limit = "one_session";
+  }
+
+  const values = GROCERY_RUNS.filter((runs) => runs <= max);
+  return {
+    values,
+    forced: values.length === 1 ? values[0] : null,
+    limit,
+  };
 }
 
 /**
@@ -564,17 +836,44 @@ export interface ResolvedCookingCapacity extends DeclaredCookingCapacity {
 export function resolveCookingCapacity(input: {
   declared: DeclaredCookingCapacity;
   style: CookingStyle | null;
-  runs: GroceryRuns | null;
+  /**
+   * ⟳ 2026-09-09 — ACCEPTE « peu importe » EN PLUS D'UN NOMBRE. La résolution
+   * se fait ICI et nulle part ailleurs: c'est le seul endroit où la cadence
+   * entre dans la dérivation, donc le seul où l'écran et le moteur ne peuvent
+   * pas diverger.
+   */
+  runs: GroceryRunsAnswer | null;
   freezer: boolean;
   windowDays: readonly DayToken[];
   leadDay: boolean;
   daysToEat: number;
+  /**
+   * ⟳ 2026-09-09 — LES DEUX ENTRÉES DE L'OFFRE, REQUISES ET JAMAIS `?`.
+   *
+   * Elles ne servent QU'À résoudre « peu importe », et c'est précisément
+   * pourquoi elles ne peuvent pas être optionnelles: un appelant qui les
+   * oublierait résoudrait sur une offre fausse — donc trois courses pour un
+   * plan de trois jours — sans qu'une ligne de type ne bronche. « Un paramètre
+   * de garde optionnel est une garde désarmée », sept fois dans ce dépôt.
+   */
+  oneCookingSession: boolean;
+  /** La conservation, REÇUE — ce module ne l'importe pas (voir son en-tête). */
+  maxFridgeDays: number;
 }): ResolvedCookingCapacity {
+  const runs = resolveGroceryRunsAnswer(
+    input.runs,
+    offerableGroceryRuns({
+      style: input.style,
+      oneCookingSession: input.oneCookingSession,
+      daysToEat: input.daysToEat,
+      maxFridgeDays: input.maxFridgeDays,
+    }),
+  );
   // ⛔ LES DEUX RÉPONSES, OU AUCUNE. Un style sans cadence de courses ne dit
   // pas combien de fois on cuisine, et une cadence sans style ne dit pas
   // combien de temps. Deviner la manquante servirait un plan sur une moitié de
   // réponse — et c'est très exactement ce que « clé absente ≠ minimal » refuse.
-  if (input.style === null || input.runs === null) {
+  if (input.style === null || runs === null) {
     return { ...input.declared, plan: null };
   }
   const plan = deriveCookingPlan({
@@ -582,7 +881,7 @@ export function resolveCookingCapacity(input: {
     // ⟳ LOT 3 — les jours déclarés ENTRENT dans la dérivation au lieu d'être
     // remplacés par elle (voir `deriveCookingPlan`, et D2.4 renversé).
     declaredCookDays: input.declared.cookDays,
-    runs: input.runs,
+    runs,
     freezer: input.freezer,
     windowDays: input.windowDays,
     leadDay: input.leadDay,

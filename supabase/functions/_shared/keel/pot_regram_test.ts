@@ -22,16 +22,31 @@ Deno.test("CÂBLAGE — la lane foyer regramme ses casseroles APRÈS la croissan
 
 Deno.test("CÂBLAGE — la croissance des pots reçoit la MASSE de chaque casserole (regrammée avant)", async () => {
   const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
-  // ⟳ 2026-09-06: deux passes (dans la boucle) + un recalcul final pour `short_after`.
+  // ⟳ 2026-09-07 — UNE PASSE D'IDENTITÉ + un recalcul pour `short_after`.
   const calls = [...src.matchAll(/potGrowth = neededPotFactor\(/g)];
-  assert(calls.length === 2, `attendu 2 appels (passe + recalcul), trouvé ${calls.length}`);
+  assert(calls.length === 2, `attendu 2 appels (identité + recalcul), trouvé ${calls.length}`);
   const at = calls[0].index!;
   const call = src.slice(at, src.indexOf("\n      );", at));
   assert(/composition \? preparationReadyGrams\(prep\.ingredients, composition\) : null/.test(call), "la croissance ne lit plus la masse du pot");
-  assert(src.includes("const POT_GROWTH_MARGIN = 1.05;") && src.includes("const POT_GROWTH_PASSES = 2;"), "marge et passes");
-  assert(/const factor = rawFactor \* POT_GROWTH_MARGIN;/.test(src), "la marge n'est plus appliquée");
   const firstRegram = src.indexOf("const regrammed = regramMeal(meal, composition);");
   assert(firstRegram > -1 && firstRegram < at, "la masse serait lue avant d'être regrammée");
+});
+
+Deno.test("⛔ CÂBLAGE — la casserole est l'IDENTITÉ Σ(tirages): ni marge, ni plafond, ni seconde passe, ni ancre", async () => {
+  // Décision produit du 2026-09-07 (« il faut que ça matche »): la portion
+  // servie est celle du modèle, et la casserole vaut la somme des boîtes.
+  const src = strip(await Deno.readTextFile(new URL("../../generate-household-meal-v1/index.ts", import.meta.url)));
+  assert(!src.includes("POT_GROWTH_MARGIN") && !src.includes("POT_GROWTH_PASSES"), "la marge ou les passes de croissance sont revenues");
+  assert(src.includes("const POT_IDENTITY_MARGIN = 1;"), "le rétrécissement ne reçoit plus la marge d'identité");
+  assert(/const factor = rawFactor;/.test(src), "un facteur de croissance est multiplié par autre chose que 1");
+  // Les deux appels lisent des facteurs de boîte à 1: les boîtes ne sont plus ancrées.
+  assertEquals((src.match(/neededPotFactor\(\n\s*potDrawsByItems\(sizableBoxes\),\n\s*IDENTITY_BOX_FACTORS,/g) ?? []).length, 2);
+  // Le rétrécissement lit les tirages du modèle, pas des tirages ancrés.
+  const shrink = src.slice(src.indexOf("const drawnByPot = new Map<string, number>();"));
+  assert(/const factor = 1;/.test(shrink.slice(0, 600)), "le rétrécissement multiplie encore les tirages par le facteur d'ancre");
+  // Et aucun plafond de casserole ne borne l'identité.
+  const grow = src.slice(src.indexOf("IDENTITY_BOX_FACTORS,"), src.indexOf("growth.short_after"));
+  assert(!grow.includes("MAX_SINGLE_INGREDIENT_G"), "un plafond de casserole rabote l'identité");
 });
 
 Deno.test("CÂBLAGE — la croissance des pots attribue les tirages PAR ITEM (une boîte, une casserole), plus par `uses.servings`", async () => {

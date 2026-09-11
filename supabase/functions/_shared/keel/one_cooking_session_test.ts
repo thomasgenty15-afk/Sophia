@@ -50,6 +50,8 @@ const PROMPT_BASE = {
   oneCookingSession: false,
   cookOnlyDay: null,
   soloBoxes: false,
+  groceryCadence: null,
+  standardRecipe: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -60,7 +62,7 @@ const PROMPT_BASE = {
   merge: null,
   protocolBlock: "",
   beliefKeys: [],
-  goal: "health" as const,
+  goal: "maintenance" as const,
   situation: null,
   context: null,
   mode: "to_shop" as const,
@@ -71,6 +73,7 @@ const PROMPT_BASE = {
   safetyConstraints: null,
   safetyConstraintTable: null,
   body: null,
+  lightSlots: [],
   focusAxis: null,
   // LE DÉCOR MESURÉ DU 2026-09-01: sept jours, UNE session le dimanche, une
   // heure annoncée, et un congélateur.
@@ -133,7 +136,7 @@ Deno.test("case décochée ⇒ le message est CELUI D'AVANT, au caractère près
   // La garde qui rend le lot additif plutôt que régressif. Sans elle, une
   // formulation glissée dans le tronc changerait le prompt de TOUS les comptes
   // et rendrait les deux populations de `prompt_version` incomparables.
-  const off = buildMealPrompt({ ...PROMPT_BASE }).userMessage;
+  const off = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE }).userMessage;
   assert(!off.includes("in ONE session"));
   assert(!off.includes('MUST carry "kept": "freezer"'));
   // La consigne ordinaire, elle, est bien là.
@@ -141,7 +144,7 @@ Deno.test("case décochée ⇒ le message est CELUI D'AVANT, au caractère près
 });
 
 Deno.test("case cochée ⇒ la session unique est NOMMÉE sur son jour", () => {
-  const on = buildMealPrompt({ ...PROMPT_BASE, oneCookingSession: true })
+  const on = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, oneCookingSession: true })
     .userMessage;
   assertStringIncludes(on, "done in ONE session, on sun");
   assertStringIncludes(on, 'ONE entry in "cooking_sessions"');
@@ -151,7 +154,7 @@ Deno.test("⛔ ELLE REMPLACE LA CONSIGNE DES JOURS, elle ne s'y ajoute pas", () 
   // Deux phrases concurrentes à trois lignes d'écart, et le run réel du
   // 2026-09-01 dit ce que le modèle en fait: il suit la plus permissive, et le
   // parseur jette la différence.
-  const on = buildMealPrompt({
+  const on = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     cookDays: ["sun", "wed"],
     oneCookingSession: true,
@@ -167,7 +170,7 @@ Deno.test("la clé de conservation est RÉCLAMÉE, pas suggérée", () => {
   // ⚠️ « La promesse et la clé de schéma doivent se toucher ». Le prompt
   // demandait déjà, en prose, de dire que le surplus part au congélateur; sans
   // clé nommée, le taux de captation mesuré est ZÉRO.
-  const on = buildMealPrompt({ ...PROMPT_BASE, oneCookingSession: true })
+  const on = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, oneCookingSession: true })
     .userMessage;
   assertStringIncludes(on, 'MUST carry "kept": "freezer"');
   assertStringIncludes(on, "Saying it in the method is NOT enough");
@@ -177,7 +180,7 @@ Deno.test("la clé de conservation est RÉCLAMÉE, pas suggérée", () => {
 });
 
 Deno.test("aucun jour coché ⇒ la session unique est demandée SANS jour inventé", () => {
-  const on = buildMealPrompt({
+  const on = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     cookDays: [],
     oneCookingSession: true,
@@ -192,7 +195,7 @@ Deno.test("la consigne vit dans le bloc qui décide d'une session", () => {
   // Même règle de place que l'équipement de cuisine: « il ne peut cuisiner que
   // mardi » et « tout tient en une fois » sont la même question, et le modèle
   // décide de sa session en lisant ce bloc-là.
-  const on = buildMealPrompt({ ...PROMPT_BASE, oneCookingSession: true })
+  const on = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, oneCookingSession: true })
     .userMessage;
   const canCook = on.indexOf("-- WHAT THEY CAN COOK --");
   const one = on.indexOf("done in ONE session");
@@ -261,12 +264,12 @@ Deno.test("la permission dit POURQUOI, et ce n'est pas le même motif", () => {
   // (« la semaine ne peut pas être nourrie de ce seul jour »); avec elle,
   // c'est la DEMANDE de la personne — et lui servir le constat lui dirait que
   // son propre choix est un problème.
-  const asked = buildMealPrompt({ ...PROMPT_BASE, oneCookingSession: true })
+  const asked = buildMealPrompt({ budgetFloor: null, ...PROMPT_BASE, oneCookingSession: true })
     .userMessage;
   assertStringIncludes(asked, "everything for this stretch is cooked in that single session");
   assertStringIncludes(asked, "up to 120 minutes");
 
-  const constaté = buildMealPrompt({
+  const constaté = buildMealPrompt({ budgetFloor: null,
     ...PROMPT_BASE,
     // Pas de congélateur ⇒ mercredi à samedi sont hors de portée d'un lot du
     // dimanche, et c'est le décor d'origine de la permission.
@@ -285,7 +288,6 @@ Deno.test("la permission dit POURQUOI, et ce n'est pas le même motif", () => {
 // module absent. Ce dépôt l'a mesuré trois fois.
 
 const LANES: readonly [string, string][] = [
-  ["solo", "../../generate-meal-v1/index.ts"],
   ["foyer", "../../generate-household-meal-v1/index.ts"],
 ];
 
@@ -390,5 +392,8 @@ Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici auss
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
+  // ⟳ LOT C (2026-09-11) — v31: le prompt système ne dit plus le POIDS d'une
+  // assiette (« roughly 600 to 750 g »), il dit sa FORME. La version avance avec
+  // son texte, sinon un cache servirait l'ancienne consigne sous le nouveau nom.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v32_the_recipe_says_what_holds_it");
 });
