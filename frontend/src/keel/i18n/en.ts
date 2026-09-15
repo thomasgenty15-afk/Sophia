@@ -1598,6 +1598,10 @@ export const en = {
   "chat.history.more": "Load earlier messages",
   "chat.history.loading": "Loading…",
   "chat.error.send": "That didn't go through. Try again.",
+  // ⚠️ CE N'EST PAS `chat.error.send`, ET LA DIFFÉRENCE EST TOUT LE PROPOS.
+  // Là, le message EST arrivé et il est en base — c'est la réponse qui manque.
+  "chat.error.noReply":
+    "Your message came through, but Sophia didn't reply this time. Write again, or put it another way.",
   // Honnête plutôt que rassurant: on dit que la livraison instantanée est
   // tombée ET que rien n'est perdu, parce que les deux sont vrais.
   "chat.status.offline":
@@ -2242,7 +2246,7 @@ export const en = {
   "start.sheet.form": "Sign-up",
   "start.sheet.repair": "Attachment",
 
-  "start.form.name": "Your name",
+  "start.form.name": "Your first name",
   "start.form.email": "Email address",
   "start.form.password": "Password",
   "start.form.password_hint": "At least 8 characters.",
@@ -2504,6 +2508,14 @@ export const en = {
   "shell.nav.menu": "Menu",
   "shell.nav.menu_close": "Close",
   "shell.nav.primary": "Main sections",
+  // ── LA LÉGENDE DU « + », ET POURQUOI ELLE EST COURTE ────────────────────
+  // Le signe seul ne dit pas ce qu'il ouvre. Les onglets autour portent un mot;
+  // celui-ci aussi. La forme visible tient dans ~60 px (cinq colonnes à 320 px)
+  // et s'autorise deux lignes. L'`aria` porte la raison qu'une colonne ne peut
+  // pas écrire: pour que le plat hors du plan soit pris en compte.
+  "shell.quick_add.caption": "Off the plan",
+  "shell.quick_add.aria":
+    "Add a meal that isn't on the plan, so it is counted",
 
   // ── /auth — LA PORTE UNIQUE DU PRODUIT ────────────────────────────────────
   //
@@ -2839,7 +2851,7 @@ export const en = {
 
   // ── 03 · HOW IT WORKS, IN THE ORDER YOU LIVE IT ──────────────────────────
   "home.how.kicker": "From the shopping to the meals.",
-  "home.how.title_1": "Everything follows.",
+  "home.how.title_1": "Everything lines up.",
   "home.how.title_2": "You do the cooking.",
   "home.how.lede": "A useful plan is a plan you can actually put on your plate.",
   "home.how.shop.title": "Your shopping",
@@ -2871,10 +2883,11 @@ export const en = {
   "home.life.kicker": "And when life shows up?",
   "home.life.title_1": "An unplanned meal?",
   "home.life.title_2": "It counts too.",
-  // ⟳ 2026-09-11 — voir la note jumelle dans `fr.ts`: la réserve vient
-  // AVANT la promesse, et elle ne retire rien.
+  // ⟳ 2026-09-11 (SOIR) — voir la note jumelle dans `fr.ts`: l'incise « moins
+  // précis » est retirée, et c'est « estimates » qui porte la réserve. Sans ce
+  // verbe, la page promettrait une mesure là où le produit sert une estimation.
   "home.life.body":
-    "A restaurant, a dish that was not on the plan: describe what you ate or take a photo. It is less precise, but Sophia counts it in your tracking.",
+    "A restaurant, a dish that was not on the plan: describe what you ate or take a photo. Sophia estimates it and counts it in your tracking.",
   "home.life.demo.aria": "Demonstration: logging an unplanned meal",
   "home.life.demo.label": "What you send",
   // ⟳ 2026-09-11 — voir la note jumelle dans `fr.ts`: le parcours
@@ -4494,8 +4507,69 @@ export const en = {
     "What came back broke one of this household's rules, so it was not kept.",
   "plan.refusal.mouth_unfed":
     "In what came back, somebody had nothing to eat at a meal, so it was not kept. Your previous plan is intact — try again, or ease one constraint.",
+  // ⟳ 2026-09-14 · BÊTA 1B — same rule as the French line: no numbers.
+  // ⟳ 2026-09-14 · BÊTA 2B — a composition is already in flight.
+  // ⟳ 2026-09-14 · BÊTA 2C — the brake. No date promised: we do not know it.
+  // ⟳ 2026-09-14 · BÊTA 2B — the call did not go through.
+  "plan.refusal.composition_unavailable":
+    "Building the plan did not go through this time. Nothing was changed — your current plan is untouched. Try again in a moment.",
+  "plan.refusal.generation_paused":
+    "Building new plans is paused for the moment. Your current plan, your shopping list and your recipes are all still there.",
+  "plan.refusal.generation_lock_unavailable":
+    "A new plan can't be started right now. Nothing was written and your current plan is untouched. Try again in a minute.",
+  "plan.refusal.draft_store_unavailable":
+    "The preview could not be saved, so nothing was written. Your current plan is untouched. Try again in a minute.",
+  "plan.refusal.generation_lease_lost":
+    "Another request took over this composition, and this one stopped without writing anything. Your current plan is untouched. Reload the page to see where the other one is.",
+  "plan.refusal.generation_in_flight":
+    "A plan is already being put together for this household. Wait for it to finish — the screen updates on its own. Your current plan is untouched.",
+  "plan.refusal.plan_expired":
+    "This plan was not finished. Nothing was written and your current plan has not changed: the composition stopped on its side before the end. Start a new one when you are ready.",
+  "plan.refusal.plan_still_composing":
+    "This is taking longer than expected. The composition is still running on its side — your current plan has not changed. Come back in a few minutes and reload the page; don't start another one, this household is still busy with this request.",
+  "plan.refusal.plan_demand_infeasible":
+    "What this plan has to serve does not fit in the meals it has. Your current plan is untouched. Add a meal slot to the day involved, or turn off the “light meal” setting, then try again.",
   "plan.refusal.plan_not_deliverable":
     "The new plan did not pass its last checks, so it was not kept. Your current plan is untouched — try again, or ease one constraint.",
+  "plan.refusal.plan_validation_unavailable":
+    "We could not finish checking the new plan, so it was not kept. Nothing is wrong with what you asked — your current plan is untouched, just try again.",
+  // ══ ⟳ 2026-09-12 · ÉTAPE C5 — LES ÉCARTS D'UN PLAN LIVRÉ ════════════════
+  //
+  // ⛔ UN PLAN SERVABLE QUI NE TIENT PAS TOUT LE DIT. Le plan de clôture
+  // (§ C5 ⑤): « une sortie utilisable mais sous un plancher nutritionnel ne
+  // peut pas être présentée comme ayant atteint l'objectif ; une sortie
+  // incomplète ne peut pas être présentée comme complète ».
+  //
+  // ⚠️ AUCUNE DE CES PHRASES NE PORTE UN CHIFFRE, et ce n'est pas un oubli:
+  // les nombres de la garde (kcal servies, grammes de protéine) sont gardés par
+  // les portes d'affichage calorique, et le serveur ne les persiste même pas.
+  "plan.validation.title": "This plan is usable, and here is what it misses",
+  "plan.validation.intact": "It has been saved. Nothing else has changed.",
+  "plan.validation.at": "{day}, {slot}",
+  "plan.validation.for": "for {name}",
+  "plan.validation.term": "({term})",
+  "plan.validation.incomplete_title": "What could not be checked",
+  "plan.validation.control_line": "{control} — {count}",
+  "plan.validation.cause.missing_meal": "A meal has nobody's portion on it",
+  "plan.validation.cause.energy_off": "A meal is off its target",
+  "plan.validation.cause.protein_short": "A day falls short of its protein",
+  "plan.validation.cause.unmeasurable": "A portion could not be measured",
+  "plan.validation.cause.shopping_missing": "An ingredient is on no shopping line",
+  "plan.validation.cause.shopping_short": "A shopping line buys less than the recipe needs",
+  "plan.validation.cause.shopping_undated": "A shopping line has no day",
+  "plan.validation.cause.shopping_too_early": "Something fresh is bought too early",
+  "plan.validation.cause.cooking_window": "A dish is eaten outside its cooking window",
+  "plan.validation.cause.dangling": "A line of the plan points at nothing",
+  "plan.validation.cause.forbidden": "A dish serves something this table excludes",
+  "plan.validation.control.shopping_quantity":
+    "Enough of an ingredient, when the pantry names no quantity",
+  "plan.validation.control.cell_energy": "The energy served at a meal",
+  "plan.validation.control.protein_floor": "The protein floor of a day",
+  "plan.validation.control.mouth_energy": "The energy served to one person",
+  "plan.validation.control.protein_floor_protected":
+    "The protein floor, set aside on purpose for a day",
+  "plan.validation.control.shopping_not_purchasable":
+    "Tap water, measured in the cooking and on no shopping list",
   // ── LES ONZE REFUS DE FUSION (L4) ───────────────────────────────────────
   "plan.refusal.merge_member_required": "That gesture did not say whose plan to fold in.",
   "plan.refusal.merge_member_not_in_household": "That person is not in this household.",
@@ -7281,11 +7355,9 @@ export const en = {
   "plan.draft.cells_applied": "I redid {cells}; the rest is identical ({count} dishes kept as they were).",
   "plan.draft.note_at_edge": "Got it — but that is already at the end of the scale, there is no notch left to move.",
   "plan.draft.note_skipped": "I read it, but that is not something I can adjust from here yet. The plan is redone as is.",
-  // ⚠️ CE QUE « ADOPTER » FAIT VRAIMENT, DIT AVANT LE CLIC. Il n'existe aucun
-  // chemin serveur qui écrive l'aperçu tel quel: adopter RECOMPOSE à partir de
-  // la même demande. Le taire ferait montrer un plan et en écrire un autre.
+  // What adoption does: revalidate the stored preview, then write that payload.
   "plan.draft.adopt_recomposes":
-    "Adopting builds it for real from the same request, so it can come out a little different from this preview.",
+    "Adopting revalidates this preview against your current constraints, then saves this exact plan without rebuilding it.",
 
   // ── LA PART DU RÉCLAMÉ (Lot E) ──────────────────────────────────────────
   // ⚠️ CETTE CARTE N'AFFICHE JAMAIS un objectif, un poids, une calorie, ni le

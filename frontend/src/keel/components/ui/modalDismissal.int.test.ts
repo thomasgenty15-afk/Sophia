@@ -137,13 +137,40 @@ describe("l'aperçu de brouillon EST la fenêtre qui en a besoin", () => {
     expect(DRAFT).toMatch(/closeLabel=\{t\("plan\.draft\.discard"\)\}/);
   });
 
-  it("⚠️ LA PRÉMISSE DU COÛT: rien d'autre ne rouvre un brouillon", () => {
-    // Si un jour un écran rouvre l'aperçu sans recomposer, le durcissement
-    // ci-dessus perd son motif et pourra être retiré. Ce test dit où regarder:
-    // `setDraftOpen(true)` n'a qu'un appelant, le chemin de composition.
+  it("⚠️ LA PRÉMISSE DU COÛT: DEUX chemins rouvrent, et un seul paye", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-15 — LE MOTIF A ÉTÉ RELU, COMME CE TEST LE DEMANDAIT.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Sa version précédente exigeait UN SEUL `setDraftOpen(true)`, et disait
+    // pourquoi: « si un jour un écran rouvre l'aperçu sans recomposer, le
+    // durcissement perd son motif ». Ce jour est arrivé — la reprise de bêta
+    // rouvre le dernier brouillon encore valable au chargement de la page.
+    //
+    // ⛔ ET LE DURCISSEMENT RESTE JUSTIFIÉ, pour une raison que l'ancien
+    // compte ne pouvait pas dire: la reprise ne rouvre QUE ce qui n'a pas été
+    // abandonné. Un brouillon écarté d'un geste n'est pas repris — il est
+    // expiré côté base. Renoncer reste donc irréversible POUR LA PERSONNE, et
+    // « fermer » resterait le même mensonge.
+    //
+    // Ce qui compte vraiment est que le second chemin soit GRATUIT. On le
+    // mesure: l'effet de reprise ne cite aucun composeur.
     const setup = bare(read("../../pages/SetupPage.tsx"));
     const opens = setup.match(/setDraftOpen\(true\)/g) ?? [];
-    expect(opens.length, "un second chemin ouvre l'aperçu: relire le motif")
-      .toBe(1);
+    expect(
+      opens.length,
+      "un TROISIÈME chemin ouvre l'aperçu: relire le motif ci-dessus",
+    ).toBe(2);
+
+    // ⛔ LA MOITIÉ QUI PORTE LE COÛT. `recoverLatestDraft` / `waitForDraft`
+    // lisent une ligne déjà écrite; s'ils cohabitaient avec un `composeDraft`,
+    // un simple rechargement paierait un appel modèle.
+    const effet = setup.slice(
+      setup.indexOf("recoverLatestDraft()"),
+      setup.indexOf("setDraftOpen(true)") + 40,
+    );
+    expect(effet, "la reprise doit lire, jamais composer")
+      .not.toMatch(/composeDraft\(/);
+    expect(effet).toMatch(/waitForDraft\(/);
   });
 });

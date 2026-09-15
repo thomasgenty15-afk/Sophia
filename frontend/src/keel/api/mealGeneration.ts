@@ -25,9 +25,98 @@ import { supabase } from "../../lib/supabase";
 // ⟳ 2026-09-11 · LOT 7 — `MealWindowRequest` est parti avec `generateMeal`,
 // le client navigateur de la lane individuelle supprimée.
 import { selectMealPlans } from "./mealWindow";
+// ⟳ 2026-09-12 · ÉTAPE C5 — le statut de validation de la garde finale, lu
+// depuis `generated_from.validation`. Le lecteur vit à part parce que la
+// réponse de génération porte le MÊME objet: un seul lecteur pour les deux.
+import { type PlanValidationView, readPlanValidation } from "./planValidation";
 import { type DayToken } from "./types";
 
 /** `MEAL_MODES` du moteur. Liste fermée: une valeur hors liste est refusée. */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-14 · BÊTA 2B — LA BORNE CLIENT, ÉCRITE UNE FOIS, SOUS LA PASSERELLE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ ELLE VIVAIT EN LITTÉRAL, SUR UNE SEULE DES DEUX INTENTIONS. `planDraft.ts`
+ * portait `...(intent === "draft" ? {} : { timeout: 120_000 })`: l'aperçu — le
+ * geste qui termine l'entonnoir — n'avait AUCUNE borne et attendait
+ * indéfiniment.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ 145 s ET PAS 120, ET C'EST UNE DÉVIATION ASSUMÉE DU PLAN DE BÊTA
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le plan demande « un résultat terminal en au plus 120 s ». 120 s est un
+ * OBJECTIF DE SERVICE, à mesurer sur une campagne — ce n'est pas une échéance
+ * à imposer au client, et l'imposer coûterait des plans.
+ *
+ * ── LE FAIT QUI TRANCHE, LU DANS LA CONFIGURATION, PAS SUPPOSÉ ────────────
+ * `supabase_kong_*:/home/kong/kong.yml` porte, avec son propre commentaire:
+ *
+ *     # Set request idle timeout to 150s to match hosted project
+ *     read_timeout: 150000
+ *
+ * La passerelle coupe donc à **150 s**, en local comme en hébergé. Et les
+ * durées RÉELLES mesurées par ce dépôt sur cette lane sont de **116 à 144 s**
+ * — c'est-à-dire juste en dessous.
+ *
+ * ⛔ UNE BORNE À 120 s ABANDONNERAIT DONC DES GÉNÉRATIONS QUI REVIENNENT. Le
+ * serveur, lui, ne s'arrête pas: la personne verrait une erreur pendant que son
+ * plan finit de s'écrire. 145 s rend la main CINQ SECONDES avant la passerelle:
+ * assez tôt pour que l'issue soit une phrase du produit et non une erreur de
+ * passerelle, assez tard pour ne renoncer à rien qui pouvait revenir.
+ *
+ * ⚠️ ET ELLE NE RACCOURCIT RIEN. Le serveur s'accorde `PLAN_REQUEST_BUDGET_MS`
+ * (380 s) parce que le worker edge coupe à 400 — un budget que la passerelle
+ * rend inatteignable de toute façon. Ce désaccord-là est nommé dans le rapport
+ * de bêta, § « le mur »: il se tranche avec un chiffre, pas avec une constante.
+ *
+ * ⚠️ CE QUI PROTÈGE LA PERSONNE QUAND LA BORNE MORD: le foyer reste verrouillé
+ * (`generation_in_flight`), donc une relance est refusée avec l'identifiant de
+ * la demande en cours au lieu de payer une seconde composition.
+ */
+export const PLAN_CLIENT_TIMEOUT_MS = 145_000;
+
+/**
+ * TEMPS RESTANT POUR RELIRE LA LIGNE DURABLE APRÈS LA BORNE HTTP.
+ *
+ * L'appel Edge est coupé à 145 s; le worker, lui, a `PLAN_REQUEST_BUDGET_MS`
+ * (380 s). Cette attente ne rallonge PAS l'HTTP: elle POLLE le brouillon ou
+ * le plan déjà rangés. 235 s = 380 − 145, sous la vie du worker (400 s).
+ */
+export const PLAN_RECOVERY_WAIT_MS = 235_000;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-15 · BÊTA 2C — L'ÂGE AU-DELÀ DUQUEL PLUS PERSONNE N'ÉCRIT.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * 440 s = `PLAN_REQUEST_BUDGET_MS` (380 s) + `GENERATION_LOCK_MARGIN_MS` (60 s),
+ * la valeur que le handler passe en `p_stale_after` à la prise de bail et que
+ * `keel_generation_stale_after()` rend côté base.
+ *
+ * ⛔ TROIS COPIES D'UN MÊME NOMBRE, ET C'EST ASSUMÉ: le navigateur ne peut pas
+ * importer `generation_model.ts` (il lit `Deno.env`). `leaseDeadlinePin.int.test.ts`
+ * relit les deux autres sites SUR LE DISQUE et refuse la divergence — c'est la
+ * forme que ce dépôt emploie déjà pour les bornes de séance d'activité.
+ *
+ * ⚠️ CE N'EST PAS `PLAN_RECOVERY_WAIT_MS`. Celui-là dit « combien de temps
+ * j'attends »; celui-ci dit « à partir de quand il n'y a plus rien à attendre ».
+ * Les confondre rendait `plan_still_composing` sur un worker mort depuis 17 h —
+ * mesuré le 2026-09-15 sur les deux baux du 546 et du 502.
+ */
+export const PLAN_LEASE_DEADLINE_MS = 440_000;
+
+/**
+ * CE QUE LA PASSERELLE COUPE, ÉCRIT ICI POUR QUE LA BORNE AIT UN POURQUOI.
+ *
+ * ⛔ CE N'EST PAS UN RÉGLAGE DE CE FICHIER: c'est `read_timeout` de Kong, et le
+ * changer ici ne changerait rien. Il est nommé pour qu'un test épingle la
+ * RELATION — la borne client doit rester STRICTEMENT en dessous — au lieu de
+ * laisser deux nombres dériver l'un de l'autre en silence.
+ */
+export const GATEWAY_READ_TIMEOUT_MS = 150_000;
+
 export const MEAL_MODES = ["from_pantry", "to_shop"] as const;
 export type MealMode = (typeof MEAL_MODES)[number];
 
@@ -644,6 +733,30 @@ export interface ShoppingItem {
    * est acheté plus tôt que sa fenêtre crue ne le permet.
    */
   freeze_on_purchase: boolean;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C3 — L'IDENTITÉ ET LA QUANTITÉ STRUCTURÉE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LEUR ABSENCE ÉTAIT ÉPINGLÉE PAR UN TEST DU DÉPÔT. `relectureLotF.int.test.ts`
+   * vérifiait, exprès, que « `shopping_list[]` n'a ni `amount`, ni `unit`, ni
+   * `ref` » — c'était la demande **C-E1** du lot E, restée ouverte. Tant que
+   * c'était vrai, l'écran ne pouvait rien dériver de ces lignes et le contrôle
+   * de suffisance rendait « incomplet » sur **26 identités sur 26** de GAIN.
+   *
+   * ⛔ REQUIS, `T | null`, jamais `T?` — la leçon de `food_group`, de `buy_on`
+   * et de `freeze_on_purchase`, appliquée le jour même. `null` = un plan écrit
+   * avant ce lot; l'écran retombe alors sur `quantity`, comme avant.
+   */
+  ref: string | null;
+  amount: number | null;
+  unit: string | null;
+  state: string | null;
+  /**
+   * ⛔ `false` = CETTE LIGNE NE SE MET DANS AUCUN PANIER (eau du robinet).
+   * `true` par défaut: une clé absente ne sort personne de la liste.
+   */
+  purchasable: boolean;
 }
 
 /**
@@ -714,6 +827,23 @@ export interface GeneratedMealResult {
    * soirée de cuisine à quelqu'un dont les magasins sont fermés.
    */
   timing: PlanTimingView | null;
+  /**
+   * ═══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · ÉTAPE C5 — CE QUE LA GARDE FINALE A DIT DE CE PLAN.
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * `null` = deux faits DIFFÉRENTS qui se lisent pareil (on se tait) : la ligne
+   * est plus vieille que ce lot, ou la garde n'a pas tourné du tout. ⛔ Jamais
+   * « conforme » par défaut : « on n'a pas mesuré » n'est pas « c'est propre »,
+   * et ce dépôt paie cette confusion en boucle (`protein_floor_short: 0` avec
+   * `protein_days: 0`).
+   *
+   * ⛔ LU SUR LA LIGNE (`generated_from.validation`), comme `timing` et
+   * `fixed_intakes`. Une valeur qui ne vivrait que dans la réponse
+   * disparaîtrait au premier rafraîchissement — et « l'écart est visible après
+   * rechargement » est la moitié de ce que le plan de clôture demande (§ C5 ④).
+   */
+  validation: PlanValidationView | null;
   /**
    * LE CONTEXTE QUI A PRODUIT CETTE COMPOSITION, tel qu'il a été demandé.
    *
@@ -1072,6 +1202,22 @@ export function readShopping(raw: unknown): ShoppingItem[] {
       // avant ce lot n'a pas la clé et rend `false`, ce qui est le comportement
       // d'avant, octet pour octet.
       freeze_on_purchase: (s as { freeze_on_purchase?: unknown }).freeze_on_purchase === true,
+      // ⟳ 2026-09-12 · C3 — L'IDENTITÉ ET LA QUANTITÉ STRUCTURÉE, RECOPIÉES.
+      //
+      // ⛔ MÊME CICATRICE QUE `food_group` ET `buy_on`: un lecteur qui laisse
+      // tomber un champ le fait en SILENCE. Sans elles, `ingredientQuantityText`
+      // ne pourrait rien dériver d'une ligne de courses et l'écran resterait
+      // collé au texte du modèle, même après une réparation.
+      ref: s.ref === null || s.ref === undefined ? null : String(s.ref),
+      // ⛔ `typeof === "number"` ET PAS `Number(...)`: `Number(null)` vaut zéro,
+      // et zéro passe `Number.isFinite` — « n'en achète pas » est une
+      // affirmation, alors que la ligne dit « on ne sait pas ». C'est le défaut
+      // exact que `readIngredients` a payé le 2026-09-11, six lignes sur 43.
+      amount: typeof s.amount === "number" && Number.isFinite(s.amount) ? s.amount : null,
+      unit: s.unit === null || s.unit === undefined ? null : String(s.unit),
+      state: s.state === null || s.state === undefined ? null : String(s.state),
+      // ⛔ `!== false`: une ligne d'archive sans le champ reste ACHETABLE.
+      purchasable: (s as { purchasable?: unknown }).purchasable !== false,
     };
   });
 }
@@ -1367,6 +1513,14 @@ export function readMealRow(raw: unknown): GeneratedMealResult {
     ),
     dayProperties: readDayProperties(
       ((row.generated_from ?? {}) as Record<string, unknown>).day_properties,
+    ),
+    // ⟳ 2026-09-12 · ÉTAPE C5 — LE STATUT DE VALIDATION, RELU SUR LA LIGNE.
+    // C'est le chemin « après rechargement » du § C5 ④, et c'est le MÊME objet
+    // que la réponse de génération rend sous `validation`: un seul lecteur, donc
+    // aucune divergence possible entre ce qu'on voit à la réception et ce qu'on
+    // voit en revenant sur l'écran.
+    validation: readPlanValidation(
+      ((row.generated_from ?? {}) as Record<string, unknown>).validation,
     ),
     context: typeof row.context === "string" && row.context.trim() !== ""
       ? row.context

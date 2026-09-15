@@ -44,7 +44,8 @@
  *                                    plus; recomposer est le seul geste;
  *   · 409 `draft_not_ready`        — la composition n'a pas fini;
  *   · 409 `draft_failed`           — elle a échoué;
- *   · 409 `draft_already_adopted`  — il est trop tard, le plan existe;
+ *   · 409 `draft_already_adopted`  — adopté, mais SANS identifiant à ouvrir;
+ *     (adopté AVEC identifiant: 200 `already_written: true`, rien n'est écrit)
  *   · 409 `draft_stale`            — les protections ou le code ont bougé;
  *   · 409 `plan_gate_refused`      — la garde finale refuse le payload;
  *   · 409 `plan_not_written`       — la base a refusé l'écriture.
@@ -77,7 +78,6 @@ import {
   adoptability,
   type DraftLane,
   loadDraftForAdoption,
-  markAdopted,
   contractVersionOf,
   DRAFT_CONTRACT_VERSION,
 } from "./draft_store.ts";
@@ -86,7 +86,9 @@ import {
   safetyFingerprintOf,
 } from "./safety_fingerprint.ts";
 import {
-  FINAL_GATE_POLICY_LOT_1,
+  FINAL_GATE_POLICY_LOT_4,
+  HOUSEHOLD_BETA_ESSENTIALS,
+  finalGateDelivery,
   finalPlanGate,
   asGatePlan,
   type GateContext,
@@ -143,7 +145,18 @@ export type AdoptStaleReason = "safety" | "source";
  * tourné faute de contexte gelé — c'est-à-dire une garde SAUTÉE, et le dépôt
  * porte la cicatrice d'une garde sautée qui ressemblait à une garde passée.
  */
-export type AdoptGateVerdict = "ok" | "refused" | "context_unavailable";
+export type AdoptGateVerdict =
+  | "ok"
+  | "refused"
+  | "context_unavailable"
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — LA GARDE N'A PAS TOURNÉ DANS CET APPEL, ET C'EST
+   * LÉGITIME: le plan était DÉJÀ écrit par une adoption précédente, qui l'a
+   * jugé. Une quatrième valeur plutôt qu'un `ok` réutilisé, parce que le
+   * défaut que ce vocabulaire existe pour empêcher est exactement « une garde
+   * sautée qui ressemble à une garde passée ».
+   */
+  | "already_written";
 
 // ===========================================================================
 // 2. LES FORMES RENDUES
@@ -186,6 +199,12 @@ export interface AdoptOkBody {
   };
   readonly draft_id: string;
   readonly request_id: string;
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — `true` quand CET appel n'a rien écrit parce que
+   * le plan existait déjà. Le corps est identique par ailleurs: l'écran ouvre
+   * `meal.id` sans savoir lequel des deux taps a écrit.
+   */
+  readonly already_written: boolean;
   /**
    * ⚠️ LA GARDE SE DIT DANS LA RÉPONSE, PAS SEULEMENT DANS LES JOURNAUX. Une
    * adoption qui a écrit SANS que la garde ait pu tourner doit pouvoir se
@@ -397,6 +416,11 @@ function parseGateContext(value: unknown): GateContext | null {
     }))
     : null;
 
+  if (!Array.isArray(src.shopping)) return null;
+  if (!isRecord(src.nutrition) || !Array.isArray(src.nutrition.cells) ||
+    !Array.isArray(src.nutrition.days)) return null;
+  if (!Array.isArray(src.dedicated)) return null;
+
   return {
     lane,
     startsOn,
@@ -427,9 +451,15 @@ function parseGateContext(value: unknown): GateContext | null {
     // `shopping_identities`, `portion_cells`, `measured_days` et `protein_days`
     // restent à zéro, et `finalGateDelivery().unevaluated` NOMME les causes qui
     // n'ont pas tourné. Un `[]` vide aurait dit l'inverse.
-    shopping: null,
-    nutrition: null,
-    policy: FINAL_GATE_POLICY_LOT_1,
+    shopping: src.shopping as unknown as GateContext["shopping"],
+    nutrition: src.nutrition as unknown as GateContext["nutrition"],
+    // ⟳ 2026-09-14 · BÊTA 1A — LE CHEMIN D'ADOPTION N'A PAS DE GRILLE. Il
+    // adopte un brouillon déjà composé, sans roster reconstruit ni décision de
+    // case: `null` dit « la question n'a pas été posée », et
+    // `checked.dedicated_obligations` reste à zéro pour que `unevaluated` le
+    // nomme. Un `[]` aurait dit « la grille a tourné et ne doit rien ».
+    dedicated: src.dedicated as unknown as GateContext["dedicated"],
+    policy: FINAL_GATE_POLICY_LOT_4,
   };
 }
 
@@ -522,8 +552,6 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
   if (!Number.isFinite(nowMs)) {
     throw new Error(`draft_adopt: nowIso illisible (${String(args.nowIso)})`);
   }
-  const now = new Date(nowMs);
-
   const logLine = (
     extra: Record<string, unknown>,
   ): void => {
@@ -544,6 +572,50 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
   });
 
   const verdict = adoptability(row ?? null, args.nowIso);
+  // ── ①bis LE PLAN EXISTE DÉJÀ: ON L'OUVRE, ON NE REFUSE PAS ──────────────
+  //
+  // ⛔ MESURÉ LE 2026-09-14 (audit R2). `keel_adopt_meal_draft` rend le même
+  // `meal_id` sur un brouillon déjà adopté — la transaction EST idempotente —
+  // mais `adoptability` refusait 409 AVANT de l'atteindre. Le second tap, les
+  // deux onglets et surtout la RÉPONSE PERDUE après une adoption réussie
+  // voyaient donc un échec pendant que leur plan était écrit.
+  //
+  // ⚠️ AUCUNE ÉCRITURE, AUCUNE RPC: la ligne relue porte déjà `adopted_meal_id`,
+  // et la garde a tourné au premier tap. Rejuger ici relirait les protections
+  // d'AUJOURD'HUI contre un plan écrit HIER — c'est-à-dire refuser un plan
+  // actif à cause d'une allergie déclarée après coup, sans rien pouvoir y faire.
+  if (verdict.ok && verdict.alreadyWritten !== null) {
+    logLine({
+      meal_id: verdict.alreadyWritten,
+      gate: "already_written",
+      gate_refusals: 0,
+      atomic: false,
+      replayed: true,
+    });
+    return {
+      ok: true,
+      status: 200,
+      body: {
+        ok: true,
+        meal: { id: verdict.alreadyWritten },
+        window: {
+          starts_on: asStringOrNull((row as Record<string, unknown>).starts_on),
+          duration_days:
+            Number.isFinite(Number((row as Record<string, unknown>).duration_days))
+              ? Number((row as Record<string, unknown>).duration_days)
+              : null,
+        },
+        draft_id: args.draftId,
+        request_id: requestId,
+        already_written: true,
+        diagnostics: { gate: "already_written", gate_refusals: 0 },
+      },
+      gate: "already_written",
+      gateRefusals: 0,
+      mealId: verdict.alreadyWritten,
+      postWrite: parsePostWrite((row as Record<string, unknown>).adoption_context),
+    };
+  }
   if (!verdict.ok) {
     logLine({ meal_id: null, gate: null, gate_refusals: 0, refused: verdict.refusal });
     return refusalOutcome(
@@ -627,30 +699,37 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
   // le foyer d'aujourd'hui. (Que le foyer ait bougé est déjà dit par ②(a); ce
   // n'est pas à la garde de le redire, et elle le dirait mal.)
   //
-  // ⛔ ⚠️ CETTE BRANCHE NE PEUT PAS SE DÉCLENCHER AUJOURD'HUI, ET IL FAUT LE
-  // DIRE ICI PLUTÔT QUE DE LAISSER UN LECTEUR LE CROIRE. Sous
-  // `FINAL_GATE_POLICY_LOT_1` toutes les causes valent `"count"`, donc
-  // `outcome.ok` est TOUJOURS `true` et `plan_gate_refused` n'est jamais rendu.
-  // La garde est câblée quand même, et journalisée, pour qu'un passage au lot 2
-  // arme l'adoption EN UN SEUL ENDROIT — au lieu de découvrir ce jour-là que le
-  // chemin d'adoption n'avait jamais eu de garde du tout.
+  // ⟳ 2026-09-14 · BÊTA — L'ADOPTION PORTE LA MÊME POLITIQUE LOT 4 QUE LA
+  // génération. Le contexte complet est gelé avec le brouillon; absent ou
+  // incomplet, il refuse fermé. Ainsi une ancienne ligne ou une régression de
+  // sérialisation ne peut jamais transformer « contrôle non exécuté » en 200.
   const gateContext = parseGateContext(draft.adoption_context);
   let gateVerdict: AdoptGateVerdict;
   let gateRefusalCount = 0;
   let gateRefused: readonly GateRefusal[] = [];
 
   if (gateContext === null) {
-    // ⛔ UNE GARDE SAUTÉE N'EST PAS UNE GARDE PASSÉE. On ne peut pas refuser
-    // l'écriture pour autant (sous le lot 1, la garde ne mord de toute façon
-    // pas, et refuser ici ferait perdre un plan relu pour une colonne mal
-    // remplie) — mais elle se NOMME, dans le journal ET dans la réponse.
+    // Une mesure indispensable absente n'est jamais un succès. Les brouillons
+    // d'avant le câblage doivent être recomposés sous le contrat courant.
     gateVerdict = "context_unavailable";
+    logLine({
+      meal_id: null,
+      gate: gateVerdict,
+      gate_refusals: 0,
+      refused: "plan_gate_refused",
+      reason: "context_unavailable",
+    });
+    return refusalOutcome("plan_gate_refused", {
+      reason: "context_unavailable",
+      says: "le contexte de validation complet du brouillon est indisponible",
+    }, requestId, gateVerdict, 0);
   } else {
     const gate = finalPlanGate(asGatePlan(draft.write_payload), gateContext);
+    const delivery = finalGateDelivery(gate, HOUSEHOLD_BETA_ESSENTIALS);
     gateRefusalCount = gate.refusals.length;
     gateRefused = gate.refusals.filter((r) => r.severity === "refuse");
-    gateVerdict = gate.ok ? "ok" : "refused";
-    if (!gate.ok) {
+    gateVerdict = gate.ok && delivery.state !== "not_deliverable" ? "ok" : "refused";
+    if (!gate.ok || delivery.state === "not_deliverable") {
       logLine({
         meal_id: null,
         gate: gateVerdict,
@@ -659,7 +738,10 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
       });
       return refusalOutcome("plan_gate_refused", {
         reason: "final_plan_gate",
-        causes: [...new Set(gateRefused.map((r) => r.cause))],
+        causes: [...new Set([
+          ...gateRefused.map((r) => r.cause),
+          ...delivery.unevaluated,
+        ])],
         refusals: gateRefused.map((r) => ({
           cause: r.cause,
           day: r.day,
@@ -673,26 +755,27 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
     }
   }
 
-  // ── ④ L'ÉCRITURE — LA MÊME RPC, GELÉE, ET LE PAYLOAD MOT POUR MOT ───────
+  // ── ④ L'ÉCRITURE — UNE TRANSACTION ATOMIQUE, PAYLOAD GELÉ MOT POUR MOT ──
   //
   // ⛔ `p_payload: draft.write_payload` — L'OBJET STOCKÉ, PAS UNE COPIE, PAS
   // LA VUE DE LA GARDE. C'est la propriété que ce lot existe pour tenir.
-  // ⛔ NE PAS TOUCHER À LA SIGNATURE DE LA RPC: elle est gelée, et le
-  // chevauchement de fenêtres EST arbitré par elle (voir ② en tête).
+  // La RPC verrouille le brouillon, appelle `write_student_meal_plan` avec son
+  // `write_payload`, puis le marque adopté dans la MÊME transaction. Un échec
+  // ne peut donc plus laisser un plan écrit avec un brouillon encore `done`.
   const startsOn = asStringOrNull(draft.starts_on);
   const durationDays = Number.isFinite(Number(draft.duration_days))
     ? Number(draft.duration_days)
     : null;
 
-  const { data: writtenRows, error: writeErr } = await args.admin.rpc(
-    "write_student_meal_plan",
+  const { data: adoptionResult, error: writeErr } = await args.admin.rpc(
+    "keel_adopt_meal_draft",
     {
-      p_user_id: args.userId,
+      p_draft: args.draftId,
+      p_user: args.userId,
       p_intent: args.intent,
-      p_starts_on: startsOn,
-      p_duration_days: durationDays,
       p_replaces: args.replaces,
-      p_payload: draft.write_payload,
+      p_live_fingerprint: liveFingerprint,
+      p_contract_version: DRAFT_CONTRACT_VERSION,
     },
   );
 
@@ -712,10 +795,32 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
     );
   }
 
-  const writtenRow = (Array.isArray(writtenRows) ? writtenRows[0] : writtenRows) as
-    | { meal_id?: unknown }
+  const writtenRow = (Array.isArray(adoptionResult) ? adoptionResult[0] : adoptionResult) as
+    | { ok?: unknown; reason?: unknown; detail?: unknown; meal_id?: unknown }
     | null
     | undefined;
+  if (writtenRow?.ok !== true) {
+    const reason = String(writtenRow?.reason ?? "plan_not_written");
+    const known = (ADOPT_REFUSALS as readonly string[]).includes(reason)
+      ? reason as AdoptRefusal
+      : "plan_not_written";
+    logLine({
+      meal_id: null,
+      gate: gateVerdict,
+      gate_refusals: gateRefusalCount,
+      refused: known,
+      atomic: true,
+    });
+    return refusalOutcome(
+      known,
+      typeof writtenRow?.detail === "string" || isRecord(writtenRow?.detail)
+        ? writtenRow.detail
+        : reason,
+      requestId,
+      gateVerdict,
+      gateRefusalCount,
+    );
+  }
   const mealId = String(writtenRow?.meal_id ?? "").trim();
 
   if (!mealId) {
@@ -742,20 +847,11 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
     );
   }
 
-  // ── ⑤ LE BROUILLON EST ADOPTÉ ───────────────────────────────────────────
-  //
-  // ⚠️ UN ÉCHEC ICI NE RENVERSE PAS LE 200, ET C'EST UN ARBITRAGE: le plan EST
-  // écrit. Refuser mentirait à la personne et lui ferait recomposer un plan
-  // qu'elle a déjà. Ce qui se perd est le lien « ce plan vient de CE
-  // brouillon » et le verrou du second tap — ce dernier restant tenu par
-  // l'exclusion de fenêtres de la RPC. Le journal le dit (`marked`).
-  const marked = await markAdopted(args.admin, String(draft.id ?? ""), mealId, now);
-
   logLine({
     meal_id: mealId,
     gate: gateVerdict,
     gate_refusals: gateRefusalCount,
-    marked: marked.ok,
+    atomic: true,
   });
 
   return {
@@ -767,6 +863,7 @@ export async function adoptDraft(args: AdoptDraftArgs): Promise<AdoptOutcome> {
       window: { starts_on: startsOn, duration_days: durationDays },
       draft_id: args.draftId,
       request_id: requestId,
+      already_written: false,
       diagnostics: { gate: gateVerdict, gate_refusals: gateRefusalCount },
     },
     gate: gateVerdict,

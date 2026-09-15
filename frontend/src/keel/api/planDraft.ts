@@ -38,6 +38,9 @@ import { type CookingShape } from "./cookingShape";
 import { readEdgeRefusal } from "./edgeErrors";
 import {
   type GeneratedMealResult,
+  PLAN_CLIENT_TIMEOUT_MS,
+  PLAN_LEASE_DEADLINE_MS,
+  PLAN_RECOVERY_WAIT_MS,
   readDayProperties,
   readDishes,
   readFixedIntakes,
@@ -48,6 +51,10 @@ import {
   readShopping,
 } from "./mealGeneration";
 import { type MealWindowRequest } from "./mealWindow";
+// ⟳ 2026-09-12 · ÉTAPE C5 — le MÊME lecteur que la ligne écrite. Deux lecteurs
+// du même objet divergeraient au premier champ ajouté, et c'est celui qu'on
+// regarde le moins qui garderait l'ancien comportement.
+import { readPlanValidation } from "./planValidation";
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -328,6 +335,202 @@ export interface PlanDraft {
   envelope: DraftEnvelope;
 }
 
+export type RecoverablePlanDraft =
+  | { state: "done"; draft: PlanDraft }
+  | { state: "in_flight"; draftId: string }
+  | null;
+
+type DraftRecovery =
+  | { kind: "done"; response: Record<string, unknown> }
+  | { kind: "written"; mealId: string }
+  | { kind: "in_flight" }
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — LE TRAVAIL EST MORT, ET ON LE DIT. Au-delà de
+   * `PLAN_LEASE_DEADLINE_MS`, le worker n'existe plus: son bail est balayé à la
+   * prochaine prise et personne n'écrira. C'est terminal, comme `failed`.
+   */
+  | { kind: "expired" }
+  | { kind: "failed"; errorCode: string }
+  | { kind: "unavailable" };
+
+/** Une ligne en vol dont l'âge dépasse l'échéance n'a plus d'écrivain. */
+function outOfLease(startedAt: unknown): boolean {
+  const started = Date.parse(String(startedAt ?? ""));
+  // ⚠️ Une date ILLISIBLE ne périme pas: c'est un défaut de lecture, pas une
+  // échéance — même règle qu'`adoptability` côté serveur.
+  if (!Number.isFinite(started)) return false;
+  return Date.now() - started > PLAN_LEASE_DEADLINE_MS;
+}
+
+function asRecord(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return raw as Record<string, unknown>;
+}
+
+/**
+ * Relit l'issue durable d'une requête dont le transport s'est interrompu.
+ * `unavailable` reste distinct de `in_flight`: sans ligne effectivement lue,
+ * l'écran n'a pas le droit d'affirmer que le serveur travaille encore.
+ */
+async function recoverRequest(requestId: string): Promise<DraftRecovery> {
+  const { data: meal } = await supabase
+    .from("student_generated_meals")
+    .select("id")
+    .filter("generated_from->>request_id", "eq", requestId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const mealId = String((meal as { id?: unknown } | null)?.id ?? "").trim();
+  if (mealId) return { kind: "written", mealId };
+
+  const { data, error } = await supabase
+    .from("student_meal_drafts")
+    .select("id,status,response,error_code,expires_at,adopted_meal_id,created_at")
+    .eq("request_id", requestId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!error && data) {
+    const row = data as Record<string, unknown>;
+    const expires = Date.parse(String(row.expires_at ?? ""));
+    const status = String(row.status ?? "");
+    const adopted = String(row.adopted_meal_id ?? "").trim();
+    if (status === "adopted" && adopted) return { kind: "written", mealId: adopted };
+    if (Number.isFinite(expires) && expires <= Date.now()) {
+      return { kind: "unavailable" };
+    }
+    if ((status === "done" || status === "adopted") && row.response &&
+      typeof row.response === "object" && !Array.isArray(row.response)) {
+      return { kind: "done", response: row.response as Record<string, unknown> };
+    }
+    if (status === "pending" || status === "running") {
+      return outOfLease(row.created_at) ? { kind: "expired" } : { kind: "in_flight" };
+    }
+    if (status === "failed") {
+      const errorCode = String(row.error_code ?? "").trim();
+      return { kind: "failed", errorCode: errorCode || "composition_unavailable" };
+    }
+  }
+
+  const { data: rpcData, error: rpcError } = await supabase.rpc(
+    "keel_household_request_status",
+    { p_request: requestId },
+  );
+  if (!rpcError) {
+    const status = asRecord(rpcData);
+    const kind = String(status?.kind ?? "");
+    if (kind === "written") {
+      const id = String(status?.meal_id ?? "").trim();
+      if (id) return { kind: "written", mealId: id };
+    }
+    if (kind === "in_flight") return { kind: "in_flight" };
+    if (kind === "expired") return { kind: "expired" };
+    if (kind === "failed") {
+      const errorCode = String(status?.error_code ?? "").trim();
+      return { kind: "failed", errorCode: errorCode || "composition_unavailable" };
+    }
+    if (kind === "done") {
+      const { data: again } = await supabase
+        .from("student_meal_drafts")
+        .select("response")
+        .eq("request_id", requestId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const response = (again as { response?: unknown } | null)?.response;
+      if (response && typeof response === "object" && !Array.isArray(response)) {
+        return { kind: "done", response: response as Record<string, unknown> };
+      }
+    }
+  }
+  return { kind: "unavailable" };
+}
+
+async function awaitDurableRequest(requestId: string): Promise<DraftRecovery> {
+  const until = Date.now() + PLAN_RECOVERY_WAIT_MS;
+  let recovered = await recoverRequest(requestId);
+  while (recovered.kind === "in_flight" && Date.now() < until) {
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 2_000));
+    recovered = await recoverRequest(requestId);
+  }
+  return recovered;
+}
+
+function planDraftFromResponse(response: Record<string, unknown>): PlanDraft {
+  return {
+    plan: { ...readDraftPlan(response), planKind: "household" },
+    envelope: readDraftEnvelope(response),
+  };
+}
+
+function recoverableRow(raw: unknown): RecoverablePlanDraft {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const row = raw as Record<string, unknown>;
+  const id = String(row.id ?? "").trim();
+  const status = String(row.status ?? "");
+  if ((status === "pending" || status === "running") && id) {
+    // ⟳ 2026-09-15 — UN RECHARGEMENT NE ROUVRE PAS UNE ATTENTE MORTE. Sans ce
+    // filtre, chaque visite relançait 235 s de poll sur un brouillon dont le
+    // worker était parti depuis des heures.
+    if (outOfLease(row.created_at)) return null;
+    return { state: "in_flight", draftId: id };
+  }
+  if (status === "done" && row.response && typeof row.response === "object" &&
+    !Array.isArray(row.response)) {
+    return { state: "done", draft: planDraftFromResponse(row.response as Record<string, unknown>) };
+  }
+  return null;
+}
+
+/** Reprend, après rechargement, le dernier brouillon encore valable du compte. */
+export async function recoverLatestDraft(): Promise<RecoverablePlanDraft> {
+  const { data, error } = await supabase
+    .from("student_meal_drafts")
+    .select("id,status,response,error_code,expires_at,created_at")
+    .in("status", ["pending", "running", "done"])
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error("composition_unavailable");
+  return recoverableRow(data);
+}
+
+/** Attend la ligne déjà en vol; cette boucle ne déclenche aucune génération. */
+export async function waitForDraft(
+  draftId: string,
+  timeoutMs = PLAN_RECOVERY_WAIT_MS,
+): Promise<PlanDraft> {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    const { data, error } = await supabase
+      .from("student_meal_drafts")
+      .select("id,status,response,error_code,expires_at,created_at")
+      .eq("id", draftId)
+      .maybeSingle();
+    if (error || !data) throw new Error("composition_unavailable");
+    const row = data as Record<string, unknown>;
+    const state = recoverableRow(row);
+    if (state?.state === "done") return state.draft;
+    if (String(row.status ?? "") === "failed") {
+      const code = String(row.error_code ?? "").trim();
+      throw new Error(code || "composition_unavailable");
+    }
+    // ⛔ ET SURTOUT PAS ATTENDRE JUSQU'AU BOUT: `recoverableRow` a déjà rendu
+    // `null` sur une ligne périmée, donc la boucle tournerait 235 s pour finir
+    // sur `plan_still_composing` — la phrase exactement fausse.
+    if (
+      (String(row.status ?? "") === "pending" ||
+        String(row.status ?? "") === "running") && outOfLease(row.created_at)
+    ) {
+      throw new Error("plan_expired");
+    }
+    if (Date.now() >= deadline) break;
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 2_000));
+  } while (Date.now() < deadline);
+  throw new Error("plan_still_composing");
+}
+
 /**
  * LES LIGNES D'UN BLOC `{ lines, refusal }`. Défensif dans une seule
  * direction, comme tous les lecteurs de ce dépôt: ce qu'on ne sait pas lire
@@ -469,6 +672,12 @@ export function readDraftPlan(raw: unknown): GeneratedMealResult {
     // le fait le plus visible du plan — sa fenêtre a reculé d'un jour — alors
     // que le plan adopté le dit (C8: les deux surfaces, un seul corps de plan).
     timing: readPlanTiming(payload.timing),
+    // ⟳ 2026-09-12 · ÉTAPE C5 — MÊME LEÇON QUE `timing` JUSTE AU-DESSUS. Le
+    // serveur rend `validation` À LA RACINE sur `intent: "draft"` comme sur un
+    // plan écrit, et c'est le MÊME objet que `generated_from.validation` de la
+    // ligne. Le jeter ici ferait un aperçu qui se tait sur ses écarts pendant
+    // que le plan adopté les dit — C8: les deux surfaces, un seul corps de plan.
+    validation: readPlanValidation(payload.validation),
     context: null,
     preferences: null,
     createdAt: null,
@@ -592,6 +801,36 @@ export interface ComposeDraftInput {
  * Le reste (« rien à changer », « je n'ai pas compris de qui ») ne lève pas:
  * ce sont des issues, rendues avec l'aperçu.
  */
+/**
+ * UN ÉCHEC DE TRANSPORT DEVIENT UN JETON, JAMAIS UNE PHRASE DE BIBLIOTHÈQUE.
+ *
+ * ⛔ MESURÉ LE 2026-09-14, SUR L'ÉCRAN RÉEL. Le repli de ces trois appels
+ * s'écrivait `[keel/planDraft] ${error.message}`, et une adoption dont le
+ * délai client a expiré rendait, en toutes lettres, au pied du dialogue:
+ *
+ *     [keel/planDraft] Failed to send a request to the Edge Function
+ *
+ * Deux interdits d'un coup: le nom de code INTERNE sur une surface lue par une
+ * personne, et la chaîne brute anglaise d'une bibliothèque comme seule sortie
+ * d'une panne ordinaire. `planRefusals.ts` fait correspondre des JETONS — une
+ * phrase libre n'en est pas un, donc elle n'avait aucune traduction et l'écran
+ * rendait ce qu'il pouvait.
+ *
+ * ⚠️ LE DÉTAIL SURVIT, DERRIÈRE LE `:`. Même forme que les refus nommés
+ * (`jeton: détail`): l'appelant coupe au premier `:` pour traduire, et le
+ * reste part au journal du navigateur. Ce qui ne doit pas sortir, c'est qu'il
+ * atteigne l'ÉCRAN.
+ */
+function refusalOf(error: unknown, fallback: string): Promise<string> {
+  return readEdgeRefusal(error).then((refusal) => {
+    if (refusal) {
+      return refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token;
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    return `${fallback}: ${detail}`;
+  });
+}
+
 export async function readNote(
   note: string,
   window: MealWindowRequest,
@@ -605,11 +844,7 @@ export async function readNote(
     },
   });
   if (error) {
-    const refusal = await readEdgeRefusal(error);
-    const named = refusal
-      ? (refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token)
-      : "";
-    throw new Error(named || `[keel/readNote] ${error.message}`);
+    throw new Error(await refusalOf(error, "composition_unavailable"));
   }
   const raw = (data ?? {}) as Record<string, unknown>;
   const reason = String(raw.reason ?? "");
@@ -632,11 +867,7 @@ export async function answerNote(answer: NoteAnswer): Promise<NoteOutcome> {
     },
   });
   if (error) {
-    const refusal = await readEdgeRefusal(error);
-    const named = refusal
-      ? (refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token)
-      : "";
-    throw new Error(named || `[keel/answerNote] ${error.message}`);
+    throw new Error(await refusalOf(error, "composition_unavailable"));
   }
   return readNoteOutcome((data ?? {}) as Record<string, unknown>);
 }
@@ -768,52 +999,70 @@ export async function editCells(
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
- * 🔴 ADOPTER — ET CE QUE CE MOT NE PEUT PAS VOULOIR DIRE AUJOURD'HUI.
+ * ADOPTER — ÉCRIRE EXACTEMENT LE BROUILLON RELU.
  * ══════════════════════════════════════════════════════════════════════════
  *
- * L'intention du chantier est « l'adoption écrit EXACTEMENT ce qui a été
- * montré, pas de regénération ». **Ce n'est pas atteignable depuis le
- * navigateur**, et le vérifier tient en deux faits:
- *
- *   1. Le seul écrivain d'un plan est la RPC `write_student_meal_plan`, dont
- *      l'`EXECUTE` est RÉVOQUÉ à `anon` ET `authenticated` — trois fois, dans
- *      trois migrations (`20260807090000`, `20260811080000`, `20260811140000`).
- *      Aucun client ne peut donc poser un plan déjà composé.
- *   2. Aucune fonction edge n'accepte un plan tout fait: les deux générateurs
- *      COMPOSENT, et le chemin `draft` se distingue uniquement par le fait
- *      qu'il saute l'écriture à la toute fin.
- *
- * Ce qu'on peut faire — et ce que fait cette fonction — est de **recomposer à
- * partir de la MÊME demande et de la MÊME phrase**. Le serveur relit la note
- * sur TOUS les `intent`, exprès: « une adoption qui perdrait la phrase écrirait
- * un plan qui n'est pas celui qu'on a montré ». Le résultat reste néanmoins un
- * SECOND appel modèle, donc un plan qui peut différer de l'aperçu.
- *
- * ⚠️ C'EST DIT À L'ÉCRAN AVANT LE CLIC (`plan.draft.adopt_recomposes`). Une
- * adoption silencieuse qui recompose montrerait un plan et en écrirait un
- * autre — exactement ce que la fenêtre d'aperçu existe pour empêcher.
- *
- * Fermer le trou pour de bon demande un chemin serveur qui écrive un payload
- * déjà composé (« adopt this draft »), avec ses propres gardes de sortie. C'est
- * du backend, et c'est hors de la colonne de ce lot.
+ * Le navigateur ne transmet que l'identifiant opaque. Le serveur relit le
+ * `write_payload`, revalide l'empreinte et la garde Lot 4, puis l'écrit et
+ * marque le brouillon adopté dans une seule transaction. Aucun appel modèle.
  */
 export async function writeFromDraft(
   input: ComposeDraftInput,
+  draftId: string,
   intent: "replace_current" | "prepare_next",
   replaces: string | null,
 ): Promise<{ ok: boolean; mealId: string | null }> {
   // ⛔ ET SURTOUT PAS DE `readNote` ICI (lot 4). Lire la phrase c'est
   // L'APPLIQUER (un cran d'appétit, un réglage): la relire à l'adoption
   // appliquait le même cran une seconde fois. La phrase a fait son effet à la
-  // reprise; l'adoption recompose depuis le magasin, qui le porte déjà.
-  const payload = await callGenerator(input, intent, replaces);
-  const meal = (payload.meal ?? null) as Record<string, unknown> | null;
-  return {
-    // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
-    // doit pas non plus atterrir comme un succès.
-    ok: payload.ok === true,
-    mealId: typeof meal?.id === "string" ? meal.id : null,
-  };
+  // reprise; l'adoption relit le magasin, qui porte déjà le plan final.
+  try {
+    const payload = await callGenerator(input, intent, replaces, {
+      draft_id: draftId,
+      adopting_draft: true,
+    });
+    const meal = (payload.meal ?? null) as Record<string, unknown> | null;
+    return {
+      // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
+      // doit pas non plus atterrir comme un succès.
+      ok: payload.ok === true,
+      mealId: typeof meal?.id === "string" ? meal.id : null,
+    };
+  } catch (error) {
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-15 · BÊTA 2C — LA RÉPONSE PERDUE APRÈS UNE ADOPTION RÉUSSIE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ `callGenerator` A DÉJÀ TENTÉ SA REPRISE, ET ELLE NE PEUT PAS MARCHER
+    // ICI: elle cherche par le `request_id` que CET appel vient de tirer, alors
+    // que le plan écrit par adoption porte le `generated_from` du brouillon —
+    // c'est-à-dire l'identifiant de la COMPOSITION, pas celui de l'adoption.
+    // Une identité neuve à chaque tap ne peut retrouver aucun résultat.
+    //
+    // Le `draft_id`, lui, est stable: c'est la même ligne des deux côtés, et
+    // elle porte `adopted_meal_id` dès que la transaction a commis.
+    const written = await adoptedMealOf(draftId);
+    if (written) return { ok: true, mealId: written };
+    throw error;
+  }
+}
+
+/**
+ * LE PLAN ÉCRIT PAR CE BROUILLON, S'IL EXISTE.
+ *
+ * ⚠️ RIEN D'AUTRE. Pas de `status`, pas d'attente, pas de seconde adoption: on
+ * répond à « est-ce déjà écrit ? », et un `null` laisse l'erreur d'origine
+ * remonter telle quelle.
+ */
+async function adoptedMealOf(draftId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("student_meal_drafts")
+    .select("adopted_meal_id")
+    .eq("id", draftId)
+    .maybeSingle();
+  if (error || !data) return null;
+  const id = String((data as { adopted_meal_id?: unknown }).adopted_meal_id ?? "").trim();
+  return id || null;
 }
 
 /**
@@ -896,11 +1145,6 @@ async function callGenerator(
     one_cooking_session: input.oneCookingSession,
     preferences: input.preferences,
   };
-  // Une adoption vient après un aperçu déjà validé par la personne. Le
-  // serveur doit encore recomposer aujourd'hui, mais il ne doit pas lancer
-  // ensuite une seconde génération d'amélioration: sur une semaine complète,
-  // les deux appels dépassent la durée de vie de la fonction avant l'écriture.
-  if (intent !== "draft") body.adopting_draft = true;
   Object.assign(body, extra);
   // LA NOTE N'EST POSÉE QUE SI ELLE EXISTE. Un `draft_note: ""` serait lu comme
   // une phrase illisible et rendrait `note_unusable` au premier aperçu, avant
@@ -910,19 +1154,76 @@ async function callGenerator(
   // par `readNote`, et appliquée; le composeur relit le magasin. Mesuré avant
   // ce lot: la phrase brute dans un prompt de 23 833 caractères.
 
-  const { data, error } = await supabase.functions.invoke(fn, {
-    body,
-    // La borne du modèle côté serveur est plus courte. Celle-ci garde une
-    // marge pour ses lectures et son écriture, et garantit surtout que le
-    // bouton redevient cliquable si une connexion ne se ferme pas.
-    ...(intent === "draft" ? {} : { timeout: 120_000 }),
-  });
+  const deadline = new AbortController();
+  const requestId = crypto.randomUUID();
+  const timer = setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS);
+  let data: unknown;
+  let error: unknown;
+  try {
+    ({ data, error } = await supabase.functions.invoke(fn, {
+      body,
+      headers: { "x-request-id": requestId },
+      // ══════════════════════════════════════════════════════════════════════
+      // ⟳ 2026-09-14 · BÊTA 2B — LES DEUX INTENTIONS ONT LA MÊME BORNE
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ L'APERÇU N'EN AVAIT AUCUNE. `...(intent === "draft" ? {} : {timeout})`:
+      // le geste le plus fréquent du produit — celui qui termine l'entonnoir —
+      // attendait indéfiniment. Une connexion qui ne se ferme pas laissait le
+      // bouton mort sans qu'aucune issue n'arrive jamais, et c'est très
+      // exactement ce que la borne existe pour empêcher sur l'autre chemin.
+      //
+      // ⛔ ET CE N'EST PAS LA BORNE DU SERVEUR. Le serveur s'accorde
+      // `PLAN_REQUEST_BUDGET_MS` (380 s) parce que le worker edge coupe à 400;
+      // le CLIENT, lui, rend la main à 120 s parce que c'est le service que la
+      // bêta promet. Les deux ne décrivent pas la même chose, et le plan de bêta
+      // demande de les aligner en le SACHANT: un dépassement client n'arrête pas
+      // le serveur — le foyer reste verrouillé (`generation_in_flight`) et la
+      // relance est refusée avec l'identifiant de la demande en cours.
+      //
+      // ⚠️ 145 s, PAS 120: la passerelle coupe à 150 (`read_timeout` de Kong,
+      // « to match hosted project ») et les durées réelles de cette lane sont de
+      // 116 à 144 s. Une borne à 120 abandonnerait des générations qui
+      // reviennent. Voir le pavé de `PLAN_CLIENT_TIMEOUT_MS`.
+      // ⛔ NOTRE PROPRE `AbortController`, PAS L'OPTION `timeout` DE LA
+      // BIBLIOTHÈQUE. Les deux coupent à la même seconde, mais l'option rend un
+      // `FunctionsFetchError` dont le message est le MÊME que celui d'un réseau
+      // coupé — et lire ce message pour les distinguer serait un matcher maison
+      // sur du texte que nous n'écrivons pas (cicatrice mesurée de ce dépôt).
+      // Le signal, lui, SAIT: `deadline.signal.aborted` ne dit qu'une chose.
+      signal: deadline.signal,
+    }));
+  } finally {
+    clearTimeout(timer);
+  }
   if (error) {
-    const refusal = await readEdgeRefusal(error);
-    const named = refusal
-      ? (refusal.detail ? `${refusal.token}: ${refusal.detail}` : refusal.token)
-      : "";
-    throw new Error(named || `[keel/planDraft] ${error.message}`);
+    // ⛔ NOTRE DÉLAI N'EST PAS UNE PANNE, ET IL NE DOIT PAS SE LIRE COMME UNE.
+    // Mesuré le 2026-09-14: le client rend la main à 145 s, LE SERVEUR
+    // CONTINUE — il a 380 s — et il peut très bien écrire le plan après coup.
+    // Dire « la composition n'a pas abouti » serait faux une fois sur deux, et
+    // « relance » ferait taper sur un foyer encore verrouillé.
+    const recovered = await settleInterruptedGeneration(requestId);
+    if (recovered.kind === "done") return recovered.response;
+    if (recovered.kind === "written") {
+      return { ok: true, meal: { id: recovered.mealId }, request_id: requestId };
+    }
+    if (recovered.kind === "in_flight") throw new Error("plan_still_composing");
+    if (recovered.kind === "expired") throw new Error("plan_expired");
+    if (recovered.kind === "failed") throw new Error(recovered.errorCode);
+    if (deadline.signal.aborted) throw new Error("composition_unavailable");
+    throw new Error(await refusalOf(error, "composition_unavailable"));
   }
   return (data ?? {}) as Record<string, unknown>;
+}
+
+/**
+ * Après un transport coupé: une lecture, puis une attente seulement si l'état
+ * relu est réellement en vol. Exportée pour `generateHouseholdMeal`.
+ */
+export async function settleInterruptedGeneration(
+  requestId: string,
+): Promise<DraftRecovery> {
+  const first = await recoverRequest(requestId);
+  if (first.kind !== "in_flight") return first;
+  return await awaitDurableRequest(requestId);
 }

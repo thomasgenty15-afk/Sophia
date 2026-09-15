@@ -923,20 +923,32 @@ Deno.test("épinglage — trois plans font une habitude", () =>
 import {
   PLAN_MODEL_MAX_RETRIES,
   PLAN_MODEL_REPAIR_BUDGET,
+  GENERATION_LOCK_MARGIN_MS,
   PLAN_REQUEST_BUDGET_MS,
   PLAN_TAIL_RESERVE_MS,
 } from "./generation_model.ts";
 import { PLAN_REPAIR_RESERVED_AFTER } from "./plan_budget.ts";
+import {
+  REPAIR_DEFECT_HARD_CHARS,
+  REPAIR_MAX_BLOCKS,
+} from "./plan_defect_pass.ts";
 import { GENERATION_REFUSAL_STATUS } from "./generation_context.ts";
 import { MOUTH_FACT_FIELDS } from "./resolved_mouth.ts";
 import { PACE_UNAVAILABLE_REASONS } from "./weight_pace.ts";
 import {
   CANDIDATE_VERDICTS,
+  PLAN_REPAIR_MAX_CALLS,
   REPAIR_DEFECT_KINDS,
   REPAIR_MAGNITUDE_MIN_GAIN,
   REPAIR_MIN_CALL_MS,
   REPAIR_PASS_REFUSALS,
 } from "./plan_repair_loop.ts";
+import {
+  PLAN_PROJECTION_HARD_CHARS,
+  PLAN_PROJECTION_SOFT_CHARS,
+} from "./plan_repair_context.ts";
+import { SLOT_CONTRACT_MAX_LINES } from "./slot_contract_brief.ts";
+import { PLAN_VALIDATION_VERSION } from "./plan_validation.ts";
 
 Deno.test("épinglage — DEUX rattrapages par plan, tous motifs confondus", () =>
   assertEquals(PLAN_MODEL_REPAIR_BUDGET, 2));
@@ -953,6 +965,14 @@ Deno.test("épinglage — une seule passe de tentative par appel de plan", () =>
 Deno.test("épinglage — une requête de plan a 380 secondes", () =>
   assertEquals(PLAN_REQUEST_BUDGET_MS, 380_000));
 
+// ⟳ 2026-09-15 · BÊTA 2C — LA MARGE DU BAIL. Le verrou de foyer tient 380 + 60
+// secondes: au-delà, plus personne n'écrit, et `keel_generation_stale_after()`
+// le dit à la lecture d'état. Les trois copies de 440 s (SQL, worker,
+// navigateur) sont tenues par `generation_stale_after_pin_test.ts` et
+// `leaseDeadlinePin` côté Vitest; celle-ci épingle le terme qui les nourrit.
+Deno.test("épinglage — GENERATION_LOCK_MARGIN_MS vaut 60 secondes", () =>
+  assertEquals(GENERATION_LOCK_MARGIN_MS, 60_000));
+
 // La queue: mesure finale, ceintures, verrou de maison, écriture. Un plan
 // réparé et non écrit ne vaut rien.
 Deno.test("épinglage — trente secondes sont réservées à l'écriture", () =>
@@ -964,6 +984,9 @@ Deno.test("épinglage — trente secondes sont réservées à l'écriture", () =
 // de densité hors du budget sans qu'aucun autre test ne bouge.
 Deno.test("épinglage — PLAN_REPAIR_RESERVED_AFTER, l'objet ENTIER", () =>
   assertEquals(PLAN_REPAIR_RESERVED_AFTER, {
+    // ⟳ 2026-09-12 · ÉTAPE C4 — le site d'APRÈS la garde finale. `0` parce que
+    // rien ne le suit: il s'exécute sur le payload exact qui partirait en base.
+    final_repair: 0,
     protein_anchor_retry: 2,
     exclusion_retry: 1,
     swap_retry: 2,
@@ -1059,6 +1082,29 @@ Deno.test("épinglage — CANDIDATE_VERDICTS, le vocabulaire FERMÉ", () =>
 // réponse; le monter refuse des réparations qui tenaient.
 Deno.test("épinglage — quarante secondes pour qu'un appel de réparation serve", () =>
   assertEquals(REPAIR_MIN_CALL_MS, 40_000));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-13 · LOT 1 — LE PLAFOND D'UNE INSTRUCTION DE RÉPARATION
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE QU'IL COMPTE A CHANGÉ, ET C'EST LE LOT. Il comptait des LIGNES (24), et
+// la 25ᵉ devenait « … and 41 more of the same kind. » — 41 défauts remplacés par
+// un compte, c'est-à-dire deux bouches sur quatre effacées (tir `perte-h4n4`,
+// 2026-09-11). Il compte maintenant des BLOCS: une adresse et TOUTES les
+// personnes qu'elle porte, jamais amputée d'une bouche.
+//
+// ⛔ LA VALEUR VIENT D'UNE MESURE. Sur la forme de ce tir — 4 bouches, 3 jours,
+// 55 défauts réparables — le rendu groupé fait 31 blocs / 20 272 caractères.
+// 24 en laissait 7 dehors, donc refusait l'appel sur le cas nominal du foyer;
+// 40 le couvre avec de la marge. Au-delà, on ne coupe pas: `contextIncomplete`.
+Deno.test("épinglage — REPAIR_MAX_BLOCKS vaut 40 (mesuré: 31 blocs à N=4 sur 3 jours)", () =>
+  assertEquals(REPAIR_MAX_BLOCKS, 40));
+
+// ⛔ LE SECOND PLAFOND, EN CARACTÈRES: un bloc porte autant de lignes qu'il a de
+// bouches, donc compter des blocs ne borne pas la taille. 20 272 mesurés,
+// 30 000 posés.
+Deno.test("épinglage — REPAIR_DEFECT_HARD_CHARS vaut 30 000", () =>
+  assertEquals(REPAIR_DEFECT_HARD_CHARS, 30_000));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ⟳ LE PLANCHER DU BUDGET — 2026-09-11 (`budget_floor.ts`)
@@ -1206,3 +1252,39 @@ Deno.test("épinglage — ANCHOR_DIVERGENCE_RATIO vaut 1,15", () =>
 // passer le seuil à 0 laisserait `lot_e_reparation_test.ts` vert.
 Deno.test("épinglage — REPAIR_MAGNITUDE_MIN_GAIN vaut 10 %", () =>
   assertEquals(REPAIR_MAGNITUDE_MIN_GAIN, 0.10));
+
+// ⟳ 2026-09-12 · ÉTAPE C5 — LA VERSION DU RÉSULTAT DE VALIDATION ÉCRIT SUR LA
+// LIGNE (`generated_from.validation`). Elle est ÉPINGLÉE parce qu'un lecteur
+// s'abstient sur toute autre valeur: la déplacer sans le dire rendrait muets,
+// d'un coup, tous les écrans qui montrent les écarts d'un plan — et le symptôme
+// serait « le bandeau a disparu », pas « la version a changé ».
+Deno.test("épinglage — PLAN_VALIDATION_VERSION vaut 1", () =>
+  assertEquals(PLAN_VALIDATION_VERSION, 1));
+
+
+// ⟳ 2026-09-12 · LOT 2 — LE PLAFOND D'APPELS DE RÉPARATION RÉELLEMENT PARTIS,
+// échecs et rejets compris. La revue de clôture C6 § 4 est explicite: « le
+// budget compte des tentatives; un appel rejeté consomme bien une tentative ».
+// Le déplacer sans le dire changerait le coût et la latence de chaque
+// génération de foyer — cinq des six tirs du 2026-09-11 dépassent déjà 150 s.
+Deno.test("épinglage — PLAN_REPAIR_MAX_CALLS vaut 2", () =>
+  assertEquals(PLAN_REPAIR_MAX_CALLS, 2));
+
+// ⟳ 2026-09-12 · LOT 2 — CE QUE LA PROJECTION DU PLAN A LE DROIT DE COÛTER
+// DANS LE MESSAGE DE RÉPARATION. Le message archivé fait déjà ~25 000
+// caractères sur un appel qui frôle la coupure de Kong (150 s). L'élargir est
+// permis; le faire en silence ferait dépasser un plafond que personne ne relit.
+// ⟳ 2026-09-12 · FERMETURE LOT 1 — DEUX PLAFONDS, ET ILS NE FONT PAS LA MÊME
+// CHOSE. Le SOUPLE retire de l'identité d'unités gelées ; il n'ampute jamais le
+// contenu d'une unité visée. Le DUR dit « ce contexte n'est pas exploitable » et
+// l'appel ne part pas (`context_too_large`) — ce que le plan de fermeture exige
+// plutôt que d'envoyer un plan amputé en le présentant comme complet.
+Deno.test("épinglage — PLAN_PROJECTION_SOFT_CHARS vaut 9 000", () =>
+  assertEquals(PLAN_PROJECTION_SOFT_CHARS, 9_000));
+Deno.test("épinglage — PLAN_PROJECTION_HARD_CHARS vaut 24 000", () =>
+  assertEquals(PLAN_PROJECTION_HARD_CHARS, 24_000));
+
+// ⟳ 2026-09-12 · LOT 2 — COMBIEN DE LIGNES DE CONTRAT PARTENT AU PREMIER JET.
+// Même raison que ci-dessus, à l'entrée du prompt initial cette fois.
+Deno.test("épinglage — SLOT_CONTRACT_MAX_LINES vaut 32", () =>
+  assertEquals(SLOT_CONTRACT_MAX_LINES, 32));

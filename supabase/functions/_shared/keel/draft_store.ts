@@ -210,10 +210,17 @@ export interface DraftRowForAdoption {
   readonly expires_at?: string | null;
   readonly write_payload?: unknown;
   readonly response?: unknown;
+  /** Le plan déjà écrit par une adoption précédente, s'il y en a une. */
+  readonly adopted_meal_id?: string | null;
 }
 
+/**
+ * `alreadyWritten` : l'identifiant du plan quand le brouillon a DÉJÀ été
+ * adopté — le second tap, la réponse perdue, l'onglet d'à côté. `null` quand
+ * l'adoption est à faire.
+ */
 export type Adoptability =
-  | { readonly ok: true }
+  | { readonly ok: true; readonly alreadyWritten: string | null }
   | { readonly ok: false; readonly refusal: DraftRefusal };
 
 /**
@@ -231,7 +238,16 @@ export function adoptability(
   if (!row) return { ok: false, refusal: "draft_not_found" };
 
   const status = String(row.status ?? "");
-  if (status === "adopted") return { ok: false, refusal: "draft_already_adopted" };
+  if (status === "adopted") {
+    // ⟳ 2026-09-15 · BÊTA 2C — « IL EST TROP TARD » N'EST PAS UN REFUS QUAND
+    // LE PLAN EST NOMMÉ. La RPC d'adoption rend déjà le même `meal_id` sur un
+    // brouillon adopté ; refuser ICI, avant elle, faisait voir un 409 au
+    // second tap et à la réponse perdue pendant que le plan existait (audit
+    // du 2026-09-14, R2). Sans identifiant, on n'a rien à ouvrir : le 409 reste.
+    const written = String(row.adopted_meal_id ?? "").trim();
+    if (written) return { ok: true, alreadyWritten: written };
+    return { ok: false, refusal: "draft_already_adopted" };
+  }
   if (status === "failed") return { ok: false, refusal: "draft_failed" };
   if (status !== "done") return { ok: false, refusal: "draft_not_ready" };
 
@@ -252,7 +268,7 @@ export function adoptability(
     return { ok: false, refusal: "draft_not_ready" };
   }
 
-  return { ok: true };
+  return { ok: true, alreadyWritten: null };
 }
 
 // ===========================================================================

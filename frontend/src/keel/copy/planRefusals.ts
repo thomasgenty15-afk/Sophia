@@ -178,15 +178,75 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ⚠️ CE JETON EST ARRIVÉ SANS MOTS. Le lot E a posé le refus côté serveur et
   // n'a touché aucun fichier de `frontend/` ; `planRefusals.int.test.ts` l'a vu
   // et a rougi — c'est exactement ce pour quoi ce test existe. Le lot F lui
-  // donne ses mots. La branche, elle, reste INATTEIGNABLE sous
-  // `FINAL_GATE_POLICY_LOT_1` : aucune cause n'y est armée en « refuse ».
+  // donne ses mots.
+  //
+  // ⟳ 2026-09-12 · ÉTAPE C5 — LA BRANCHE EST ATTEIGNABLE. La note d'avant
+  // disait « INATTEIGNABLE sous `FINAL_GATE_POLICY_LOT_1` » ; le handler est
+  // passé au lot 4, et le refus a été mesuré de bout en bout au transport
+  // contrôlé : 422 `plan_not_deliverable` sur une case sans portion, avec
+  // `intent: replace_current`, et la base relue montre 0 ligne ajoutée, 0
+  // retirée, 0 réécrite. Le plan précédent est vraiment intact — ce que cette
+  // phrase promet.
   //
   // ⛔ ET LA PHRASE NE RECOMPOSE RIEN. Le corps 422 porte `refusals[].detail`,
   // déjà en français, plus `unevaluated` et `incomplete` — trois listes qui ne
   // se fondent jamais : l'une accuse le plan, l'autre dit qu'on n'a pas pu
   // vérifier, la troisième qu'on n'a pas regardé. Aucune cause interne
   // (`cell_energy_off`…) ne se rend telle quelle.
+  // ⛔ LA DEMANDE NE TIENT PAS (2026-09-14 · bêta 1B). Le moteur a calculé,
+  // AVANT tout appel au modèle, que ce qu’une bouche doit manger ne tient pas
+  // dans les repas que sa journée porte — même après avoir déplacé ce qui
+  // pouvait l’être entre ses moments. Relancer rendrait le même refus : la
+  // phrase nomme donc le geste, et le corps 422 porte la case concernée.
+  // ⛔ UNE COMPOSITION TOURNE DÉJÀ (2026-09-14 · bêta 2B). Deux clics, deux
+  // onglets, ou une relance après un dépassement CLIENT — le serveur, lui,
+  // continue. La phrase ne dit pas « réessaie » : réessayer est exactement ce
+  // qu'il ne faut pas faire, puisque la première demande est toujours en vol.
+  // ⛔ LA COMPOSITION EST SUSPENDUE (2026-09-14 · bêta 2C). Un frein tiré
+  // exprès, pas une panne: les plans déjà écrits restent lisibles, et c'est
+  // la première chose que la phrase dit. Le corps 503 peut porter un `detail`
+  // écrit à la main en base; quand il est là, c'est LUI qui s'affiche.
+  // ⛔ L'APPEL AU MODÈLE N'A PAS ABOUTI (2026-09-14 · bêta 2B). Débit dépassé,
+  // erreur serveur du fournisseur, connexion tombée, réponse illisible: quatre
+  // causes, une seule conséquence — on n'a pas de composition. Avant ce lot,
+  // la personne recevait la chaîne anglaise du fournisseur, telle quelle.
+  //
+  // ⚠️ LE JETON N'ACCUSE PAS LE MODÈLE, et c'est délibéré: la cause peut être
+  // notre requête, le réseau ou un plafond. Il dit ce qui manque, pas qui a
+  // fauté.
+  composition_unavailable: "plan.refusal.composition_unavailable",
+  generation_paused: "plan.refusal.generation_paused",
+  generation_in_flight: "plan.refusal.generation_in_flight",
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — LES TROIS 503 DU CHEMIN DE DEMANDE, ENFIN DITS.
+   *
+   * ⛔ Ils étaient rendus par le handler depuis le lot 2B et n'avaient AUCUNE
+   * phrase: le test de couverture de ce fichier les nommait, rouge. Un refus
+   * sans mots atteint l'écran en jeton brut — c'est-à-dire en anglais technique
+   * au pied d'un formulaire français.
+   *
+   * Les trois disent la même chose à la personne — rien n'a été écrit, ton plan
+   * actuel est intact — et trois choses différentes au journal: la prise de
+   * verrou a échoué, le magasin de brouillons n'a pas répondu, le bail avait
+   * changé de main avant l'écriture.
+   */
+  generation_lock_unavailable: "plan.refusal.generation_lock_unavailable",
+  draft_store_unavailable: "plan.refusal.draft_store_unavailable",
+  generation_lease_lost: "plan.refusal.generation_lease_lost",
+  plan_demand_infeasible: "plan.refusal.plan_demand_infeasible",
   plan_not_deliverable: "plan.refusal.plan_not_deliverable",
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 3 — « PAS VÉRIFIÉ » N'ACCUSE PAS LE PLAN
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ IL EST SÉPARÉ DE `plan_not_deliverable`, ET C'EST TOUT LE POINT. Quand
+  // la garde finale JETTE, on ne sait RIEN du plan : c'est l'instrument qui est
+  // tombé, pas la composition. Le plan part alors sans être activé — l'ancien
+  // reste — mais dire « il n'a pas passé ses derniers contrôles » ferait
+  // accuser sa recette d'une exception de notre code, et enverrait la personne
+  // alléger une contrainte qui n'y est pour rien. La phrase dit donc une
+  // PANNE, et elle invite à relancer tel quel.
+  plan_validation_unavailable: "plan.refusal.plan_validation_unavailable",
   // ⛔ LA JOURNÉE EST FINIE (2026-09-04). Une fenêtre d'UN jour dont tous les
   // moments sont passés ne compose rien. Elle rendait `draft_not_composed`,
   // c'est-à-dire « l'aperçu n'a pas abouti » — la phrase d'une panne, pour une
@@ -234,6 +294,38 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
  */
 export function edgeRefusalKey(reason: string): MessageKey | null {
   return EDGE_REFUSAL_KEYS[reason.trim()] ?? null;
+}
+
+/**
+ * ── LES ISSUES QUE LE NAVIGATEUR DÉCIDE SEUL ────────────────────────────────
+ *
+ * ⛔ SÉPARÉ D'`EDGE_REFUSAL_KEYS`, ET C'EST LA GARDE QUI L'EXIGE. Ce fichier
+ * porte un test qui refuse tout jeton de cette table-là que le SERVEUR ne rend
+ * pas — « n'invente aucun jeton que le serveur ne rend pas ». `plan_still_composing`
+ * n'est pas un refus du serveur: c'est le client qui, à 145 s, arrête
+ * d'attendre pendant que la composition, elle, continue. Le ranger avec les
+ * refus edge aurait désarmé la garde pour tous les autres.
+ */
+export const CLIENT_OUTCOME_KEYS: Record<string, MessageKey> = {
+  plan_still_composing: "plan.refusal.plan_still_composing",
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — L'AUTRE MOITIÉ DE `plan_still_composing`, ET LA
+   * PLUS IMPORTANTE. Une demande dont le bail a dépassé son échéance n'a plus
+   * d'écrivain: le worker est mort (546, 502, coupure) sans exécuter son
+   * `catch`. Dire « ça continue » là-dessus laissait la personne recharger une
+   * page qui ne changerait jamais — mesuré à 17 h d'attente.
+   */
+  plan_expired: "plan.refusal.plan_expired",
+};
+
+/**
+ * LE MOTIF D'UN ÉCHEC DE COMPOSITION, D'OÙ QU'IL VIENNE — serveur ou délai du
+ * navigateur. `null` quand personne ne sait nommer: l'appelant rend alors le
+ * jeton tel quel, jamais une phrase passe-partout.
+ */
+export function planFailureKey(reason: string): MessageKey | null {
+  const token = reason.trim();
+  return EDGE_REFUSAL_KEYS[token] ?? CLIENT_OUTCOME_KEYS[token] ?? null;
 }
 
 /**

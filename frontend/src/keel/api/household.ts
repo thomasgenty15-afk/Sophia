@@ -28,9 +28,11 @@ import {
   DEFAULT_EATING_RHYTHM,
   type EatingOccasionSlot,
   type MemberPortionView,
+  PLAN_CLIENT_TIMEOUT_MS,
   parseEatingRhythm,
   readMemberPortions,
 } from "./mealGeneration";
+import { settleInterruptedGeneration } from "./planDraft";
 // ⚠️ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — voir `awayFrom`. Ce
 // module ne lit plus jamais la colonne d'absences sans son jeton: c'est un
 // parseur qui RETIRE de l'information, et trois écrans sur quatre passent par
@@ -1759,37 +1761,74 @@ export async function generateHouseholdMeal(args: {
   // rejouer ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
   // échange est `timing`, que l'écran RÉPÈTE.
 }): Promise<HouseholdMealResult> {
-  const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
-    body: {
-      // LA FORME `exact` SE SÉRIALISE EN `snake_case`, comme sur la lane
-      // individuelle: c'est le contrat de la fonction edge, et le client ne le
-      // réécrit pas.
-      window: args.window.kind === "exact"
-        ? {
-          kind: "exact",
-          starts_on: args.window.startsOn,
-          duration_days: args.window.durationDays,
-        }
-        : args.window,
-      intent: args.intent ?? "replace_current",
-      replaces: args.replaces ?? null,
-      context: args.context ?? null,
-      // `snake_case`, comme tout le reste de ce corps: c'est le contrat de la
-      // fonction edge, et le client ne le réécrit pas. `null` traverse tel
-      // quel — le serveur lit `null` comme « rien n'a été demandé ».
-      cooking_shape: args.cookingShape ?? null,
-      // L'ENVIE. Même nom que sur la lane individuelle (`preferences`), parce
-      // que c'est le nom que le SERVEUR lit — les deux lanes traversent
-      // `buildMealPrompt`, et un alias ici aurait fabriqué un champ que la
-      // fonction edge ignore poliment.
-      preferences: args.preferences,
-      // ⚠️ LE NOM DU SERVEUR. `generate-household-meal-v1` lit
-      // `body.one_cooking_session === true`; une autre orthographe ici serait
-      // une case cochée qui ne part nulle part, et rien ne le dirait.
-      one_cooking_session: args.oneCookingSession,
-    },
-  });
-  if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);
+  const deadline = new AbortController();
+  const requestId = crypto.randomUUID();
+  const timer = setTimeout(() => deadline.abort(), PLAN_CLIENT_TIMEOUT_MS);
+  let data: unknown;
+  let error: { message?: string } | null = null;
+  try {
+    ({ data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
+      body: {
+        // LA FORME `exact` SE SÉRIALISE EN `snake_case`, comme sur la lane
+        // individuelle: c'est le contrat de la fonction edge, et le client ne le
+        // réécrit pas.
+        window: args.window.kind === "exact"
+          ? {
+            kind: "exact",
+            starts_on: args.window.startsOn,
+            duration_days: args.window.durationDays,
+          }
+          : args.window,
+        intent: args.intent ?? "replace_current",
+        replaces: args.replaces ?? null,
+        context: args.context ?? null,
+        // `snake_case`, comme tout le reste de ce corps: c'est le contrat de la
+        // fonction edge, et le client ne le réécrit pas. `null` traverse tel
+        // quel — le serveur lit `null` comme « rien n'a été demandé ».
+        cooking_shape: args.cookingShape ?? null,
+        // L'ENVIE. Même nom que sur la lane individuelle (`preferences`), parce
+        // que c'est le nom que le SERVEUR lit — les deux lanes traversent
+        // `buildMealPrompt`, et un alias ici aurait fabriqué un champ que la
+        // fonction edge ignore poliment.
+        preferences: args.preferences,
+        // ⚠️ LE NOM DU SERVEUR. `generate-household-meal-v1` lit
+        // `body.one_cooking_session === true`; une autre orthographe ici serait
+        // une case cochée qui ne part nulle part, et rien ne le dirait.
+        one_cooking_session: args.oneCookingSession,
+      },
+      headers: { "x-request-id": requestId },
+      signal: deadline.signal,
+    }));
+  } finally {
+    clearTimeout(timer);
+  }
+  // ⛔ PAS `error.message` EN REPLI. Mesuré le 2026-09-14 sur la lane jumelle:
+  // la chaîne de la bibliothèque (« Failed to send a request to the Edge
+  // Function ») arrivait telle quelle au pied du formulaire, en anglais. Un
+  // jeton a une phrase; une chaîne libre n'en a pas, et l'écran rend ce qu'il
+  // peut. Le détail survit derrière le `:`, pour le journal du navigateur.
+  if (error) {
+    const recovered = await settleInterruptedGeneration(requestId);
+    if (recovered.kind === "written") {
+      return { ok: true, mealId: recovered.mealId, issues: [] };
+    }
+    if (recovered.kind === "done") {
+      const meal = (recovered.response.meal ?? null) as Record<string, unknown> | null;
+      return {
+        ok: recovered.response.ok === true,
+        mealId: typeof meal?.id === "string" ? meal.id : null,
+        issues: Array.isArray(recovered.response.issues)
+          ? recovered.response.issues.map(String)
+          : [],
+      };
+    }
+    if (recovered.kind === "in_flight") throw new Error("plan_still_composing");
+    if (recovered.kind === "expired") throw new Error("plan_expired");
+    if (recovered.kind === "failed") throw new Error(recovered.errorCode);
+    if (deadline.signal.aborted) throw new Error("composition_unavailable");
+    const named = await namedEdgeRefusal(error);
+    throw new Error(named ?? `composition_unavailable: ${error.message}`);
+  }
   const row = (data ?? {}) as Record<string, unknown>;
   // `household.spoken` / `household.silent` ne sont plus rendus par la fonction
   // edge (lot 5). On ne les lit plus non plus: garder un lecteur tolérant

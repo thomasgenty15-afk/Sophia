@@ -205,7 +205,7 @@ const done = (over: Record<string, unknown> = {}) => ({
 });
 
 Deno.test("LE CAS QUI PASSE: un brouillon prêt et frais s'adopte", () => {
-  assertEquals(adoptability(done(), NOW), { ok: true });
+  assertEquals(adoptability(done(), NOW), { ok: true, alreadyWritten: null });
 });
 
 Deno.test("aucune ligne: `draft_not_found`", () => {
@@ -245,6 +245,29 @@ Deno.test("⛔ DÉJÀ ADOPTÉ GAGNE SUR PÉRIMÉ — les deux réparations sont 
   );
 });
 
+Deno.test("⟳ BÊTA 2C — déjà adopté ET nommé : c'est un succès qui porte le plan", () => {
+  // Le second tap, la réponse perdue, l'onglet d'à côté : le plan existe, on
+  // l'ouvre. Périmé ou non, l'identifiant écrit gagne — même raison qu'au-dessus.
+  assertEquals(
+    adoptability(
+      done({
+        status: "adopted",
+        adopted_meal_id: "meal-deja-ecrit",
+        expires_at: "2026-01-01T00:00:00.000Z",
+      }),
+      NOW,
+    ),
+    { ok: true, alreadyWritten: "meal-deja-ecrit" },
+  );
+});
+
+Deno.test("déjà adopté SANS identifiant : rien à ouvrir, le 409 reste", () => {
+  assertEquals(
+    adoptability(done({ status: "adopted", adopted_meal_id: "   " }), NOW),
+    { ok: false, refusal: "draft_already_adopted" },
+  );
+});
+
 Deno.test("un `done` sans payload n'a RIEN à écrire: `draft_not_ready`", () => {
   assertEquals(adoptability(done({ write_payload: null }), NOW), {
     ok: false,
@@ -253,7 +276,10 @@ Deno.test("un `done` sans payload n'a RIEN à écrire: `draft_not_ready`", () =>
 });
 
 Deno.test("une date illisible ne périme pas — c'est un défaut de lecture", () => {
-  assertEquals(adoptability(done({ expires_at: "pas une date" }), NOW), { ok: true });
+  assertEquals(adoptability(done({ expires_at: "pas une date" }), NOW), {
+    ok: true,
+    alreadyWritten: null,
+  });
 });
 
 // ===========================================================================

@@ -1,0 +1,407 @@
+{
+  "scope": "25 historical requests; not validation of current implementation",
+  "n": 25,
+  "status_counts": {
+    "200": 22,
+    "422": 2,
+    "546": 1
+  },
+  "state_counts": {
+    "conforme": 20,
+    "None": 3,
+    "livrable_avec_ecarts": 2
+  },
+  "recorded_exchanges": {
+    "auxiliaire": {
+      "count": 9,
+      "median_ms": 1928
+    },
+    "generation_initiale": {
+      "count": 24,
+      "median_ms": 100819.0
+    },
+    "reparation_du_plan": {
+      "count": 17,
+      "median_ms": 42614
+    }
+  },
+  "billing_verified": false,
+  "rows": [
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-s1-2026-09-14T04-11-30-411Z.json",
+      "sha256": "54ecd176450caafa490edabb49d0a80851979ec83b41368bef3a9b5a9a00c2e8",
+      "status": 200,
+      "ms": 98032,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-s2-2026-09-14T04-23-59-871Z.json",
+      "sha256": "0f914cdc07081539693146ba601bcd4aabfaf53c34c06e8b85808aef3e555815",
+      "status": 200,
+      "ms": 123703,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-s3-2026-09-14T04-34-08-693Z.json",
+      "sha256": "6dcecfced2f6723965836dfa31df5cb70c06aabfb85560293cc9a57aede3857f",
+      "status": 422,
+      "ms": 193814,
+      "state": null,
+      "repair_calls": null,
+      "defect_causes": [],
+      "incomplete_controls": []
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-s4-2026-09-14T04-44-59-145Z.json",
+      "sha256": "3fc366747a02659bf7a814e6d8ca8cd9c472a25bf7c3d9b73845af1b5e214ebb",
+      "status": 200,
+      "ms": 130351,
+      "state": "conforme",
+      "repair_calls": 1,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir1-s5-2026-09-14T04-58-12-609Z.json",
+      "sha256": "b9938707b03c8ebe345da663dbe075b99879f7d3e9490821c57247a0165eafa4",
+      "status": 200,
+      "ms": 90681,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-s1-2026-09-14T04-13-09-721Z.json",
+      "sha256": "066510315813448623734eec7a27764b9cbb6965347c632a36cfb8d075310954",
+      "status": 200,
+      "ms": 160832,
+      "state": "conforme",
+      "repair_calls": 2,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-s2-2026-09-14T04-26-04-836Z.json",
+      "sha256": "02d11434c90a001e849ab5329effff2ba4e0b86ea81e40d2dc60955a341285b9",
+      "status": 422,
+      "ms": 87528,
+      "state": null,
+      "repair_calls": null,
+      "defect_causes": [],
+      "incomplete_controls": []
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-s3-2026-09-14T04-37-24-077Z.json",
+      "sha256": "11b6cccb671e7c5866105c6ac82033e7437b506c1ee9b8044689453e6b331ae4",
+      "status": 200,
+      "ms": 102728,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-s4-2026-09-14T04-47-10-808Z.json",
+      "sha256": "1c55bc18873339a04717f9794ca89bc21d9f1527d28066f8d1ea6952a1fc2888",
+      "status": 200,
+      "ms": 163545,
+      "state": "conforme",
+      "repair_calls": 2,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir2-s5-2026-09-14T04-59-44-658Z.json",
+      "sha256": "6cdd5b805b4a21a76ec182365ac2505a561610b0530855b1769c4e0ba72e4355",
+      "status": 200,
+      "ms": 102729,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-s1-2026-09-14T04-17-35-382Z.json",
+      "sha256": "bbf26fb5ad31f083b7b349a8a33c428ca03f78d7c3ead23454c9ffab62a89e22",
+      "status": 200,
+      "ms": 166829,
+      "state": "conforme",
+      "repair_calls": 2,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "shopping_quantity",
+          "count": 1
+        },
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-s2-2026-09-14T04-30-44-640Z.json",
+      "sha256": "acfa1d66d7c86c29b38102379e3e1f167f175dcb9e564747c293a9f2fd8cd71b",
+      "status": 200,
+      "ms": 110871,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-s3-2026-09-14T04-40-58-384Z.json",
+      "sha256": "bb379622dfc65a0b75a59ca1fb763be86459e73e228ef0b73c06195882c715bc",
+      "status": 200,
+      "ms": 88661,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "shopping_quantity",
+          "count": 1
+        },
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-s4-2026-09-14T04-52-21-400Z.json",
+      "sha256": "bcf9e6257cbac13ab648e3ef1ff8566b3b0db6eec24018f2e1af613f573eb842",
+      "status": 200,
+      "ms": 100051,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir6-s5-2026-09-14T05-04-54-454Z.json",
+      "sha256": "c3b4adaa81858252dbe66ce2925b1bdb977e25291aebc6a96ef8cea56e8d6c92",
+      "status": 200,
+      "ms": 115245,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-s1-2026-09-14T04-15-53-004Z.json",
+      "sha256": "7875dd89cb7e51bee14f66913c7bc70589526d7d76ae89a1aca08ce93103261a",
+      "status": 200,
+      "ms": 101139,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-s2-2026-09-14T04-27-34-712Z.json",
+      "sha256": "9e01a30cc584c7b0b8a907afde1872df0a503a2644f0517a381fd87b4144a70d",
+      "status": 200,
+      "ms": 188646,
+      "state": "conforme",
+      "repair_calls": 2,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-s3-2026-09-14T04-39-09-273Z.json",
+      "sha256": "2152da75f49b0dc06a96a505d6f69129f1ff2be27bb5a62a099835bccedd2bbe",
+      "status": 200,
+      "ms": 107829,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-s4-2026-09-14T04-49-56-833Z.json",
+      "sha256": "5de6d153f6d9a1d96bd0185469e4644708c1b368d539e5bff298f03b62d6e01c",
+      "status": 200,
+      "ms": 143241,
+      "state": "conforme",
+      "repair_calls": 1,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-s5-2026-09-14T05-01-29-849Z.json",
+      "sha256": "e4ea5650d7373e8acd688f261ce5b9ef06b7f02e31b87c56e648370e9538164b",
+      "status": 546,
+      "ms": 203329,
+      "state": null,
+      "repair_calls": null,
+      "defect_causes": [],
+      "incomplete_controls": []
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s1-2026-09-14T04-20-23-468Z.json",
+      "sha256": "2f5c1fe620df4340e5a2d6cb82ad8fee22eca0bcd1be42aa5468f2e46fca274f",
+      "status": 200,
+      "ms": 215032,
+      "state": "conforme",
+      "repair_calls": 1,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s2-2026-09-14T04-32-36-769Z.json",
+      "sha256": "41da976e4f2e91ed9b906619f4ff8c6c14f2b8094e16870e215af74859b4c4c2",
+      "status": 200,
+      "ms": 90561,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s3-2026-09-14T04-42-28-315Z.json",
+      "sha256": "f308f8a443eb8fabf0f153bc2f57fa6e083149b80a9bf231257835a1a7b9e0f5",
+      "status": 200,
+      "ms": 149470,
+      "state": "conforme",
+      "repair_calls": 0,
+      "defect_causes": [],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s4-2026-09-14T04-54-02-803Z.json",
+      "sha256": "baec7254ba597dbe336293727ff972ba0d867bb64fcf21fb086a20e026734a65",
+      "status": 200,
+      "ms": 248398,
+      "state": "livrable_avec_ecarts",
+      "repair_calls": 2,
+      "defect_causes": [
+        "cell_energy_off",
+        "cell_bounds_off",
+        "protein_floor_short"
+      ],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "artifact": "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s5-2026-09-14T05-06-51-088Z.json",
+      "sha256": "f6fe21f481fc7a5ada465a964e22383e59416112966850f3fe890db59f78dc80",
+      "status": 200,
+      "ms": 261538,
+      "state": "livrable_avec_ecarts",
+      "repair_calls": 2,
+      "defect_causes": [
+        "protein_floor_short",
+        "protein_floor_short",
+        "protein_floor_short"
+      ],
+      "incomplete_controls": [
+        {
+          "control": "mouth_energy",
+          "count": 4
+        }
+      ]
+    }
+  ]
+}

@@ -521,7 +521,7 @@ export const fr: TranslatedMessages = {
 
   // ── 03 · LE FONCTIONNEMENT, DANS L'ORDRE VÉCU ────────────────────────────
   "home.how.kicker": "Des courses aux repas.",
-  "home.how.title_1": "Tout se suit.",
+  "home.how.title_1": "Tout s’enchaîne.",
   "home.how.title_2": "À toi de cuisiner.",
   "home.how.lede": "Un planning utile, c’est un planning que tu peux mettre dans ton assiette.",
   "home.how.shop.title": "Tes courses",
@@ -565,22 +565,21 @@ export const fr: TranslatedMessages = {
   "home.life.kicker": "Et quand la vie s’invite ?",
   "home.life.title_1": "Un repas imprévu ?",
   "home.life.title_2": "Il compte aussi.",
-  // ⟳ 2026-09-11 — « C'EST MOINS PRÉCIS, MAIS… », ET C'EST L'ADN.
+  // ⟳ 2026-09-11 (SOIR) — « C'EST MOINS PRÉCIS » EST RETIRÉ, ET LA RÉSERVE
+  // RESTE. Décision du propriétaire: la phrase s'excusait sur une page de
+  // vente. Ce qu'elle protégeait ne disparaît pas pour autant — un repas
+  // décrit ou photographié n'est PAS pesé, et le produit le dit partout
+  // ailleurs (l'accusé du journal écrit « environ X kcal », `EnergyBasisNote`
+  // nomme la base de chaque chiffre, la photo est refusée comme mesure:
+  // −26,6 % de biais, systématique).
   //
-  // La phrase disait « Sophia le comptabilise dans ton suivi », point. Vrai, et
-  // silencieux sur ce que ça vaut: un repas décrit ou photographié n'est PAS
-  // pesé, et le produit le dit partout ailleurs — l'accusé du journal écrit
-  // « environ X kcal », `EnergyBasisNote` nomme la base de chaque chiffre, et
-  // la photo est refusée comme mesure (−26,6 % de biais, systématique).
-  // Promettre ici un comptage sans réserve, puis servir une estimation, c'est
-  // la seule chose que cette page ne doit pas faire.
-  //
-  // ⛔ ET L'ORDRE COMPTE: la réserve D'ABORD, la promesse ENSUITE. « Sophia le
-  // comptabilise, mais c'est moins précis » se lit comme un regret; « c'est
-  // moins précis, mais Sophia le comptabilise » se lit comme ce que c'est —
-  // une honnêteté qui ne retire rien.
+  // ⛔ C'EST « ESTIME » QUI PORTE LA RÉSERVE MAINTENANT, et il doit rester.
+  // « Sophia le comptabilise » tout court promettrait une mesure là où le
+  // produit sert une estimation — la seule chose que cette page ne doit pas
+  // faire. Le verbe dit la même chose que l'ancienne incise, sans la lire
+  // comme un regret.
   "home.life.body":
-    "Un resto, un plat différent de ce qui était prévu : décris ce que tu as mangé ou prends-le en photo. C’est moins précis, mais Sophia le comptabilise dans ton suivi.",
+    "Un resto, un plat différent de ce qui était prévu : décris ce que tu as mangé ou prends-le en photo. Sophia l’estime et le comptabilise dans ton suivi.",
   "home.life.demo.aria": "Démonstration : déclarer un repas imprévu",
   "home.life.demo.label": "Ce que tu envoies",
   // Les DEUX formes de l'envoi, nommées par ce qu'elles SONT et pas par le
@@ -1205,7 +1204,7 @@ export const fr: TranslatedMessages = {
   "start.sheet.form": "Inscription",
   "start.sheet.repair": "Rattachement",
 
-  "start.form.name": "Votre nom",
+  "start.form.name": "Votre prénom",
   "start.form.email": "Adresse e-mail",
   "start.form.password": "Mot de passe",
   "start.form.password_hint": "8 caractères au minimum.",
@@ -2097,8 +2096,69 @@ export const fr: TranslatedMessages = {
     "Ce qui est revenu enfreignait une des règles de ce foyer, donc ça n’a pas été gardé.",
   "plan.refusal.mouth_unfed":
     "Dans ce qui est revenu, quelqu’un n’avait rien à manger à un repas, donc ça n’a pas été gardé. Ton plan précédent est intact — relance, ou allège une contrainte.",
+  // ⟳ 2026-09-14 · BÊTA 1B — LA DEMANDE NE TIENT PAS DANS L’ASSIETTE.
+  // La phrase ne porte AUCUN chiffre : les calories et l’objectif de
+  // quelqu’un sont protégés à l’écran, et le moteur dit quoi changer, jamais
+  // combien il manque. Elle ne dit pas non plus « relance » : relancer
+  // rendrait exactement le même refus.
+  // ⟳ 2026-09-14 · BÊTA 2B — une composition est déjà en vol. La phrase ne
+  // promet pas de délai : on ne connaît pas celui du modèle.
+  // ⟳ 2026-09-14 · BÊTA 2C — le frein. Elle ne promet pas de date : on ne la
+  // connaît pas, et une promesse ratée coûte plus que le silence.
+  // ⟳ 2026-09-14 · BÊTA 2B — l’appel n’a pas abouti. Elle invite à relancer,
+  // parce que c’est vrai ici : rien n’a été écrit, et la panne est passagère
+  // dans les quatre cas mesurés (429, erreur serveur, coupure, corps illisible).
+  "plan.refusal.composition_unavailable":
+    "La composition n’a pas abouti cette fois-ci. Rien n’a été modifié — ton plan actuel est intact. Relance dans un moment.",
+  "plan.refusal.generation_paused":
+    "La composition de nouveaux plans est momentanément suspendue. Ton plan actuel, tes courses et tes recettes restent accessibles.",
+  "plan.refusal.generation_lock_unavailable":
+    "Impossible de démarrer une composition pour l’instant. Rien n’a été écrit et ton plan actuel est intact. Réessaie dans une minute.",
+  "plan.refusal.draft_store_unavailable":
+    "L’aperçu n’a pas pu être rangé, donc rien n’a été écrit. Ton plan actuel est intact. Réessaie dans une minute.",
+  "plan.refusal.generation_lease_lost":
+    "Cette composition a été reprise par une autre demande, et celle-ci s’est arrêtée sans rien écrire. Ton plan actuel est intact. Recharge la page pour voir où en est l’autre.",
+  "plan.refusal.generation_in_flight":
+    "Un plan est déjà en train d’être composé pour ce foyer. Attends qu’il finisse — l’écran se met à jour tout seul. Ton plan actuel est intact.",
+  "plan.refusal.plan_expired":
+    "Cette composition n’est pas allée au bout. Rien n’a été écrit et ton plan actuel n’a pas bougé : elle s’est arrêtée de son côté avant la fin. Relance quand tu veux.",
+  "plan.refusal.plan_still_composing":
+    "Ça prend plus longtemps que prévu. La composition continue de son côté — ton plan actuel n’a pas bougé. Reviens dans quelques minutes et recharge la page ; ne relance pas, le foyer est encore occupé par cette demande.",
+  "plan.refusal.plan_demand_infeasible":
+    "Ce que ce plan doit servir ne tient pas dans les repas prévus. Ton plan actuel est intact. Ajoute un moment de repas dans la journée concernée, ou retire le réglage « repas léger », puis relance.",
   "plan.refusal.plan_not_deliverable":
     "Le nouveau plan n’a pas passé ses derniers contrôles, donc il n’a pas été gardé. Ton plan actuel est intact — relance, ou allège une contrainte.",
+  "plan.refusal.plan_validation_unavailable":
+    "On n’a pas pu vérifier le nouveau plan jusqu’au bout, donc il n’a pas été gardé. Ce n’est pas ta demande qui pose problème — ton plan actuel est intact, relance tel quel.",
+  // ══ ⟳ 2026-09-12 · ÉTAPE C5 — LES ÉCARTS D'UN PLAN LIVRÉ ════════════════
+  "plan.validation.title": "Ce plan est utilisable, et voici ce qu’il ne tient pas",
+  "plan.validation.intact": "Il a été enregistré. Rien d’autre n’a changé.",
+  "plan.validation.at": "{day}, {slot}",
+  "plan.validation.for": "pour {name}",
+  "plan.validation.term": "({term})",
+  "plan.validation.incomplete_title": "Ce qui n’a pas pu être vérifié",
+  "plan.validation.control_line": "{control} — {count}",
+  "plan.validation.cause.missing_meal": "Un repas n’a la portion de personne",
+  "plan.validation.cause.energy_off": "Un repas est loin de sa cible",
+  "plan.validation.cause.protein_short": "Une journée n’atteint pas sa protéine",
+  "plan.validation.cause.unmeasurable": "Une portion n’a pas pu être mesurée",
+  "plan.validation.cause.shopping_missing": "Un ingrédient n’est sur aucune ligne de courses",
+  "plan.validation.cause.shopping_short":
+    "Une ligne de courses achète moins que ce que la recette demande",
+  "plan.validation.cause.shopping_undated": "Une ligne de courses n’a pas de jour",
+  "plan.validation.cause.shopping_too_early": "Un produit frais est acheté trop tôt",
+  "plan.validation.cause.cooking_window": "Un plat se mange hors de sa fenêtre de cuisson",
+  "plan.validation.cause.dangling": "Une ligne du plan pointe dans le vide",
+  "plan.validation.cause.forbidden": "Un plat sert quelque chose que cette table exclut",
+  "plan.validation.control.shopping_quantity":
+    "La quantité d’un ingrédient, quand le garde-manger n’en nomme aucune",
+  "plan.validation.control.cell_energy": "L’énergie servie à un repas",
+  "plan.validation.control.protein_floor": "Le plancher protéique d’une journée",
+  "plan.validation.control.mouth_energy": "L’énergie servie à une personne",
+  "plan.validation.control.protein_floor_protected":
+    "Le plancher protéique, mis de côté exprès pour une journée",
+  "plan.validation.control.shopping_not_purchasable":
+    "L’eau du robinet, mesurée dans la cuisson et sur aucune liste de courses",
   "plan.refusal.merge_member_required": "Ce geste n’a pas dit quel plan replier.",
   "plan.refusal.merge_member_not_in_household": "Cette personne n’est pas dans ce foyer.",
   "plan.refusal.merge_member_is_owner":
@@ -3512,6 +3572,11 @@ export const fr: TranslatedMessages = {
   "shell.nav.menu": "Menu",
   "shell.nav.menu_close": "Fermer",
   "shell.nav.primary": "Sections principales",
+  // Voir le pavé jumelé dans `en.ts`: la forme visible tient dans la colonne,
+  // l'`aria` porte la raison.
+  "shell.quick_add.caption": "Hors du plan",
+  "shell.quick_add.aria":
+    "Ajouter un plat hors du plan, pour qu'il soit pris en compte",
 
   // ══════════════════════════════════════════════════════════════════════════
   // LOT 3 — LA BULLE
@@ -3530,6 +3595,12 @@ export const fr: TranslatedMessages = {
   "chat.history.more": "Charger les messages précédents",
   "chat.history.loading": "Chargement…",
   "chat.error.send": "Le message n’est pas parti. Réessaie.",
+  // ⚠️ CE N'EST PAS `chat.error.send`, ET LA DIFFÉRENCE EST TOUT LE PROPOS.
+  // Là, le message EST arrivé et il est en base — c'est la réponse qui manque.
+  // Dire « réessaie » serait faux deux fois: ça laisserait croire que ce qu'on
+  // a écrit est perdu, et ça ferait rejouer un tour pour le même résultat.
+  "chat.error.noReply":
+    "Ton message est bien arrivé, mais Sophia n’a pas répondu cette fois. Réécris-lui, ou reformule.",
   // Honnête plutôt que rassurant: on dit que la livraison instantanée est
   // tombée ET que rien n'est perdu, parce que les deux sont vrais.
   "chat.status.offline":
@@ -5952,7 +6023,7 @@ export const fr: TranslatedMessages = {
   "plan.draft.note_at_edge": "Compris — mais c’est déjà au bout de l’échelle, il n’y a plus de cran à déplacer.",
   "plan.draft.note_skipped": "J’ai lu, mais ça, je ne sais pas encore le régler d’ici. Le plan est refait tel quel.",
   "plan.draft.adopt_recomposes":
-    "Adopter le compose pour de vrai à partir de la même demande : le résultat peut différer un peu de cet aperçu.",
+    "Adopter revalide cet aperçu avec tes contraintes actuelles, puis écrit exactement ce plan sans le recomposer.",
 
   // ── LA PART DU RÉCLAMÉ ──────────────────────────────────────────────────
   "plan.mine.title": "Ta part",
