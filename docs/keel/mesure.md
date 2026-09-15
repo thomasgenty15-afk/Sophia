@@ -35,6 +35,27 @@ portions conformes  ce nombre tient dans la tolérance annoncée
 
 **Une journée à trou n'est pas « en écart », elle est non mesurable.** Sa somme manque une portion entière : publier un pourcentage ferait passer une mesure absente pour de la nourriture absente, et les deux appellent des corrections opposées.
 
+## ⟳ 2026-09-13 — UNE SORTIE DE BANC SE MESURE, MAIS PAS DIRECTEMENT
+
+`analyse-lot-F.ts` n'accepte pas une sortie de `banc-lot-F.ts` telle quelle : il
+attend une **demande figée**. Le convertisseur existe, et c'est l'étape qu'on
+oublie :
+
+```bash
+deno run --allow-read --allow-env --allow-net --allow-write=scratchpad \
+  scratchpad/2026-09-11-CLOTURE/figer-demande.ts \
+  scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/<tir>.json
+deno run --allow-read \
+  scratchpad/2026-09-11-FIABILITE-RECETTES/analyse-lot-F.ts \
+  scratchpad/2026-09-11-CLOTURE/fixtures/<tir>-c0.json
+```
+
+⛔ **LANCÉ SUR LA SORTIE BRUTE, L'INSTRUMENT REND `0 bouche(s)` ET UN
+`TOTAL 0/0`.** Ce n'est pas « aucune conformité », c'est **aucune mesure** — et
+« 0/0 » ne s'écrit ni « 0 case conforme » ni « mesuré ». Le fichier brut porte
+`bouches` comme un NOMBRE ; la demande figée le porte comme la table des corps,
+des objectifs et des crans, qui est ce que la mesure exige.
+
 ## Les quatre états d'une référence alimentaire
 
 ```text
@@ -106,6 +127,7 @@ Deux voies acceptables, et une seule interdite :
 - Conserver les références permettant de reproduire la mesure : identifiant de requête, entrées résolues et leur provenance, budgets, consigne de densité envoyée, référentiel alimentaire utilisé et résultat final enregistré. Les informations personnelles de cette trace restent dans un contexte d’accès autorisé.
 - Compter les plans non livrés et leur motif, y compris **HTTP 546**, même si son diagnostic est différé. Leur conformité nutritionnelle reste **non évaluée** ; l’échec de livraison demeure visible et ne disparaît pas du taux de livraison.
 - **Nommer la source de chaque tolérance, et dire si elle est branchée.** Les critères en vigueur — ±10 % par repas, ±5 % par journée couverte — sont écrits dans `docs/keel/PLAN-FIABILITE-ET-EQUILIBRE-RECETTES-2026-09-11.md` § lot E. **Aucune garde du dépôt ne les applique aujourd'hui** : `final_plan_gate` reçoit `energy: null` et `boxContract: null`. Un verdict rendu contre eux est donc une mesure contre un critère **annoncé**, pas la reproduction d'une garde vivante, et le rapport doit le dire.
+  ⟳ **2026-09-15 — la moitié de cette phrase est périmée.** Depuis le lot 2 (`64343422`), le chemin de génération passe à la garde l'énergie par bouche (`mouthEnergyTable`) : `mouth_energy` a quitté les contrôles incomplets et `mouth_energy_short` les non-exécutés sur les huit plans du 2026-09-15. Le plancher protéique et les bornes de case sont jugés par la garde du run (`protein_floor_short`, `cell_bounds_off`, tous deux en comptage). Ce qui reste vrai : l'**instrument** rejoue encore la garde avec `energy: null` — son état rejoué est partiel, et `generated_from.validation` fait foi.
 - **Sur une fenêtre partielle, le plancher protéique se répartit.** La part couverte est celle des **cibles d'énergie** — `budget couvert / cible du jour` — et cette proportion est nommée dans le rapport. C'est le seul rapport que le dépôt porte ; l'employer sans le nommer reviendrait à inventer une allocation.
 - **Un contrôle sans matière ne rend pas « conforme ».** Aucune allergie, exclusion ni régime n'est déclaré sur les fixtures de campagne : « zéro violation » y veut dire « on ne l'a pas essayé », et se publie sous cette forme.
 - **Une prose de recette ne se relit pas par un matcher.** Pour savoir si une quantité affichée a suivi son nombre, comparer par **égalité de chaînes** la `quantity` persistée à celle de la **réponse brute archivée** : le nombre a bougé, le texte non ⇒ la prose est périmée. Aucun mot n'est interprété. `readQuantityFromProse` refuse exprès les chaînes composites, et ce refus n'est pas contourné.
@@ -160,3 +182,176 @@ pile locale, avec un catalogue et un modèle donnés.
   voudrait lire entre deux campagnes. Publier la durée absolue, la charge, et **le plafond
   réellement vérifié de la cible de déploiement** (150 000 ms en hébergé, quelle que soit la
   valeur de Kong en local).
+
+---
+
+## Rectification du 2026-09-11 23 h — l'instrument mentait sur trois lignes ci-dessus
+
+> Détail, preuves et contre-épreuves : l'**addendum C0** de
+> [la campagne des six tirs](CAMPAGNE-SIX-TIRS-2026-09-11.md#addendum-du-2026-09-11-23-h--rectification-de-mesure-étape-c0).
+> Aucun tir n'a été rejoué. Les six réponses sont les mêmes ; le banc a changé.
+
+| ligne du tableau ci-dessus | ce qu'elle disait | ce qu'elle dit après C0 |
+|---|---|---|
+| densité dans son couloir | **34 / 36**, 2 écarts | **41 / 42**, **0** écart, 1 case non mesurable |
+| portions calculées | 35 / 36 parts | **41 / 42 parts** — le tir n° 6 en servait **12**, pas 6 |
+| plancher protéique | 7 journées sur 12 | **7 journées sur 12 jugées**, **2 de plus non jugeables** (la 2ᵉ bouche du tir 6 n'a aucun objectif : il n'y a **rien à exiger**, ce n'est pas « zéro ») |
+
+### Les quatre règles que cette rectification ajoute
+
+- **Une grille d'attendus se fige AVANT la génération, ou elle ne mesure rien.** Construire les
+  cases attendues à partir des plats rendus fait disparaître du contrôle exactement ce qu'on
+  cherche : le plat manquant. Le banc REFUSE désormais de mesurer une sortie sans demande figée,
+  et une case retirée à la main reste attendue — c'est un test, pas une intention.
+- **Un couloir se mesure avec l'appétit de la personne, pas avec un appétit moyen.** Forcer
+  `average` sur un `large` a fabriqué **deux violations qui n'existaient pas** (94 et 99 contre
+  un plancher de 100 qui valait 91). La preuve qu'un contrat reconstruit est le bon n'est pas
+  l'arithmétique : c'est son égalité **caractère pour caractère** avec le prompt archivé.
+- **« N portions présentes » n'est pas « N portions conformes » tant que les N n'ont pas été
+  mesurées.** Une portion appartient à une bouche : l'indexer par `jour/moment` seul fait que le
+  contenant de la seconde écrase celui de la première, et six parts sortent en silence de tous
+  les compteurs.
+- **Conformité calorique, conformité complète et contrôles incomplets sont trois colonnes.**
+  Sur le même plan : **7 / 7** cases calorifiquement conformes, **4 / 7** complètes, parce que
+  trois dîners sortent de leur couloir de densité. Publier un seul de ces nombres sous le nom
+  d'un autre est ce que la rectification ci-dessus répare.
+
+---
+
+## Ce que la campagne du 2026-09-12 a mesuré, et les quatre règles qu'elle ajoute
+
+Six tirs réels, séquentiels, par Kong et le vrai handler, **9 cases** chacun (18 parts au tir 6),
+un compte de fixture **neuf** par tir. Preuves et détail :
+[CLOTURE-C6-2026-09-12.md](CLOTURE-C6-2026-09-12.md).
+
+| | résultat |
+|---|---|
+| plans écrits | **4 / 6** — deux `422 plan_not_deliverable`, **0 ligne écrite** sur ces deux-là |
+| cases demandées | **36** sur les plans livrés — et **45 PARTS**, le tir 6 portant 2 bouches |
+| parts calculées / mesurables | **45 / 45** |
+| calories par créneau, ±10 % | **45 parts sur 45** conformes |
+| conformité COMPLÈTE | **41 parts sur 45** — les 4 écarts sont des densités **sous** leur plancher (1 à 6 points) |
+| masses dans leurs bornes, **après arrondi** | **44 parts sur 45** — une à **631 g pour 630** |
+| plancher protéique | **12 journées jugées sur 12 au-dessus** (au 2026-09-11 : 7 sur 12 en dessous, jusqu'à −43 %) |
+| identités alimentaires au **premier jet** | **271 lignes, 0 identifiant absent, 0 refusé** |
+| quantités comptées fractionnaires livrées | **0** — 211 lignes persistées, 3 « une pincée » conservées |
+| achats manquants / sous-achetés sur les plans livrés | **0 / 0** (95 identités, 2 contrôles incomplets) |
+| appels modèle de réparation | **0 à 1 par tir**, aucun troisième ; une 3ᵉ demande refusée et tracée |
+| durées | **92 608 · 186 873 · 197 907 · 218 528 · 256 706 · 301 559 ms** — **1 sur 6** sous le plafond de l'hébergé |
+
+⛔ **Six tirs ne font pas un taux**, et ces neuf cases ne se comparent pas aux six du 2026-09-11 :
+charge différente, heure différente.
+
+### Les quatre règles que cette campagne ajoute
+
+- **Une étude de faux positifs se compte en RÉPONSES DE MODÈLE, pas en lancements.** Les onze
+  sorties du transport contrôlé qui ont justifié l'armement de la porte finale rejouaient **deux**
+  réponses : `n` valait 2, pas 11. Sur six réponses neuves, la même politique refuse **2 plans sur
+  6**. Publier le nombre de réponses DISTINCTES à côté du nombre de runs.
+- **Deux lecteurs du même fait doivent appliquer la MÊME condition, ou ils rendront deux verdicts
+  opposés.** `rebuildShoppingQuantities` annonçait `needs_unbought: 0` au moment exact où
+  `final_plan_audit` refusait le plan sur `ingredient_not_bought`, pour le même aliment, dans le
+  même run. La cause était une condition de pont écrite deux fois, différemment. Quand un contrôle
+  existe en double, recopier la condition **mot pour mot**, et l'épingler par un test qui compare
+  les deux sorties.
+- **Un `ref` n'est pas forcément une déclaration du modèle.** Depuis C3, le parseur écrit sur
+  chaque ligne de courses l'identifiant qu'il a **résolu depuis le libellé**. Un lecteur qui traite
+  « la ligne porte un `ref` » comme « le modèle a déclaré une identité » se trompe de source.
+  Distinguer `identitySource: "ref"` de `"term"` avant d'en tirer une règle.
+- **L'état de livraison rejoué par un instrument n'est pas celui du run.** L'instrument rappelle
+  `finalGateDelivery` avec `energy: null` et `boxContract: null` : `cell_energy_off` et
+  `protein_floor_short` lui sont invisibles. Mesuré : instrument **conforme**, moteur
+  **deliverable_with_gaps**, base **livrable_avec_ecarts**, sur le même plan. L'état du run se lit
+  dans le journal du tir et dans `generated_from.validation` — nulle part ailleurs.
+
+## Ce que la fermeture des trois lots a mesuré — 2026-09-12, 19 h 51 → 19 h 57
+
+Trois demandes réelles séquentielles (appels modèle **payants**), par Kong et le
+`functions serve` local, après redémarrage du runtime. Rapport complet :
+**[FERMETURE-TROIS-LOTS-2026-09-12.md](FERMETURE-TROIS-LOTS-2026-09-12.md)**.
+
+| Demande | Bouches | Cases annoncées | Statut | Durée | Appels initiaux / réparation / auxiliaires | Portions conformes (kcal + masse + densité) | Identités d'achat |
+|---|---:|---:|---:|---:|---|---|---:|
+| n° 1 · apport fixe + repas léger | 1 | 6 | 200 | 110,9 s | 1 / 0 / 0 | **6/6** | 22 |
+| n° 2 · deux bouches, allergie réelle | 2 | 6 (12 parts) | 200 | 112,0 s | 1 / 0 / 0 | **12/12** | 18 |
+| n° 3 · plusieurs cuissons, stable + frais | 1 | 6 | 200 | 118,2 s | 1 / 0 / 0 | **6/6** | 20 |
+
+**Total : 18 cases, 24 portions, 24/24 conformes.** Trois sur trois sous le
+plafond hébergé de 150 s. Zéro alerte de courses sur la règle courante.
+
+⛔ **ET CES TROIS DEMANDES NE MESURENT PAS LA RÉPARATION.** Aucune n'a produit de
+défaut à réparer : `réparations 0/2 (demandées : 0)`. « Aucune réparation
+nécessaire » est un résultat, pas une preuve que la réparation fonctionne — celle-ci
+est au transport contrôlé, avec des réponses fabriquées, et elle est publiée
+séparément.
+
+### Le rejeu des six archives `lot3c` — 50 portions, pas 43
+
+Les six sorties de la campagne du 2026-09-12, mesurées **une par une** :
+8 + 7 + 7 + 7 + 7 + **14** = **50 portions, 50/50 conformes**, 0 alerte de
+courses, une seule réparation de modèle (tir 2).
+
+⛔ **Le rapport de cette campagne publiait 43.** C'est le nombre de CASES : le
+foyer de deux en porte DEUX par case, et les deux sont mesurées séparément. Un
+dénominateur qui compte les cases sous le nom des portions rend un taux flatteur
+sur le seul cas qui compte — celui où deux personnes mangent la même cuisson.
+
+### Deux leçons de mesure, ajoutées par ce chantier
+
+- **Un banc qui sert un PLAN à une réparation qui attend un PATCH mesure un refus
+  d'enveloppe, pas une réparation.** Depuis la fermeture du lot 1, les `unit_id`
+  autorisés n'existent que dans la consigne que le handler vient d'écrire : une
+  séquence de réponses écrite à l'avance ne peut pas les citer. Le banc lit donc
+  la consigne envoyée et fabrique son patch dessus — comme le modèle.
+- **Un plafond juste pour un plan est faux pour un patch.** `parseGeneratedMeal`
+  applique un plafond de plats dérivé du rythme de la semaine. Donné huit unités
+  d'un coup il en jetait deux, et c'étaient les unités réservées qu'on venait de
+  demander. Une unité, une lecture — le plafond vaut alors « un plat ».
+
+---
+
+## Ce que la campagne du 2026-09-15 a mesuré — huit tirs, version `64343422`
+
+Huit demandes réelles, séquentielles, par Kong et le `functions serve` local, **7 cases par
+bouche** (le premier jour est partiel : dîner seul), 14 bouches en tout, un compte de fixture neuf
+par tir. Rapport complet et anomalies nommées :
+[CAMPAGNE-HUIT-TIRS-2026-09-15.md](CAMPAGNE-HUIT-TIRS-2026-09-15.md).
+
+| | résultat |
+|---|---|
+| plans écrits | **8 / 8** — HTTP 200, 0 refus, 0 code 546 ni 502, 0 verrou laissé |
+| cases attendues | **97 parts**, par personne, absences déduites (Nils : 6) |
+| portions calculées / mesurables | **97 / 95** — 2 non mesurables par l'instrument (un terme non résolu à la relecture), mesurées par le moteur |
+| calories par créneau, ±10 % | **95 / 95** mesurables conformes |
+| conformité COMPLÈTE (kcal + masse + densité) | **95 / 95** mesurables |
+| journées couvertes, ±5 % | **39 / 39** mesurables conformes, 2 non mesurables |
+| plancher protéique couvert | **38 / 39** journées jugées au-dessus ; **1 en dessous** (tir 9, Paul, journée à 35 %, −5 %), et la garde du run dit la même chose |
+| identités alimentaires | **331 lignes : 329 vérifiées, 0 estimation, 0 en attente, 2 non mesurables** |
+| prose de recette périmée | **0 / 331** |
+| allergies et régimes | 2 allergies déclarées (arachide), 2 régimes véganes ; **0 cause d'exclusion** dans la garde sur 8 plans ; 10 bouches sans matière |
+| sans rattrapage modèle | **6 / 8** ; les deux tirs réparés n'ont fermé aucun de leurs écarts |
+| appels modèle | **12** pour 8 tirs (6 × 1, 2 × 3) — enveloppe de 10 dépassée de 2 |
+| durées | **95,5 · 95,7 · 95,9 · 118,0 · 120,9 · 125,1 · 168,6 · 271,9 s** — 6 sur 8 sous le plafond hébergé |
+
+⛔ **Huit tirs ne font pas un taux.** Et ces 7 cases ne se comparent pas aux 6 du 11 ni aux 9 du 12 :
+charge différente, heure différente.
+
+### Les quatre règles que cette campagne ajoute
+
+- **La demande figée nomme CHAQUE bouche posée, ou le bilan ment.** Le harnais ne figeait les cases
+  attendues que du titulaire ; l'instrument rendait « Lea 0 / 0 » et un total 7 / 7 sur un plan de
+  14 parts. La demande porte maintenant une grille par bouche, absences déduites, et le figeur
+  **nomme** les bouches qu'il a dû compléter.
+- **La base d'une complétion est la grille figée, jamais trois repas × trois jours.** Le roster
+  donnait 9 cases à une bouche ajoutée là où la demande en attendait 7 (premier jour partiel) : deux
+  cases fantômes par bouche, publiées comme « contrôles incomplets ». La grille de la demande vaut
+  pour toute la maison ; ce qui distingue une bouche, c'est son rythme et ses absences.
+- **Un redémarrage du runtime efface le journal du tir.** Relancer `functions serve` avec `>` a
+  emporté les lignes `keel.*` de deux tirs ; l'instrument n'a plus de porte finale pour eux. Le
+  journal d'un tir est une pièce : l'archiver dans l'artefact, par `request_id`, avant tout
+  redémarrage.
+- **Deux réparations peuvent ne rien rendre, et ça se compte.** Sur les deux tirs réparés, quatre
+  appels ont été payés pour un −5 % de protéines sur une journée couverte à 35 % et une densité de
+  petit-déjeuner, sans fermer ni l'un ni l'autre. La garde a vu juste deux fois ; le rendement de la
+  réparation, lui, est de zéro sur deux — à publier à côté du taux sans rattrapage, jamais fondu
+  dedans.

@@ -1,0 +1,3521 @@
+{
+  "cas": "perte",
+  "tir": null,
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "reel": false,
+  "source_sortie": "scratchpad/2026-09-14-TITULAIRE-SANS-AGE/sorties/perte-sna1-2026-09-13T17-00-01-297Z.json",
+  "fige_le": "2026-09-13T23:16:29.235Z",
+  "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.588Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": -22455585
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ],
+      "acceptee": {
+        "starts_on": "2026-09-14",
+        "ends_on": "2026-09-15",
+        "duration_days": 2
+      }
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "4fe22b37-9991-4141-b381-e84ee072149d": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "4fe22b37-9991-4141-b381-e84ee072149d": 6
+    },
+    "cases_attendues_total": 6,
+    "appetit_pose": "average",
+    "demande_figee_avant_appel": true,
+    "bouches": [
+      {
+        "member_id": "4fe22b37-9991-4141-b381-e84ee072149d",
+        "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+        "first_name": "Paul",
+        "birth_date": null,
+        "role": "owner",
+        "age_state": "unknown",
+        "goal": null,
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [
+          {
+            "days": [],
+            "slot": "breakfast",
+            "unit": "g",
+            "label": "yaourt grec",
+            "amount": 200,
+            "food_ref": "greek_yogurt",
+            "replaces_meal": false
+          }
+        ],
+        "fixed_intakes_source": "student_goals.practical_constraints.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": [],
+        "light_slots": [
+          "lunch"
+        ],
+        "allergies": [],
+        "body": {
+          "member_id": "4fe22b37-9991-4141-b381-e84ee072149d",
+          "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+          "height_cm": 178,
+          "weight_kg": 88,
+          "gender": "male",
+          "recorded_by": "2a727269-33fa-4e98-8a79-4d8889fba026",
+          "recorded_at": "2026-09-13T23:14:16.156381+00:00",
+          "updated_at": "2026-09-13T23:14:16.156381+00:00",
+          "activity_level": "trains_some",
+          "day_activity": "seated",
+          "sport_frequency": "3_4",
+          "activity_axes_asked_at": "2026-09-13T23:14:16.156381+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "average",
+          "appetite_asked_at": "2026-09-13T23:14:16.156381+00:00"
+        }
+      }
+    ],
+    "contrat_de_calcul": {
+      "restriction": "clear",
+      "ageState": "adult",
+      "conditionRefs": [],
+      "coachCounting": "no_position"
+    },
+    "profile": {
+      "id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "updated_at": "2026-09-13T23:14:16.127497+00:00",
+      "full_name": "Paul LotF",
+      "avatar_url": "",
+      "onboarding_completed": true,
+      "birth_date": null,
+      "gender": "male",
+      "phone_number": null,
+      "email": "lotf.perte.sna1@keeltest.dev",
+      "timezone": "Europe/Paris",
+      "whatsapp_opted_in": false,
+      "phone_invalid": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_bilan_opted_in": false,
+      "trial_start": "2026-09-13T23:14:16.004899+00:00",
+      "trial_end": "2026-09-20T23:14:16.004899+00:00",
+      "stripe_customer_id": null,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_optout_confirmed_at": null,
+      "whatsapp_state": null,
+      "whatsapp_state_updated_at": null,
+      "phone_verified_at": null,
+      "access_tier": "student",
+      "locale": "fr-FR",
+      "tz_follow_device": false,
+      "whatsapp_bilan_paused_until": null,
+      "whatsapp_bilan_missed_streak": 0,
+      "whatsapp_bilan_last_prompt_at": null,
+      "whatsapp_bilan_winback_step": 0,
+      "whatsapp_bilan_last_winback_at": null,
+      "whatsapp_coaching_paused_until": null,
+      "morning_active_action_checkins_seeded_at": null,
+      "install_app_dismissed_until": null,
+      "install_app_marked_installed_at": null,
+      "install_app_last_prompted_at": null,
+      "account_status": "active",
+      "purge_at": null,
+      "deletion_requested_at": null,
+      "pre_deletion_proactive_muted": null,
+      "keel_role": "student",
+      "display_unit_system": "metric",
+      "country": "FR",
+      "chat_last_inbound_at": null,
+      "proactive_muted_at": null,
+      "chat_last_outbound_at": null,
+      "chat_last_read_at": null,
+      "height_cm": 178,
+      "energy_display_enabled": null,
+      "energy_target_enabled": null,
+      "activity_level": "trains_some",
+      "day_activity": "seated",
+      "sport_frequency": "3_4",
+      "activity_axes_asked_at": null,
+      "slot_meal_ask_enabled": null,
+      "lifecycle_emails_opted_out_at": null,
+      "last_seen_at": null,
+      "unsubscribe_token": "104f92f8-11ea-4a8b-981a-df69f6c6d7b8"
+    },
+    "goal": {
+      "id": "dd9eb13d-6087-4198-9c94-5d238df949db",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {
+        "fixed_intakes": [
+          {
+            "days": [],
+            "slot": "breakfast",
+            "unit": "g",
+            "label": "yaourt grec",
+            "amount": 200,
+            "food_ref": "greek_yogurt",
+            "replaces_meal": false
+          }
+        ]
+      },
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-13T23:14:16.123026+00:00",
+      "updated_at": "2026-09-13T23:14:16.166082+00:00",
+      "target_weight_kg": 78,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  },
+  "etapes": {
+    "prompt_envoye": "== SOPHIA'S METHOD — YOU SPEAK AS THIS COACH'S AGENT ==\n\nYou are not a general nutrition assistant. You carry ONE coach's method. Where this block and your own knowledge disagree, this block wins. You never modify, soften or extend the coach's protocol.\nSILENCE IS NOT A POSITION. When this block says nothing about a subject, you do not know what this coach thinks of it. Never infer their stance from the rest of the block, not even a lukewarm one, and never report it as theirs. Say they have not ruled on that, then answer in your own name.\n\n-- WHAT THIS COACH BELIEVES --\n- Build meals mostly from foods you could recognise as they grow or as they are raised. (It is the one habit that holds when life gets busy, because it is a rule about the shopping list rather than about willpower.)\n- Put a source of protein in every meal. (It is the part of a meal people most often leave out, and the part that makes the next few hours easier to get through without grazing.)\n- Eating at roughly the same times each day matters more than any single meal being ideal. (Regularity is what turns eating into something you no longer think about; perfection is what makes people quit in week two.)\n- Change one thing, and keep it for two weeks before changing anything else. (Several changes at once make it impossible to know which one helped, so nothing is learned and nothing is kept.)\n- A day that went badly is information about your week, not a verdict on you. (Treating it as a failure is what turns one hard day into an abandoned month.)\n- This is Sophia's general method, not a coach who knows you. (Anything that depends on your history, your training or your health belongs to a real coach, and saying so is part of the method rather than a disclaimer.)\n\n-- FORBIDDEN: NEVER RECOMMEND, NEVER ENDORSE --\nThese are this coach's red lines. You may EXPLAIN that the coach does not do these things; you may never advise the student to do them.\nWhen you explain one, LEAD with this coach's position and only then describe the practice — \"Sophia doesn't use X. It's when people ...\" — never the reverse order.\n- promised_result_or_timeline (also phrased: you will lose; you'll lose; guaranteed; in just two weeks; kilos in; pounds in; expect to lose; results in) — A discovery program knows nothing about this person, so any promised outcome or timeline is invented.\n  INSTEAD, this coach says: I can't promise you a result or a timeline — I don't know your history, and anyone who does promise that is guessing. What this program can do is help you keep a few general habits and see what changes for you. If you want targets that are actually yours, that is what a real coach on Sophia is for.\n- advice_around_a_medical_condition (also phrased: for your diabetes; to lower your cholesterol; will cure; instead of your medication; treat your; for your condition) — General principles must never be dressed up as care for a named condition, and this program has no clinician behind it.\n  INSTEAD, this coach says: That part belongs with someone who knows your medical situation — your doctor, or a coach who has your history. I'd rather tell you that than give you something general and let it sound like it was meant for you.\n\n-- HOW THIS COACH ANSWERS (follow these, they are his own words) --\n- Situation: The student says they ate badly for three days and wants to start over on Monday.\n  He answers: You don't need a fresh start, you need your next meal. Monday isn't a reset button — it's just four days of nothing. Put a normal lunch together today and the three days behind you stop mattering.\n- Situation: The student asks what the program thinks of a diet a friend recommended.\n  He answers: I can't judge it for you — I don't know you, and most of those plans work for the same boring reason: they get people eating regular meals made of real food. If that's what it does, it isn't a bad thing to borrow.\n\n-- WHAT THIS COACH HAS ALREADY ANSWERED --\nThese are settled. When a student asks one of these, answer as the coach did rather than reasoning it out again.\n- Q: Is coffee a problem?\n  A: Not on its own. If it is replacing a meal, the meal is the thing worth looking at.\n- Q: Do I need to weigh my food?\n  A: Not for this program. It asks about what the meal was made of, not how much it weighed.\n- Q: How is this different from having a coach?\n  A: A coach has a method of their own and knows your history; this is a general starting point that knows neither. When something depends on you specifically, it will tell you so instead of guessing.\n\n-- VOICE --\n- keep replies short — two or three sentences\n- no emojis\n- write in English\n\n== THE CONVICTION KEYS YOU MAY NAME ==\n[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\",\"one_change_at_a_time\",\"a_missed_day_is_data\",\"this_is_a_discovery_program\"]\n\n== THIS STUDENT ==\n\n-- WHAT THEY ARE AFTER --\ngoal: fat_loss\ntheir situation: not stated.\n\n-- HOW THEIR DAY RUNS --\n- breakfast\n- lunch\n- dinner\nThose are the moments they actually eat. Do not add a meal they did not name, and do not drop one they did: an extra meal is a meal they skip, a missing one is the hour they raid the cupboard.\n\n-- WHAT THEY ALREADY HAVE --\nthey already eat these, outside anything you compose. count them as eaten and do not put them in the shopping list:\n- Paul: yaourt grec (200 g) at breakfast, every day\nthe others sit ALONGSIDE what you compose -- keep the meal, but do not repeat what they already have.\n\n-- WHAT THEY CAN COOK --\nthey have told us NOTHING about their kitchen, their cooking days, the time they have or the money they can spend. Assume an ordinary kitchen and an ordinary week — and because it is an assumption, keep the sessions short and the shopping list plain rather than betting on equipment or an evening they may not have.\n\n-- THIS TIME --\nnothing special going on this week.\npeople at the table: 1\n\n-- THEY HAVE NOT SHOPPED YET: give the full list --\n\n== WHAT IS IN SEASON WHERE THEY ARE ==\ntoday's date: 2026-09-13\nthey shop in: FR (ISO-3166 country code)\nPREFER fruit and vegetables in season there at that date, and produce that grows in that country over what has to be flown in. Let the season set the WEIGHT of a dish too: a long-braised winter stew in midsummer is food nobody wants to cook or eat when it is hot.\nThis is a PREFERENCE and never a rule. Never drop a dish the method calls for to honour it, never refuse an ingredient the student asked for because it is out of season, and never tell them a food is unavailable — you are not looking at their shops. It ranks your choices; it does not veto anything.\n\n== WHAT TO COOK ==\nmode: to_shop\nhow much: several_days (at most 6 dishes)\nevery day of the stretch needs breakfast, lunch and dinner. A day missing one of those is a hole, and the student did not ask for a partial week.\ncooking sessions: at most 2 for the whole stretch. Most lunches and dinners must therefore come from BATCHES — one cooking session, several servings, several days, declared in `batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.\nA batch may feed several days, but a recipe is cooked ONCE in the stretch: no two cooking sessions make the same preparation, and renaming it by its day (\"Monday's egg muffins\", \"Wednesday's egg muffins\") or swapping one vegetable does not make it a different one. Breakfasts count like any other meal. When the same slot needs covering again later in the stretch, cook something else.\nmeal: whichever fits\ntoday is: sun\nthe stretch opens on 2026-09-14 (ISO date)\ndays to fill, in this order: mon, tue\nDo not use any other day token. Fill exactly those days, in that order, starting at the first one -- do not shift the list to begin today, and do not add a day before it.\n\n\n\nCONTENT_LANGUAGE:\nWrite the human-readable TEXT of your JSON in French (fr-FR).\nThis applies to these fields and to nothing else: dishes[].name, dishes[].title, dishes[].method, dishes[].why, dishes[].ingredients[].term, dishes[].ingredients[].quantity, preparations[].title, preparations[].method, preparations[].ingredients[].term, preparations[].ingredients[].quantity, cooking_sessions[].run_through.\nNumbers and unit symbols are unchanged: \"400 g\", \"2\", \"1.2 kg\" (R4).\nThese are MACHINE TOKENS and stay exactly as specified above — never\ntranslate, never localize, never accent them (R1): slot, day, cook_on, aisle, servings, servings_made, state, amount, unit, honours_belief_keys[], preparations[].id (ASCII snake_case, English words only), dishes[].uses[].preparation_id (must match preparations[].id exactly), dishes[].uses[].kept (one of: fridge, freezer), dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh), dishes[].boxes[].id (ASCII snake_case, English words only), dishes[].ingredients[].ref (an id from the food list, never translated), preparations[].ingredients[].ref (an id from the food list, never translated), dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only), preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only).\nJSON keys are never translated. Your output is still a single JSON object\nand nothing else: no prose outside it, no markdown fences.\n\n== THE HOUSEHOLD ==\n\nExact ids to use in member_portions:\n\n- Paul = 4fe22b37-9991-4141-b381-e84ee072149d\n\nHOUSEHOLD SERVING PLAN — one cooking session, portions that differ.\nCook ONE set of preparations for everyone. Do NOT propose separate dishes.\nFor each person below, give a short serving instruction: how much of which\ncomponent goes on their plate, and which side is added or dropped.\nEvery one of those instructions carries a number and a unit: 150 g of the\nchicken, 80 g of dry pasta, 2 tbsp of the sauce. All 1 of them, not some.\n\"A standard portion\", \"a balanced share\", \"take your box\" tell nobody how\nmuch to put on a plate: write the grams, even when a box already holds them.\n\n- Paul: all the components together on the plate\n\nNEVER state a reason, a goal, a calorie count or anything about a person's\nbody in these instructions. They are read aloud at the table by the whole\nhousehold. Write what to serve, never why.\n\n== THE FOOD IDS THIS KITCHEN WEIGHS WITH ==\nThese are the exact numbers the app will weigh your recipes with. Use them\nfor the density you compute: guessing a food table and then checking your\nown guess proves nothing.\nEach line reads: id · kcal per 100 g raw · protein g per 100 g raw · extras.\n  \"x2.6\" is the raw-to-cooked factor: 100 g raw becomes 260 g cooked.\n  \"unit=50\" is what ONE of them weighs. \"pinch=5\" is a dash of it.\n  \"-\" means the table does not carry that number. Do not invent one.\n  A name after the numbers means the id alone would mislead you: read it.\n\npork_loin 123 21.2 x0.77\nham 135 20 unit=30\nturkey_breast 109 24.1 x0.7\nsalmon 194 20.5 x0.8 unit=130\nsardines 207 24.4 unit=90\ntrout 111 19.6 x0.8\nanchovy 182 26.4 Anchovies\nmackerel 194 18.1 x0.8\ncod 78 18.1 x0.8 unit=130\ntuna_tinned 111 26.8 unit=120 Tinned tuna\nsea_bass 113 20.3 x0.8\nhake 83 17.6 x0.8\nplaice 89 20 x0.8\nprawns 94 19\nsquid 77 14.4 x0.8\nmussels 108 17.2\nchicken_breast 110 23.4 x0.72\nchicken_thigh 114 19.3 x0.69 unit=90\nduck_meat 126 19.4 x0.7\ngoose_meat 155 22.6 x0.7\nchicken_leg_meat 114 19.3 x0.7\nfoie_gras_duck_s 489 6.9 x0.7 Foie gras, duck's liver, 30% pieces\npork_chop 164 19.8 x0.76 unit=150\nbeef_mince 130 21.9 x0.73 Beef mince (5%)\nsausage 327 13.2 x0.7 unit=60\nbeef_rump_steak 114 22.5 x0.7\nvenison 113 23.7 x0.7 Venison (hart), raw\nlamb_leg 128 20 x0.7\negg_white 48 10.8 unit=33\negg_yolk 307 15.5 unit=18\nwhole_eggs 140 12.7 unit=55 Eggs\nlentils_dry 331 25.4 x2.4\nchickpeas_tinned 122 6.7 unit=240\nwhite_beans 88 6.6 unit=240\nedamame 121 12\ngreen_peas 61 5.8 Peas\nkidney_beans 108 8.3 unit=240\nhummus 288 8.2\nbroad_beans 83 8.1\ntofu 164 14.9 unit=250\nsoy_milk 37 3.3 Soy drink\nsoy_yogurt 50 4 Soy yoghurt, plain\ntempeh 157 16.1\nyogurt_fermented_milk_dairy 46 4 Yogurt, fermented milk or dairy specialty, plain\nplain_yogurt 59 3.5\npetit_suisse_cream_cheese 89 10 Petit-Suisse, fresh cream cheese type, plain, around 4% fat\nfermented_milk_dairy_specialty 65 3.8 Fermented milk or dairy specialty, yogurt type, plain, with bifidus\nmilk_semi 46 3.3 Semi-skimmed milk\ngreek_yogurt 113 3.3\ngoat_cheese 103 20.6\ncheddar 399 24\nparmesan 406 31.1\nfeta 285 15.1\nmozzarella 227 16.5 unit=125\ncream_cheese 253 6\ntortilla_wholemeal 290 9.5 unit=60 Wholemeal tortilla wrap\npita_wholemeal 265 10 unit=60 Wholemeal pita bread\nwholemeal_bread 262 8.5 unit=40\noats 367 13.3\nbarley 346 9.9 x2.6\ncrispbread_rye 340 9.5 unit=10 Rye crispbread\ncouscous_wholemeal 345 12 x2.6 Wholemeal couscous\nwholewheat_pasta 353 11.8 x2.6\ntortilla_wrap 305 8.5 unit=60 Tortilla wrap (wheat)\nwhite_rice 352 7 x2.6\nwhite_pasta 336 11.5 x2.6 Pasta\npita_bread 275 9 unit=60\ncouscous 352 10.9 x2.6\ncorn_tortilla_wrap_be 313 9.1 unit=30 Corn tortilla wrap, to be filled\nbread_french_bread_baguette 287 8.3 unit=250\nbread 276 8.2 unit=35\npotato 76 1.9 x0.9 unit=150\nparsnip 58 1.5 x0.9 unit=100\nsweet_potato 86 1.5 x0.9 unit=200\nbeetroot 43 1.4\nsweetcorn 106 2.8 unit=240\ntaro_tuber 107 1.5 x0.9\ndauphine_potato 285 4.6 x0.9 Dauphine potato, frozen, raw\ncauliflower 26 1.8 x0.9 unit=300\nbroccoli 33 4 x0.9 unit=300\nred_cabbage 30 1.1 x0.9\nradish 29 0.9 unit=10\ncabbage 28 2.5 x0.9\nlettuce 15 1.3 unit=100\nswiss_chard 16 1 x0.9\nspinach 29 2.6 x0.9\nherbs_parsley 43 3.7 pinch=5 Parsley\ntomato 19 0.9 unit=100\ncarrot 40 0.6 x0.9 unit=70\nbell_pepper 26 0.8 x0.9 unit=150\nonion 38 1.1 x0.9 unit=110\nbutton_mushroom_cultivated_mushroom 28 2.6 x0.9 Button mushroom or cultivated mushroom, raw\nleek 32 1.5 x0.9 unit=100\ngarlic 111 5.3 unit=5\nfrench_bean 34 2 x0.9 French bean, frozen, raw\nmixed_berries 49 1.1\nblackberry 47 1.1\nraspberries 49 1.2\nstrawberries 39 0.6\nlemon 28 0.4 unit=60\nlime 40 1.1 unit=45\nclementine 47 0.8 unit=80\napricot_pitted 46 0.8 unit=50\npeach 46 0.7 unit=130\nfig 69 1.2 unit=50\nplum 46 0.6 unit=60\napple 48 0.3 unit=150\nalmonds 600 18.8\nmixed_nuts 607 18\npeanuts 610 22.8\nwalnuts 378 11\ntahini 621 17.7\nolive_oil 900 0\nvegetable_fat_spreadable_30 366 1.4 Vegetable fat (margarine type), spreadable, 30-40% fat, light, unsalted\nvegetable_fat_spreadable_50 536 0.5 Vegetable fat (margarine type), spreadable, 50-63% fat, light, unsalted\nrapeseed_oil 900 0\nsingle_cream 194 2.6 Cream\nbutter_60_62_fat 550 0.6 Butter, 60-62% fat, light, unsalted\nvinegar 23 0\ndried_herbs 265 9 pinch=0.5 Dried mixed herbs\nstock_cube 240 10.2 unit=10 Stock\n\nON EVERY INGREDIENT YOU WRITE, add \"ref\": the id from this list, exactly as\nspelled here. Dishes and preparations alike.\n\nTWO RULES, AND THEY DECIDE WHETHER A DISH CAN BE SERVED AT ALL:\n  1. A line you WEIGH carries all three: \"ref\", \"amount\", \"unit\".\n     No id means no weight, and a meal nobody can weigh has no portion.\n  2. A dash you do NOT weigh — salt, pepper, a herb — carries \"ref\" and NO\n     amount. The app weighs it by the \"pinch=\" figure on its line above.\nThis list does NOT limit what you may cook. But an ingredient you weigh must\ncome from it: pick the closest listed id and say so in the term, or make that\ningredient a dash. What is always refused is an id that is not on this list.\n\n== WRITE ONE STANDARD RECIPE PER DISH ==\n\nWrite every dish and every preparation as ONE standard recipe: ingredients in\n\ngrams (or ml, units, spoons) with their state, raw as bought for rice, pasta,\n\ndry legumes, meat and fish. A preparation is written for the dishes that draw\n\non it; each dish draws one serving. The app multiplies each recipe to what the\n\nperson eats and works out the batch and the shopping.\n\nWhen a dish draws on a preparation, that link is the whole statement: do NOT\n\nalso list the preparation's food among the dish's own ingredients. The dish's\n\ningredients are only what is added fresh on top of it.\n\nNever write a portion for a named person, never a box, never a per-person\n\nfigure. Those are computed, not written.\n\nEvery lunch and dinner is a complete plate in ONE dish: a starch, a protein, a\n\nfat. A normal dish carries at least 100 kcal per 100 g as served. A soup is\n\npossible but it comes complete (croutons, grated cheese, a poached egg, or\n\nbread and cheese beside it).\n\nA slot marked (light) calls for a light recipe: still nourishing, at least 60 kcal\n\nper 100 g as served (a potato, a drizzle of oil, a spoon of cream). Below that\n\nthe amount to eat becomes enormous.\n\nThere is no starter: the dish is the unit.\n\nHOW TO CHECK A DISH'S DENSITY, AND DO IT BEFORE YOU MOVE ON:\n\n  1. For EACH preparation the dish draws on: take the WHOLE pot, its cooked\n\n     grams and its kcal, and divide BOTH by that pot's \"servings_made\".\n\n     That quotient is the one serving this dish takes from it. A dish takes\n\n     ONE serving from each pot it names — never the whole pot.\n\n  2. Add the dish's OWN ingredients, at full weight: they are added fresh on\n\n     the day, so nothing divides them.\n\n  3. Use the CIQUAL food composition table (ANSES, the French reference) for\n\n     their energy. It is the table this kitchen weighs with.\n\n  4. Weigh them COOKED, ready to serve — not raw. Dry rice is 350 kcal per\n\n     100 g; cooked it is about 130. Meat and vegetables lose water too.\n\n  5. density = (total kcal) ÷ (total cooked grams) × 100.\n\nWrite that number in EVERY dish's \"density_check\" field — it is required,\n\nand a dish without it is an unchecked dish.\n\nThat number is what you DECLARE, not what you prove. The app weighs the\n\ndish again from the ingredients you wrote, and compares the two. A number\n\nyou did not actually compute buys nothing: it only hides which dish to fix.\n\nIf your number is OUTSIDE the range the line above asks for, fix the recipe\n\nBEFORE you answer, and fix the RECIPE, not the amount served:\n\n  · below the range: less water and watery vegetable, more starch, protein\n\n    or fat;\n\n  · above the range: more vegetable and more water-rich food, less oil and\n\n    less dense starch.\n\nDo not answer with a dish you already know is outside its range.\n\n== DECIDED BEFORE YOU (facts, already explained to them -- do not re-decide) ==\n- The plan starts: starts_tomorrow. sun was dropped: it was already spent.\n- Not eaten here today: nothing.\n- Cooking session(s) on: days you choose.\n- Days no batch can reach (cooked fresh that day): none.\n- No declared diet at this table.\n- Which way this plan leans: lighter.\n- A wish for this week was given to you: no.\n\nExplain only what YOU chose among what these leave open, in \"explanation\".\n\n-- WHEN TWO OF THE LINES ABOVE WANT DIFFERENT THINGS --\nThey will. This order decides, and nothing in this message outranks it.\n1. Every hard constraint and every declared diet in this message, WHEREVER\n   it sits. They are NOT all at the top: the allergies and the medical\n   lines are near the beginning, and the blocks headed \"WHAT THE SHARED\n   BASE MUST RESPECT\", \"HOUSE RULES\" and \"THE SAME KITCHEN, TWO DISHES\"\n   are further down, between that beginning and this line. All of them are\n   absolute. No craving, no coach line, no budget and no cooking time ever\n   touches them, and \"a small amount\" is not an exception.\n2. This coach's method and red lines.\n3. What this kitchen and this week can ACTUALLY do — the cooking days, the\n   equipment they do not have, the minutes, the money. A plan they cannot\n   execute is not a smaller plan, it is no plan. When the method asks for a\n   gesture this kitchen cannot make, keep the method's INTENT and change the\n   gesture, and say so.\n4. What the people at this table wrote themselves.\n5. What they feel like eating this time, what came up in conversation, and\n   the season. These RANK your choices among the dishes 1 to 4 already\n   allow. They never veto, and they never override.\n\nAND WHEN TWO MOUTHS AT THIS TABLE WANT OPPOSITE THINGS:\nThe same order decides, mouth by mouth. Never average two mouths, and never\nsettle it by whose name came first or by whose plan this is.\n- A rank 1 line of ANY mouth beats a rank 2 to 5 line of EVERY other mouth,\n  including the person this plan was asked by. Nobody at this table\n  outranks anybody else's allergy, medical line or declared diet.\n- Two rank 1 lines never cancel each other. Compose the shared dish so that\n  BOTH hold. If no single dish can hold both, the shared dish follows the\n  STRICTER line, and a second dish exists only where the blocks above\n  already allow one. Serving a forbidden food in a smaller amount is not a\n  way of holding both.\n- Below rank 1, how much of the shared dish goes on one plate is not an\n  arbitration at all. It lives in \"member_portions\", one entry per person,\n  and it never changes what the shared dish IS.\n\nAND YOU DECIDE IT WITHOUT SAYING WHO LOST:\nWhen something lower cannot be honoured because something higher forbids\nit, compose the nearest dish the higher rule DOES allow. Never drop the\nmeal, and never honour it quietly by halves.\nSay what you did in that dish's \"why\" as a fact about the FOOD, never as a\nfact about a person: not whose diet, whose allergy, whose medical list or\nwhose house rule decided it, and not whose wish gave way. \"This one is\ndairy-free\" is a fact about the dish; naming the person it is dairy-free\nFOR is a fact about them, and it is read out loud at this table.\n\nTHE LAST WORD, AND IT IS THE FIRST RULE: an allergy, a medical line or a\ndeclared diet at this table is never traded against anything else in this\nmessage. Everything above is a ranking; that one is a floor.\n\nCONTENT_LANGUAGE:\nWrite the human-readable TEXT of your JSON in French (fr-FR).\nThis applies to these fields and to nothing else: dishes[].name, dishes[].title, dishes[].method, dishes[].why, dishes[].ingredients[].term, dishes[].ingredients[].quantity, preparations[].title, preparations[].method, preparations[].ingredients[].term, preparations[].ingredients[].quantity, cooking_sessions[].run_through, explanation[].\nNumbers and unit symbols are unchanged: \"400 g\", \"2\", \"1.2 kg\" (R4).\nThese are MACHINE TOKENS and stay exactly as specified above — never\ntranslate, never localize, never accent them (R1): slot, day, cook_on, aisle, servings, servings_made, state, amount, unit, honours_belief_keys[], preparations[].id (ASCII snake_case, English words only), dishes[].uses[].preparation_id (must match preparations[].id exactly), dishes[].uses[].kept (one of: fridge, freezer), dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh), dishes[].boxes[].id (ASCII snake_case, English words only), dishes[].ingredients[].ref (an id from the food list, never translated), preparations[].ingredients[].ref (an id from the food list, never translated), dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only), preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only).\nJSON keys are never translated. Your output is still a single JSON object\nand nothing else: no prose outside it, no markdown fences.",
+    "premier_jet": "{\"dishes\":[{\"name\":\"Bol skyr mon\",\"title\":\"Skyr, avoine, myrtilles et amandes\",\"slot\":\"breakfast\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"skyr\",\"quantity\":\"300 g de skyr\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"skyr\"},{\"term\":\"avoine\",\"quantity\":\"55 g de avoine\",\"amount\":55,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"oats\"},{\"term\":\"myrtilles\",\"quantity\":\"90 g de myrtilles\",\"amount\":90,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"blueberries\"},{\"term\":\"amandes\",\"quantity\":\"12 g de amandes\",\"amount\":12,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"almonds\"}],\"method\":\"Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.\",\"why\":\"Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.\",\"density_check\":108,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3}},{\"name\":\"Assiette poulet mon\",\"title\":\"Poulet, couscous complet, courgette et tomate\",\"slot\":\"lunch\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"couscous complet\",\"quantity\":\"95 g de couscous complet\",\"amount\":95,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"couscous_wholemeal\"},{\"term\":\"courgette\",\"quantity\":\"180 g de courgette\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"courgette\"},{\"term\":\"tomate\",\"quantity\":\"90 g de tomate\",\"amount\":90,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tomato\"}],\"method\":\"Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.\",\"why\":\"Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.\",\"density_check\":115,\"uses\":[{\"preparation_id\":\"prep_poulet\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8}},{\"name\":\"Saumon mon\",\"title\":\"Saumon, pommes de terre et haricots verts\",\"slot\":\"dinner\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"haricots verts\",\"quantity\":\"150 g de haricots verts\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"green_beans\"},{\"term\":\"huile d'olive\",\"quantity\":\"8 g de huile d'olive\",\"amount\":8,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.\",\"why\":\"Le lot du lundi donne deux dîners sans rallumer le four.\",\"density_check\":163,\"uses\":[{\"preparation_id\":\"prep_saumon\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10}},{\"name\":\"Bol skyr tue\",\"title\":\"Skyr, avoine, myrtilles et amandes\",\"slot\":\"breakfast\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"skyr\",\"quantity\":\"300 g de skyr\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"skyr\"},{\"term\":\"avoine\",\"quantity\":\"55 g de avoine\",\"amount\":55,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"oats\"},{\"term\":\"myrtilles\",\"quantity\":\"90 g de myrtilles\",\"amount\":90,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"blueberries\"},{\"term\":\"amandes\",\"quantity\":\"12 g de amandes\",\"amount\":12,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"almonds\"}],\"method\":\"Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.\",\"why\":\"Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.\",\"density_check\":108,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3}},{\"name\":\"Assiette poulet tue\",\"title\":\"Poulet, couscous complet, courgette et tomate\",\"slot\":\"lunch\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"couscous complet\",\"quantity\":\"95 g de couscous complet\",\"amount\":95,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"couscous_wholemeal\"},{\"term\":\"courgette\",\"quantity\":\"180 g de courgette\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"courgette\"},{\"term\":\"tomate\",\"quantity\":\"90 g de tomate\",\"amount\":90,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tomato\"}],\"method\":\"Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.\",\"why\":\"Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.\",\"density_check\":115,\"uses\":[{\"preparation_id\":\"prep_poulet\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8}},{\"name\":\"Saumon tue\",\"title\":\"Saumon, pommes de terre et haricots verts\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"haricots verts\",\"quantity\":\"150 g de haricots verts\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"green_beans\"},{\"term\":\"huile d'olive\",\"quantity\":\"8 g de huile d'olive\",\"amount\":8,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.\",\"why\":\"Le lot du lundi donne deux dîners sans rallumer le four.\",\"density_check\":163,\"uses\":[{\"preparation_id\":\"prep_saumon\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10}}],\"preparations\":[{\"id\":\"prep_poulet\",\"title\":\"Poulet rôti au citron\",\"servings_made\":2,\"ingredients\":[{\"term\":\"blanc de poulet\",\"quantity\":\"760 g de blanc de poulet\",\"amount\":760,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"chicken_breast\"},{\"term\":\"huile d'olive\",\"quantity\":\"24 g de huile d'olive\",\"amount\":24,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Chauffer le four à 200 °C. Poser les blancs de poulet sur une plaque, les huiler, les rôtir 25 minutes. Laisser tiédir, puis répartir en deux portions au réfrigérateur.\",\"active_minutes\":10,\"total_minutes\":35,\"cook_on\":\"mon\"},{\"id\":\"prep_saumon\",\"title\":\"Saumon rôti et pommes de terre\",\"servings_made\":2,\"ingredients\":[{\"term\":\"saumon\",\"quantity\":\"780 g de saumon\",\"amount\":780,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"salmon\"},{\"term\":\"pomme de terre\",\"quantity\":\"635 g de pomme de terre\",\"amount\":635,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"potato\"},{\"term\":\"huile d'olive\",\"quantity\":\"24 g de huile d'olive\",\"amount\":24,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Sur la même plaque, rôtir les pommes de terre 20 minutes, ajouter les pavés de saumon huilés et poursuivre 12 minutes. Laisser tiédir et répartir en deux portions.\",\"active_minutes\":12,\"total_minutes\":40,\"cook_on\":\"mon\"}],\"cooking_sessions\":[{\"day\":\"mon\",\"preparation_ids\":[\"prep_poulet\",\"prep_saumon\"],\"total_minutes\":55,\"run_through\":\"Chauffer le four à 200 °C. Enfourner les pommes de terre, puis les blancs de poulet huilés sur une seconde plaque. Ajouter le saumon aux pommes de terre pour les douze dernières minutes. Laisser tiédir et ranger deux portions de chaque au réfrigérateur.\"}],\"shopping_list\":[{\"term\":\"blanc de poulet\",\"ref\":\"chicken_breast\",\"quantity\":\"760 g\",\"amount\":760,\"unit\":\"g\",\"aisle\":\"protein\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"64 g\",\"amount\":64,\"unit\":\"g\",\"aisle\":\"pantry\"},{\"term\":\"saumon\",\"ref\":\"salmon\",\"quantity\":\"780 g\",\"amount\":780,\"unit\":\"g\",\"aisle\":\"protein\"},{\"term\":\"pomme de terre\",\"ref\":\"potato\",\"quantity\":\"635 g\",\"amount\":635,\"unit\":\"g\",\"aisle\":\"produce\"},{\"term\":\"skyr\",\"ref\":\"skyr\",\"quantity\":\"600 g\",\"amount\":600,\"unit\":\"g\",\"aisle\":\"dairy\"},{\"term\":\"avoine\",\"ref\":\"oats\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"aisle\":\"grains\"},{\"term\":\"myrtilles\",\"ref\":\"blueberries\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"aisle\":\"produce\"},{\"term\":\"amandes\",\"ref\":\"almonds\",\"quantity\":\"24 g\",\"amount\":24,\"unit\":\"g\",\"aisle\":\"grains\"},{\"term\":\"couscous complet\",\"ref\":\"couscous_wholemeal\",\"quantity\":\"190 g\",\"amount\":190,\"unit\":\"g\",\"aisle\":\"grains\"},{\"term\":\"courgette\",\"ref\":\"courgette\",\"quantity\":\"360 g\",\"amount\":360,\"unit\":\"g\",\"aisle\":\"produce\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"aisle\":\"produce\"},{\"term\":\"haricots verts\",\"ref\":\"green_beans\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"aisle\":\"produce\"}],\"explanation\":[\"Deux cuissons le lundi soir donnent les quatre repas chauds de la fenêtre ; les deux petits-déjeuners se montent au bol.\"]}",
+    "reparations": [],
+    "prompts_de_reparation": [],
+    "echanges_resume": [
+      {
+        "source": "generate-household-meal-v1",
+        "status": "attempt_start",
+        "model": "gpt-5.6-luna",
+        "user_message_len": 23009,
+        "output_text_len": 0,
+        "created_at": "2026-09-13T23:14:16.698636+00:00"
+      },
+      {
+        "source": "generate-household-meal-v1",
+        "status": "success",
+        "model": "gpt-5.6-luna",
+        "user_message_len": 0,
+        "output_text_len": 7552,
+        "created_at": "2026-09-13T23:14:16.708413+00:00"
+      }
+    ]
+  },
+  "journal": [
+    {
+      "tag": "keel.household_meal.member_bodies",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "members": 1,
+      "accounts": 1,
+      "with_body": 1,
+      "reads": 7
+    },
+    {
+      "tag": "keel.household_meal.mouth_facts",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "tally": {
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "gender.personal": 1,
+        "ageYears.absent": 1,
+        "activityLevel.personal": 1,
+        "activityAxes.personal": 1,
+        "appetite.member_sheet": 1
+      }
+    },
+    {
+      "tag": "keel.household_meal.condition_gate",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "pregnancy": 0,
+      "breastfeeding": 0,
+      "other": 0,
+      "none": 1
+    },
+    {
+      "tag": "keel.household_meal.composition",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "mode": "per_portion",
+      "deltas": 0,
+      "family_service": false,
+      "residual_gaps_count": 0,
+      "residual_gaps_max_band": "none"
+    },
+    {
+      "tag": "keel.household_meal.retained_items",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "composition": 0,
+      "portion": 0,
+      "rhythm": 0,
+      "logistics": 0,
+      "craving": 0,
+      "unrouted": 0,
+      "portion_excluded": [],
+      "refused": 0,
+      "legacy_notes": 0,
+      "other_subjects": 0,
+      "portion_applied": 0
+    },
+    {
+      "tag": "keel.household_meal.structure",
+      "derived": 0,
+      "capped": 0,
+      "no_target": 1,
+      "no_body": 0,
+      "opened_total": 0,
+      "mouths_opened": 0
+    },
+    {
+      "tag": "keel.household_meal.fixed_intakes",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "mouths": 1,
+      "intakes": 1,
+      "demoted": 0,
+      "discarded": 0,
+      "dropped": 0,
+      "reads": 1
+    },
+    {
+      "tag": "keel.household_meal.cells",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "cells": 6,
+      "non_empty": 6,
+      "empty": 0,
+      "light": 2,
+      "light_mixed": 0,
+      "eaters_hist": {
+        "1": 6,
+        "2": 0,
+        "3": 0,
+        "4_plus": 0
+      },
+      "dedicated_cells": 0,
+      "dedicated_mouths": 0,
+      "dedicated_by_reason": {
+        "regime": 0,
+        "own_meal": 0
+      },
+      "one_eater_cells": 6,
+      "cook_day_cells": 0,
+      "spent_cells": 0,
+      "regime_by_cell": {
+        "none": 6
+      },
+      "dish_bearing_delta": 0,
+      "dish_bearing_only_cells": 0,
+      "dish_bearing_only_current": 0
+    },
+    {
+      "tag": "keel.household_meal.cooking_shape",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "weekly_cooking_minutes": null,
+      "time_allows_second_dish": true,
+      "shape": "one_dish",
+      "asked_shape": null,
+      "computed_shape": "one_dish",
+      "shape_capped": false,
+      "shape_unused": false,
+      "diverging": [],
+      "dish_bearing": [],
+      "dish_bearers_taught": [],
+      "dish_bearing_promised_not_taught": 0,
+      "from_merge": false,
+      "strictest_regime": null,
+      "regimes": 0
+    },
+    {
+      "tag": "keel.household_meal.member_voices",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "accounts_at_table": 1,
+      "with_lines": 0,
+      "lines_raw": 0,
+      "reads": 0
+    },
+    {
+      "tag": "keel.household_meal.composition_catalog",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lang": "fr",
+      "considered": 943,
+      "not_composable": 23,
+      "group_never_composed": 16,
+      "group_excluded": 0,
+      "term_excluded": 0,
+      "over_group_cap": 783,
+      "over_total_cap": 0,
+      "kept": 121,
+      "chars": 5025
+    },
+    {
+      "tag": "keel.household_meal.protein_brief",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "mouths": 1,
+      "named": 0,
+      "slots": 0,
+      "silent": {
+        "protected": 0,
+        "no_body": 0,
+        "coverage_unknown": 1,
+        "no_covered_slot": 0,
+        "spread_unknown": 0
+      }
+    },
+    {
+      "tag": "keel.household_meal.voices_used",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "heard": 0,
+      "linesIn": 0,
+      "linesUsed": 0,
+      "linesWithheld": 0,
+      "linesOverCap": 0,
+      "linesTooLong": 0,
+      "perMember": []
+    },
+    {
+      "tag": "keel.household_meal.notes",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "lines": 0,
+      "household_lines": 0,
+      "member_lines": 0,
+      "served": 0,
+      "block_served": 0,
+      "other_subjects": 0
+    },
+    {
+      "tag": "keel.household_meal.slot_contract_brief",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lines": 0,
+      "silent": 6,
+      "truncated": 0,
+      "chars": 0
+    },
+    {
+      "tag": "keel.household_meal.prompt_cost",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "intent": "prepare_next",
+      "user_chars_before": 17982,
+      "user_chars_after": 23009,
+      "added_chars": 5027,
+      "added_pct": 28,
+      "catalog_chars": 5025,
+      "catalog_entries": 121,
+      "catalog_anchor": "anchored"
+    },
+    {
+      "tag": "keel.household_meal.precedence",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "place": "tail",
+      "exact": true,
+      "blocks_after": 0,
+      "ranks_with_object": 1,
+      "ranks_without_object": 4,
+      "by_rank": {
+        "rank_1": 0,
+        "rank_2": 6,
+        "rank_3": 0,
+        "rank_4": 0,
+        "rank_5": 0
+      }
+    },
+    {
+      "tag": "openai_http",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "source": "generate-household-meal-v1",
+      "model": "gpt-5.6-luna",
+      "openai_api": "responses",
+      "openai_response_id": "resp_lotf_1",
+      "status": 200,
+      "ok": true,
+      "duration_ms": 14,
+      "timeout_ms": 349576,
+      "attempt": 1,
+      "chain_index": 0
+    },
+    {
+      "tag": "openai_result",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "source": "generate-household-meal-v1",
+      "model": "gpt-5.6-luna",
+      "json_mode": true,
+      "tool_choice": "auto",
+      "has_tools": false,
+      "outcome": "text",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    {
+      "tag": "keel.household_meal.pre_repair_sizing",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "measured": null,
+      "dishes": null,
+      "repair_asks": 0,
+      "bites": 0,
+      "first_jet_defect_kinds": []
+    },
+    {
+      "tag": "keel.household_meal.protein_anchor",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "missing_before": 0,
+      "missing_after": 0,
+      "site_calls_model": false
+    },
+    {
+      "tag": "keel.household_meal.meals_delivered",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "mouths": 1,
+      "cook_day_cells_dropped": 0,
+      "expected": 6,
+      "fed": 6,
+      "missing": 0,
+      "missing_before": 0,
+      "held_off_regime": 0,
+      "held_off_exclusion": 0,
+      "not_named": 0,
+      "double": 0,
+      "no_dish": 0,
+      "cells_without_dish": 0,
+      "missing_rows": [],
+      "unplaced_dishes": 0,
+      "retry_on": {},
+      "restored": 0,
+      "restored_fallback": 0,
+      "rehomed": 0
+    },
+    {
+      "tag": "keel.household_meal.composition_fill",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "measured": true,
+      "unknowns": 0,
+      "requested": 0,
+      "answered": 0,
+      "model": 0,
+      "group_bounds": 0,
+      "sas_group_armed": 0,
+      "sas_value_reused": 0,
+      "sas_write_skipped_reused_group": 0,
+      "shares": {
+        "kcal": 5244,
+        "table": 1,
+        "promoted": 0,
+        "model": 0,
+        "group_bounds": 0
+      }
+    },
+    {
+      "tag": "keel.household_meal.dietary_regime",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "lock": "clean",
+      "dishes": 6,
+      "mouths": 0,
+      "checked": 0,
+      "kept": 0,
+      "refused": 0,
+      "bites": 0,
+      "separated": 0,
+      "not_separated": 0,
+      "silenced": 0,
+      "silenced_homograph": 0,
+      "silenced_spelling": 0,
+      "unknown_mouth": 0,
+      "box_scoped": 0,
+      "citation_repaired": 0,
+      "item_repaired": 0,
+      "groups_declared": 0,
+      "groups_valid": 0,
+      "groups_refused": 0,
+      "groups_conflicting": 0,
+      "group_excluded": 0,
+      "group_plant_only": 0,
+      "group_undecided": 0
+    },
+    {
+      "tag": "keel.household_meal.fridge_window",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "dishes": 6,
+      "violations": 0,
+      "within": 4,
+      "not_evaluated": 0,
+      "routed": 12,
+      "unknown_group": 0
+    },
+    {
+      "tag": "keel.household_meal.output_contract",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lines": 23,
+      "ok": 23,
+      "convention": 0,
+      "dash_unreferenced": 0,
+      "ref_missing": 0,
+      "ref_refused": 0,
+      "quantity_missing": 0,
+      "defects": 0,
+      "named": [],
+      "named_truncated": 0
+    },
+    {
+      "tag": "keel.household_meal.portion_sizing",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "density": {
+        "mouths": 1,
+        "named": 0,
+        "folded": 0,
+        "slots_above_floor": 0,
+        "no_target": 1,
+        "no_composition": 0,
+        "days_varied": 0,
+        "capped": 0,
+        "fixed_covered": 0,
+        "floor_min_kept": 0,
+        "empty_intersection": 0,
+        "by_slot": {},
+        "by_case": {
+          "mon|breakfast": null,
+          "mon|lunch": null,
+          "mon|dinner": null,
+          "tue|breakfast": null,
+          "tue|lunch": null,
+          "tue|dinner": null
+        }
+      },
+      "sizing_path": "portion_v1",
+      "reason": "one_mouth",
+      "applied": true,
+      "mouths": 1,
+      "dishes": 6,
+      "measured": 6,
+      "unmeasurable_by": {},
+      "verdicts": {
+        "in_bounds": 0,
+        "over_max": 0,
+        "under_min": 0,
+        "unmeasurable": 6
+      },
+      "bounds_source": {
+        "age_known": 0,
+        "age_unknown": 6
+      },
+      "clamped": {
+        "max": 0,
+        "min": 0
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 0
+      },
+      "pot_ingredients_without_amount": 0,
+      "slots": {
+        "declared": 0,
+        "light": 1,
+        "composed": 3,
+        "without_target": 6
+      },
+      "contract_missing": 0,
+      "target": {
+        "anchored": 0,
+        "no_target": 1
+      },
+      "gap_closed": 0,
+      "fixed_covered": 0,
+      "fixed_conflict": 0,
+      "fixed_slot_kcal": {
+        "declared": 0,
+        "referential": 2,
+        "unresolved": 0,
+        "loose": 0,
+        "off_day": 0,
+        "loose_ignored_kcal": 0
+      },
+      "apply": {
+        "boxes_authored": 6,
+        "dishes_unsized": 0,
+        "fresh_scaled": 18,
+        "fresh_unweighed": 0,
+        "pots_scaled": 2,
+        "pots_unreadable": 0,
+        "servings_rewritten": 0,
+        "items_unresolved": 0,
+        "own_authored": 0,
+        "tubs_authored": 0,
+        "eaters_unsized": 0,
+        "recipe_shares": 6,
+        "recipe_shares_by": {
+          "age_unknown": 6
+        },
+        "regrammed": 0
+      },
+      "repairs": {
+        "asked": 0,
+        "accepted": 0,
+        "rejected": {
+          "belt": 0,
+          "unparseable": 0,
+          "no_cell": 0,
+          "title_changed": 0,
+          "unmeasurable": 0,
+          "missing_pot": 0,
+          "dedicated_lost": 0,
+          "degraded": 0,
+          "frozen_rewritten": 0
+        },
+        "splice": {
+          "fresh_spliced": 0,
+          "pots_spliced": 0,
+          "dish_missing": 0,
+          "pot_missing": 0,
+          "shopping_added": 0,
+          "shopping_pruned": 0,
+          "uses_mismatch": 0,
+          "density_checks_cleared": 0
+        },
+        "skipped_stuck": 0,
+        "still_out": 0,
+        "skipped_budget": 0,
+        "pots_frozen": 0,
+        "pot_unforked": 0,
+        "pot_forked": 0,
+        "fresh_frozen": 0,
+        "stuck_dishes": 0,
+        "stuck_eaters": 0,
+        "residual_eaters": 0,
+        "residual_stuck": 0,
+        "residual_stuck_by": {
+          "nothing_rewritable": 0,
+          "empty_corridor": 0
+        },
+        "residual_recomposable": 0,
+        "recipe_terms": 0,
+        "recipe_quantified": 0,
+        "attempts": 0,
+        "retry_skipped_small": 0,
+        "retried_after": null,
+        "fill_absorbed": null
+      },
+      "rows": [
+        {
+          "dish_id": "Skyr, avoine, myrtilles et amandes",
+          "day": "mon",
+          "slot": "breakfast",
+          "standard_kcal": 495,
+          "density": 108.3,
+          "density_check": 108,
+          "density_check_gap": -0.3,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 457,
+          "factor": 1,
+          "person_cooked_g": 457,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 0,
+          "floored": false
+        },
+        {
+          "dish_id": "Poulet, couscous complet, courgette et tomate",
+          "day": "mon",
+          "slot": "lunch",
+          "standard_kcal": 901,
+          "density": 114.8,
+          "density_check": 115,
+          "density_check_gap": 0.2,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 785,
+          "factor": 1,
+          "person_cooked_g": 785,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 1,
+          "floored": false
+        },
+        {
+          "dish_id": "Saumon, pommes de terre et haricots verts",
+          "day": "mon",
+          "slot": "dinner",
+          "standard_kcal": 1226,
+          "density": 162.9,
+          "density_check": 163,
+          "density_check_gap": 0.1,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 753,
+          "factor": 1,
+          "person_cooked_g": 753,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 1,
+          "floored": false
+        },
+        {
+          "dish_id": "Skyr, avoine, myrtilles et amandes",
+          "day": "tue",
+          "slot": "breakfast",
+          "standard_kcal": 495,
+          "density": 108.3,
+          "density_check": 108,
+          "density_check_gap": -0.3,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 457,
+          "factor": 1,
+          "person_cooked_g": 457,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 0,
+          "floored": false
+        },
+        {
+          "dish_id": "Poulet, couscous complet, courgette et tomate",
+          "day": "tue",
+          "slot": "lunch",
+          "standard_kcal": 901,
+          "density": 114.8,
+          "density_check": 115,
+          "density_check_gap": 0.2,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 785,
+          "factor": 1,
+          "person_cooked_g": 785,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 1,
+          "floored": false
+        },
+        {
+          "dish_id": "Saumon, pommes de terre et haricots verts",
+          "day": "tue",
+          "slot": "dinner",
+          "standard_kcal": 1226,
+          "density": 162.9,
+          "density_check": 163,
+          "density_check_gap": 0.1,
+          "target_kcal": null,
+          "unmet_kcal": 0,
+          "standard_cooked_g": 753,
+          "factor": 1,
+          "person_cooked_g": 753,
+          "bounds": {
+            "min": 250,
+            "max": 700,
+            "verdict": "unmeasurable"
+          },
+          "pots": 1,
+          "floored": false
+        }
+      ]
+    },
+    {
+      "tag": "keel.household_meal.plan_explanation",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "asked": true,
+      "declared": 1,
+      "kept": 1,
+      "refused": null,
+      "merged_dropped": 0,
+      "merged_added": 0
+    },
+    {
+      "tag": "keel.household_meal.plan_tradeoffs",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "families": [],
+      "lines": 0,
+      "refusal": null,
+      "away_mouths": 0,
+      "mouths_without_body": 0,
+      "shape_capped": false,
+      "lane_mode": "per_portion"
+    },
+    {
+      "tag": "keel.household_meal.table_appetite",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "servings_headcount": 1,
+      "appetite_equivalent": null,
+      "bodies_known": 0,
+      "mouths": 1,
+      "steering": false
+    },
+    {
+      "tag": "keel.household_meal.quantity_rounding",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lines": 23,
+      "quantified": 23,
+      "unquantified": 0,
+      "already_whole": 23,
+      "rounded": 0,
+      "spoon_to_ml": 0,
+      "piece_to_grams": 0,
+      "zero_unresolved": 0,
+      "unknown_unit": 0,
+      "regrammed": 0,
+      "pots_overdrawn": 0,
+      "pots_overdrawn_worst_per_mille": 0,
+      "pots_overdrawn_before": 0,
+      "pots_unmeasurable": 0,
+      "zeroed": []
+    },
+    {
+      "tag": "keel.household_meal.portion_boundary",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "boxes": 6,
+      "meals": 6,
+      "multi_box_meals": 0,
+      "tubs_not_judged": 0,
+      "judged": 6,
+      "already_in_bounds": 2,
+      "shaved": 4,
+      "raised": 0,
+      "grams_shaved": 276,
+      "grams_raised": 0,
+      "still_over_max": 0,
+      "still_under_min": 0,
+      "pot_headroom_blocked": 0
+    },
+    {
+      "tag": "keel.household_meal.final_sizing",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "measured": true,
+      "reason": "remeasured_after_apply",
+      "boxes": 6,
+      "meals": 6,
+      "multi_box_meals": 0,
+      "judged": 6,
+      "verdicts": {
+        "in_bounds": 6,
+        "over_max": 0,
+        "under_min": 0,
+        "unmeasurable": 0
+      },
+      "water": {
+        "absorbed": 0,
+        "kept": 2,
+        "discarded": 0,
+        "undetermined": 0
+      },
+      "tubs_not_judged": 0,
+      "out_of_bounds": [],
+      "pot_density_drifted": 0,
+      "pot_density_gone": 0,
+      "pot_density_unmeasurable": 0
+    },
+    {
+      "tag": "keel.household_meal.shopping_rebuild",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lines": 12,
+      "requantified": 1,
+      "unchanged": 11,
+      "unquantified": 0,
+      "dropped": 0,
+      "unattributed": 0,
+      "not_purchasable": 0,
+      "needs_unbought": 0,
+      "merged": 0,
+      "model_omitted": 0,
+      "synthesized": 0,
+      "synthesized_unquantified": 0,
+      "aisle_other": 0,
+      "aisle_shelf_stable": 0,
+      "pantry_lines": 0,
+      "pantry_deducted": 0,
+      "pantry_covered": 0,
+      "pantry_unknown": 0,
+      "unbought_terms": [],
+      "omitted_terms": [],
+      "pantry_check_terms": [],
+      "pantryCoveredG": {}
+    },
+    {
+      "tag": "keel.household_meal.shopping_redated",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "synthesized": 0,
+      "lines": 12,
+      "still_undated": 0,
+      "days_before": [
+        "2026-09-14"
+      ],
+      "days_after": [
+        "2026-09-14"
+      ],
+      "new_days": [],
+      "split_needs": 0,
+      "extra_lines": 0,
+      "unsplittable": 0,
+      "without_need": 0,
+      "prose_recomposed": false
+    },
+    {
+      "tag": "keel.household_meal.box_sizing",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "boxes": 6,
+      "common": 0,
+      "items": 22,
+      "sized": 0,
+      "unchanged": 22,
+      "capped_by_pot": 0,
+      "unverifiable": 0,
+      "mouths": {
+        "sized": 0,
+        "sized_default_pace": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "minor": 0,
+        "doctrine_no_counting": 0,
+        "age_unknown": 1,
+        "no_direction": 0,
+        "no_pace": 0,
+        "no_body": 0,
+        "implausible_factor": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0
+      },
+      "share": {
+        "sized": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "age_unknown": 1,
+        "no_body": 0,
+        "no_reference": 0
+      },
+      "share_clamped": 0,
+      "anchor": {
+        "anchored": 0,
+        "day_incomplete": 0,
+        "no_delivery": 0,
+        "restriction_floor": 0,
+        "restriction_unknown": 0,
+        "no_body": 0,
+        "age_unknown": 2,
+        "clamped": 0,
+        "pregnancy": 0,
+        "breastfeeding": 0,
+        "common_pot_day": 0
+      },
+      "anchor_cap": {
+        "none": 2,
+        "density": 0,
+        "density_floor": 0,
+        "assumed_density": 0,
+        "factor_bound": 0
+      },
+      "applied": false,
+      "anchor_applied": 0,
+      "would_resize": {
+        "boxes": 0,
+        "items": 0
+      },
+      "weight_groups_measured": 1,
+      "pot_attribution": {
+        "drawnGrams": 1516,
+        "attributedGrams": 1793,
+        "ratio": 0.85,
+        "potsUnreadable": 0
+      },
+      "box_factor_source": {
+        "anchor": 0,
+        "pot": 0,
+        "relative": 0,
+        "none": 6
+      },
+      "pot": {
+        "pot_sized": 0,
+        "pot_clamped": 0,
+        "pot_incomplete": 0,
+        "pot_mouth_unknown": 0,
+        "pot_empty": 0
+      },
+      "pot_cap": {
+        "none": 0,
+        "density": 0,
+        "density_floor": 0,
+        "assumed_density": 0,
+        "factor_bound": 0
+      },
+      "pot_growth": {
+        "scaled": 2,
+        "capped": 0,
+        "shopping": 1,
+        "unrewritable": 0,
+        "regrammed": 2,
+        "passes": 1,
+        "short_after": 0
+      },
+      "pot_shrink": {
+        "pots": 0,
+        "removed": 0,
+        "kept": 2,
+        "unboxed_use": 0,
+        "unreadable": 0,
+        "sessions_emptied": 0,
+        "lines_scaled": 1,
+        "lines_dropped": 0,
+        "lines_unattributed": 0,
+        "lines_unrewritable": 0
+      },
+      "unmet": {
+        "none": 0,
+        "factor_clamped": 0,
+        "pot_ceiling": 0,
+        "both": 0,
+        "not_anchored": 2,
+        "tub_estimate": 0
+      },
+      "unmet_band": {
+        "lt_200": 0,
+        "gte_200": 0
+      },
+      "lost_slots": {
+        "mouth_days": 0,
+        "slots": 0,
+        "kcal_lt_200": 0,
+        "kcal_gte_200": 0,
+        "kcal_unknown": 0
+      },
+      "lost_by_line": {
+        "mouth_days": 0,
+        "slots": 0,
+        "kcal": 0,
+        "kcal_unknown": 0
+      },
+      "note_boost": {
+        "member_days": 0,
+        "household_dated": 0,
+        "unknown_member": 0,
+        "applied": 0,
+        "applied_pot": 0,
+        "detail": []
+      },
+      "densify": {
+        "skipped": "standard_recipe"
+      },
+      "quantity_rounding": {
+        "lines": 23,
+        "quantified": 23,
+        "unquantified": 0,
+        "already_whole": 23,
+        "rounded": 0,
+        "spoon_to_ml": 0,
+        "piece_to_grams": 0,
+        "zero_unresolved": 0,
+        "unknown_unit": 0,
+        "regrammed": 0,
+        "pots_overdrawn": 0,
+        "pots_overdrawn_worst_per_mille": 0,
+        "pots_overdrawn_before": 0,
+        "pots_unmeasurable": 0,
+        "zeroed": []
+      },
+      "activity": {
+        "answered": 1,
+        "partial": 0,
+        "not_answered": 0,
+        "not_asked": 0
+      },
+      "activity_source": {
+        "crossed": 1,
+        "legacy": 0,
+        "assumed": 0
+      },
+      "appetite": {
+        "declared": 1,
+        "not_answered": 0,
+        "not_asked": 0
+      }
+    },
+    {
+      "tag": "keel.household_meal.traditions",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "declared": 0,
+      "honoured": 0,
+      "composed_without_label": 0,
+      "not_composed": 0,
+      "out_of_window": 0
+    },
+    {
+      "tag": "keel.household_meal.quantity_final",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "lines": 23,
+      "stale_before": 0,
+      "rewritten": 0,
+      "bare": 0,
+      "historic": 0,
+      "absent": 0,
+      "counted_fractional": 0
+    },
+    {
+      "tag": "keel.household_meal.sized_shares_relinked",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "relinked": 4,
+      "boxes": 6,
+      "quantity_relinked": 0
+    },
+    {
+      "tag": "keel.household_meal.food_groups",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "declared": 0,
+      "valid": 0,
+      "refused": 0,
+      "conflicting": 0,
+      "persisted": 23,
+      "lines": 23
+    },
+    {
+      "tag": "keel.household_meal.box_counts",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "intent": "prepare_next",
+      "boxes": {
+        "meals": 4,
+        "with_box": 0,
+        "boxes": 0,
+        "expected": 4,
+        "delivery": "none_delivered",
+        "refused": 0,
+        "names": 0,
+        "names_refused": 0,
+        "items": 0,
+        "items_in_grams": 0,
+        "items_from_ingredient": 0,
+        "items_refused": 0,
+        "capped": 0,
+        "legacy_folded": 0,
+        "preparations": 2,
+        "sum_checked": 0,
+        "sum_over": 0,
+        "sum_unverifiable": 0,
+        "mouth_slots": 0,
+        "mouths_unboxed": 0,
+        "mouths_double": 0,
+        "mouths_double_model": 0,
+        "cells_no_box": 6,
+        "mouths_no_box_cell": 6,
+        "mouths": 1
+      },
+      "unquantified_dish_ingredients": {
+        "ingredients": 18,
+        "unquantified": 0
+      },
+      "vague_portions": {
+        "notes": 0,
+        "vague": 0,
+        "quantified": 0,
+        "box_ids": 0
+      },
+      "shares": {
+        "shares": 0,
+        "unknown": 0,
+        "regime_refused": 0
+      },
+      "regime_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "silenced": 0,
+        "silenced_homograph": 0,
+        "silenced_spelling": 0,
+        "unknown_mouth": 0,
+        "box_scoped": 0,
+        "citation_repaired": 0,
+        "item_repaired": 0,
+        "groups_declared": 0,
+        "groups_valid": 0,
+        "groups_refused": 0,
+        "groups_conflicting": 0,
+        "group_excluded": 0,
+        "group_plant_only": 0,
+        "group_undecided": 0
+      },
+      "swap": {
+        "strictest": null,
+        "bound_mouths": 0,
+        "free_mouths": 0,
+        "cells_checked": 0,
+        "cells_carrying": 0,
+        "cells_swap_absent": 0,
+        "flagrant": false,
+        "absent_cells": []
+      },
+      "exclusion_belt": {
+        "mouths": 0,
+        "checked": 0,
+        "kept": 0,
+        "refused": 0,
+        "bites": 0,
+        "separated": 0,
+        "not_separated": 0,
+        "box_scoped": 0,
+        "final_bites": 0
+      },
+      "preference_split": {
+        "pairs": 0,
+        "pairs_from_stores": 0,
+        "pairs_fresh": 0,
+        "wanters": 0,
+        "composed": 0,
+        "refuser_clean": 0,
+        "refuser_bitten": 0
+      },
+      "meals_delivered": {
+        "mouths": 1,
+        "expected": 6,
+        "fed": 6,
+        "missing": 0,
+        "by_cause": {
+          "held_off_regime": 0,
+          "held_off_exclusion": 0,
+          "not_named": 0,
+          "double": 0,
+          "no_dish": 0
+        },
+        "cells_without_dish": 0,
+        "retry_on": {},
+        "restored": 0,
+        "restored_fallback": 0,
+        "rehomed": 0,
+        "rows": []
+      },
+      "portion_sizing": {
+        "sizing_path": "portion_v1",
+        "reason": "one_mouth",
+        "applied": true,
+        "mouths": 1,
+        "dishes": 6,
+        "measured": 6,
+        "unmeasurable_by": {},
+        "verdicts": {
+          "in_bounds": 0,
+          "over_max": 0,
+          "under_min": 0,
+          "unmeasurable": 6
+        },
+        "bounds_source": {
+          "age_known": 0,
+          "age_unknown": 6
+        },
+        "clamped": {
+          "max": 0,
+          "min": 0
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 0
+        },
+        "pot_ingredients_without_amount": 0,
+        "slots": {
+          "declared": 0,
+          "light": 1,
+          "composed": 3,
+          "without_target": 6
+        },
+        "contract_missing": 0,
+        "target": {
+          "anchored": 0,
+          "no_target": 1
+        },
+        "gap_closed": 0,
+        "fixed_covered": 0,
+        "fixed_conflict": 0,
+        "fixed_slot_kcal": {
+          "declared": 0,
+          "referential": 2,
+          "unresolved": 0,
+          "loose": 0,
+          "off_day": 0,
+          "loose_ignored_kcal": 0
+        },
+        "apply": {
+          "boxes_authored": 6,
+          "dishes_unsized": 0,
+          "fresh_scaled": 18,
+          "fresh_unweighed": 0,
+          "pots_scaled": 2,
+          "pots_unreadable": 0,
+          "servings_rewritten": 0,
+          "items_unresolved": 0,
+          "own_authored": 0,
+          "tubs_authored": 0,
+          "eaters_unsized": 0,
+          "recipe_shares": 6,
+          "recipe_shares_by": {
+            "age_unknown": 6
+          },
+          "regrammed": 0
+        },
+        "repairs": {
+          "asked": 0,
+          "accepted": 0,
+          "rejected": {
+            "belt": 0,
+            "unparseable": 0,
+            "no_cell": 0,
+            "title_changed": 0,
+            "unmeasurable": 0,
+            "missing_pot": 0,
+            "dedicated_lost": 0,
+            "degraded": 0,
+            "frozen_rewritten": 0
+          },
+          "splice": {
+            "fresh_spliced": 0,
+            "pots_spliced": 0,
+            "dish_missing": 0,
+            "pot_missing": 0,
+            "shopping_added": 0,
+            "shopping_pruned": 0,
+            "uses_mismatch": 0,
+            "density_checks_cleared": 0
+          },
+          "skipped_stuck": 0,
+          "still_out": 0,
+          "skipped_budget": 0,
+          "pots_frozen": 0,
+          "pot_unforked": 0,
+          "pot_forked": 0,
+          "fresh_frozen": 0,
+          "stuck_dishes": 0,
+          "stuck_eaters": 0,
+          "residual_eaters": 0,
+          "residual_stuck": 0,
+          "residual_stuck_by": {
+            "nothing_rewritable": 0,
+            "empty_corridor": 0
+          },
+          "residual_recomposable": 0,
+          "recipe_terms": 0,
+          "recipe_quantified": 0,
+          "attempts": 0,
+          "retry_skipped_small": 0,
+          "retried_after": null,
+          "fill_absorbed": null
+        },
+        "final": {
+          "measured": true,
+          "reason": "remeasured_after_apply",
+          "boxes": 6,
+          "meals": 6,
+          "multi_box_meals": 0,
+          "judged": 6,
+          "verdicts": {
+            "in_bounds": 6,
+            "over_max": 0,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "water": {
+            "absorbed": 0,
+            "kept": 2,
+            "discarded": 0,
+            "undetermined": 0
+          },
+          "tubs_not_judged": 0,
+          "out_of_bounds": [],
+          "pot_density_drifted": 0,
+          "pot_density_gone": 0,
+          "pot_density_unmeasurable": 0
+        },
+        "verification": {
+          "would_resize": 0,
+          "anchored": 0,
+          "anchor_clamped": 0,
+          "pot_short_after": 0,
+          "pot_shrunk": 0,
+          "pot_removed": 0,
+          "unmet_none": 0,
+          "densify_touched": 0,
+          "shopping_scaled": 1,
+          "shopping_unattributed": 0
+        }
+      },
+      "box_sizing": {
+        "boxes": 6,
+        "common": 0,
+        "items": 22,
+        "sized": 0,
+        "unchanged": 22,
+        "capped_by_pot": 0,
+        "unverifiable": 0,
+        "mouths": {
+          "sized": 0,
+          "sized_default_pace": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "minor": 0,
+          "doctrine_no_counting": 0,
+          "age_unknown": 1,
+          "no_direction": 0,
+          "no_pace": 0,
+          "no_body": 0,
+          "implausible_factor": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0
+        },
+        "share": {
+          "sized": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "age_unknown": 1,
+          "no_body": 0,
+          "no_reference": 0
+        },
+        "share_clamped": 0,
+        "anchor": {
+          "anchored": 0,
+          "day_incomplete": 0,
+          "no_delivery": 0,
+          "restriction_floor": 0,
+          "restriction_unknown": 0,
+          "no_body": 0,
+          "age_unknown": 2,
+          "clamped": 0,
+          "pregnancy": 0,
+          "breastfeeding": 0,
+          "common_pot_day": 0
+        },
+        "anchor_cap": {
+          "none": 2,
+          "density": 0,
+          "density_floor": 0,
+          "assumed_density": 0,
+          "factor_bound": 0
+        },
+        "anchor_applied": 0,
+        "pot_attribution": {
+          "drawnGrams": 1516,
+          "attributedGrams": 1793,
+          "ratio": 0.85,
+          "potsUnreadable": 0
+        },
+        "pot_growth": {
+          "scaled": 2,
+          "capped": 0,
+          "shopping": 1,
+          "unrewritable": 0,
+          "regrammed": 2,
+          "passes": 1,
+          "short_after": 0
+        },
+        "pot_shrink": {
+          "pots": 0,
+          "removed": 0,
+          "kept": 2,
+          "unboxed_use": 0,
+          "unreadable": 0,
+          "sessions_emptied": 0,
+          "lines_scaled": 1,
+          "lines_dropped": 0,
+          "lines_unattributed": 0,
+          "lines_unrewritable": 0
+        },
+        "quantity_rounding": {
+          "lines": 23,
+          "quantified": 23,
+          "unquantified": 0,
+          "already_whole": 23,
+          "rounded": 0,
+          "spoon_to_ml": 0,
+          "piece_to_grams": 0,
+          "zero_unresolved": 0,
+          "unknown_unit": 0,
+          "regrammed": 0,
+          "pots_overdrawn": 0,
+          "pots_overdrawn_worst_per_mille": 0,
+          "pots_overdrawn_before": 0,
+          "pots_unmeasurable": 0,
+          "zeroed": []
+        },
+        "quantity_final": {
+          "lines": 23,
+          "stale_before": 0,
+          "rewritten": 0,
+          "bare": 0,
+          "historic": 0,
+          "absent": 0,
+          "counted_fractional": 0
+        },
+        "unmet": {
+          "none": 0,
+          "factor_clamped": 0,
+          "pot_ceiling": 0,
+          "both": 0,
+          "not_anchored": 2,
+          "tub_estimate": 0
+        },
+        "unmet_band": {
+          "lt_200": 0,
+          "gte_200": 0
+        },
+        "lost_slots": {
+          "mouth_days": 0,
+          "slots": 0,
+          "kcal_lt_200": 0,
+          "kcal_gte_200": 0,
+          "kcal_unknown": 0
+        },
+        "lost_by_line": {
+          "mouth_days": 0,
+          "slots": 0,
+          "kcal": 0,
+          "kcal_unknown": 0
+        },
+        "note_boost": {
+          "member_days": 0,
+          "household_dated": 0,
+          "unknown_member": 0,
+          "applied": 0,
+          "applied_pot": 0,
+          "detail": []
+        },
+        "densify": {
+          "skipped": "standard_recipe"
+        },
+        "activity": {
+          "answered": 1,
+          "partial": 0,
+          "not_answered": 0,
+          "not_asked": 0
+        },
+        "activity_source": {
+          "crossed": 1,
+          "legacy": 0,
+          "assumed": 0
+        },
+        "appetite": {
+          "declared": 1,
+          "not_answered": 0,
+          "not_asked": 0
+        }
+      },
+      "traditions": {
+        "declared": 0,
+        "honoured": 0,
+        "composed_without_label": 0,
+        "not_composed": 0,
+        "out_of_window": 0
+      },
+      "portion_quantities": {
+        "notes": 0,
+        "model_quantity": 0,
+        "model_size_word": 0
+      }
+    },
+    {
+      "tag": "keel.household_meal.cross_contact_block",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+      "emitted": 0,
+      "skipped_no_medical": 1,
+      "skipped_no_dedicated": 0,
+      "medical_mouths": 0,
+      "unnamed_medical": 0,
+      "dish_bearers": 0
+    },
+    {
+      "tag": "keel.household_meal.final_gate",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "ok": true,
+      "refusals": 0,
+      "blocking": 0,
+      "causes": [],
+      "counters": {
+        "checked": {
+          "uses": 4,
+          "box_items": 22,
+          "session_ids": 2,
+          "cooked_pairs": 4,
+          "cells": 6,
+          "mouth_cells": 6,
+          "shopping_lines": 12,
+          "perishable_lines": 8,
+          "keeping_unknown_lines": 0,
+          "ingredient_terms": 12,
+          "table_dishes": 0,
+          "boxed_dishes": 6,
+          "energy_mouths": 0,
+          "energy_unmeasured": 1,
+          "shopping_identities": 12,
+          "shopping_quantified": 12,
+          "shopping_unverified": 0,
+          "shopping_not_purchasable": 0,
+          "portion_cells": 6,
+          "measured_cells": 0,
+          "cell_energy_no_target": 6,
+          "measured_days": 0,
+          "protein_days": 0,
+          "protein_protected": 0,
+          "protein_unmeasured": 2
+        },
+        "refusals_by_cause": {
+          "uses_dangling": 0,
+          "box_item_dangling": 0,
+          "session_cites_unknown": 0,
+          "eaten_before_cooked": 0,
+          "eaten_too_late": 0,
+          "cook_day_unplaced": 0,
+          "preparation_without_session": 0,
+          "session_day_mismatch": 0,
+          "cell_without_dish": 0,
+          "mouth_unfed": 0,
+          "boxes_none_delivered": 0,
+          "box_missing": 0,
+          "ingredient_not_bought": 0,
+          "ingredient_short_bought": 0,
+          "shopping_undated": 0,
+          "unclassified_perishable": 0,
+          "perishable_bought_too_early": 0,
+          "table_exclusion_served": 0,
+          "member_exclusion_served": 0,
+          "title_promises_missing_preparation": 0,
+          "regime_forbidden_component": 0,
+          "house_rule_served": 0,
+          "mouth_energy_short": 0,
+          "cell_without_portion": 0,
+          "cell_energy_unmeasurable": 0,
+          "cell_energy_off": 0,
+          "cell_bounds_off": 0,
+          "day_energy_off": 0,
+          "protein_floor_short": 0
+        },
+        "repairs_by_kind": {
+          "drop_dangling_use": 0,
+          "drop_dangling_box_item": 0,
+          "drop_dangling_session_id": 0,
+          "strip_title_promise": 0
+        }
+      },
+      "delivery": "conforme",
+      "unevaluated": [
+        "title_promises_missing_preparation",
+        "mouth_energy_short",
+        "cell_energy_off",
+        "cell_bounds_off",
+        "day_energy_off",
+        "protein_floor_short"
+      ],
+      "incomplete": [
+        {
+          "control": "protein_floor",
+          "count": 2
+        },
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "tag": "keel.household_meal.plan_repair_pass",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "round": 0,
+      "stop": false,
+      "improvement_retries": true,
+      "defects": 0,
+      "repairable": 0,
+      "by_kind": {},
+      "by_source": {
+        "gate": 0,
+        "output_contract": 0,
+        "quantities": 0,
+        "upstream": 0
+      },
+      "call": false,
+      "reason": "no_defects",
+      "calls_made": 0,
+      "measured": {
+        "contracts": 6,
+        "measures": 0,
+        "unnumbered": 0
+      },
+      "budget": {
+        "repairs_allowed": 2,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_refused": {},
+        "charged": [],
+        "provider_attempts": 1,
+        "elapsed_ms": 590,
+        "remaining_ms": 379410,
+        "usable_ms": 349410,
+        "reserve_ms": 30000,
+        "total_ms": 380000
+      }
+    },
+    {
+      "tag": "keel.household_meal.plan_repair_done",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "rounds": 1,
+      "calls_made": 0,
+      "defects_at_delivery": 0,
+      "repairable_at_delivery": 0,
+      "by_kind": {},
+      "by_source": {
+        "gate": 0,
+        "output_contract": 0,
+        "quantities": 0,
+        "upstream": 0
+      },
+      "trace": [
+        {
+          "round": 0,
+          "defects": 0,
+          "by_kind": {},
+          "by_source": {
+            "gate": 0,
+            "output_contract": 0,
+            "quantities": 0,
+            "upstream": 0
+          },
+          "call": false,
+          "reason": "no_defects"
+        }
+      ],
+      "delivery": "conforme"
+    },
+    {
+      "tag": "keel.household_meal.output_lock_final",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "surfaces": {
+        "dish": 6,
+        "preparation": 2,
+        "cooking_session": 1,
+        "portion_note": 0,
+        "box_item": 22,
+        "shopping": 12,
+        "explanation": 1
+      },
+      "bites": 0
+    },
+    {
+      "tag": "keel.household_meal.wall",
+      "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+      "request_id": "6c46a313-545e-4141-9c42-0245920ee87b",
+      "intent": "prepare_next",
+      "outcome": "written",
+      "wall_ms": 609
+    }
+  ],
+  "ligne_ecrite": {
+    "id": "8c1478ac-ef32-4f5d-998b-e36f52c2d118",
+    "user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 1,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "mon",
+        "why": "Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.",
+        "name": "Bol skyr mon",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_mon_breakfast_0",
+            "items": [
+              {
+                "ref": "skyr",
+                "term": "skyr",
+                "grams": 300,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "avoine",
+                "grams": 55,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "blueberries",
+                "term": "myrtilles",
+                "grams": 90,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "almonds",
+                "term": "amandes",
+                "grams": 12,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Skyr, avoine, myrtilles et amandes",
+        "method": "Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "skyr",
+            "part": null,
+            "term": "skyr",
+            "unit": "g",
+            "group": "dairy_yogurt",
+            "state": "raw",
+            "amount": 300,
+            "quantity": "300 g de skyr",
+            "grams_raw": 300,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": null,
+            "term": "avoine",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 55,
+            "quantity": "55 g de avoine",
+            "grams_raw": 55,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "blueberries",
+            "part": null,
+            "term": "myrtilles",
+            "unit": "g",
+            "group": "berries",
+            "state": "raw",
+            "amount": 90,
+            "quantity": "90 g de myrtilles",
+            "grams_raw": 90,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "almonds",
+            "part": null,
+            "term": "amandes",
+            "unit": "g",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 12,
+            "quantity": "12 g de amandes",
+            "grams_raw": 12,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      },
+      {
+        "day": "mon",
+        "why": "Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.",
+        "name": "Assiette poulet mon",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_poulet"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_lunch_1",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti au citron",
+                "grams": 201,
+                "ref_refused": false,
+                "preparation_id": "prep_poulet"
+              },
+              {
+                "ref": "couscous_wholemeal",
+                "term": "couscous complet",
+                "grams": 247,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "courgette",
+                "term": "courgette",
+                "grams": 162,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 90,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet, couscous complet, courgette et tomate",
+        "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "couscous_wholemeal",
+            "part": null,
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 95,
+            "quantity": "95 g de couscous complet",
+            "grams_raw": 95,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "courgette",
+            "part": null,
+            "term": "courgette",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 180,
+            "quantity": "180 g de courgette",
+            "grams_raw": 180,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": null,
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 90,
+            "quantity": "90 g de tomate",
+            "grams_raw": 90,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      },
+      {
+        "day": "mon",
+        "why": "Le lot du lundi donne deux dîners sans rallumer le four.",
+        "name": "Saumon mon",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_saumon"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_dinner_2",
+            "items": [
+              {
+                "ref": null,
+                "term": "Saumon rôti et pommes de terre",
+                "grams": 557,
+                "ref_refused": false,
+                "preparation_id": "prep_saumon"
+              },
+              {
+                "ref": "green_beans",
+                "term": "haricots verts",
+                "grams": 135,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 8,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Saumon, pommes de terre et haricots verts",
+        "method": "Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.",
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "green_beans",
+            "part": null,
+            "term": "haricots verts",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 150,
+            "quantity": "150 g de haricots verts",
+            "grams_raw": 150,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": null,
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 8,
+            "quantity": "8 g de huile d'olive",
+            "grams_raw": 8,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      },
+      {
+        "day": "tue",
+        "why": "Un petit-déjeuner froid, riche en protéines, qui se monte en trois minutes.",
+        "name": "Bol skyr tue",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_tue_breakfast_3",
+            "items": [
+              {
+                "ref": "skyr",
+                "term": "skyr",
+                "grams": 300,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "avoine",
+                "grams": 55,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "blueberries",
+                "term": "myrtilles",
+                "grams": 90,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "almonds",
+                "term": "amandes",
+                "grams": 12,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Skyr, avoine, myrtilles et amandes",
+        "method": "Verser le skyr dans un bol, ajouter l'avoine, les myrtilles et les amandes concassées.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 3
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "skyr",
+            "part": null,
+            "term": "skyr",
+            "unit": "g",
+            "group": "dairy_yogurt",
+            "state": "raw",
+            "amount": 300,
+            "quantity": "300 g de skyr",
+            "grams_raw": 300,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": null,
+            "term": "avoine",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 55,
+            "quantity": "55 g de avoine",
+            "grams_raw": 55,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "blueberries",
+            "part": null,
+            "term": "myrtilles",
+            "unit": "g",
+            "group": "berries",
+            "state": "raw",
+            "amount": 90,
+            "quantity": "90 g de myrtilles",
+            "grams_raw": 90,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "almonds",
+            "part": null,
+            "term": "amandes",
+            "unit": "g",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 12,
+            "quantity": "12 g de amandes",
+            "grams_raw": 12,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      },
+      {
+        "day": "tue",
+        "why": "Le poulet du lot devient un déjeuner complet sans nouvelle cuisson.",
+        "name": "Assiette poulet tue",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_poulet"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_lunch_4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti au citron",
+                "grams": 201,
+                "ref_refused": false,
+                "preparation_id": "prep_poulet"
+              },
+              {
+                "ref": "couscous_wholemeal",
+                "term": "couscous complet",
+                "grams": 247,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "courgette",
+                "term": "courgette",
+                "grams": 162,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 90,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet, couscous complet, courgette et tomate",
+        "method": "Verser de l'eau bouillante sur le couscous, laisser gonfler cinq minutes. Ajouter la portion de poulet tiédie, la courgette poêlée et la tomate.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "couscous_wholemeal",
+            "part": null,
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 95,
+            "quantity": "95 g de couscous complet",
+            "grams_raw": 95,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "courgette",
+            "part": null,
+            "term": "courgette",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 180,
+            "quantity": "180 g de courgette",
+            "grams_raw": 180,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": null,
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 90,
+            "quantity": "90 g de tomate",
+            "grams_raw": 90,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      },
+      {
+        "day": "tue",
+        "why": "Le lot du lundi donne deux dîners sans rallumer le four.",
+        "name": "Saumon tue",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_saumon"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_dinner_5",
+            "items": [
+              {
+                "ref": null,
+                "term": "Saumon rôti et pommes de terre",
+                "grams": 557,
+                "ref_refused": false,
+                "preparation_id": "prep_saumon"
+              },
+              {
+                "ref": "green_beans",
+                "term": "haricots verts",
+                "grams": 135,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 8,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "4fe22b37-9991-4141-b381-e84ee072149d"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Saumon, pommes de terre et haricots verts",
+        "method": "Réchauffer la portion de saumon et de pommes de terre, servir avec les haricots verts vapeur arrosés d'huile d'olive.",
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "green_beans",
+            "part": null,
+            "term": "haricots verts",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 150,
+            "quantity": "150 g de haricots verts",
+            "grams_raw": 150,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": null,
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 8,
+            "quantity": "8 g de huile d'olive",
+            "grams_raw": 8,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": []
+      }
+    ],
+    "shopping_list": [
+      {
+        "ref": "chicken_breast",
+        "term": "blanc de poulet",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 760,
+        "buy_on": "2026-09-14",
+        "quantity": "760 g",
+        "food_group": "poultry",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "olive_oil",
+        "term": "huile d'olive",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 66,
+        "buy_on": "2026-09-14",
+        "quantity": "66 g",
+        "food_group": "olive_oil",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "salmon",
+        "term": "saumon",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 780,
+        "buy_on": "2026-09-14",
+        "quantity": "780 g",
+        "food_group": "fatty_fish",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "potato",
+        "term": "pomme de terre",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 635,
+        "buy_on": "2026-09-14",
+        "quantity": "635 g",
+        "food_group": "starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "skyr",
+        "term": "skyr",
+        "unit": "g",
+        "aisle": "dairy",
+        "state": "raw",
+        "amount": 600,
+        "buy_on": "2026-09-14",
+        "quantity": "600 g",
+        "food_group": "dairy_yogurt",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "oats",
+        "term": "avoine",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 110,
+        "buy_on": "2026-09-14",
+        "quantity": "110 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "blueberries",
+        "term": "myrtilles",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 180,
+        "buy_on": "2026-09-14",
+        "quantity": "180 g",
+        "food_group": "berries",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "almonds",
+        "term": "amandes",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 24,
+        "buy_on": "2026-09-14",
+        "quantity": "24 g",
+        "food_group": "nuts_seeds",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "couscous_wholemeal",
+        "term": "couscous complet",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 190,
+        "buy_on": "2026-09-14",
+        "quantity": "190 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "courgette",
+        "term": "courgette",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 360,
+        "buy_on": "2026-09-14",
+        "quantity": "360 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "tomato",
+        "term": "tomate",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 180,
+        "buy_on": "2026-09-14",
+        "quantity": "180 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "green_beans",
+        "term": "haricots verts",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 300,
+        "buy_on": "2026-09-14",
+        "quantity": "300 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "fat_loss",
+      "names": {
+        "kept": 6,
+        "dishes": 6,
+        "refused": 0,
+        "declared": 6
+      },
+      "intent": "prepare_next",
+      "issues": [
+        "spent_first_day_dropped: sun (shopping_cutoff)",
+        "shopping_waves: 1 (2026-09-14)",
+        "freeze_on_purchase: 0/12",
+        "raw_keeping_needs_later_shop: 0/2 preparations",
+        "waves_kept_for_freshness: 0/12",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/4",
+        "portion_standard_recipe:4fe22b37-9991-4141-b381-e84ee072149d"
+      ],
+      "timing": {
+        "kind": "starts_tomorrow",
+        "reason": "today_already_spent",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 6,
+        "invalid": 0,
+        "declared": 6,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": null,
+          "free_mouths": 0,
+          "absent_cells": [],
+          "bound_mouths": 0,
+          "cells_checked": 0,
+          "cells_carrying": 0,
+          "cells_swap_absent": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 4,
+          "names": 0,
+          "capped": 0,
+          "mouths": 1,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 4,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 6,
+          "preparations": 2,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "items_in_grams": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 6,
+          "mouths_double_model": 0,
+          "items_from_ingredient": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_dish",
+          "unused": false,
+          "computed": "one_dish",
+          "diverging": [],
+          "dish_bearing": []
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 1
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 6,
+          "holders": 0,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-07",
+        "box_sizing": {
+          "boxes": 6,
+          "items": 22,
+          "share": {
+            "sized": 0,
+            "no_body": 0,
+            "age_unknown": 1,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 0,
+          "unmet": {
+            "both": 0,
+            "none": 0,
+            "pot_ceiling": 0,
+            "not_anchored": 2,
+            "tub_estimate": 0,
+            "factor_clamped": 0
+          },
+          "anchor": {
+            "clamped": 0,
+            "no_body": 0,
+            "anchored": 0,
+            "pregnancy": 0,
+            "age_unknown": 2,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 0,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 1,
+            "no_direction": 0,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 22,
+          "anchor_cap": {
+            "none": 2,
+            "density": 0,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 2,
+            "shopping": 1,
+            "regrammed": 2,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 2,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 0,
+            "unboxed_use": 0,
+            "lines_scaled": 1,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 0,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 0,
+          "quantity_final": {
+            "bare": 0,
+            "lines": 23,
+            "absent": 0,
+            "historic": 0,
+            "rewritten": 0,
+            "stale_before": 0,
+            "counted_fractional": 0
+          },
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 1
+          },
+          "pot_attribution": {
+            "ratio": 0.85,
+            "drawnGrams": 1516,
+            "potsUnreadable": 0,
+            "attributedGrams": 1793
+          },
+          "quantity_rounding": {
+            "lines": 23,
+            "zeroed": [],
+            "rounded": 0,
+            "regrammed": 0,
+            "quantified": 23,
+            "spoon_to_ml": 0,
+            "unknown_unit": 0,
+            "unquantified": 0,
+            "already_whole": 23,
+            "piece_to_grams": 0,
+            "pots_overdrawn": 0,
+            "zero_unresolved": 0,
+            "pots_unmeasurable": 0,
+            "pots_overdrawn_before": 0,
+            "pots_overdrawn_worst_per_mille": 0
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 0,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 1,
+          "ranks_without_object": 4
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 0,
+          "refused": 0,
+          "declared": 0,
+          "attributed": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 0,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 0,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "groups_conflicting": 0,
+          "silenced_homograph": 0
+        },
+        "member_count": 1,
+        "member_deltas": [],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "apply": {
+            "regrammed": 0,
+            "pots_scaled": 2,
+            "fresh_scaled": 18,
+            "own_authored": 0,
+            "recipe_shares": 6,
+            "tubs_authored": 0,
+            "boxes_authored": 6,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "recipe_shares_by": {
+              "age_unknown": 6
+            },
+            "servings_rewritten": 0
+          },
+          "final": {
+            "boxes": 6,
+            "meals": 6,
+            "water": {
+              "kept": 2,
+              "absorbed": 0,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 6,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 6,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "multi_box_meals": 0,
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 1,
+            "composed": 3,
+            "declared": 0,
+            "without_target": 6
+          },
+          "dishes": 6,
+          "mouths": 1,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 0,
+            "no_target": 1
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 0,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 0,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 0,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 0,
+            "recipe_quantified": 0,
+            "residual_stuck_by": {
+              "empty_corridor": 0,
+              "nothing_rewritable": 0
+            },
+            "retry_skipped_small": 0,
+            "residual_recomposable": 0
+          },
+          "measured": 6,
+          "verdicts": {
+            "over_max": 0,
+            "in_bounds": 0,
+            "under_min": 0,
+            "unmeasurable": 6
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "verification": {
+            "anchored": 0,
+            "pot_shrunk": 0,
+            "unmet_none": 0,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 0,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 1,
+            "shopping_unattributed": 0
+          },
+          "bounds_source": {
+            "age_known": 0,
+            "age_unknown": 6
+          },
+          "fixed_covered": 0,
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 2,
+            "loose_ignored_kcal": 0
+          },
+          "unmeasurable_by": {},
+          "contract_missing": 0,
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 6,
+          "rows": [],
+          "mouths": 1,
+          "missing": 0,
+          "rehomed": 0,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 6,
+          "restored": 0,
+          "retry_on": {},
+          "restored_fallback": 0,
+          "cells_without_dish": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "pairs_from_stores": 0
+        },
+        "accountless_count": 0,
+        "restriction_count": 0,
+        "unknown_age_count": 1,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 1,
+          "skipped_no_dedicated": 0
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 18,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 2 jours, à partir de lundi 2026-09-14.",
+          "Tu en avais demandé 3 : dimanche était déjà entamé, le plan commence donc demain et en couvre 2.",
+          "Une seule course, lundi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "validation": {
+        "state": "conforme",
+        "counts": {
+          "gaps": 0,
+          "not_run": 6,
+          "blocking": 0,
+          "incomplete": 3,
+          "not_applicable": 6
+        },
+        "repair": {
+          "rounds": 1,
+          "by_kind": {},
+          "by_source": {
+            "gate": 0,
+            "upstream": 0,
+            "quantities": 0,
+            "output_contract": 0
+          },
+          "calls_made": 0,
+          "defects_at_delivery": 0
+        },
+        "defects": [],
+        "not_run": [
+          "title_promises_missing_preparation",
+          "mouth_energy_short",
+          "cell_energy_off",
+          "cell_bounds_off",
+          "day_energy_off",
+          "protein_floor_short"
+        ],
+        "version": 1,
+        "incomplete": [
+          {
+            "count": 2,
+            "control": "protein_floor"
+          },
+          {
+            "count": 1,
+            "control": "mouth_energy"
+          }
+        ],
+        "not_applicable": [
+          {
+            "count": 6,
+            "control": "cell_energy_no_target"
+          }
+        ]
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 1,
+        "lines": [
+          "Deux cuissons le lundi soir donnent les quatre repas chauds de la fenêtre ; les deux petits-déjeuners se montent au bol."
+        ],
+        "refusal": null,
+        "declared": 1
+      },
+      "food_groups": {
+        "lines": 23,
+        "valid": 0,
+        "refused": 0,
+        "declared": 0,
+        "persisted": 23,
+        "conflicting": 0
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "ageYears.absent": 1,
+        "gender.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "activityAxes.personal": 1,
+        "appetite.member_sheet": 1,
+        "activityLevel.personal": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 349421,
+        "elapsed_ms": 579,
+        "reserve_ms": 30000,
+        "remaining_ms": 379421,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 5.3,
+        "plausible": 7.54,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v33_the_recipe_writes_the_shopping_list+household.v33_one_standard_recipe_the_engine_multiplies",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "output_contract": {
+        "ok": 23,
+        "lines": 23,
+        "defects": 0,
+        "findings": [],
+        "convention": 0,
+        "ref_missing": 0,
+        "ref_refused": 0,
+        "quantity_missing": 0,
+        "dash_unreferenced": 0
+      },
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-13",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 1,
+        "master_member_id": "4fe22b37-9991-4141-b381-e84ee072149d",
+        "served_member_ids": [
+          "4fe22b37-9991-4141-b381-e84ee072149d"
+        ],
+        "plan_owner_user_id": "2a727269-33fa-4e98-8a79-4d8889fba026",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-07",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-13T23:14:16.865473+00:00",
+    "updated_at": "2026-09-13T23:14:16.865473+00:00",
+    "preparations": [
+      {
+        "id": "prep_poulet",
+        "title": "Poulet rôti au citron",
+        "method": "Chauffer le four à 200 °C. Poser les blancs de poulet sur une plaque, les huiler, les rôtir 25 minutes. Laisser tiédir, puis répartir en deux portions au réfrigérateur.",
+        "cook_on": "mon",
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "chicken_breast",
+            "part": null,
+            "term": "blanc de poulet",
+            "unit": "g",
+            "group": "poultry",
+            "state": "raw",
+            "amount": 760,
+            "quantity": "760 g de blanc de poulet",
+            "grams_raw": 760,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": null,
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 25,
+            "quantity": "25 g",
+            "grams_raw": 25,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 10
+      },
+      {
+        "id": "prep_saumon",
+        "title": "Saumon rôti et pommes de terre",
+        "method": "Sur la même plaque, rôtir les pommes de terre 20 minutes, ajouter les pavés de saumon huilés et poursuivre 12 minutes. Laisser tiédir et répartir en deux portions.",
+        "cook_on": "mon",
+        "components": [],
+        "ingredients": [
+          {
+            "ref": "salmon",
+            "part": null,
+            "term": "saumon",
+            "unit": "g",
+            "group": "fatty_fish",
+            "state": "raw",
+            "amount": 780,
+            "quantity": "780 g de saumon",
+            "grams_raw": 780,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "potato",
+            "part": null,
+            "term": "pomme de terre",
+            "unit": "g",
+            "group": "starchy_veg",
+            "state": "raw",
+            "amount": 635,
+            "quantity": "635 g de pomme de terre",
+            "grams_raw": 635,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": null,
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 25,
+            "quantity": "25 g",
+            "grams_raw": 25,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 40,
+        "active_minutes": 12
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "mon",
+        "run_through": "Chauffer le four à 200 °C. Enfourner les pommes de terre, puis les blancs de poulet huilés sur une seconde plaque. Ajouter le saumon aux pommes de terre pour les douze dernières minutes. Laisser tiédir et ranger deux portions de chaque au réfrigérateur.",
+        "total_minutes": 55,
+        "preparation_ids": [
+          "prep_poulet",
+          "prep_saumon"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-14",
+    "duration_days": 2,
+    "retired_at": null,
+    "ends_on": "2026-09-15",
+    "household_id": "49a30033-0db5-4a9c-b94d-b7a2c376465f",
+    "member_portions": [
+      {
+        "member_id": "4fe22b37-9991-4141-b381-e84ee072149d",
+        "display_name": "Paul",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 5244,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  }
+}

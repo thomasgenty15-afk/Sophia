@@ -1,0 +1,372 @@
+{
+  "cas": "perte",
+  "tir": null,
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "reel": false,
+  "source_sortie": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/perte-iso10-2026-09-13T17-00-00-886Z.json",
+  "fige_le": "2026-09-13T23:15:19.936Z",
+  "request_id": "fdca1031-ebe5-41da-9e39-a204cacd0406",
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.699Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": -22518321
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 4,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ],
+      "acceptee": null
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "445a8b22-c241-4b32-8a51-6c6b8a01b88b": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "c5a15577-b24d-4a19-b4fb-ad2c125ece11": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "607aeddd-c862-4a33-bfba-0653f46286ac": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "357f61d0-004b-4403-a6bd-748ccc64ff06": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "445a8b22-c241-4b32-8a51-6c6b8a01b88b": 6,
+      "c5a15577-b24d-4a19-b4fb-ad2c125ece11": 6,
+      "607aeddd-c862-4a33-bfba-0653f46286ac": 6,
+      "357f61d0-004b-4403-a6bd-748ccc64ff06": 6
+    },
+    "cases_attendues_total": 24,
+    "appetit_pose": "average",
+    "demande_figee_avant_appel": true,
+    "bouches": [
+      {
+        "member_id": "445a8b22-c241-4b32-8a51-6c6b8a01b88b",
+        "user_id": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+        "first_name": "Paul",
+        "birth_date": "1990-03-14",
+        "role": "owner",
+        "age_state": "adult",
+        "goal": null,
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "student_goals.practical_constraints.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": [],
+        "light_slots": [],
+        "allergies": [],
+        "body": {
+          "member_id": "445a8b22-c241-4b32-8a51-6c6b8a01b88b",
+          "household_id": "27455050-956b-4b90-a9c2-7e5bb12f9b28",
+          "height_cm": 178,
+          "weight_kg": 88,
+          "gender": "male",
+          "recorded_by": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+          "recorded_at": "2026-09-13T18:45:47.842796+00:00",
+          "updated_at": "2026-09-13T23:15:18.966402+00:00",
+          "activity_level": "trains_some",
+          "day_activity": "seated",
+          "sport_frequency": "3_4",
+          "activity_axes_asked_at": "2026-09-13T23:15:18.966402+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "average",
+          "appetite_asked_at": "2026-09-13T23:15:18.966402+00:00"
+        }
+      },
+      {
+        "member_id": "c5a15577-b24d-4a19-b4fb-ad2c125ece11",
+        "user_id": null,
+        "first_name": "Lea",
+        "birth_date": "1994-04-04",
+        "role": "member",
+        "age_state": "adult",
+        "goal": "fat_loss",
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "household_members.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": null,
+        "light_slots": [],
+        "allergies": [
+          "arachide"
+        ],
+        "body": {
+          "member_id": "c5a15577-b24d-4a19-b4fb-ad2c125ece11",
+          "household_id": "27455050-956b-4b90-a9c2-7e5bb12f9b28",
+          "height_cm": 164,
+          "weight_kg": 58,
+          "gender": "female",
+          "recorded_by": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+          "recorded_at": "2026-09-13T18:45:47.865097+00:00",
+          "updated_at": "2026-09-13T23:15:18.974392+00:00",
+          "activity_level": "sedentary",
+          "day_activity": "seated",
+          "sport_frequency": "none",
+          "activity_axes_asked_at": "2026-09-13T23:15:18.974392+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "small",
+          "appetite_asked_at": "2026-09-13T23:15:18.974392+00:00"
+        }
+      },
+      {
+        "member_id": "607aeddd-c862-4a33-bfba-0653f46286ac",
+        "user_id": null,
+        "first_name": "Nils",
+        "birth_date": "1986-11-21",
+        "role": "member",
+        "age_state": "adult",
+        "goal": "muscle_gain",
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "household_members.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": null,
+        "light_slots": [],
+        "allergies": [],
+        "body": {
+          "member_id": "607aeddd-c862-4a33-bfba-0653f46286ac",
+          "household_id": "27455050-956b-4b90-a9c2-7e5bb12f9b28",
+          "height_cm": 183,
+          "weight_kg": 92,
+          "gender": "male",
+          "recorded_by": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+          "recorded_at": "2026-09-13T18:45:47.882014+00:00",
+          "updated_at": "2026-09-13T23:15:18.97963+00:00",
+          "activity_level": "trains_hard",
+          "day_activity": "physical_job",
+          "sport_frequency": "3_4",
+          "activity_axes_asked_at": "2026-09-13T23:15:18.97963+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "large",
+          "appetite_asked_at": "2026-09-13T23:15:18.97963+00:00"
+        }
+      },
+      {
+        "member_id": "357f61d0-004b-4403-a6bd-748ccc64ff06",
+        "user_id": null,
+        "first_name": "Iris",
+        "birth_date": "1999-06-09",
+        "role": "member",
+        "age_state": "adult",
+        "goal": "muscle_gain",
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "household_members.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": null,
+        "light_slots": [],
+        "allergies": [],
+        "body": {
+          "member_id": "357f61d0-004b-4403-a6bd-748ccc64ff06",
+          "household_id": "27455050-956b-4b90-a9c2-7e5bb12f9b28",
+          "height_cm": 170,
+          "weight_kg": 64,
+          "gender": "female",
+          "recorded_by": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+          "recorded_at": "2026-09-13T18:45:47.901411+00:00",
+          "updated_at": "2026-09-13T23:15:18.983375+00:00",
+          "activity_level": "trains_some",
+          "day_activity": "on_feet",
+          "sport_frequency": "1_2",
+          "activity_axes_asked_at": "2026-09-13T23:15:18.983375+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "average",
+          "appetite_asked_at": "2026-09-13T23:15:18.983375+00:00"
+        }
+      }
+    ],
+    "contrat_de_calcul": {
+      "restriction": "clear",
+      "ageState": "adult",
+      "conditionRefs": [],
+      "coachCounting": "no_position"
+    },
+    "profile": {
+      "id": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+      "updated_at": "2026-09-13T18:45:47.78949+00:00",
+      "full_name": "Paul LotF",
+      "avatar_url": "",
+      "onboarding_completed": true,
+      "birth_date": "1990-03-14",
+      "gender": "male",
+      "phone_number": null,
+      "email": "lotf.perte.iso10@keeltest.dev",
+      "timezone": "Europe/Paris",
+      "whatsapp_opted_in": false,
+      "phone_invalid": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_bilan_opted_in": false,
+      "trial_start": "2026-09-13T18:45:47.616513+00:00",
+      "trial_end": "2026-09-20T18:45:47.616513+00:00",
+      "stripe_customer_id": null,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_optout_confirmed_at": null,
+      "whatsapp_state": null,
+      "whatsapp_state_updated_at": null,
+      "phone_verified_at": null,
+      "access_tier": "student",
+      "locale": "fr-FR",
+      "tz_follow_device": false,
+      "whatsapp_bilan_paused_until": null,
+      "whatsapp_bilan_missed_streak": 0,
+      "whatsapp_bilan_last_prompt_at": null,
+      "whatsapp_bilan_winback_step": 0,
+      "whatsapp_bilan_last_winback_at": null,
+      "whatsapp_coaching_paused_until": null,
+      "morning_active_action_checkins_seeded_at": null,
+      "install_app_dismissed_until": null,
+      "install_app_marked_installed_at": null,
+      "install_app_last_prompted_at": null,
+      "account_status": "active",
+      "purge_at": null,
+      "deletion_requested_at": null,
+      "pre_deletion_proactive_muted": null,
+      "keel_role": "student",
+      "display_unit_system": "metric",
+      "country": "FR",
+      "chat_last_inbound_at": null,
+      "proactive_muted_at": null,
+      "chat_last_outbound_at": null,
+      "chat_last_read_at": null,
+      "height_cm": 178,
+      "energy_display_enabled": null,
+      "energy_target_enabled": null,
+      "activity_level": "trains_some",
+      "day_activity": "seated",
+      "sport_frequency": "3_4",
+      "activity_axes_asked_at": null,
+      "slot_meal_ask_enabled": null,
+      "lifecycle_emails_opted_out_at": null,
+      "last_seen_at": null,
+      "unsubscribe_token": "4f2dc107-66b2-4ebe-8202-52919c62c734"
+    },
+    "goal": {
+      "id": "7c2ee5de-f780-40f7-bb2a-a27c320906a4",
+      "user_id": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+      "goal": "fat_loss",
+      "situation": null,
+      "practical_constraints": {},
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-13T18:45:47.778743+00:00",
+      "updated_at": "2026-09-13T23:15:18.986111+00:00",
+      "target_weight_kg": 78,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.5
+    }
+  },
+  "etapes": {
+    "prompt_envoye": null,
+    "premier_jet": null,
+    "reparations": [],
+    "prompts_de_reparation": [],
+    "echanges_resume": []
+  },
+  "journal": [
+    {
+      "tag": "keel.household_meal.window_overlaps",
+      "user_id": "9884eca1-d6d0-4da3-a129-f99bc3ad0021",
+      "household_id": "27455050-956b-4b90-a9c2-7e5bb12f9b28",
+      "window": [
+        "2026-09-13",
+        3
+      ],
+      "clash": [
+        "578282ee-1604-4f80-9842-4b407846c689",
+        "2026-09-14",
+        2
+      ],
+      "verdict": "starts_at_or_after"
+    }
+  ],
+  "ligne_ecrite": null
+}

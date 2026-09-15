@@ -861,6 +861,14 @@ if (tir.duo) {
 //
 // ⚠️ IDEMPOTENT PAR PRÉNOM: une campagne se relance, et recréer la bouche
 // ferait grossir le foyer à chaque tir.
+// ⟳ 2026-09-15 — CHAQUE BOUCHE POSÉE EST RETENUE, AVEC SES ABSENCES.
+//
+// ⛔ MESURÉ SUR LE TIR 8 : `cases_par_bouche` ne nommait que le titulaire (et
+// la 2ᵉ bouche d'un `duo`). Les bouches de `mouths[]` n'avaient AUCUNE case
+// attendue dans la demande figée, et l'instrument rendait « Lea 0/0 » avec un
+// TOTAL 7/7 sur un plan de 14 parts. La demande doit attendre une case pour
+// chaque personne qu'elle a posée — absences déduites, jamais devinées.
+const bouchesPosees: { id: string; away: readonly string[] }[] = [];
 for (const m of tir.mouths) {
   const rosterNow = await rpc(me.token, "keel_household_roster");
   const list = Array.isArray(rosterNow.body)
@@ -922,6 +930,7 @@ for (const m of tir.mouths) {
     });
     console.log(`   absences ${m.firstName} → ${m.away.join(", ")} ${JSON.stringify(w.body)}`);
   }
+  bouchesPosees.push({ id: memberId, away: m.away });
 }
 
 if (tir.allergie && secondMember) {
@@ -1016,6 +1025,19 @@ console.log(
     ` au banc ② (\`banc-lot-F.ts --horloge=…\`), pas ici.`,
 );
 
+const toutesLesBouches: { id: string; away: readonly string[] }[] = [
+  { id: memberId, away: [] },
+  ...(secondMember ? [{ id: secondMember, away: [] as readonly string[] }] : []),
+  ...bouchesPosees,
+];
+const casesDe = (id: string): number => {
+  const away = toutesLesBouches.find((b) => b.id === id)?.away ?? [];
+  return Object.entries(grilleParJour).reduce(
+    (n, [jour, slots]) => n + (away.includes(jour) ? 0 : slots.length),
+    0,
+  );
+};
+
 const demandeFigee = {
   source: {
     instant: "harnais_avant_appel (horloge réelle du lancement)",
@@ -1048,15 +1070,22 @@ const demandeFigee = {
   },
   jours: joursAttendus,
   jour_vers_date: jourVersDateAttendu,
+  // ⟳ 2026-09-15 — TOUTES les bouches, chacune avec SA grille : les jours
+  // d'absence déclarés sortent de l'attendu de cette bouche-là, et de rien d'autre.
   cases_par_bouche: Object.fromEntries(
-    [memberId, ...(secondMember ? [secondMember] : [])].map((
+    toutesLesBouches.map(({ id, away }) => [
       id,
-    ) => [id, grilleParJour]),
+      Object.fromEntries(
+        Object.entries(grilleParJour).map((
+          [jour, slots],
+        ) => [jour, away.includes(jour) ? [] : [...slots]]),
+      ),
+    ]),
   ),
   cases_attendues_par_bouche: Object.fromEntries(
-    [memberId, ...(secondMember ? [secondMember] : [])].map((id) => [id, casesAnnoncees]),
+    toutesLesBouches.map(({ id }) => [id, casesDe(id)]),
   ),
-  cases_attendues_total: casesAnnoncees * bouches,
+  cases_attendues_total: toutesLesBouches.reduce((t, { id }) => t + casesDe(id), 0),
   appetit_pose: tir.appetite,
   repas_legers_poses: [...tir.lightSlots],
 };
