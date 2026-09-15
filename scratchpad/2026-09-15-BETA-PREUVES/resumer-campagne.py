@@ -5,7 +5,7 @@ contrôles, anomalies NOMMÉES (bouche · date · créneau). Aucune équation ic
 on COMPTE des lignes que l'instrument a rendues, on n'en calcule aucune."""
 import json, re, sys, glob, os
 M="scratchpad/2026-09-15-BETA-PREUVES/mesure-30"; FX="scratchpad/2026-09-11-CLOTURE/fixtures"; SO="scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F"
-TIRS=sys.argv[1:] or sorted(os.path.basename(f)[:-4] for f in glob.glob(f"{M}/c30-*-p*.txt"))
+TIRS=sys.argv[1:] or sorted(os.path.basename(f)[:-4] for f in glob.glob(f"{M}/c30-*-p*.txt") if not f.endswith(".figer.txt"))
 # ⚠️ LE DERNIER SYMBOLE D'ÉTAT DE LA LIGNE, PAS LE PREMIER. Le contrôle 6 imprime
 # le couloir d'ARCHIVE (celui du 2026-09-11) avec un ⛔ AVANT l'état réel de la
 # case ; lire le premier symbole comptait chaque dîner comme un écart.
@@ -59,9 +59,17 @@ for n in TIRS:
         "cases_attendues":dem.get("cases_attendues_total"),"completees":dem.get("cases_par_bouche_completees_depuis_roster") or [],
         "http":src.get("statut"),"duree_ms":src.get("duree_ms"),"appels_registre":ea.get("appels_registre"),"appels_total":ea.get("appels_registre_total"),
         "reparations_archivees":len(((src.get("etapes") or {}).get("reparations") or [])),
+        # ⚠️ RÉPARATION DU PLAN ≠ AUXILIAIRE. `final_repair` est l'appel qui recompose ;
+        # `composition_fill` / `final_repair_fill` sont des appels de 2 s qui remplissent
+        # une référence — ils comptent dans le coût, jamais dans « rattrapage ».
+        "reparations_plan":sum(v for k,v in (ea.get("appels_registre") or {}).items() if k.endswith("final_repair:success")),
+        "appels_succes":sum(v for k,v in (ea.get("appels_registre") or {}).items() if k.endswith(":success")),
+        "auxiliaires":sum(v for k,v in (ea.get("appels_registre") or {}).items() if k.endswith(":success") and ("fill" in k)),
         "etat_run":val.get("state"),"defauts_run":[x.get("cause") for x in (val.get("defects") or [])],"defauts_detail":[{k:x.get(k) for k in ("cause","day","slot","member_id","detail")} for x in (val.get("defects") or [])],
         "incomplets_run":val.get("incomplete"),"non_executes_run":val.get("not_run"),
         "issues_run":[x for x in (gf.get("issues") or []) if str(x).startswith("plan_repair")],
+        "politique_sans_appel":any(o.get("tag")=="keel.household_meal.plan_repair_pass" and o.get("reason")=="no_blocking_defect" for o in (src.get("journal") or [])),
+        "refus_422":(src.get("reponse") or {}).get("detail") if src.get("statut")==422 else None,
         "bilan":dict(zip(["cal_ok","cal_n","compl_ok","compl_n","incomplets"],bilan.groups())) if bilan else None,
         "cout":dict(zip(["transmissions","reparations","max","demandees"],cout.groups())) if cout else None,
         "porte_journal":dict(zip(["livraison","non_evalues","incomplets","causes"],porte.groups())) if porte else None,
@@ -70,7 +78,7 @@ json.dump(out,open("scratchpad/2026-09-15-BETA-PREUVES/mesures-campagne-30.json"
 print("tir | bouches | attendues | HTTP | durée s | appels | répar. | état RUN | défauts RUN | cal | complète | incompl.")
 for t in out:
     b=t["bilan"] or {}
-    print(f"{t['tir']:>3} | {t['bouches_n']:>7} | {t['cases_attendues']:>9} | {t['http']:>4} | {(t['duree_ms'] or 0)/1000:>7.1f} | {t['appels_total']!s:>6} | {t['reparations_archivees']:>6} | {t['etat_run']:<22} | {','.join(t['defauts_run']) or '-':<20} | {b.get('cal_ok')}/{b.get('cal_n')} | {b.get('compl_ok')}/{b.get('compl_n')} | {b.get('incomplets')}")
+    print(f"{t['tir']:>12} | {t['bouches_n']:>7} | {t['cases_attendues']:>9} | {t['http']:>4} | {(t['duree_ms'] or 0)/1000:>7.1f} | {t.get('appels_succes') or 0:>6} | {t.get('reparations_plan') or 0:>6} | {str(t['etat_run'] or 'refusé'):<22} | {','.join(t['defauts_run']) or '-':<20} | {b.get('cal_ok')}/{b.get('cal_n')} | {b.get('compl_ok')}/{b.get('compl_n')} | {b.get('incomplets')}")
 print("\n── anomalies nommées ──")
 for t in out:
     for d in t["defauts_detail"]: print(f"  tir {t['tir']} · garde du RUN · {d}")

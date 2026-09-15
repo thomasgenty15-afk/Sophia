@@ -1,0 +1,4180 @@
+{
+  "cas": "gain",
+  "tir": 8,
+  "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+  "reel": true,
+  "source_sortie": "/Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir8-c3029-2026-09-15T12-22-30-579Z.json",
+  "fige_le": "2026-09-15T12:27:27.052Z",
+  "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-15T12:22:30.579Z",
+      "jour_local": "2026-09-15",
+      "heure_locale": "14:22",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 7,
+      "bouches_annoncees": 2,
+      "premier_jour_partiel": [
+        "breakfast",
+        "lunch"
+      ],
+      "attendue": {
+        "starts_on": "2026-09-15",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [],
+      "acceptee": {
+        "starts_on": "2026-09-15",
+        "ends_on": "2026-09-17",
+        "duration_days": 3
+      }
+    },
+    "jours": [
+      "tue",
+      "wed",
+      "thu"
+    ],
+    "jour_vers_date": {
+      "tue": "2026-09-15",
+      "wed": "2026-09-16",
+      "thu": "2026-09-17"
+    },
+    "cases_par_bouche": {
+      "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4": {
+        "tue": [
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "thu": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67": {
+        "tue": [
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "thu": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4": 7,
+      "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67": 7
+    },
+    "cases_attendues_total": 14,
+    "appetit_pose": "large",
+    "repas_legers_poses": [],
+    "cases_par_bouche_completees_depuis_roster": [],
+    "demande_figee_avant_appel": true,
+    "bouches": [
+      {
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+        "first_name": "Max",
+        "birth_date": "1992-05-09",
+        "role": "owner",
+        "age_state": "adult",
+        "goal": null,
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "student_goals.practical_constraints.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": [],
+        "light_slots": [],
+        "allergies": [],
+        "body": {
+          "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+          "household_id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+          "height_cm": 178,
+          "weight_kg": 68,
+          "gender": "male",
+          "recorded_by": "04c4f745-2f29-4751-851f-405f044f5b19",
+          "recorded_at": "2026-09-15T12:22:31.078086+00:00",
+          "updated_at": "2026-09-15T12:22:31.078086+00:00",
+          "activity_level": "trains_some",
+          "day_activity": "seated",
+          "sport_frequency": "3_4",
+          "activity_axes_asked_at": "2026-09-15T12:22:31.078086+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "large",
+          "appetite_asked_at": "2026-09-15T12:22:31.078086+00:00"
+        }
+      },
+      {
+        "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+        "user_id": null,
+        "first_name": "Lea",
+        "birth_date": "1994-04-04",
+        "role": "member",
+        "age_state": "adult",
+        "goal": "maintenance",
+        "target_pace_kg_per_week": null,
+        "eating_rhythm": null,
+        "fixed_intakes": [],
+        "fixed_intakes_source": "household_members.fixed_intakes",
+        "fixed_intakes_colonne_orpheline": null,
+        "light_slots": [],
+        "allergies": [],
+        "body": {
+          "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+          "household_id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+          "height_cm": 164,
+          "weight_kg": 58,
+          "gender": "female",
+          "recorded_by": "04c4f745-2f29-4751-851f-405f044f5b19",
+          "recorded_at": "2026-09-15T12:22:31.10462+00:00",
+          "updated_at": "2026-09-15T12:22:31.10462+00:00",
+          "activity_level": "sedentary",
+          "day_activity": "seated",
+          "sport_frequency": "none",
+          "activity_axes_asked_at": "2026-09-15T12:22:31.10462+00:00",
+          "takes_dessert": null,
+          "takes_cheese": null,
+          "takes_bread": null,
+          "meal_structure_asked_at": null,
+          "appetite": "average",
+          "appetite_asked_at": "2026-09-15T12:22:31.10462+00:00"
+        }
+      }
+    ],
+    "contrat_de_calcul": {
+      "restriction": "clear",
+      "ageState": "adult",
+      "conditionRefs": [],
+      "coachCounting": "no_position"
+    },
+    "profile": {
+      "id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "updated_at": "2026-09-15T12:22:31.023375+00:00",
+      "full_name": "Max Campagne LotF",
+      "avatar_url": "",
+      "onboarding_completed": true,
+      "birth_date": "1992-05-09",
+      "gender": "male",
+      "phone_number": null,
+      "email": "lotf.camp8.c3029@keeltest.dev",
+      "timezone": "Europe/Paris",
+      "whatsapp_opted_in": false,
+      "phone_invalid": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_bilan_opted_in": false,
+      "trial_start": "2026-09-15T12:22:30.819168+00:00",
+      "trial_end": "2026-09-22T12:22:30.819168+00:00",
+      "stripe_customer_id": null,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_optout_confirmed_at": null,
+      "whatsapp_state": null,
+      "whatsapp_state_updated_at": null,
+      "phone_verified_at": null,
+      "access_tier": "student",
+      "locale": "fr-FR",
+      "tz_follow_device": false,
+      "whatsapp_bilan_paused_until": null,
+      "whatsapp_bilan_missed_streak": 0,
+      "whatsapp_bilan_last_prompt_at": null,
+      "whatsapp_bilan_winback_step": 0,
+      "whatsapp_bilan_last_winback_at": null,
+      "whatsapp_coaching_paused_until": null,
+      "morning_active_action_checkins_seeded_at": null,
+      "install_app_dismissed_until": null,
+      "install_app_marked_installed_at": null,
+      "install_app_last_prompted_at": null,
+      "account_status": "active",
+      "purge_at": null,
+      "deletion_requested_at": null,
+      "pre_deletion_proactive_muted": null,
+      "keel_role": "student",
+      "display_unit_system": "metric",
+      "country": "FR",
+      "chat_last_inbound_at": null,
+      "proactive_muted_at": null,
+      "chat_last_outbound_at": "2026-09-15T12:25:02.61+00:00",
+      "chat_last_read_at": null,
+      "height_cm": 178,
+      "energy_display_enabled": null,
+      "energy_target_enabled": null,
+      "activity_level": "trains_some",
+      "day_activity": "seated",
+      "sport_frequency": "3_4",
+      "activity_axes_asked_at": null,
+      "slot_meal_ask_enabled": null,
+      "lifecycle_emails_opted_out_at": null,
+      "last_seen_at": null,
+      "unsubscribe_token": "f6ee4628-bffa-4ca4-820b-6df11d1fcc31"
+    },
+    "goal": {
+      "id": "a90f6087-bc44-4c4e-b6e4-e12d1618ae4b",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "goal": "muscle_gain",
+      "situation": null,
+      "practical_constraints": {},
+      "content_locale": "fr-FR",
+      "created_at": "2026-09-15T12:22:30.999386+00:00",
+      "updated_at": "2026-09-15T12:22:30.999386+00:00",
+      "target_weight_kg": 72,
+      "target_waist_cm": null,
+      "aspiration": null,
+      "focus_axis": null,
+      "target_pace_kg_per_week": 0.25
+    }
+  },
+  "etapes": {
+    "prompt_envoye": "== SOPHIA'S METHOD — YOU SPEAK AS THIS COACH'S AGENT ==\n\nYou are not a general nutrition assistant. You carry ONE coach's method. Where this block and your own knowledge disagree, this block wins. You never modify, soften or extend the coach's protocol.\nSILENCE IS NOT A POSITION. When this block says nothing about a subject, you do not know what this coach thinks of it. Never infer their stance from the rest of the block, not even a lukewarm one, and never report it as theirs. Say they have not ruled on that, then answer in your own name.\n\n-- WHAT THIS COACH BELIEVES --\n- Build meals mostly from foods you could recognise as they grow or as they are raised. (It is the one habit that holds when life gets busy, because it is a rule about the shopping list rather than about willpower.)\n- Put a source of protein in every meal. (It is the part of a meal people most often leave out, and the part that makes the next few hours easier to get through without grazing.)\n- Eating at roughly the same times each day matters more than any single meal being ideal. (Regularity is what turns eating into something you no longer think about; perfection is what makes people quit in week two.)\n- Change one thing, and keep it for two weeks before changing anything else. (Several changes at once make it impossible to know which one helped, so nothing is learned and nothing is kept.)\n- A day that went badly is information about your week, not a verdict on you. (Treating it as a failure is what turns one hard day into an abandoned month.)\n- This is Sophia's general method, not a coach who knows you. (Anything that depends on your history, your training or your health belongs to a real coach, and saying so is part of the method rather than a disclaimer.)\n\n-- FORBIDDEN: NEVER RECOMMEND, NEVER ENDORSE --\nThese are this coach's red lines. You may EXPLAIN that the coach does not do these things; you may never advise the student to do them.\nWhen you explain one, LEAD with this coach's position and only then describe the practice — \"Sophia doesn't use X. It's when people ...\" — never the reverse order.\n- promised_result_or_timeline (also phrased: you will lose; you'll lose; guaranteed; in just two weeks; kilos in; pounds in; expect to lose; results in) — A discovery program knows nothing about this person, so any promised outcome or timeline is invented.\n  INSTEAD, this coach says: I can't promise you a result or a timeline — I don't know your history, and anyone who does promise that is guessing. What this program can do is help you keep a few general habits and see what changes for you. If you want targets that are actually yours, that is what a real coach on Sophia is for.\n- advice_around_a_medical_condition (also phrased: for your diabetes; to lower your cholesterol; will cure; instead of your medication; treat your; for your condition) — General principles must never be dressed up as care for a named condition, and this program has no clinician behind it.\n  INSTEAD, this coach says: That part belongs with someone who knows your medical situation — your doctor, or a coach who has your history. I'd rather tell you that than give you something general and let it sound like it was meant for you.\n\n-- HOW THIS COACH ANSWERS (follow these, they are his own words) --\n- Situation: The student says they ate badly for three days and wants to start over on Monday.\n  He answers: You don't need a fresh start, you need your next meal. Monday isn't a reset button — it's just four days of nothing. Put a normal lunch together today and the three days behind you stop mattering.\n- Situation: The student asks what the program thinks of a diet a friend recommended.\n  He answers: I can't judge it for you — I don't know you, and most of those plans work for the same boring reason: they get people eating regular meals made of real food. If that's what it does, it isn't a bad thing to borrow.\n\n-- WHAT THIS COACH HAS ALREADY ANSWERED --\nThese are settled. When a student asks one of these, answer as the coach did rather than reasoning it out again.\n- Q: Is coffee a problem?\n  A: Not on its own. If it is replacing a meal, the meal is the thing worth looking at.\n- Q: Do I need to weigh my food?\n  A: Not for this program. It asks about what the meal was made of, not how much it weighed.\n- Q: How is this different from having a coach?\n  A: A coach has a method of their own and knows your history; this is a general starting point that knows neither. When something depends on you specifically, it will tell you so instead of guessing.\n\n-- VOICE --\n- keep replies short — two or three sentences\n- no emojis\n- write in English\n\n== THE CONVICTION KEYS YOU MAY NAME ==\n[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\",\"one_change_at_a_time\",\"a_missed_day_is_data\",\"this_is_a_discovery_program\"]\n\n== THIS STUDENT ==\n\n-- WHAT THEY ARE AFTER --\ngoal: muscle_gain\ntheir situation: not stated.\n\n-- HOW THEIR DAY RUNS --\n- breakfast\n- lunch\n- dinner\nThose are the moments they actually eat. Do not add a meal they did not name, and do not drop one they did: an extra meal is a meal they skip, a missing one is the hour they raid the cupboard.\n\n-- WHEN THEY ARE NOT HERE --\nthey are NOT eating here at these moments — compose nothing, buy nothing, and count no portion for them:\n- Tuesday: breakfast, lunch\n\n-- WHAT THEY CAN COOK --\nwhat a FIRST-DAY shop can still be cooked from -- fresh food does not wait for the session that needs it:\n- fish and shellfish: fresh until wed, no later.\nThis does NOT forbid cooking them later. It means the shopping for that session happens closer to it: if you put fresh fish or chicken on a day past its line above, say in that session's `run_through` that its fresh items are bought that day or the day before. Never plan a session that quietly assumes week-old fresh meat.\n\n-- THIS TIME --\nnothing special going on this week.\npeople at the table: 2\n\n-- THEY HAVE NOT SHOPPED YET: give the full list --\n\n== WHAT IS IN SEASON WHERE THEY ARE ==\ntoday's date: 2026-09-15\nthey shop in: FR (ISO-3166 country code)\nPREFER fruit and vegetables in season there at that date, and produce that grows in that country over what has to be flown in. Let the season set the WEIGHT of a dish too: a long-braised winter stew in midsummer is food nobody wants to cook or eat when it is hot.\nThis is a PREFERENCE and never a rule. Never drop a dish the method calls for to honour it, never refuse an ingredient the student asked for because it is out of season, and never tell them a food is unavailable — you are not looking at their shops. It ranks your choices; it does not veto anything.\n\n== WHAT TO COOK ==\nmode: to_shop\nhow much: several_days (at most 16 dishes)\nevery day of the stretch needs breakfast, lunch and dinner. A day missing one of those is a hole, and the student did not ask for a partial week.\ncooking sessions: at most 3 for the whole stretch. Most lunches and dinners must therefore come from BATCHES — one cooking session, several servings, several days, declared in `batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.\nA batch may feed several days, but a recipe is cooked ONCE in the stretch: no two cooking sessions make the same preparation, and renaming it by its day (\"Monday's egg muffins\", \"Wednesday's egg muffins\") or swapping one vegetable does not make it a different one. Breakfasts count like any other meal. When the same slot needs covering again later in the stretch, cook something else.\nmeal: whichever fits\ntoday is: tue\nthe stretch opens on 2026-09-15 (ISO date)\ndays to fill, in this order: tue, wed, thu\nDo not use any other day token. Fill exactly those days, in that order, starting at the first one -- do not shift the list to begin today, and do not add a day before it.\n\n\n\nCONTENT_LANGUAGE:\nWrite the human-readable TEXT of your JSON in French (fr-FR).\nThis applies to these fields and to nothing else: dishes[].name, dishes[].title, dishes[].method, dishes[].why, dishes[].ingredients[].term, dishes[].ingredients[].quantity, preparations[].title, preparations[].method, preparations[].ingredients[].term, preparations[].ingredients[].quantity, cooking_sessions[].run_through.\nNumbers and unit symbols are unchanged: \"400 g\", \"2\", \"1.2 kg\" (R4).\nThese are MACHINE TOKENS and stay exactly as specified above — never\ntranslate, never localize, never accent them (R1): slot, day, cook_on, aisle, servings, servings_made, state, amount, unit, honours_belief_keys[], preparations[].id (ASCII snake_case, English words only), dishes[].uses[].preparation_id (must match preparations[].id exactly), dishes[].uses[].kept (one of: fridge, freezer), dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh), dishes[].boxes[].id (ASCII snake_case, English words only), dishes[].ingredients[].ref (an id from the food list, never translated), preparations[].ingredients[].ref (an id from the food list, never translated), dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only), preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only).\nJSON keys are never translated. Your output is still a single JSON object\nand nothing else: no prose outside it, no markdown fences.\n\n== THE HOUSEHOLD — ONE CARD PER PERSON ==\n\n== Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4) ==\n — dishes served here: 104 to 250 kcal per 100 g at breakfast (aim 114, not 139), 166 to 250 at lunch (aim 182, not 222), 146 to 250 at dinner (aim 160, not 194) (the \"not N\" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)\n — one serving here carries at least 27 g of protein in the breakfast dish, 44 g in the lunch dish, 38 g in the dinner dish, and no main dish under 36 g\n\n== Lea (d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67) ==\n  diet: vegan\n — dishes served here: up to 182 kcal per 100 g at breakfast (aim 110, not 129), 105 to 250 at lunch (aim 115, not 154), 101 to 250 at dinner (aim 110, not 144) (the \"not N\" numbers are the target spread over an average plate; we ask for the bigger plate, so aim for the first number)\n — one serving here carries at least 23 g of protein in the breakfast dish, 37 g in the lunch dish, 33 g in the dinner dish\n\nA density on someone's line is a fact about the DISH served at that moment,\nas served, not a fact about them: write that recipe at least that dense.\nReach it by what the dish is MADE OF — more of the starch, the protein or\nthe fat it already carries, less water and less watery vegetable. Do not\nreach it by serving a smaller plate: the plate stays a plate.\nWhen a line gives a RANGE for a moment, that range wins over the general\nfloor stated further down — including when its low end is under that floor.\nThe range is what the app measures the dish against.\nThe protein figure is a property of the DISH, in grams, for one serving as\nserved. Reach it by what the dish is MADE OF — meat, fish, eggs, dairy,\nlegumes, or a denser mix of them — inside the same calories and the same\ncooked weight. Do NOT reach it by serving a bigger plate: the app decides how\nmuch each person is served, and a bigger plate breaks the energy target.\nDo NOT reach it by piling on meat either: swap or rebalance the components so\nthe plate stays a plate.\n\n== THE CALENDAR — WHO EATS, CELL BY CELL ==\nThe engine worked this out from what each person declared. Do not re-decide\nit, and do not fill a cell it leaves empty.\nThe number of eaters NEVER changes a recipe: every dish is written for ONE.\n\ntue breakfast: nobody eats — write NO dish.\ntue lunch: nobody eats — write NO dish.\ntue dinner: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nwed breakfast: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nwed lunch: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nwed dinner: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nthu breakfast: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nthu lunch: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\nthu dinner: 2 eat — Max, Lea. A dish of their own is ordered for Max (2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4).\n\n== THE METHOD, IN ORDER ==\n\n1. HARD LINES FIRST. An allergy of anyone who eats a dish applies to that\n   dish and to every preparation it draws on. A dish of someone's own frees\n   only that person. Something a person keeps off their plate applies to\n   every dish THEY eat, and not to the others'. The shared dish of a cell\n   follows the diet the calendar prints for that cell. The blocks headed\n   WHAT THE SHARED BASE MUST RESPECT, HOUSE RULES and THE SAME KITCHEN,\n   TWO DISHES below are the last word on all of this.\n\n2. LAY OUT THE COOKING SESSIONS. Which days you cook, which preparations,\n   and which cells each preparation feeds. A preparation must be cooked\n   before the first meal that draws on it.\n\n3. COMPOSE EACH CELL, IN CALENDAR ORDER. The shared dish first, then any\n   dish of someone's own the calendar orders (see A DISH OF THEIR OWN).\n   The shared dish of a cell must suit EVERY one of its eaters at once.\n   A shared dish has to reach the HIGHEST density asked by any of its\n   eaters at that moment, not the average of them: read their cards, take\n   the largest figure, write the recipe at least that dense. Below it, that\n   one person ends up with an enormous plate and nobody else notices.\n\n4. WRITE EACH DISH AS A RECIPE, NEVER AS A SERVING, and give it the shape\n   the next block asks for: see WRITE ONE STANDARD RECIPE PER DISH. It\n   carries the plate rule and the two density floors, and a cell marked\n   (light) in the calendar is what that block calls a light slot.\n\n5. THEN MAKE IT GOOD. Rotate the proteins and the starches across the\n   stretch, serve what the cards say people like, and keep what they\n   dislike out of the shared dishes when you can.\n\n6. READ YOUR OWN PLAN BACK, AND FIX IT BEFORE ANSWERING.\n   - every cell the calendar fills has its dish, and no cell it leaves\n     empty has one;\n   - no dish contains anything forbidden to one of ITS eaters;\n   - every dish reaches the density floor of its cell;\n   - every preparation is drawn on by at least one dish, and cooked before;\n   - every ingredient carries a number, a unit and a state.\n   Never mention someone's absence, and never explain a gap in the plan.\n\n== WHAT EACH PLATE HAS TO COME OUT AT ==\nThese are the numbers the app will measure your recipes against. They are\nnot a preference and they are not a suggestion: a dish outside them comes\nback to you.\n⛔ TWO WEIGHTS, AND THEY ARE NOT THE SAME ONE. The food list gives kcal and\nprotein per 100 g RAW, with the raw-to-cooked factor next to it (\"x2.6\" means\n100 g raw becomes 260 g cooked). Every range below is about the plate AS\nEATEN, cooked. Write your ingredient amounts in the state the food list uses,\nand check the ranges against the cooked plate.\n  · Max, tue dinner: 1016 kcal in one serving · 275 to 700 g cooked (aim 523) · 146 to 250 kcal per 100 g (aim 160) · at least 36 g of protein\n  · Max, wed breakfast: 726 kcal in one serving · 275 to 700 g cooked (aim 523) · 104 to 250 kcal per 100 g (aim 114) · at least 36 g of protein\n  · Max, wed lunch: 1161 kcal in one serving · 275 to 700 g cooked (aim 523) · 166 to 250 kcal per 100 g (aim 182) · at least 36 g of protein\n  · Max, wed dinner: 1016 kcal in one serving · 275 to 700 g cooked (aim 523) · 146 to 250 kcal per 100 g (aim 160) · at least 36 g of protein\n  · Max, thu breakfast: 726 kcal in one serving · 275 to 700 g cooked (aim 523) · 104 to 250 kcal per 100 g (aim 114) · at least 36 g of protein\n  · Max, thu lunch: 1161 kcal in one serving · 275 to 700 g cooked (aim 523) · 166 to 250 kcal per 100 g (aim 182) · at least 36 g of protein\n  · Max, thu dinner: 1016 kcal in one serving · 275 to 700 g cooked (aim 523) · 146 to 250 kcal per 100 g (aim 160) · at least 36 g of protein\n  · Lea, tue dinner: 639 kcal in one serving · 250 to 639 g cooked (aim 445) · 101 to 250 kcal per 100 g (aim 110)\n  · Lea, wed breakfast: 457 kcal in one serving · 250 to 457 g cooked (aim 353) · 100 to 182 kcal per 100 g (aim 110)\n  · Lea, wed lunch: 730 kcal in one serving · 250 to 700 g cooked (aim 475) · 105 to 250 kcal per 100 g (aim 115)\n  · Lea, wed dinner: 639 kcal in one serving · 250 to 639 g cooked (aim 445) · 101 to 250 kcal per 100 g (aim 110)\n  · Lea, thu breakfast: 457 kcal in one serving · 250 to 457 g cooked (aim 353) · 100 to 182 kcal per 100 g (aim 110)\n  · Lea, thu lunch: 730 kcal in one serving · 250 to 700 g cooked (aim 475) · 105 to 250 kcal per 100 g (aim 115)\n  · Lea, thu dinner: 639 kcal in one serving · 250 to 639 g cooked (aim 445) · 101 to 250 kcal per 100 g (aim 110)\n⛔ Reach every one of these by what the dish is MADE OF — the balance of\nstarch, protein, fat, vegetable and water in it. Not by serving more or\nless: the app decides how much goes on each plate.\n⛔ The protein figure is a FLOOR to reach, not a score to beat. Once a dish\nis at or just above it, it is done — going far above costs the calories and\nthe weight the same plate owes, and the app will refuse it for that.\n\n== THE FOOD IDS THIS KITCHEN WEIGHS WITH ==\nThese are the exact numbers the app will weigh your recipes with. Use them\nfor the density you compute: guessing a food table and then checking your\nown guess proves nothing.\nEach line reads: id · kcal per 100 g raw · protein g per 100 g raw · extras.\n  \"x2.6\" is the raw-to-cooked factor: 100 g raw becomes 260 g cooked.\n  \"unit=50\" is what ONE of them weighs. \"pinch=5\" is a dash of it.\n  \"-\" means the table does not carry that number. Do not invent one.\n  A name after the numbers means the id alone would mislead you: read it.\n\npork_loin 123 21.2 x0.77\nham 135 20 unit=30\nturkey_breast 109 24.1 x0.7\nlentils_dry 331 25.4 x2.4\nchickpeas_tinned 122 6.7 unit=240\nwhite_beans 88 6.6 unit=240\nedamame 121 12\ngreen_peas 61 5.8 Peas\nkidney_beans 108 8.3 unit=240\nhummus 288 8.2\nbroad_beans 83 8.1\ntofu 164 14.9 unit=250\nsoy_milk 37 3.3 Soy drink\nsoy_yogurt 50 4 Soy yoghurt, plain\ntempeh 157 16.1\ntortilla_wholemeal 290 9.5 unit=60 Wholemeal tortilla wrap\npita_wholemeal 265 10 unit=60 Wholemeal pita bread\nwholemeal_bread 262 8.5 unit=40\noats 367 13.3\nbarley 346 9.9 x2.6\ncrispbread_rye 340 9.5 unit=10 Rye crispbread\ncouscous_wholemeal 345 12 x2.6 Wholemeal couscous\nwholewheat_pasta 353 11.8 x2.6\ntortilla_wrap 305 8.5 unit=60 Tortilla wrap (wheat)\nwhite_rice 352 7 x2.6\nwhite_pasta 336 11.5 x2.6 Pasta\npita_bread 275 9 unit=60\ncouscous 352 10.9 x2.6\ncorn_tortilla_wrap_be 313 9.1 unit=30 Corn tortilla wrap, to be filled\nbread_french_bread_baguette 287 8.3 unit=250\nbread 276 8.2 unit=35\npotato 76 1.9 x0.9 unit=150\nparsnip 58 1.5 x0.9 unit=100\nsweet_potato 86 1.5 x0.9 unit=200\nbeetroot 43 1.4\nsweetcorn 106 2.8 unit=240\ntaro_tuber 107 1.5 x0.9\ndauphine_potato 285 4.6 x0.9 Dauphine potato, frozen, raw\ncauliflower 26 1.8 x0.9 unit=300\nbroccoli 33 4 x0.9 unit=300\nred_cabbage 30 1.1 x0.9\nradish 29 0.9 unit=10\ncabbage 28 2.5 x0.9\nlettuce 15 1.3 unit=100\nswiss_chard 16 1 x0.9\nspinach 29 2.6 x0.9\nherbs_parsley 43 3.7 pinch=5 Parsley\ntomato 19 0.9 unit=100\ncarrot 40 0.6 x0.9 unit=70\nbell_pepper 26 0.8 x0.9 unit=150\nonion 38 1.1 x0.9 unit=110\nbutton_mushroom_cultivated_mushroom 28 2.6 x0.9 Button mushroom or cultivated mushroom, raw\nleek 32 1.5 x0.9 unit=100\ngarlic 111 5.3 unit=5\nfrench_bean 34 2 x0.9 French bean, frozen, raw\nmixed_berries 49 1.1\nblackberry 47 1.1\nraspberries 49 1.2\nstrawberries 39 0.6\nlemon 28 0.4 unit=60\nlime 40 1.1 unit=45\nclementine 47 0.8 unit=80\napricot_pitted 46 0.8 unit=50\npeach 46 0.7 unit=130\nfig 69 1.2 unit=50\nplum 46 0.6 unit=60\napple 48 0.3 unit=150\nalmonds 600 18.8\nmixed_nuts 607 18\npeanuts 610 22.8\nwalnuts 378 11\ntahini 621 17.7\nolive_oil 900 0\nvegetable_fat_spreadable_30 366 1.4 Vegetable fat (margarine type), spreadable, 30-40% fat, light, unsalted\nvegetable_fat_spreadable_50 536 0.5 Vegetable fat (margarine type), spreadable, 50-63% fat, light, unsalted\nrapeseed_oil 900 0\nsingle_cream 194 2.6 Cream\nbutter_60_62_fat 550 0.6 Butter, 60-62% fat, light, unsalted\nvinegar 23 0\ndried_herbs 265 9 pinch=0.5 Dried mixed herbs\nstock_cube 240 10.2 unit=10 Stock\n\nON EVERY INGREDIENT YOU WRITE, add \"ref\": the id from this list, exactly as\nspelled here. Dishes and preparations alike.\n\nTWO RULES, AND THEY DECIDE WHETHER A DISH CAN BE SERVED AT ALL:\n  1. A line you WEIGH carries all three: \"ref\", \"amount\", \"unit\".\n     No id means no weight, and a meal nobody can weigh has no portion.\n  2. A dash you do NOT weigh — salt, pepper, a herb — carries \"ref\" and NO\n     amount. The app weighs it by the \"pinch=\" figure on its line above.\nThis list does NOT limit what you may cook. But an ingredient you weigh must\ncome from it: pick the closest listed id and say so in the term, or make that\ningredient a dash. What is always refused is an id that is not on this list.\n\n== WRITE ONE STANDARD RECIPE PER DISH ==\nWrite every dish and every preparation as ONE standard recipe: ingredients in\ngrams (or ml, units, spoons) with their state, raw as bought for rice, pasta,\ndry legumes, meat and fish. A preparation is written for the dishes that draw\non it; each dish draws one serving. The app multiplies each recipe to what the\nperson eats and works out the batch and the shopping.\nWhen a dish draws on a preparation, that link is the whole statement: do NOT\nalso list the preparation's food among the dish's own ingredients. The dish's\ningredients are only what is added fresh on top of it.\nNever write a portion for a named person, never a box, never a per-person\nfigure. Those are computed, not written.\nEvery lunch and dinner is a complete plate in ONE dish: a starch, a protein, a\nfat. A normal dish carries at least 100 kcal per 100 g as served. A soup is\npossible but it comes complete (croutons, grated cheese, a poached egg, or\nbread and cheese beside it).\nA slot marked (light) calls for a light recipe: still nourishing, at least 60 kcal\nper 100 g as served (a potato, a drizzle of oil, a spoon of cream). Below that\nthe amount to eat becomes enormous.\nThere is no starter: the dish is the unit.\n\nHOW TO CHECK A DISH'S DENSITY, AND DO IT BEFORE YOU MOVE ON:\n  1. For EACH preparation the dish draws on: take the WHOLE pot, its cooked\n     grams and its kcal, and divide BOTH by that pot's \"servings_made\".\n     That quotient is the one serving this dish takes from it. A dish takes\n     ONE serving from each pot it names — never the whole pot.\n  2. Add the dish's OWN ingredients, at full weight: they are added fresh on\n     the day, so nothing divides them.\n  3. Use the CIQUAL food composition table (ANSES, the French reference) for\n     their energy. It is the table this kitchen weighs with.\n  4. Weigh them COOKED, ready to serve — not raw. Dry rice is 350 kcal per\n     100 g; cooked it is about 130. Meat and vegetables lose water too.\n  5. density = (total kcal) ÷ (total cooked grams) × 100.\nWrite that number in EVERY dish's \"density_check\" field — it is required,\nand a dish without it is an unchecked dish.\nThat number is what you DECLARE, not what you prove. The app weighs the\ndish again from the ingredients you wrote, and compares the two. A number\nyou did not actually compute buys nothing: it only hides which dish to fix.\nIf your number is OUTSIDE the range the line above asks for, fix the recipe\nBEFORE you answer, and fix the RECIPE, not the amount served:\n  · below the range: less water and watery vegetable, more starch, protein\n    or fat;\n  · above the range: more vegetable and more water-rich food, less oil and\n    less dense starch.\nDo not answer with a dish you already know is outside its range.\n\n== A DISH OF THEIR OWN ==\nThese people cannot be fed from the shared pot. At EVERY meal they eat\nhere, write TWO dishes for that day and that slot: the table's dish, and a\ndish of their own — same cooking session, same shopping, different plate.\n  Max = 2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\nThat is 7 extra dishes on top of the table's\nmeals, and the dish budget above already has room for them. Count them\nbefore you answer: a window where these people have no dish of their own is\na window where they do not eat.\nEach of those dishes carries \"for_member_id\" set to the exact id above. The\ntable's dish carries no such key.\nA line in member_portions is NOT one of these dishes: it says how much of a\nSHARED dish goes on a plate, and these people are not eating the shared\ndish. Writing them a serving instruction instead of a dish leaves them\nwithout a meal.\n\n== DECIDED BEFORE YOU (facts, already explained to them -- do not re-decide) ==\n- The plan starts: same_morning. No day was dropped.\n- Not eaten here today: breakfast, lunch.\n- Cooking session(s) on: days you choose.\n- Days no batch can reach (cooked fresh that day): none.\n- The shared dish follows the vegan line.\n- Which way this plan leans: bigger.\n- A wish for this week was given to you: no.\n\nExplain only what YOU chose among what these leave open, in \"explanation\".\n\n== WHAT THE SHARED BASE MUST RESPECT ==\nThe BASE the table shares -- grains, sauces, stocks, fats, vegetables,\neverything that goes in every box of a meal -- follows the STRICTEST line\ndeclared at this table. The next sentence is about that SHARED BASE, not\nabout one person:\nThis student is VEGAN: no meat, no poultry, no fish, no seafood, no eggs, no dairy and no honey — ever. This holds for stocks, sauces, fats and garnishes too — fish sauce, anchovy in a dressing, gelatine in a dessert, lard in a pastry and chicken stock in a \"vegetable\" soup all break it. If a dish only works with one of these, choose a different dish rather than a version that omits it.\n\n== ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) ==\nAdd a \"group\" key to EVERY ingredient object you write, in dishes AND in\npreparations. Not some of them: every single one. Count them before you answer.\nIts value is ONE of these words, exactly as written, or null:\n  lean_protein fatty_fish white_fish shellfish poultry red_meat eggs legumes\n  tofu_tempeh dairy_yogurt dairy_cheese whole_grain refined_grain starchy_veg\n  cruciferous_veg leafy_greens non_starchy_veg berries citrus other_fruit\n  nuts_seeds olive_oil other_added_fat sauce_dressing sugar_sweets fried_food\n  alcohol sweetened_beverage water coffee_tea\n\nSay what the food IS, not what it sounds like. Butter beans are legumes, not\na dairy fat. A vegan sausage is tofu_tempeh, not red_meat. Oat milk is a\nwhole_grain drink, not dairy_yogurt.\n\nIf a food genuinely fits none of them, write null. Do NOT guess a near-miss:\na wrong group is worse than no group, because it is trusted.\nMax are not bound by that line: they still eat\nmeat, poultry and fish this week, in normal amounts. Do NOT drop the\nanimal protein from the plan and do NOT replace it for everyone -- that\nis the single most common way to get this wrong, and it silently makes\nthe whole table follow one person's line.\nThe one component that line refuses is served in a DISH OF THEIR OWN,\ncooked apart, with its own recipe and its own \"for_member_id\" -- never a\nportion_note, never a second helping written into the shared dish. The\nshared dish stays exactly as the line above requires, and everyone eats\nit; the people that line does NOT bind get that extra dish on top. When\nnobody at this table is bound differently, there is no extra dish.\nThis is the line of: Lea. Never write it as a reason in\nanything read at the table.\nMax eat a dish of their OWN at some meals\n(see A DISH OF THEIR OWN): that dish is not bound by the sentence above,\nand may use what the shared base leaves out.\nLea eat none of those own dishes: a preparation that\nbreaks the line above is not for them, and that is on purpose.\n\n== WHAT A \"why\" IS ALLOWED TO SAY ==\nEvery dish's \"why\" is shown under that dish to the WHOLE household. It\nsays what the FOOD is: warm, quick, cheap, in season, it reheats, it uses\nup what is already there. That is all it ever says.\nIt NEVER says whose diet, whose allergy, whose medical list or whose house\nrule made you pick it. Not the rule, not the family word for it, not the\nphrase \"one of the foods on your medical list\" -- that phrase exists so you\ncan avoid naming a food to the STUDENT, and it is not a sentence to put on\nthe table either.\nAnd you do not know whose rule it is beyond what is written above. On the\nplan this instruction was written for, three dishes explained that a meal\navoided a food \"for\" a person who had no such constraint; the one person\nat that table who did have it was somebody else. A rule pinned on the wrong\nperson is worse than a rule not mentioned: it is read out, it is wrong, and\nnobody in the room can correct it.\nIf a \"why\" you wrote still names a rule, that dish MUST carry\n\"why_rule_of\" with the exact member_id of the person whose rule it is,\nfrom the list in the schema. A rule named at this table without that key\nis a rule nobody can check.\n\n-- WHEN TWO OF THE LINES ABOVE WANT DIFFERENT THINGS --\nThey will. This order decides, and nothing in this message outranks it.\n1. Every hard constraint and every declared diet in this message, WHEREVER\n   it sits. They are NOT all at the top: the allergies and the medical\n   lines are near the beginning, and the blocks headed \"WHAT THE SHARED\n   BASE MUST RESPECT\", \"HOUSE RULES\" and \"THE SAME KITCHEN, TWO DISHES\"\n   are further down, between that beginning and this line. All of them are\n   absolute. No craving, no coach line, no budget and no cooking time ever\n   touches them, and \"a small amount\" is not an exception.\n2. This coach's method and red lines.\n3. What this kitchen and this week can ACTUALLY do — the cooking days, the\n   equipment they do not have, the minutes, the money. A plan they cannot\n   execute is not a smaller plan, it is no plan. When the method asks for a\n   gesture this kitchen cannot make, keep the method's INTENT and change the\n   gesture, and say so.\n4. What the people at this table wrote themselves.\n5. What they feel like eating this time, what came up in conversation, and\n   the season. These RANK your choices among the dishes 1 to 4 already\n   allow. They never veto, and they never override.\n\nAND WHEN TWO MOUTHS AT THIS TABLE WANT OPPOSITE THINGS:\nThe same order decides, mouth by mouth. Never average two mouths, and never\nsettle it by whose name came first or by whose plan this is.\n- A rank 1 line of ANY mouth beats a rank 2 to 5 line of EVERY other mouth,\n  including the person this plan was asked by. Nobody at this table\n  outranks anybody else's allergy, medical line or declared diet.\n- Two rank 1 lines never cancel each other. Compose the shared dish so that\n  BOTH hold. If no single dish can hold both, the shared dish follows the\n  STRICTER line, and a second dish exists only where the blocks above\n  already allow one. Serving a forbidden food in a smaller amount is not a\n  way of holding both.\n- Below rank 1, how much of the shared dish goes on one plate is not an\n  arbitration at all. It lives in \"member_portions\", one entry per person,\n  and it never changes what the shared dish IS.\n\nAND YOU DECIDE IT WITHOUT SAYING WHO LOST:\nWhen something lower cannot be honoured because something higher forbids\nit, compose the nearest dish the higher rule DOES allow. Never drop the\nmeal, and never honour it quietly by halves.\nSay what you did in that dish's \"why\" as a fact about the FOOD, never as a\nfact about a person: not whose diet, whose allergy, whose medical list or\nwhose house rule decided it, and not whose wish gave way. \"This one is\ndairy-free\" is a fact about the dish; naming the person it is dairy-free\nFOR is a fact about them, and it is read out loud at this table.\n\nTHE LAST WORD, AND IT IS THE FIRST RULE: an allergy, a medical line or a\ndeclared diet at this table is never traded against anything else in this\nmessage. Everything above is a ranking; that one is a floor.\n\nCONTENT_LANGUAGE:\nWrite the human-readable TEXT of your JSON in French (fr-FR).\nThis applies to these fields and to nothing else: dishes[].name, dishes[].title, dishes[].method, dishes[].why, dishes[].ingredients[].term, dishes[].ingredients[].quantity, preparations[].title, preparations[].method, preparations[].ingredients[].term, preparations[].ingredients[].quantity, cooking_sessions[].run_through, explanation[].\nNumbers and unit symbols are unchanged: \"400 g\", \"2\", \"1.2 kg\" (R4).\nThese are MACHINE TOKENS and stay exactly as specified above — never\ntranslate, never localize, never accent them (R1): slot, day, cook_on, aisle, servings, servings_made, state, amount, unit, honours_belief_keys[], preparations[].id (ASCII snake_case, English words only), dishes[].uses[].preparation_id (must match preparations[].id exactly), dishes[].uses[].kept (one of: fridge, freezer), dishes[].same_day.kind (one of: none, reheat_only, assemble, cook_fresh), dishes[].boxes[].id (ASCII snake_case, English words only), dishes[].ingredients[].ref (an id from the food list, never translated), preparations[].ingredients[].ref (an id from the food list, never translated), dishes[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only), preparations[].components[].id / .role / .part_of and ingredients[].part (ASCII snake_case, English words only).\nJSON keys are never translated. Your output is still a single JSON object\nand nothing else: no prose outside it, no markdown fences.",
+    "premier_jet": "{\"dishes\":[{\"name\":\"Bol de lentilles aux poivrons\",\"title\":\"Lentilles, couscous complet, edamame, oignon et poivron\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null}],\"method\":\"Réchauffer la portion de lentilles, couscous complet et légumes, puis la servir bien chaude.\",\"why\":\"Un bol chaud, consistant et coloré qui se réchauffe rapidement.\",\"density_check\":117,\"uses\":[{\"preparation_id\":\"prep_lentil_couscous\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Pâtes à la dinde rôtie\",\"title\":\"Dinde, pâtes blanches, tomate et huile d'olive\",\"slot\":\"dinner\",\"day\":\"tue\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"pâtes blanches\",\"ref\":\"white_pasta\",\"quantity\":\"100 g de pâtes blanches sèches\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"refined_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"2.5 tbsp d'huile d'olive\",\"amount\":2.5,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Cuire les pâtes blanches, réchauffer la dinde rôtie et les légumes, puis ajouter la tomate et l'huile d'olive au moment de servir.\",\"why\":\"Les pâtes et la dinde forment un dîner chaud et rassasiant avec peu de gestes.\",\"density_check\":154.5,\"uses\":[{\"preparation_id\":\"prep_turkey_peppers\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Tartine de tofu doré\",\"title\":\"Tofu, pain complet, tomate et huile d'olive\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"tofu\",\"ref\":\"tofu\",\"quantity\":\"150 g de tofu\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"tofu_tempeh\"},{\"term\":\"pain complet\",\"ref\":\"wholemeal_bread\",\"quantity\":\"1 unité de pain complet\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tsp d'huile d'olive\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Dorer le tofu dans l'huile d'olive, griller le pain complet et servir avec la tomate.\",\"why\":\"Le tofu doré donne un petit-déjeuner chaud qui reste simple et nourrissant.\",\"density_check\":140.6,\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":10},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Tartines de dinde et tomate\",\"title\":\"Dinde, pain complet, tomate et huile d'olive\",\"slot\":\"breakfast\",\"day\":\"wed\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"pain complet\",\"ref\":\"wholemeal_bread\",\"quantity\":\"3 unités de pain complet\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Assembler le pain complet avec la dinde rôtie, la tomate et l'huile d'olive.\",\"why\":\"Une tartine salée prête en quelques minutes grâce à la dinde déjà rôtie.\",\"density_check\":160.7,\"uses\":[{\"preparation_id\":\"prep_turkey_peppers\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Assiette de tofu au sésame\",\"title\":\"Tofu, légumes, pita complète, tomate et tahini\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"pita complète\",\"ref\":\"pita_wholemeal\",\"quantity\":\"1 unité de pita complète\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"tahini\",\"ref\":\"tahini\",\"quantity\":\"1 tbsp de tahini\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"nuts_seeds\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Assembler la portion de tofu et de légumes avec la pita, la tomate et le tahini.\",\"why\":\"Une assiette dense en saveurs, avec des légumes de saison et une sauce au sésame.\",\"density_check\":106.1,\"uses\":[{\"preparation_id\":\"prep_tofu_vegetables\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Pitas au jambon et tahini\",\"title\":\"Jambon, pitas complètes, tomate, laitue, tahini et huile d'olive\",\"slot\":\"lunch\",\"day\":\"wed\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"jambon\",\"ref\":\"ham\",\"quantity\":\"5 unités de jambon\",\"amount\":5,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"red_meat\"},{\"term\":\"pita complète\",\"ref\":\"pita_wholemeal\",\"quantity\":\"2 unités de pita complète\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"laitue\",\"ref\":\"lettuce\",\"quantity\":\"100 g de laitue crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"leafy_greens\"},{\"term\":\"tahini\",\"ref\":\"tahini\",\"quantity\":\"1 tbsp de tahini\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"sauce\",\"group\":\"nuts_seeds\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"2 tbsp d'huile d'olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"sauce\",\"role\":\"sauce\",\"part_of\":\"main\"},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Garnir les pitas complètes avec le jambon, la tomate et la laitue, puis ajouter le tahini et l'huile d'olive.\",\"why\":\"Des pitas fraîches et croquantes qui changent du repas chaud de la veille.\",\"density_check\":178.2,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Tofu sur tartine\",\"title\":\"Tofu, légumes et pain complet\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"pain complet\",\"ref\":\"wholemeal_bread\",\"quantity\":\"1 unité de pain complet\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null}],\"method\":\"Réchauffer la portion de tofu et de légumes, puis la servir sur le pain complet.\",\"why\":\"Une tartine chaude et rapide qui utilise les légumes rôtis sans alourdir la soirée.\",\"density_check\":101.9,\"uses\":[{\"preparation_id\":\"prep_tofu_vegetables\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Porc et pommes de terre rôtis\",\"title\":\"Porc, pomme de terre, carotte, oignon et huile d'olive\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"pomme de terre\",\"ref\":\"potato\",\"quantity\":\"150 g de pomme de terre crue\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1.1 tbsp d'huile d'olive\",\"amount\":1.1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Rôtir la pomme de terre avec l'huile d'olive, puis réchauffer le porc et ses légumes avant de servir.\",\"why\":\"Un dîner de porc et de pomme de terre qui profite du four déjà utilisé pour la préparation.\",\"density_check\":148,\"uses\":[{\"preparation_id\":\"prep_pork_roast\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Crème soja-tofu cacahuète\",\"title\":\"Yaourt de soja, tofu, boisson soja et cacahuètes\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"yaourt de soja\",\"ref\":\"soy_yogurt\",\"quantity\":\"180 g de yaourt de soja\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":null},{\"term\":\"tofu\",\"ref\":\"tofu\",\"quantity\":\"130 g de tofu\",\"amount\":130,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"tofu_tempeh\"},{\"term\":\"boisson soja\",\"ref\":\"soy_milk\",\"quantity\":\"80 ml de boisson soja\",\"amount\":80,\"unit\":\"ml\",\"state\":\"raw\",\"part\":\"main\",\"group\":null},{\"term\":\"cacahuètes\",\"ref\":\"peanuts\",\"quantity\":\"15 g de cacahuètes\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"nuts_seeds\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Mixer le yaourt de soja, le tofu et la boisson soja, puis parsemer de cacahuètes.\",\"why\":\"Une crème froide et rapide, avec une texture onctueuse et une garniture croquante.\",\"density_check\":104.8,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Tartines de jambon tomate\",\"title\":\"Jambon, pain complet, tomate et huile d'olive\",\"slot\":\"breakfast\",\"day\":\"thu\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"jambon\",\"ref\":\"ham\",\"quantity\":\"5 unités de jambon\",\"amount\":5,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"red_meat\"},{\"term\":\"pain complet\",\"ref\":\"wholemeal_bread\",\"quantity\":\"2 unités de pain complet\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Assembler le pain complet avec le jambon, la tomate et l'huile d'olive.\",\"why\":\"Un petit-déjeuner salé, frais et immédiatement prêt à manger.\",\"density_check\":164.1,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Couscous végétal aux lentilles\",\"title\":\"Lentilles, couscous complet, edamame, oignon et poivron\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null}],\"method\":\"Réchauffer la portion de lentilles, couscous complet et légumes, puis la servir bien chaude.\",\"why\":\"Un déjeuner complet aux couleurs de septembre qui demande seulement un réchauffage.\",\"density_check\":117,\"uses\":[{\"preparation_id\":\"prep_lentil_couscous\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Couscous au jambon\",\"title\":\"Jambon, couscous complet, tomate, tahini et huile d'olive\",\"slot\":\"lunch\",\"day\":\"thu\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"jambon\",\"ref\":\"ham\",\"quantity\":\"5 unités de jambon\",\"amount\":5,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"red_meat\"},{\"term\":\"couscous complet\",\"ref\":\"couscous_wholemeal\",\"quantity\":\"60 g de couscous complet sec\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"tomate\",\"ref\":\"tomato\",\"quantity\":\"100 g de tomate crue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"non_starchy_veg\"},{\"term\":\"tahini\",\"ref\":\"tahini\",\"quantity\":\"1 tbsp de tahini\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"sauce\",\"group\":\"nuts_seeds\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"2 tbsp d'huile d'olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"sauce\",\"role\":\"sauce\",\"part_of\":\"main\"},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Préparer le couscous complet, puis l'assembler avec le jambon, la tomate, le tahini et l'huile d'olive.\",\"why\":\"Un déjeuner rapide qui apporte une texture différente avec le couscous et le tahini.\",\"density_check\":175.4,\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Tacos de tofu aux légumes\",\"title\":\"Tofu, légumes, tortilla de maïs et tahini\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"tortilla de maïs\",\"ref\":\"corn_tortilla_wrap_be\",\"quantity\":\"1 unité de tortilla de maïs\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"refined_grain\"},{\"term\":\"tahini\",\"ref\":\"tahini\",\"quantity\":\"1 tsp de tahini\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\",\"part\":\"sauce\",\"group\":\"nuts_seeds\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"sauce\",\"role\":\"sauce\",\"part_of\":\"main\"}],\"method\":\"Réchauffer le tofu et les légumes, garnir la tortilla de maïs et ajouter le tahini.\",\"why\":\"Des tacos rapides et colorés qui donnent une nouvelle forme aux légumes préparés.\",\"density_check\":106.5,\"uses\":[{\"preparation_id\":\"prep_tofu_vegetables\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]},{\"name\":\"Porc au couscous complet\",\"title\":\"Porc, couscous complet, carotte, oignon et huile d'olive\",\"slot\":\"dinner\",\"day\":\"thu\",\"for_member_id\":\"2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4\",\"ingredients\":[{\"term\":\"couscous complet\",\"ref\":\"couscous_wholemeal\",\"quantity\":\"60 g de couscous complet sec\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"separable_side\",\"group\":\"whole_grain\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"separable_side\",\"role\":\"separable_side\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Préparer le couscous complet, puis réchauffer le porc et ses légumes avec l'huile d'olive avant de servir.\",\"why\":\"Le couscous change la texture du dîner tout en réutilisant le porc rôti.\",\"density_check\":159.4,\"uses\":[{\"preparation_id\":\"prep_pork_roast\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\"]}],\"preparations\":[{\"id\":\"prep_lentil_couscous\",\"title\":\"Lentilles, couscous complet et légumes\",\"servings_made\":2,\"ingredients\":[{\"term\":\"lentilles sèches\",\"ref\":\"lentils_dry\",\"quantity\":\"120 g de lentilles sèches\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"legumes\"},{\"term\":\"couscous complet\",\"ref\":\"couscous_wholemeal\",\"quantity\":\"100 g de couscous complet sec\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"whole_grain\"},{\"term\":\"edamame\",\"ref\":\"edamame\",\"quantity\":\"200 g d'edamame\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"legumes\"},{\"term\":\"oignon\",\"ref\":\"onion\",\"quantity\":\"100 g d'oignon cru\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"poivron\",\"ref\":\"bell_pepper\",\"quantity\":\"200 g de poivron cru\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"ail\",\"ref\":\"garlic\",\"quantity\":\"5 g d'ail cru\",\"amount\":5,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Cuire les lentilles et le couscous complet, puis incorporer l'edamame. Faire revenir l'oignon, le poivron et l'ail dans l'huile d'olive, mélanger le tout, refroidir et répartir.\",\"active_minutes\":20,\"total_minutes\":35,\"cook_on\":\"tue\"},{\"id\":\"prep_turkey_peppers\",\"title\":\"Dinde rôtie aux poivrons\",\"servings_made\":2,\"ingredients\":[{\"term\":\"blanc de dinde\",\"ref\":\"turkey_breast\",\"quantity\":\"220 g de blanc de dinde cru\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"poultry\"},{\"term\":\"oignon\",\"ref\":\"onion\",\"quantity\":\"100 g d'oignon cru\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"poivron\",\"ref\":\"bell_pepper\",\"quantity\":\"150 g de poivron cru\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Rôtir le blanc de dinde, l'oignon et le poivron avec l'huile d'olive, puis refroidir et répartir.\",\"active_minutes\":10,\"total_minutes\":30,\"cook_on\":\"tue\"},{\"id\":\"prep_tofu_vegetables\",\"title\":\"Tofu rôti aux légumes\",\"servings_made\":3,\"ingredients\":[{\"term\":\"tofu\",\"ref\":\"tofu\",\"quantity\":\"500 g de tofu\",\"amount\":500,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"tofu_tempeh\"},{\"term\":\"brocoli\",\"ref\":\"broccoli\",\"quantity\":\"300 g de brocoli cru\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"cruciferous_veg\"},{\"term\":\"poivron\",\"ref\":\"bell_pepper\",\"quantity\":\"300 g de poivron cru\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"champignons de Paris\",\"ref\":\"button_mushroom_cultivated_mushroom\",\"quantity\":\"300 g de champignons de Paris crus\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"oignon\",\"ref\":\"onion\",\"quantity\":\"220 g d'oignon cru\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1.5 tbsp d'huile d'olive\",\"amount\":1.5,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Faire rôtir le tofu avec le brocoli, le poivron, les champignons et l'oignon dans l'huile d'olive, puis refroidir et répartir.\",\"active_minutes\":20,\"total_minutes\":30,\"cook_on\":\"wed\"},{\"id\":\"prep_pork_roast\",\"title\":\"Porc rôti aux carottes et oignons\",\"servings_made\":2,\"ingredients\":[{\"term\":\"filet de porc\",\"ref\":\"pork_loin\",\"quantity\":\"400 g de filet de porc cru\",\"amount\":400,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"red_meat\"},{\"term\":\"carotte\",\"ref\":\"carrot\",\"quantity\":\"140 g de carotte crue\",\"amount\":140,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"oignon\",\"ref\":\"onion\",\"quantity\":\"100 g d'oignon cru\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"part\":\"main\",\"group\":\"non_starchy_veg\"},{\"term\":\"huile d'olive\",\"ref\":\"olive_oil\",\"quantity\":\"1 tbsp d'huile d'olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"part\":\"garnish_fat\",\"group\":\"olive_oil\"}],\"components\":[{\"id\":\"main\",\"role\":\"main\",\"part_of\":null},{\"id\":\"garnish_fat\",\"role\":\"garnish_fat\",\"part_of\":\"main\"}],\"method\":\"Rôtir le filet de porc avec la carotte, l'oignon et l'huile d'olive, puis refroidir et répartir.\",\"active_minutes\":10,\"total_minutes\":35,\"cook_on\":\"wed\"}],\"cooking_sessions\":[{\"day\":\"tue\",\"preparation_ids\":[\"prep_lentil_couscous\",\"prep_turkey_peppers\"],\"total_minutes\":40,\"run_through\":\"Commencer par cuire les lentilles et le couscous complet. Pendant leur cuisson, préparer la dinde, l'oignon et le poivron, puis rôtir la dinde. Mélanger les lentilles avec les légumes, laisser refroidir les deux préparations et les répartir au réfrigérateur.\"},{\"day\":\"wed\",\"preparation_ids\":[\"prep_tofu_vegetables\",\"prep_pork_roast\"],\"total_minutes\":40,\"run_through\":\"Préparer le tofu, le brocoli, le poivron, les champignons et l'oignon pendant que le filet de porc, la carotte et l'oignon rôtissent. Cuire les légumes et le tofu dans l'huile d'olive, laisser refroidir les deux préparations, puis les répartir au réfrigérateur.\"}],\"explanation\":[\"J'ai gardé une base commune végétale et prévu des assiettes individuelles distinctes pour conserver des repas complets et variés à la même table.\"]}",
+    "reparations": [],
+    "prompts_de_reparation": [],
+    "echanges_resume": [
+      {
+        "source": "generate-household-meal-v1",
+        "status": "attempt_start",
+        "model": "gpt-5.6-luna",
+        "user_message_len": 33657,
+        "output_text_len": 0,
+        "created_at": "2026-09-15T12:22:31.281504+00:00"
+      },
+      {
+        "source": "generate-household-meal-v1",
+        "status": "success",
+        "model": "gpt-5.6-luna",
+        "user_message_len": 0,
+        "output_text_len": 21752,
+        "created_at": "2026-09-15T12:24:13.856016+00:00"
+      }
+    ]
+  },
+  "journal": [
+    {
+      "tag": "keel.household_meal.cells",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "cells": 9,
+      "non_empty": 7,
+      "empty": 2,
+      "light": 0,
+      "light_mixed": 0,
+      "eaters_hist": {
+        "1": 0,
+        "2": 7,
+        "3": 0,
+        "4_plus": 0
+      },
+      "dedicated_cells": 7,
+      "dedicated_mouths": 7,
+      "dedicated_by_reason": {
+        "regime": 7,
+        "own_meal": 0
+      },
+      "one_eater_cells": 0,
+      "cook_day_cells": 0,
+      "spent_cells": 4,
+      "regime_by_cell": {
+        "vegan": 7
+      },
+      "dish_bearing_delta": 0,
+      "dish_bearing_only_cells": 0,
+      "dish_bearing_only_current": 0
+    },
+    {
+      "tag": "keel.household_meal.composition_catalog",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "household_id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lang": "fr",
+      "considered": 945,
+      "not_composable": 25,
+      "group_never_composed": 16,
+      "group_excluded": 480,
+      "term_excluded": 0,
+      "over_group_cap": 343,
+      "over_total_cap": 0,
+      "kept": 81,
+      "chars": 3754
+    },
+    {
+      "tag": "keel.household_meal.protein_brief",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "mouths": 2,
+      "named": 2,
+      "slots": 6,
+      "silent": {
+        "protected": 0,
+        "no_body": 0,
+        "coverage_unknown": 0,
+        "no_covered_slot": 0,
+        "spread_unknown": 0
+      }
+    },
+    {
+      "tag": "keel.household_meal.slot_contract_brief",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 14,
+      "silent": 0,
+      "truncated": 0,
+      "chars": 2779
+    },
+    {
+      "tag": "keel.household_meal.prompt_cost",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "intent": "prepare_next",
+      "user_chars_before": 29901,
+      "user_chars_after": 33657,
+      "added_chars": 3756,
+      "added_pct": 12.6,
+      "catalog_chars": 3754,
+      "catalog_entries": 81,
+      "catalog_anchor": "anchored"
+    },
+    {
+      "tag": "keel.household_meal.pre_repair_sizing",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "measured": 14,
+      "dishes": 14,
+      "repair_asks": 1,
+      "bites": 0,
+      "first_jet_defect_kinds": [
+        "sizing"
+      ]
+    },
+    {
+      "tag": "keel.household_meal.swap_presence",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "strictest": "vegan",
+      "bound_mouths": 1,
+      "free_mouths": 1,
+      "cells_checked": 5,
+      "cells_carrying": 5,
+      "cells_swap_absent": 0,
+      "flagrant": false,
+      "absent_cells": []
+    },
+    {
+      "tag": "keel.household_meal.unfed_seen",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "all_fed": true,
+      "missing": 0,
+      "site_calls_model": false
+    },
+    {
+      "tag": "keel.household_meal.meals_delivered",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "household_id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "mouths": 2,
+      "cook_day_cells_dropped": 0,
+      "expected": 14,
+      "fed": 14,
+      "missing": 0,
+      "missing_before": 0,
+      "held_off_regime": 0,
+      "held_off_exclusion": 0,
+      "not_named": 0,
+      "double": 0,
+      "no_dish": 0,
+      "cells_without_dish": 0,
+      "missing_rows": [],
+      "unplaced_dishes": 0,
+      "retry_on": {},
+      "restored": 0,
+      "restored_fallback": 0,
+      "rehomed": 0
+    },
+    {
+      "tag": "keel.household_meal.output_contract",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 60,
+      "ok": 60,
+      "convention": 0,
+      "dash_unreferenced": 0,
+      "ref_missing": 0,
+      "ref_refused": 0,
+      "quantity_missing": 0,
+      "defects": 0,
+      "named": [],
+      "named_truncated": 0
+    },
+    {
+      "tag": "keel.household_meal.proportion_adjust",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "path": "table",
+      "outcome": "not_found_within_limits",
+      "ms": 3,
+      "moves_paired": 0,
+      "moves_one_sided": 0,
+      "consumers_total": 14,
+      "consumers_off_before": 1,
+      "consumers_off_after": 1,
+      "consumers_closed": 0,
+      "consumers_degraded": 0,
+      "rejected_would_degrade": 0,
+      "measure_calls": 62,
+      "stopped": {
+        "closed": 8,
+        "floor": 0,
+        "ceiling": 0,
+        "no_improving_move": 0,
+        "would_degrade": 0,
+        "move_budget": 0,
+        "all_fixed": 0,
+        "unmeasurable": 0,
+        "no_consumer": 0,
+        "reverted_after_measure": 1
+      },
+      "reverted_after_measure": 1,
+      "units_total": 18,
+      "units_adjustable": 18,
+      "ingredients_adjustable": 33,
+      "fixed_by_reason": {
+        "caller_fixed": 10,
+        "condiment": 0,
+        "water": 0,
+        "unweighed": 0,
+        "unmeasurable": 0,
+        "no_yield": 0,
+        "unit_fixed": 0,
+        "component_locked": 17,
+        "no_component": 0
+      },
+      "rewritten": 0,
+      "prose_rewritten": 0,
+      "prose_stale": 0,
+      "unknown_lines": 0,
+      "regrammed": 0,
+      "density_checks_cleared": 0,
+      "missing_pots": 0,
+      "units_fixed_method": 0,
+      "lines_locked": {
+        "no_structured_amount": 0,
+        "counted_unit": 10,
+        "prose_not_numeric": 0,
+        "unresolved": 0
+      },
+      "structure": {
+        "units": 18,
+        "units_contracted": 11,
+        "units_conservative": {
+          "contract_absent": 0,
+          "line_without_part": 0,
+          "part_unknown": 0,
+          "duplicate_component": 0,
+          "role_unknown": 0,
+          "link_missing": 0,
+          "link_cycle": 0,
+          "component_without_line": 5
+        },
+        "components_free": 17,
+        "components_dependent": 13,
+        "bodies_movable": 17,
+        "bodies_locked": 5,
+        "lines_movable": 50,
+        "lines_locked": 10,
+        "demoted_dense_seasoning": 0
+      },
+      "bodies_total": 22,
+      "bodies_movable": 17,
+      "bodies_multi_line": 15
+    },
+    {
+      "tag": "keel.household_meal.density_repair_ask",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "dish": "Yaourt de soja, tofu, boisson soja et cacahuètes",
+      "direction": "densify",
+      "aim_per_100g": 111,
+      "fresh_reworkable": true,
+      "pots_total": 0,
+      "pots_reworkable": 0,
+      "stuck": false
+    },
+    {
+      "tag": "keel.household_meal.density_repair_ask_deferred",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "cells": [
+        "thu/breakfast"
+      ],
+      "site_calls_model": false
+    },
+    {
+      "tag": "keel.household_meal.shopping_seeded",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 25,
+      "synthesized": 25,
+      "needs_unbought": 0,
+      "aisle_other": 0,
+      "aisle_shelf_stable": 0
+    },
+    {
+      "tag": "keel.household_meal.quantity_rounding",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 60,
+      "quantified": 60,
+      "unquantified": 0,
+      "already_whole": 12,
+      "rounded": 48,
+      "spoon_to_ml": 16,
+      "piece_to_grams": 0,
+      "zero_unresolved": 0,
+      "unknown_unit": 0,
+      "regrammed": 48,
+      "pots_overdrawn": 0,
+      "pots_overdrawn_worst_per_mille": 0,
+      "pots_overdrawn_before": 0,
+      "pots_unmeasurable": 0,
+      "zeroed": []
+    },
+    {
+      "tag": "keel.household_meal.portion_boundary",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "boxes": 14,
+      "meals": 14,
+      "multi_box_meals": 0,
+      "tubs_not_judged": 0,
+      "judged": 14,
+      "already_in_bounds": 13,
+      "shaved": 1,
+      "raised": 0,
+      "grams_shaved": 7,
+      "grams_raised": 0,
+      "still_over_max": 0,
+      "still_under_min": 0,
+      "pot_headroom_blocked": 0
+    },
+    {
+      "tag": "keel.household_meal.final_sizing",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "measured": true,
+      "reason": "remeasured_after_apply",
+      "boxes": 14,
+      "meals": 14,
+      "multi_box_meals": 0,
+      "judged": 14,
+      "verdicts": {
+        "in_bounds": 14,
+        "over_max": 0,
+        "under_min": 0,
+        "unmeasurable": 0
+      },
+      "water": {
+        "absorbed": 1,
+        "kept": 3,
+        "discarded": 0,
+        "undetermined": 0
+      },
+      "tubs_not_judged": 0,
+      "out_of_bounds": [],
+      "pot_density_drifted": 0,
+      "pot_density_gone": 0,
+      "pot_density_unmeasurable": 0
+    },
+    {
+      "tag": "keel.household_meal.pot_reconcile",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "preparations": 4,
+      "measurable": true,
+      "pots": 0,
+      "removed": 0,
+      "kept": 4,
+      "unboxed_use": 0,
+      "unreadable": 0,
+      "unmeasurable": 0,
+      "grown": 1,
+      "fit_attempts": 16,
+      "overdrawn_before": 1,
+      "overdrawn_after": 0,
+      "unreadable_drawn": 0,
+      "worst_shortfall_g": 0,
+      "sessions_emptied": 0,
+      "grams_intended": 0,
+      "grams_dropped": -3,
+      "ready_before": 4082,
+      "ready_after": 4085,
+      "drawn_final": 4079,
+      "lines_scaled": 1,
+      "lines_untouched": 3,
+      "reste": 6,
+      "per_pot": [
+        {
+          "preparation_id": "prep_lentil_couscous",
+          "ready_before_g": 1170,
+          "drawn_g": 1169,
+          "ready_after_g": 1170,
+          "rest_g": 1,
+          "rest_reason": "shrink_tolerance",
+          "decision": "kept"
+        },
+        {
+          "preparation_id": "prep_turkey_peppers",
+          "ready_before_g": 424,
+          "drawn_g": 424,
+          "ready_after_g": 427,
+          "rest_g": 3,
+          "rest_reason": "rounding",
+          "decision": "grown"
+        },
+        {
+          "preparation_id": "prep_tofu_vegetables",
+          "ready_before_g": 1658,
+          "drawn_g": 1657,
+          "ready_after_g": 1658,
+          "rest_g": 1,
+          "rest_reason": "shrink_tolerance",
+          "decision": "kept"
+        },
+        {
+          "preparation_id": "prep_pork_roast",
+          "ready_before_g": 830,
+          "drawn_g": 829,
+          "ready_after_g": 830,
+          "rest_g": 1,
+          "rest_reason": "shrink_tolerance",
+          "decision": "kept"
+        }
+      ]
+    },
+    {
+      "tag": "keel.household_meal.shopping_rebuild",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 25,
+      "requantified": 8,
+      "unchanged": 17,
+      "unquantified": 0,
+      "dropped": 0,
+      "unattributed": 0,
+      "not_purchasable": 0,
+      "needs_unbought": 0,
+      "merged": 0,
+      "model_omitted": 0,
+      "synthesized": 0,
+      "synthesized_unquantified": 0,
+      "aisle_other": 0,
+      "aisle_shelf_stable": 0,
+      "pantry_lines": 0,
+      "pantry_deducted": 0,
+      "pantry_covered": 0,
+      "pantry_unknown": 0,
+      "unbought_terms": [],
+      "omitted_terms": [],
+      "pantry_check_terms": [],
+      "pantryCoveredG": {}
+    },
+    {
+      "tag": "keel.household_meal.shopping_redated",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "synthesized": 0,
+      "lines": 25,
+      "still_undated": 0,
+      "days_before": [
+        "2026-09-15"
+      ],
+      "days_after": [
+        "2026-09-15"
+      ],
+      "new_days": [],
+      "split_needs": 0,
+      "extra_lines": 0,
+      "unsplittable": 0,
+      "without_need": 0,
+      "prose_recomposed": false
+    },
+    {
+      "tag": "keel.household_meal.quantity_final",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "lines": 60,
+      "stale_before": 44,
+      "rewritten": 44,
+      "bare": 16,
+      "historic": 0,
+      "absent": 0,
+      "counted_fractional": 0
+    },
+    {
+      "tag": "keel.household_meal.final_gate",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "ok": true,
+      "refusals": 2,
+      "blocking": 0,
+      "causes": [
+        "cell_bounds_off"
+      ],
+      "counters": {
+        "checked": {
+          "uses": 9,
+          "box_items": 48,
+          "session_ids": 4,
+          "cooked_pairs": 9,
+          "cells": 7,
+          "dedicated_cells_checked": 14,
+          "dedicated_obligations": 7,
+          "mouth_cells": 14,
+          "shopping_lines": 25,
+          "perishable_lines": 15,
+          "keeping_unknown_lines": 0,
+          "ingredient_terms": 25,
+          "table_dishes": 0,
+          "boxed_dishes": 14,
+          "energy_mouths": 2,
+          "energy_unmeasured": 0,
+          "shopping_identities": 25,
+          "shopping_quantified": 25,
+          "shopping_unverified": 0,
+          "shopping_not_purchasable": 0,
+          "portion_cells": 14,
+          "measured_cells": 14,
+          "cell_energy_no_target": 0,
+          "measured_days": 6,
+          "protein_days": 6,
+          "protein_protected": 0,
+          "protein_unmeasured": 0
+        },
+        "refusals_by_cause": {
+          "uses_dangling": 0,
+          "box_item_dangling": 0,
+          "session_cites_unknown": 0,
+          "eaten_before_cooked": 0,
+          "eaten_too_late": 0,
+          "cook_day_unplaced": 0,
+          "preparation_without_session": 0,
+          "session_day_mismatch": 0,
+          "cell_without_dish": 0,
+          "mouth_unfed": 0,
+          "dedicated_dish_missing": 0,
+          "own_meal_dish_missing": 0,
+          "cell_two_table_dishes": 0,
+          "boxes_none_delivered": 0,
+          "box_missing": 0,
+          "ingredient_not_bought": 0,
+          "ingredient_bought_unused": 0,
+          "ingredient_short_bought": 0,
+          "shopping_undated": 0,
+          "unclassified_perishable": 0,
+          "perishable_bought_too_early": 0,
+          "table_exclusion_served": 0,
+          "member_exclusion_served": 0,
+          "title_promises_missing_preparation": 0,
+          "regime_forbidden_component": 0,
+          "house_rule_served": 0,
+          "mouth_energy_short": 0,
+          "cell_without_portion": 0,
+          "cell_energy_unmeasurable": 0,
+          "cell_energy_off": 0,
+          "cell_bounds_off": 2,
+          "day_energy_off": 0,
+          "protein_floor_short": 0
+        },
+        "repairs_by_kind": {
+          "drop_dangling_use": 0,
+          "drop_dangling_box_item": 0,
+          "drop_dangling_session_id": 0,
+          "strip_title_promise": 0
+        }
+      },
+      "delivery": "deliverable_with_gaps",
+      "unevaluated": [
+        "title_promises_missing_preparation"
+      ],
+      "incomplete": []
+    },
+    {
+      "tag": "keel.household_meal.plan_repair_pass",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "round": 0,
+      "stop": false,
+      "improvement_retries": true,
+      "defects": 3,
+      "repairable": 3,
+      "blocking": 0,
+      "by_kind": {
+        "sizing": 3
+      },
+      "by_source": {
+        "gate": 2,
+        "output_contract": 0,
+        "quantities": 0,
+        "upstream": 1
+      },
+      "call": false,
+      "reason": "no_blocking_defect",
+      "calls_made": 0,
+      "measured": {
+        "contracts": 14,
+        "measures": 2,
+        "unnumbered": 0
+      },
+      "budget": {
+        "repairs_allowed": 2,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_refused": {},
+        "charged": [],
+        "provider_attempts": 1,
+        "elapsed_ms": 102911,
+        "remaining_ms": 277089,
+        "usable_ms": 247089,
+        "reserve_ms": 30000,
+        "total_ms": 380000
+      }
+    },
+    {
+      "tag": "keel.household_meal.plan_repair_done",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "rounds": 1,
+      "calls_made": 0,
+      "defects_at_delivery": 3,
+      "repairable_at_delivery": 3,
+      "by_kind": {
+        "sizing": 3
+      },
+      "by_source": {
+        "gate": 2,
+        "output_contract": 0,
+        "quantities": 0,
+        "upstream": 1
+      },
+      "trace": [
+        {
+          "round": 0,
+          "defects": 3,
+          "by_kind": {
+            "sizing": 3
+          },
+          "by_source": {
+            "gate": 2,
+            "output_contract": 0,
+            "quantities": 0,
+            "upstream": 1
+          },
+          "call": false,
+          "reason": "no_blocking_defect"
+        }
+      ],
+      "delivery": "deliverable_with_gaps"
+    },
+    {
+      "tag": "keel.household_meal.output_lock_final",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "surfaces": {
+        "dish": 14,
+        "preparation": 4,
+        "cooking_session": 2,
+        "portion_note": 0,
+        "box_item": 48,
+        "shopping": 25,
+        "explanation": 1
+      },
+      "bites": 0
+    },
+    {
+      "tag": "keel.household_meal.wall",
+      "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "intent": "prepare_next",
+      "outcome": "written",
+      "wall_ms": 102926
+    }
+  ],
+  "ligne_ecrite": {
+    "id": "8873d3b6-d6f8-41dc-b995-5b898673137c",
+    "user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 2,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "tue",
+        "why": "Un bol chaud, consistant et coloré qui se réchauffe rapidement.",
+        "name": "Bol de lentilles aux poivrons",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentil_couscous"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_dinner_0_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": null,
+                "term": "Lentilles, couscous complet et légumes",
+                "grams": 546,
+                "ref_refused": false,
+                "preparation_id": "prep_lentil_couscous"
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Lentilles, couscous complet, edamame, oignon et poivron",
+        "method": "Réchauffer la portion de lentilles, couscous complet et légumes, puis la servir bien chaude.",
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "tue",
+        "why": "Les pâtes et la dinde forment un dîner chaud et rassasiant avec peu de gestes.",
+        "name": "Pâtes à la dinde rôtie",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_turkey_peppers"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_dinner_1_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 218,
+                "ref_refused": false,
+                "preparation_id": "prep_turkey_peppers"
+              },
+              {
+                "ref": "white_pasta",
+                "term": "pâtes blanches",
+                "grams": 287,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 111,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 41,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Dinde, pâtes blanches, tomate et huile d'olive",
+        "method": "Cuire les pâtes blanches, réchauffer la dinde rôtie et les légumes, puis ajouter la tomate et l'huile d'olive au moment de servir.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 15
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "white_pasta",
+            "part": "main",
+            "term": "pâtes blanches",
+            "unit": "g",
+            "group": "refined_grain",
+            "state": "raw",
+            "amount": 111,
+            "quantity": "111 g de pâtes blanches sèches",
+            "grams_raw": 111,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 111,
+            "quantity": "111 g de tomate crue",
+            "grams_raw": 111,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 41,
+            "quantity": "41 ml",
+            "grams_raw": 41,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Le tofu doré donne un petit-déjeuner chaud qui reste simple et nourrissant.",
+        "name": "Tartine de tofu doré",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_wed_breakfast_2_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": "tofu",
+                "term": "tofu",
+                "grams": 165,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 44,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 110,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 6,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Tofu, pain complet, tomate et huile d'olive",
+        "method": "Dorer le tofu dans l'huile d'olive, griller le pain complet et servir avec la tomate.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "tofu",
+            "part": "main",
+            "term": "tofu",
+            "unit": "g",
+            "group": "tofu_tempeh",
+            "state": "raw",
+            "amount": 165,
+            "quantity": "165 g de tofu",
+            "grams_raw": 165,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "separable_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 1,
+            "quantity": "1 unité de pain complet",
+            "grams_raw": 40,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 110,
+            "quantity": "110 g de tomate crue",
+            "grams_raw": 110,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 6,
+            "quantity": "6 ml",
+            "grams_raw": 6,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Une tartine salée prête en quelques minutes grâce à la dinde déjà rôtie.",
+        "name": "Tartines de dinde et tomate",
+        "slot": "breakfast",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_turkey_peppers"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_wed_breakfast_3_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 206,
+                "ref_refused": false,
+                "preparation_id": "prep_turkey_peppers"
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 125,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 104,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 16,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Dinde, pain complet, tomate et huile d'olive",
+        "method": "Assembler le pain complet avec la dinde rôtie, la tomate et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "main",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 3,
+            "quantity": "3 unités de pain complet",
+            "grams_raw": 120,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 104,
+            "quantity": "104 g de tomate crue",
+            "grams_raw": 104,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 16,
+            "quantity": "16 ml",
+            "grams_raw": 16,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Une assiette dense en saveurs, avec des légumes de saison et une sauce au sésame.",
+        "name": "Assiette de tofu au sésame",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_tofu_vegetables"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_wed_lunch_4_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": null,
+                "term": "Tofu rôti aux légumes",
+                "grams": 513,
+                "ref_refused": false,
+                "preparation_id": "prep_tofu_vegetables"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complète",
+                "grams": 60,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 101,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tahini",
+                "term": "tahini",
+                "grams": 15,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Tofu, légumes, pita complète, tomate et tahini",
+        "method": "Assembler la portion de tofu et de légumes avec la pita, la tomate et le tahini.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "separable_side",
+            "term": "pita complète",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 1,
+            "quantity": "1 unité de pita complète",
+            "grams_raw": 60,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 101,
+            "quantity": "101 g de tomate crue",
+            "grams_raw": 101,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tahini",
+            "part": "garnish_fat",
+            "term": "tahini",
+            "unit": "ml",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 15,
+            "quantity": "15 ml",
+            "grams_raw": 15,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Des pitas fraîches et croquantes qui changent du repas chaud de la veille.",
+        "name": "Pitas au jambon et tahini",
+        "slot": "lunch",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_wed_lunch_5_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": "ham",
+                "term": "jambon",
+                "grams": 190,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complète",
+                "grams": 152,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 126,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 126,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tahini",
+                "term": "tahini",
+                "grams": 19,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 38,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Jambon, pitas complètes, tomate, laitue, tahini et huile d'olive",
+        "method": "Garnir les pitas complètes avec le jambon, la tomate et la laitue, puis ajouter le tahini et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "ham",
+            "part": "main",
+            "term": "jambon",
+            "unit": "unit",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 6,
+            "quantity": "6 unités de jambon",
+            "grams_raw": 180,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "pita_wholemeal",
+            "part": "separable_side",
+            "term": "pita complète",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 3,
+            "quantity": "3 unités de pita complète",
+            "grams_raw": 180,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 126,
+            "quantity": "126 g de tomate crue",
+            "grams_raw": 126,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "separable_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": "leafy_greens",
+            "state": "raw",
+            "amount": 126,
+            "quantity": "126 g de laitue crue",
+            "grams_raw": 126,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tahini",
+            "part": "sauce",
+            "term": "tahini",
+            "unit": "ml",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 19,
+            "quantity": "19 ml",
+            "grams_raw": 19,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 38,
+            "quantity": "38 ml",
+            "grams_raw": 38,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Une tartine chaude et rapide qui utilise les légumes rôtis sans alourdir la soirée.",
+        "name": "Tofu sur tartine",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_tofu_vegetables"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_wed_dinner_6_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": null,
+                "term": "Tofu rôti aux légumes",
+                "grams": 582,
+                "ref_refused": false,
+                "preparation_id": "prep_tofu_vegetables"
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 46,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Tofu, légumes et pain complet",
+        "method": "Réchauffer la portion de tofu et de légumes, puis la servir sur le pain complet.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "wholemeal_bread",
+            "part": "separable_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 1,
+            "quantity": "1 unité de pain complet",
+            "grams_raw": 40,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "wed",
+        "why": "Un dîner de porc et de pomme de terre qui profite du four déjà utilisé pour la préparation.",
+        "name": "Porc et pommes de terre rôtis",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_pork_roast"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_wed_dinner_7_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Porc rôti aux carottes et oignons",
+                "grams": 439,
+                "ref_refused": false,
+                "preparation_id": "prep_pork_roast"
+              },
+              {
+                "ref": "potato",
+                "term": "pomme de terre",
+                "grams": 220,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 27,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Porc, pomme de terre, carotte, oignon et huile d'olive",
+        "method": "Rôtir la pomme de terre avec l'huile d'olive, puis réchauffer le porc et ses légumes avant de servir.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 15
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "potato",
+            "part": "separable_side",
+            "term": "pomme de terre",
+            "unit": "g",
+            "group": "starchy_veg",
+            "state": "raw",
+            "amount": 244,
+            "quantity": "244 g de pomme de terre crue",
+            "grams_raw": 244,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 27,
+            "quantity": "27 ml",
+            "grams_raw": 27,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Une crème froide et rapide, avec une texture onctueuse et une garniture croquante.",
+        "name": "Crème soja-tofu cacahuète",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_thu_breakfast_8_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": "soy_yogurt",
+                "term": "yaourt de soja",
+                "grams": 199,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tofu",
+                "term": "tofu",
+                "grams": 149,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "soy_milk",
+                "term": "boisson soja",
+                "grams": 92,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "peanuts",
+                "term": "cacahuètes",
+                "grams": 17,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Yaourt de soja, tofu, boisson soja et cacahuètes",
+        "method": "Mixer le yaourt de soja, le tofu et la boisson soja, puis parsemer de cacahuètes.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "soy_yogurt",
+            "part": "main",
+            "term": "yaourt de soja",
+            "unit": "g",
+            "group": "tofu_tempeh",
+            "state": "raw",
+            "amount": 206,
+            "quantity": "206 g de yaourt de soja",
+            "grams_raw": 206,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tofu",
+            "part": "main",
+            "term": "tofu",
+            "unit": "g",
+            "group": "tofu_tempeh",
+            "state": "raw",
+            "amount": 149,
+            "quantity": "149 g de tofu",
+            "grams_raw": 149,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "soy_milk",
+            "part": "main",
+            "term": "boisson soja",
+            "unit": "ml",
+            "group": "tofu_tempeh",
+            "state": "raw",
+            "amount": 92,
+            "quantity": "92 ml de boisson soja",
+            "grams_raw": 92,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "peanuts",
+            "part": "garnish_fat",
+            "term": "cacahuètes",
+            "unit": "g",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 17,
+            "quantity": "17 g de cacahuètes",
+            "grams_raw": 17,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Un petit-déjeuner salé, frais et immédiatement prêt à manger.",
+        "name": "Tartines de jambon tomate",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_thu_breakfast_9_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": "ham",
+                "term": "jambon",
+                "grams": 192,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 103,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 128,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 19,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Jambon, pain complet, tomate et huile d'olive",
+        "method": "Assembler le pain complet avec le jambon, la tomate et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "ham",
+            "part": "main",
+            "term": "jambon",
+            "unit": "unit",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 6,
+            "quantity": "6 unités de jambon",
+            "grams_raw": 180,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "separable_side",
+            "term": "pain complet",
+            "unit": "unit",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 3,
+            "quantity": "3 unités de pain complet",
+            "grams_raw": 120,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 128,
+            "quantity": "128 g de tomate crue",
+            "grams_raw": 128,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 19,
+            "quantity": "19 ml",
+            "grams_raw": 19,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Un déjeuner complet aux couleurs de septembre qui demande seulement un réchauffage.",
+        "name": "Couscous végétal aux lentilles",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_lentil_couscous"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_thu_lunch_10_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": null,
+                "term": "Lentilles, couscous complet et légumes",
+                "grams": 623,
+                "ref_refused": false,
+                "preparation_id": "prep_lentil_couscous"
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Lentilles, couscous complet, edamame, oignon et poivron",
+        "method": "Réchauffer la portion de lentilles, couscous complet et légumes, puis la servir bien chaude.",
+        "same_day": {
+          "kind": "reheat_only",
+          "minutes": 8
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Un déjeuner rapide qui apporte une texture différente avec le couscous et le tahini.",
+        "name": "Couscous au jambon",
+        "slot": "lunch",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_thu_lunch_11_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": "ham",
+                "term": "jambon",
+                "grams": 220,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "couscous_wholemeal",
+                "term": "couscous complet",
+                "grams": 229,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 147,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tahini",
+                "term": "tahini",
+                "grams": 22,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 44,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Jambon, couscous complet, tomate, tahini et huile d'olive",
+        "method": "Préparer le couscous complet, puis l'assembler avec le jambon, la tomate, le tahini et l'huile d'olive.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 8
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "ham",
+            "part": "main",
+            "term": "jambon",
+            "unit": "unit",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 7,
+            "quantity": "7 unités de jambon",
+            "grams_raw": 210,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "couscous_wholemeal",
+            "part": "separable_side",
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 88,
+            "quantity": "88 g de couscous complet sec",
+            "grams_raw": 88,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "separable_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 147,
+            "quantity": "147 g de tomate crue",
+            "grams_raw": 147,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tahini",
+            "part": "sauce",
+            "term": "tahini",
+            "unit": "ml",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 22,
+            "quantity": "22 ml",
+            "grams_raw": 22,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 44,
+            "quantity": "44 ml",
+            "grams_raw": 44,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Des tacos rapides et colorés qui donnent une nouvelle forme aux légumes préparés.",
+        "name": "Tacos de tofu aux légumes",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_tofu_vegetables"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_thu_dinner_12_d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "items": [
+              {
+                "ref": null,
+                "term": "Tofu rôti aux légumes",
+                "grams": 562,
+                "ref_refused": false,
+                "preparation_id": "prep_tofu_vegetables"
+              },
+              {
+                "ref": "corn_tortilla_wrap_be",
+                "term": "tortilla de maïs",
+                "grams": 33,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tahini",
+                "term": "tahini",
+                "grams": 6,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Tofu, légumes, tortilla de maïs et tahini",
+        "method": "Réchauffer le tofu et les légumes, garnir la tortilla de maïs et ajouter le tahini.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 5
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "sauce",
+            "role": "sauce",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "corn_tortilla_wrap_be",
+            "part": "separable_side",
+            "term": "tortilla de maïs",
+            "unit": "unit",
+            "group": "refined_grain",
+            "state": "raw",
+            "amount": 1,
+            "quantity": "1 unité de tortilla de maïs",
+            "grams_raw": 30,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tahini",
+            "part": "sauce",
+            "term": "tahini",
+            "unit": "ml",
+            "group": "nuts_seeds",
+            "state": "raw",
+            "amount": 6,
+            "quantity": "6 ml",
+            "grams_raw": 6,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      },
+      {
+        "day": "thu",
+        "why": "Le couscous change la texture du dîner tout en réutilisant le porc rôti.",
+        "name": "Porc au couscous complet",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_pork_roast"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_thu_dinner_13_2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Porc rôti aux carottes et oignons",
+                "grams": 390,
+                "ref_refused": false,
+                "preparation_id": "prep_pork_roast"
+              },
+              {
+                "ref": "couscous_wholemeal",
+                "term": "couscous complet",
+                "grams": 225,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 22,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Porc, couscous complet, carotte, oignon et huile d'olive",
+        "method": "Préparer le couscous complet, puis réchauffer le porc et ses légumes avec l'huile d'olive avant de servir.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 8
+        },
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "separable_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "couscous_wholemeal",
+            "part": "separable_side",
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 87,
+            "quantity": "87 g de couscous complet sec",
+            "grams_raw": 87,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 22,
+            "quantity": "22 ml",
+            "grams_raw": 22,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "ref": "lentils_dry",
+        "term": "lentilles sèches",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 135,
+        "buy_on": "2026-09-15",
+        "quantity": "135 g",
+        "food_group": "legumes",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "couscous_wholemeal",
+        "term": "couscous complet",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 288,
+        "buy_on": "2026-09-15",
+        "quantity": "288 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "edamame",
+        "term": "edamame",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 225,
+        "buy_on": "2026-09-15",
+        "quantity": "225 g",
+        "food_group": "legumes",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "onion",
+        "term": "oignon",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 618,
+        "buy_on": "2026-09-15",
+        "quantity": "618 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "bell_pepper",
+        "term": "poivron",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 710,
+        "buy_on": "2026-09-15",
+        "quantity": "710 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "garlic",
+        "term": "ail",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 6,
+        "buy_on": "2026-09-15",
+        "quantity": "6 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "olive_oil",
+        "term": "huile d'olive",
+        "unit": "ml",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 293,
+        "buy_on": "2026-09-15",
+        "quantity": "293 ml",
+        "food_group": "olive_oil",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "turkey_breast",
+        "term": "blanc de dinde",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 240,
+        "buy_on": "2026-09-15",
+        "quantity": "240 g",
+        "food_group": "lean_protein",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "tofu",
+        "term": "tofu",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 854,
+        "buy_on": "2026-09-15",
+        "quantity": "854 g",
+        "food_group": "tofu_tempeh",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "broccoli",
+        "term": "brocoli",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 325,
+        "buy_on": "2026-09-15",
+        "quantity": "325 g",
+        "food_group": "cruciferous_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "button_mushroom_cultivated_mushroom",
+        "term": "champignons de Paris",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 325,
+        "buy_on": "2026-09-15",
+        "quantity": "325 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "pork_loin",
+        "term": "filet de porc",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 615,
+        "buy_on": "2026-09-15",
+        "quantity": "615 g",
+        "food_group": "lean_protein",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "carrot",
+        "term": "carotte",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 215,
+        "buy_on": "2026-09-15",
+        "quantity": "215 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "white_pasta",
+        "term": "pâtes blanches",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 111,
+        "buy_on": "2026-09-15",
+        "quantity": "111 g",
+        "food_group": "refined_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "tomato",
+        "term": "tomate",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 827,
+        "buy_on": "2026-09-15",
+        "quantity": "827 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "wholemeal_bread",
+        "term": "pain complet",
+        "unit": "unit",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 8,
+        "buy_on": "2026-09-15",
+        "quantity": "8",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "pita_wholemeal",
+        "term": "pita complète",
+        "unit": "unit",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 4,
+        "buy_on": "2026-09-15",
+        "quantity": "4",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "tahini",
+        "term": "tahini",
+        "unit": "ml",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 62,
+        "buy_on": "2026-09-15",
+        "quantity": "62 ml",
+        "food_group": "nuts_seeds",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "ham",
+        "term": "jambon",
+        "unit": "unit",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 19,
+        "buy_on": "2026-09-15",
+        "quantity": "19",
+        "food_group": "lean_protein",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "lettuce",
+        "term": "laitue",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 126,
+        "buy_on": "2026-09-15",
+        "quantity": "126 g",
+        "food_group": "leafy_greens",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "potato",
+        "term": "pomme de terre",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 244,
+        "buy_on": "2026-09-15",
+        "quantity": "244 g",
+        "food_group": "starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "soy_yogurt",
+        "term": "yaourt de soja",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 206,
+        "buy_on": "2026-09-15",
+        "quantity": "206 g",
+        "food_group": "tofu_tempeh",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "soy_milk",
+        "term": "boisson soja",
+        "unit": "ml",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 92,
+        "buy_on": "2026-09-15",
+        "quantity": "92 ml",
+        "food_group": "tofu_tempeh",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "peanuts",
+        "term": "cacahuètes",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 17,
+        "buy_on": "2026-09-15",
+        "quantity": "17 g",
+        "food_group": "nuts_seeds",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "corn_tortilla_wrap_be",
+        "term": "tortilla de maïs",
+        "unit": "unit",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 1,
+        "buy_on": "2026-09-15",
+        "quantity": "1",
+        "food_group": "refined_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "muscle_gain",
+      "names": {
+        "kept": 14,
+        "dishes": 14,
+        "refused": 0,
+        "declared": 14
+      },
+      "intent": "prepare_next",
+      "issues": [
+        "shopping_waves: 1 (2026-09-15)",
+        "freeze_on_purchase: 0/25",
+        "raw_keeping_needs_later_shop: 0/4 preparations",
+        "waves_kept_for_freshness: 0/25",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "quantity_prose_stale:44",
+        "model_returned_no_box: 0/9 -- 9 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/9",
+        "portion_standard_recipe:2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "portion_standard_recipe:d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+      ],
+      "timing": {
+        "kind": "same_morning",
+        "reason": "starts_today",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 14,
+        "invalid": 0,
+        "declared": 14,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": "vegan",
+          "free_mouths": 1,
+          "absent_cells": [],
+          "bound_mouths": 1,
+          "cells_checked": 5,
+          "cells_carrying": 5,
+          "cells_swap_absent": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 9,
+          "names": 0,
+          "capped": 0,
+          "mouths": 2,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 9,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 7,
+          "preparations": 4,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "items_in_grams": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 14,
+          "mouths_double_model": 0,
+          "items_from_ingredient": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_session",
+          "unused": false,
+          "computed": "one_session",
+          "diverging": [
+            "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+          ],
+          "dish_bearing": [
+            "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+          ]
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 2
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 14,
+          "holders": 1,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-14",
+        "box_sizing": {
+          "boxes": 14,
+          "items": 48,
+          "share": {
+            "sized": 2,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 9,
+          "unmet": {
+            "both": 0,
+            "none": 5,
+            "pot_ceiling": 0,
+            "not_anchored": 0,
+            "tub_estimate": 0,
+            "factor_clamped": 1
+          },
+          "anchor": {
+            "clamped": 1,
+            "no_body": 0,
+            "anchored": 5,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_direction": 1,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 2,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 2,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 39,
+          "anchor_cap": {
+            "none": 5,
+            "density": 1,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 3,
+            "shopping": 8,
+            "regrammed": 11,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 4,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 0,
+            "unboxed_use": 0,
+            "lines_scaled": 8,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 0,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 1,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 14,
+          "quantity_final": {
+            "bare": 16,
+            "lines": 60,
+            "absent": 0,
+            "historic": 0,
+            "rewritten": 44,
+            "stale_before": 44,
+            "counted_fractional": 0
+          },
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 2
+          },
+          "pot_attribution": {
+            "ratio": 1,
+            "drawnGrams": 4079,
+            "potsUnreadable": 0,
+            "attributedGrams": 4084
+          },
+          "quantity_rounding": {
+            "lines": 60,
+            "zeroed": [],
+            "rounded": 48,
+            "regrammed": 48,
+            "quantified": 60,
+            "spoon_to_ml": 16,
+            "unknown_unit": 0,
+            "unquantified": 0,
+            "already_whole": 12,
+            "piece_to_grams": 0,
+            "pots_overdrawn": 0,
+            "zero_unresolved": 0,
+            "pots_unmeasurable": 0,
+            "pots_overdrawn_before": 0,
+            "pots_overdrawn_worst_per_mille": 0
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 1,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 2,
+          "ranks_without_object": 3
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 7,
+          "refused": 0,
+          "declared": 7,
+          "attributed": 7,
+          "refused_dropped": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 1,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 58,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 58,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "groups_conflicting": 5,
+          "silenced_homograph": 0
+        },
+        "member_count": 2,
+        "member_deltas": [
+          {
+            "grams": 300,
+            "moment": "cooking",
+            "channel": "more_of_the_same",
+            "food_ref": "white_rice",
+            "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4"
+          }
+        ],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "lids": {
+            "tub_of_one": 0,
+            "own_expected": 14,
+            "tub_expected": 0
+          },
+          "apply": {
+            "regrammed": 60,
+            "pots_scaled": 4,
+            "fresh_scaled": 39,
+            "own_authored": 14,
+            "recipe_shares": 0,
+            "tubs_authored": 0,
+            "boxes_authored": 14,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "recipe_shares_by": {},
+            "servings_rewritten": 0
+          },
+          "final": {
+            "boxes": 14,
+            "meals": 14,
+            "water": {
+              "kept": 3,
+              "absorbed": 1,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 14,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 14,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "multi_box_meals": 0,
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 0,
+            "composed": 3,
+            "declared": 0,
+            "without_target": 0
+          },
+          "dishes": 14,
+          "mouths": 2,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 0,
+            "no_target": 0
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 1,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 1,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 4,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 1,
+            "recipe_quantified": 4,
+            "residual_stuck_by": {
+              "empty_corridor": 0,
+              "nothing_rewritable": 0
+            },
+            "retry_skipped_small": 0,
+            "residual_recomposable": 1
+          },
+          "day_kcal": {
+            "rows": 6,
+            "over_5pct": 0,
+            "per_mouth": [
+              {
+                "n": 1,
+                "day": "thu",
+                "pct": 100,
+                "served": 2903,
+                "target": 2903,
+                "eater_bucket": "adult_gain"
+              },
+              {
+                "n": 2,
+                "day": "tue",
+                "pct": 100,
+                "served": 1016,
+                "target": 1016,
+                "eater_bucket": "adult_gain"
+              },
+              {
+                "n": 3,
+                "day": "wed",
+                "pct": 100,
+                "served": 2903,
+                "target": 2903,
+                "eater_bucket": "adult_gain"
+              },
+              {
+                "n": 1,
+                "day": "thu",
+                "pct": 100,
+                "served": 1826,
+                "target": 1826,
+                "eater_bucket": "adult_maintenance"
+              },
+              {
+                "n": 2,
+                "day": "tue",
+                "pct": 100,
+                "served": 639,
+                "target": 639,
+                "eater_bucket": "adult_maintenance"
+              },
+              {
+                "n": 3,
+                "day": "wed",
+                "pct": 100,
+                "served": 1826,
+                "target": 1826,
+                "eater_bucket": "adult_maintenance"
+              }
+            ],
+            "within_5pct": 6
+          },
+          "measured": 14,
+          "verdicts": {
+            "over_max": 1,
+            "in_bounds": 13,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "repair_needs": {
+            "by_reason": {
+              "none": 13,
+              "conflict": 0,
+              "over_max": 1,
+              "all_under_min": 0,
+              "partial_under_min": 0,
+              "minor_blocks_lighten": 0
+            },
+            "would_ask": 1,
+            "by_direction": {
+              "densify": 1,
+              "lighten": 0
+            },
+            "clamped_eaters": 1
+          },
+          "verification": {
+            "anchored": 5,
+            "pot_shrunk": 0,
+            "unmet_none": 5,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 1,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 8,
+            "shopping_unattributed": 0
+          },
+          "bounds_source": {
+            "age_known": 14,
+            "age_unknown": 0
+          },
+          "fixed_covered": 0,
+          "repair_effect": {
+            "ran": false,
+            "after": {
+              "over_max": 1,
+              "in_bounds": 13,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "before": {
+              "over_max": 1,
+              "in_bounds": 13,
+              "under_min": 0,
+              "unmeasurable": 0
+            }
+          },
+          "bounds_applied": false,
+          "eaters_by_dish": {
+            "dishes": 14,
+            "placed": 14,
+            "excluded": 7,
+            "fed_hist": {
+              "0": 0,
+              "1": 14,
+              "2": 0,
+              "3_plus": 0
+            },
+            "off_cell": 0,
+            "complements": 0,
+            "shared_fed_nobody": 0,
+            "dedicated_off_cell": 0
+          },
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 0,
+            "loose_ignored_kcal": 0
+          },
+          "served_over_max": 1,
+          "unmeasurable_by": {},
+          "dedicated_repair": {
+            "asked": 0,
+            "accepted": 0,
+            "rejected": {
+              "degraded": 0,
+              "unsolvable": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "bearer_missing": 0
+            },
+            "still_out": 1,
+            "complement": {
+              "solved": 0,
+              "moved_kcal": 0,
+              "clamped_max": 0,
+              "clamped_min": 0,
+              "unsolvable_by": {}
+            },
+            "missed_aim": 0,
+            "fill_absorbed": null,
+            "fill_unknowns": null,
+            "shopping_added": 0,
+            "skipped_budget": 0
+          },
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 14,
+          "rows": [],
+          "mouths": 2,
+          "missing": 0,
+          "rehomed": 0,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 14,
+          "measured": true,
+          "restored": 0,
+          "retry_on": {},
+          "restored_fallback": 0,
+          "cells_without_dish": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "pairs_from_stores": 0
+        },
+        "accountless_count": 1,
+        "restriction_count": 0,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 1,
+          "skipped_no_dedicated": 0
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 39,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 3 jours, à partir d'aujourd'hui.",
+          "Courses et cuisson dès le matin, pour être prêt à midi.",
+          "Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.",
+          "Une seule course, mardi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Les quantités sont faites pour 2 bouches.",
+          "La base du plat commun est végane : c'est la ligne de Lea, qui a sa boîte. Le reste de la table garde la sienne.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+      "validation": {
+        "state": "livrable_avec_ecarts",
+        "counts": {
+          "gaps": 2,
+          "not_run": 1,
+          "blocking": 0,
+          "incomplete": 0,
+          "not_applicable": 0
+        },
+        "repair": {
+          "rounds": 1,
+          "by_kind": {
+            "sizing": 3
+          },
+          "by_source": {
+            "gate": 2,
+            "upstream": 1,
+            "quantities": 0,
+            "output_contract": 0
+          },
+          "calls_made": 0,
+          "defects_at_delivery": 3
+        },
+        "defects": [
+          {
+            "day": "wed",
+            "dish": null,
+            "slot": "dinner",
+            "term": null,
+            "cause": "cell_bounds_off",
+            "blocking": false,
+            "severity": "count",
+            "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "number_protected": true
+          },
+          {
+            "day": "thu",
+            "dish": null,
+            "slot": "breakfast",
+            "term": null,
+            "cause": "cell_bounds_off",
+            "blocking": false,
+            "severity": "count",
+            "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+            "number_protected": true
+          }
+        ],
+        "not_run": [
+          "title_promises_missing_preparation"
+        ],
+        "version": 1,
+        "incomplete": [],
+        "not_applicable": []
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 1,
+        "lines": [
+          "J'ai gardé une base commune végétale et prévu des assiettes individuelles distinctes pour conserver des repas complets et variés à la même table."
+        ],
+        "refusal": null,
+        "declared": 1
+      },
+      "food_groups": {
+        "lines": 60,
+        "valid": 58,
+        "refused": 0,
+        "declared": 58,
+        "persisted": 60,
+        "conflicting": 5
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "gender.personal": 1,
+        "ageYears.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "gender.member_sheet": 1,
+        "activityAxes.personal": 1,
+        "ageYears.member_sheet": 1,
+        "appetite.member_sheet": 2,
+        "heightCm.member_sheet": 1,
+        "weightKg.member_sheet": 1,
+        "activityLevel.personal": 1,
+        "activityAxes.member_sheet": 1,
+        "activityLevel.member_sheet": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 247111,
+        "elapsed_ms": 102889,
+        "reserve_ms": 30000,
+        "remaining_ms": 277111,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 15.9,
+        "plausible": 20.88,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v33_the_recipe_writes_the_shopping_list+household.v34_one_card_per_person_the_engine_weighs",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "output_contract": {
+        "ok": 60,
+        "lines": 60,
+        "defects": 0,
+        "findings": [],
+        "convention": 0,
+        "ref_missing": 0,
+        "ref_refused": 0,
+        "quantity_missing": 0,
+        "dash_unreferenced": 0
+      },
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-15",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 2,
+        "master_member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "served_member_ids": [
+          "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+          "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67"
+        ],
+        "plan_owner_user_id": "04c4f745-2f29-4751-851f-405f044f5b19",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-09",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-15T12:24:14.040451+00:00",
+    "updated_at": "2026-09-15T12:24:14.040451+00:00",
+    "preparations": [
+      {
+        "id": "prep_lentil_couscous",
+        "title": "Lentilles, couscous complet et légumes",
+        "method": "Cuire les lentilles et le couscous complet, puis incorporer l'edamame. Faire revenir l'oignon, le poivron et l'ail dans l'huile d'olive, mélanger le tout, refroidir et répartir.",
+        "cook_on": "tue",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "lentils_dry",
+            "part": "main",
+            "term": "lentilles sèches",
+            "unit": "g",
+            "group": "legumes",
+            "state": "raw",
+            "amount": 135,
+            "quantity": "135 g de lentilles sèches",
+            "grams_raw": 135,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "couscous_wholemeal",
+            "part": "main",
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 113,
+            "quantity": "113 g de couscous complet sec",
+            "grams_raw": 113,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "edamame",
+            "part": "main",
+            "term": "edamame",
+            "unit": "g",
+            "group": "legumes",
+            "state": "raw",
+            "amount": 225,
+            "quantity": "225 g d'edamame",
+            "grams_raw": 225,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 113,
+            "quantity": "113 g d'oignon cru",
+            "grams_raw": 113,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "main",
+            "term": "poivron",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 225,
+            "quantity": "225 g de poivron cru",
+            "grams_raw": 225,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "garlic",
+            "part": "main",
+            "term": "ail",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 6,
+            "quantity": "6 g d'ail cru",
+            "grams_raw": 6,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 17,
+            "quantity": "17 ml",
+            "grams_raw": 17,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 20
+      },
+      {
+        "id": "prep_turkey_peppers",
+        "title": "Dinde rôtie aux poivrons",
+        "method": "Rôtir le blanc de dinde, l'oignon et le poivron avec l'huile d'olive, puis refroidir et répartir.",
+        "cook_on": "tue",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "turkey_breast",
+            "part": "main",
+            "term": "blanc de dinde",
+            "unit": "g",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 240,
+            "quantity": "240 g",
+            "grams_raw": null,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 110,
+            "quantity": "110 g",
+            "grams_raw": 110,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "main",
+            "term": "poivron",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 160,
+            "quantity": "160 g",
+            "grams_raw": 160,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 16,
+            "quantity": "16 ml",
+            "grams_raw": 16,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 30,
+        "active_minutes": 10
+      },
+      {
+        "id": "prep_tofu_vegetables",
+        "title": "Tofu rôti aux légumes",
+        "method": "Faire rôtir le tofu avec le brocoli, le poivron, les champignons et l'oignon dans l'huile d'olive, puis refroidir et répartir.",
+        "cook_on": "wed",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "tofu",
+            "part": "main",
+            "term": "tofu",
+            "unit": "g",
+            "group": "tofu_tempeh",
+            "state": "raw",
+            "amount": 540,
+            "quantity": "540 g",
+            "grams_raw": 540,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "broccoli",
+            "part": "main",
+            "term": "brocoli",
+            "unit": "g",
+            "group": "cruciferous_veg",
+            "state": "raw",
+            "amount": 325,
+            "quantity": "325 g",
+            "grams_raw": 325,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "main",
+            "term": "poivron",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 325,
+            "quantity": "325 g",
+            "grams_raw": 325,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "button_mushroom_cultivated_mushroom",
+            "part": "main",
+            "term": "champignons de Paris",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 325,
+            "quantity": "325 g",
+            "grams_raw": 325,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 240,
+            "quantity": "240 g",
+            "grams_raw": 240,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 24,
+            "quantity": "24 ml",
+            "grams_raw": 24,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 3,
+        "total_minutes": 30,
+        "active_minutes": 20
+      },
+      {
+        "id": "prep_pork_roast",
+        "title": "Porc rôti aux carottes et oignons",
+        "method": "Rôtir le filet de porc avec la carotte, l'oignon et l'huile d'olive, puis refroidir et répartir.",
+        "cook_on": "wed",
+        "components": [
+          {
+            "id": "main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "garnish_fat",
+            "role": "garnish_fat",
+            "part_of": "main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pork_loin",
+            "part": "main",
+            "term": "filet de porc",
+            "unit": "g",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 615,
+            "quantity": "615 g",
+            "grams_raw": 615,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "carrot",
+            "part": "main",
+            "term": "carotte",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 215,
+            "quantity": "215 g",
+            "grams_raw": 215,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "onion",
+            "part": "main",
+            "term": "oignon",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 155,
+            "quantity": "155 g",
+            "grams_raw": 155,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "garnish_fat",
+            "term": "huile d'olive",
+            "unit": "ml",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 23,
+            "quantity": "23 ml",
+            "grams_raw": 23,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 10
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "tue",
+        "run_through": "Commencer par cuire les lentilles et le couscous complet. Pendant leur cuisson, préparer la dinde, l'oignon et le poivron, puis rôtir la dinde. Mélanger les lentilles avec les légumes, laisser refroidir les deux préparations et les répartir au réfrigérateur.",
+        "total_minutes": 40,
+        "preparation_ids": [
+          "prep_lentil_couscous",
+          "prep_turkey_peppers"
+        ]
+      },
+      {
+        "day": "wed",
+        "run_through": "Préparer le tofu, le brocoli, le poivron, les champignons et l'oignon pendant que le filet de porc, la carotte et l'oignon rôtissent. Cuire les légumes et le tofu dans l'huile d'olive, laisser refroidir les deux préparations, puis les répartir au réfrigérateur.",
+        "total_minutes": 40,
+        "preparation_ids": [
+          "prep_tofu_vegetables",
+          "prep_pork_roast"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-15",
+    "duration_days": 3,
+    "retired_at": null,
+    "ends_on": "2026-09-17",
+    "household_id": "42833424-97ad-49f5-9e00-0b6078c8c479",
+    "member_portions": [
+      {
+        "member_id": "2bab6feb-f4c3-4cb5-94be-9a7bf9cd37d4",
+        "display_name": "Max",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      },
+      {
+        "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+        "display_name": "Lea",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 9114,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  }
+}

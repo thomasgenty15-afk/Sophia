@@ -1,0 +1,4355 @@
+[
+  {
+    "tir": "c30-01-p8",
+    "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+    "request_id": "0972d565-2b82-43e5-8900-506b7f131f95",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 422,
+    "duree_ms": 160552,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1,
+      "generate-household-meal-v1.final_repair:attempt_start": 2,
+      "generate-household-meal-v1.final_repair:success": 2,
+      "generate-household-meal-v1.final_repair_fill:attempt_start": 2,
+      "generate-household-meal-v1.final_repair_fill:success": 2
+    },
+    "appels_total": 10,
+    "reparations_archivees": 4,
+    "reparations_plan": 2,
+    "appels_succes": 5,
+    "auxiliaires": 2,
+    "etat_run": null,
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": null,
+    "non_executes_run": null,
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": [
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "wed",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "wed",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "thu",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "thu",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "2eb139c6-2095-4644-a4f9-f8bb324a14c3",
+        "day": "thu",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "wed",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "wed",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "thu",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "thu",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "e7f3c58b-2ab7-4ecf-a153-44223b0a8d89",
+        "day": "thu",
+        "slot": "dinner",
+        "cause": "no_dish"
+      }
+    ],
+    "bilan": null,
+    "cout": null,
+    "porte_journal": null,
+    "bouches": []
+  },
+  {
+    "tir": "c30-02-p9",
+    "titre": "QUATRE BOUCHES · présences variables · recettes partagées et variantes",
+    "request_id": "29d703b1-5ada-408d-8043-5167159e003e",
+    "bouches_n": 4,
+    "cases_attendues": 27,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 130769,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "protein_floor_short",
+      "protein_floor_short",
+      "protein_floor_short"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-15",
+        "slot": null,
+        "member_id": "8516d1ec-2e6c-4e6c-a0c0-ef83535e020d",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-16",
+        "slot": null,
+        "member_id": "8516d1ec-2e6c-4e6c-a0c0-ef83535e020d",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-17",
+        "slot": null,
+        "member_id": "8516d1ec-2e6c-4e6c-a0c0-ef83535e020d",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "27",
+      "cal_n": "27",
+      "compl_ok": "27",
+      "compl_n": "27",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"protein_floor_short\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 0,
+          "ko": 3,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "protéines",
+            "2026-09-15          35 %                62     59.6 g  ❌ SOUS LE PLANCHER COUVERT (−4 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-16         100 %               176    173.7 g  ❌ SOUS LE PLANCHER COUVERT (−1 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-17         100 %               176    171.0 g  ❌ SOUS LE PLANCHER COUVERT (−3 %)"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Nils",
+        "c4": [
+          "6",
+          "6",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Iris",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-03-p1",
+    "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+    "request_id": "c383626d-dc05-4462-9f41-29f5426501a9",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 134244,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "37",
+          "① référence vérifiée": "37",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-04-p2",
+    "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+    "request_id": "97766763-c36c-4cd6-9630-c11684544c08",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 104294,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "32",
+          "① référence vérifiée": "32",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-05-p7",
+    "titre": "MAINTIEN · une personne · appétit petit et dîner léger déclarés",
+    "request_id": "3f4ca677-a599-4c56-a537-94c5dcf18333",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 106439,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_energy_off",
+      "cell_energy_off",
+      "day_energy_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_energy_off",
+        "day": "wed",
+        "slot": "breakfast",
+        "member_id": "e2718f0b-542f-4f80-aed9-3b414b9f4cd7",
+        "detail": null
+      },
+      {
+        "cause": "cell_energy_off",
+        "day": "wed",
+        "slot": "dinner",
+        "member_id": "e2718f0b-542f-4f80-aed9-3b414b9f4cd7",
+        "detail": null
+      },
+      {
+        "cause": "day_energy_off",
+        "day": "2026-09-16",
+        "slot": null,
+        "member_id": "e2718f0b-542f-4f80-aed9-3b414b9f4cd7",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "5",
+      "cal_n": "7",
+      "compl_ok": "5",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_energy_off\",\"day_energy_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 5,
+          "ko": 2,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 1,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 5,
+          "ko": 2,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "46",
+          "① référence vérifiée": "46",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "non conforme",
+            "2026-09-16  breakfast      841.47        841.47    841.47     740.78    -11.97 %  ❌ NON CONFORME"
+          ],
+          [
+            "non conforme",
+            "2026-09-16  dinner         673.18        673.18    673.18     548.86    -18.47 %  ❌ NON CONFORME"
+          ],
+          [
+            "journée",
+            "2026-09-16      3           3         2861.00        2861.00    2637.53     -7.81 %  ❌ NON CONFORME"
+          ],
+          [
+            "densité",
+            "2026-09-16  breakfast  [134–250] aim 147       [134–250] aim 147       [134–250] aim 147          118    ❌ HORS COULOIR"
+          ],
+          [
+            "densité",
+            "2026-09-16  dinner     [107–250] aim 118       [107–250] aim 118       [250–250] aim 250 ⛔         87    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-06-p6",
+    "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+    "request_id": "309cac81-af32-4571-9c33-070493310525",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 422,
+    "duree_ms": 141122,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": null,
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": null,
+    "non_executes_run": null,
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": [
+      "preparation_quantity_unreconciled"
+    ],
+    "bilan": null,
+    "cout": null,
+    "porte_journal": null,
+    "bouches": []
+  },
+  {
+    "tir": "c30-07-p1",
+    "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+    "request_id": "4921d75c-94a9-49d8-a721-cd0c9c7d385e",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 93289,
+    "appels_registre": {
+      "generate-household-meal-v1:success": 1,
+      "generate-household-meal-v1:attempt_start": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "27",
+          "① référence vérifiée": "27",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-08-p2",
+    "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+    "request_id": "1cb4ffc6-d7a0-4b9d-a3bc-f1f1e86a6132",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 115467,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "27",
+          "① référence vérifiée": "27",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-09-p7",
+    "titre": "MAINTIEN · une personne · appétit petit et dîner léger déclarés",
+    "request_id": "d03ecc91-48c1-455e-82b9-ef719e7980b7",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 85193,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_bounds_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_bounds_off",
+        "day": "wed",
+        "slot": "breakfast",
+        "member_id": "793c98de-1626-499a-ba08-fbdb57fcea9e",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "6",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_bounds_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "31",
+          "① référence vérifiée": "31",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "densité",
+            "2026-09-16  breakfast  [134–250] aim 147       [134–250] aim 147       [134–250] aim 147          133    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-10-p6",
+    "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+    "request_id": "1fd8cd7b-c0b7-4fe5-82fc-35c40f4eeb7c",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 94925,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "14",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "36",
+          "① référence vérifiée": "36",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "36",
+          "① référence vérifiée": "36",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-11-p8",
+    "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+    "request_id": "1c41c366-5dfd-4f90-960b-54755ed3e714",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 97922,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "14",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "51",
+          "① référence vérifiée": "51",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "51",
+          "① référence vérifiée": "51",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-12-p9",
+    "titre": "QUATRE BOUCHES · présences variables · recettes partagées et variantes",
+    "request_id": "e398df4d-b475-4c68-9c63-fd2828383a9c",
+    "bouches_n": 4,
+    "cases_attendues": 27,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 112617,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "protein_floor_short",
+      "protein_floor_short",
+      "protein_floor_short"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-15",
+        "slot": null,
+        "member_id": "41b382a3-f08e-4abc-9d9b-373f6159a62e",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-16",
+        "slot": null,
+        "member_id": "41b382a3-f08e-4abc-9d9b-373f6159a62e",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-17",
+        "slot": null,
+        "member_id": "41b382a3-f08e-4abc-9d9b-373f6159a62e",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "27",
+      "cal_n": "27",
+      "compl_ok": "27",
+      "compl_n": "27",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"protein_floor_short\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 0,
+          "ko": 3,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "46",
+          "① référence vérifiée": "46",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "protéines",
+            "2026-09-15          35 %                62     59.8 g  ❌ SOUS LE PLANCHER COUVERT (−4 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-16         100 %               176    172.8 g  ❌ SOUS LE PLANCHER COUVERT (−2 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-17         100 %               176    171.7 g  ❌ SOUS LE PLANCHER COUVERT (−2 %)"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "46",
+          "① référence vérifiée": "46",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Nils",
+        "c4": [
+          "6",
+          "6",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "46",
+          "① référence vérifiée": "46",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Iris",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "46",
+          "① référence vérifiée": "46",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-13-p1",
+    "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+    "request_id": "b0fdde57-a1c4-49dc-abdb-4225c606f896",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 422,
+    "duree_ms": 121945,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": null,
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": null,
+    "non_executes_run": null,
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": [
+      "preparation_quantity_unreconciled"
+    ],
+    "bilan": null,
+    "cout": null,
+    "porte_journal": null,
+    "bouches": []
+  },
+  {
+    "tir": "c30-14-p2",
+    "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+    "request_id": "751a3ad4-543d-4201-b1c9-4389c8633b10",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 89649,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "33",
+          "① référence vérifiée": "32",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "1",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-15-p7",
+    "titre": "MAINTIEN · une personne · appétit petit et dîner léger déclarés",
+    "request_id": "d499b89b-8eef-4fb2-93c2-ec4eb67cbfb5",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 107038,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [
+      {
+        "count": 1,
+        "control": "shopping_quantity"
+      }
+    ],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[{\"control\":\"shopping_quantity\",\"count\":1}]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "47",
+          "① référence vérifiée": "47",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-16-p6",
+    "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+    "request_id": "4efc2c45-56d2-4298-9afc-387b32659dbe",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 86331,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "day_energy_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "day_energy_off",
+        "day": "2026-09-15",
+        "slot": null,
+        "member_id": "d6e7c74a-0757-42c2-a1b3-451d81f52b1d",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "14",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"day_energy_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 1,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "41",
+          "① référence vérifiée": "41",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "journée",
+            "2026-09-15      1           1          858.90        2454.00     814.61     -5.16 %  ❌ NON CONFORME"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "41",
+          "① référence vérifiée": "41",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-17-p8",
+    "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+    "request_id": "3c163cf4-0020-4728-81e2-267852833627",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 113192,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_bounds_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_bounds_off",
+        "day": "thu",
+        "slot": "breakfast",
+        "member_id": "c6886e6b-95ae-4ab3-9203-afa0606470ee",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "13",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_bounds_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "67",
+          "① référence vérifiée": "67",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "67",
+          "① référence vérifiée": "67",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "densité",
+            "2026-09-17  breakfast  [100–182] aim 110       [100–182] aim 110       [100–182] aim 110           99    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-18-p9",
+    "titre": "QUATRE BOUCHES · présences variables · recettes partagées et variantes",
+    "request_id": "c462ef20-0da7-47ee-b439-aa4bc9d4d8fb",
+    "bouches_n": 4,
+    "cases_attendues": 27,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 206939,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1,
+      "generate-household-meal-v1.final_repair:attempt_start": 1,
+      "generate-household-meal-v1.final_repair:success": 1
+    },
+    "appels_total": 4,
+    "reparations_archivees": 1,
+    "reparations_plan": 1,
+    "appels_succes": 2,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "own_meal_dish_missing",
+      "protein_floor_short",
+      "protein_floor_short",
+      "protein_floor_short"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "own_meal_dish_missing",
+        "day": "wed",
+        "slot": "dinner",
+        "member_id": "1732e035-6b23-4fd2-b770-c81fdde81bb4",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-15",
+        "slot": null,
+        "member_id": "ffa87d33-1909-4c20-b41a-d17162d8f7f8",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-16",
+        "slot": null,
+        "member_id": "ffa87d33-1909-4c20-b41a-d17162d8f7f8",
+        "detail": null
+      },
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-17",
+        "slot": null,
+        "member_id": "ffa87d33-1909-4c20-b41a-d17162d8f7f8",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [
+      "plan_repair_round:1"
+    ],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "27",
+      "cal_n": "27",
+      "compl_ok": "27",
+      "compl_n": "27",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "2",
+      "reparations": "1",
+      "max": "2",
+      "demandees": "1"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"own_meal_dish_missing\",\"protein_floor_short\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 0,
+          "ko": 3,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "protéines",
+            "2026-09-15          35 %                62     60.7 g  ❌ SOUS LE PLANCHER COUVERT (−2 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-16         100 %               176    171.1 g  ❌ SOUS LE PLANCHER COUVERT (−3 %)"
+          ],
+          [
+            "protéines",
+            "2026-09-17         100 %               176    171.0 g  ❌ SOUS LE PLANCHER COUVERT (−3 %)"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Nils",
+        "c4": [
+          "6",
+          "6",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Iris",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-19-p1",
+    "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+    "request_id": "192083f9-5ee5-47ee-9dbe-638147fd722b",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 120398,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_energy_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_energy_off",
+        "day": "wed",
+        "slot": "breakfast",
+        "member_id": "7b822285-d636-4654-8bdc-107a13536bb8",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [
+      {
+        "count": 1,
+        "control": "shopping_quantity"
+      }
+    ],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "6",
+      "cal_n": "7",
+      "compl_ok": "6",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[{\"control\":\"shopping_quantity\",\"count\":1}]",
+      "causes": "[\"cell_energy_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "28",
+          "① référence vérifiée": "28",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "non conforme",
+            "2026-09-16  breakfast      613.50        613.50    613.50     523.00    -14.75 %  ❌ NON CONFORME"
+          ],
+          [
+            "densité",
+            "2026-09-16  breakfast  [100–245] aim 110       [100–245] aim 110       [100–245] aim 110           85    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-20-p2",
+    "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+    "request_id": "cf1041c6-b9fd-4850-b40b-f7aca4277296",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 134365,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "45",
+          "① référence vérifiée": "45",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-21-p7",
+    "titre": "MAINTIEN · une personne · appétit petit et dîner léger déclarés",
+    "request_id": "c39a4325-1c0e-411f-9019-47e915a76356",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 119877,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_bounds_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_bounds_off",
+        "day": "thu",
+        "slot": "lunch",
+        "member_id": "d084c764-9e4a-42ff-bab4-a1e313261666",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "6",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_bounds_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "37",
+          "① référence vérifiée": "37",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "densité",
+            "2026-09-17  lunch      [214–250] aim 235       [214–250] aim 235       [214–250] aim 235          250    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-22-p6",
+    "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+    "request_id": "ee6b1a26-0682-4adb-8ac6-094de401d1f3",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 83892,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_energy_off",
+      "cell_energy_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_energy_off",
+        "day": "wed",
+        "slot": "breakfast",
+        "member_id": "bb021558-8ea5-4c1b-85ee-81cc85c7c9e1",
+        "detail": null
+      },
+      {
+        "cause": "cell_energy_off",
+        "day": "wed",
+        "slot": "breakfast",
+        "member_id": "ccbb7998-0b84-4c7e-8959-ea69e225e38e",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "12",
+      "cal_n": "14",
+      "compl_ok": "12",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_energy_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "31",
+          "① référence vérifiée": "31",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "non conforme",
+            "2026-09-16  breakfast      613.50        613.50    613.50     692.40    +12.86 %  ❌ NON CONFORME"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 1,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "31",
+          "① référence vérifiée": "31",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "non conforme",
+            "2026-09-16  breakfast      456.50        456.50    456.50     514.60    +12.73 %  ❌ NON CONFORME"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-23-p8",
+    "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+    "request_id": "2a5e781c-aaf3-4f01-a77f-825d548d84fa",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 111719,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "14",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "53",
+          "① référence vérifiée": "53",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "53",
+          "① référence vérifiée": "53",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-24-p9",
+    "titre": "QUATRE BOUCHES · présences variables · recettes partagées et variantes",
+    "request_id": "6eabca47-1281-4d63-a167-7b57813be87f",
+    "bouches_n": 4,
+    "cases_attendues": 27,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 128507,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "protein_floor_short"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "protein_floor_short",
+        "day": "2026-09-17",
+        "slot": null,
+        "member_id": "9644a294-f259-44db-a39a-d569ce45fc99",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "27",
+      "cal_n": "27",
+      "compl_ok": "27",
+      "compl_n": "27",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"protein_floor_short\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 1,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "protéines",
+            "2026-09-17         100 %               176    172.1 g  ❌ SOUS LE PLANCHER COUVERT (−2 %)"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Nils",
+        "c4": [
+          "6",
+          "6",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Iris",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "59",
+          "① référence vérifiée": "59",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-25-p1",
+    "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+    "request_id": "4f58cbc4-1d09-4e5a-8216-87b1d8a88461",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 139162,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "32",
+          "① référence vérifiée": "32",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-26-p2",
+    "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+    "request_id": "40a18018-21e6-4286-9d19-17f7bf8cbacd",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 91459,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [
+      {
+        "count": 1,
+        "control": "shopping_quantity"
+      }
+    ],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "7",
+      "cal_n": "7",
+      "compl_ok": "7",
+      "compl_n": "7",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[{\"control\":\"shopping_quantity\",\"count\":1}]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "32",
+          "① référence vérifiée": "32",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-27-p7",
+    "titre": "MAINTIEN · une personne · appétit petit et dîner léger déclarés",
+    "request_id": "d7de6782-46e9-456c-9bab-de80e2570ab7",
+    "bouches_n": 1,
+    "cases_attendues": 7,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 96282,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1,
+      "generate-household-meal-v1.composition_fill:attempt_start": 1,
+      "generate-household-meal-v1.composition_fill:success": 1
+    },
+    "appels_total": 4,
+    "reparations_archivees": 1,
+    "reparations_plan": 0,
+    "appels_succes": 2,
+    "auxiliaires": 1,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_bounds_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_bounds_off",
+        "day": "wed",
+        "slot": "lunch",
+        "member_id": "b77a1536-1d48-43a8-8161-9037eb33f382",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [
+      {
+        "count": 1,
+        "control": "protein_floor"
+      }
+    ],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "6",
+      "cal_n": "6",
+      "compl_ok": "6",
+      "compl_n": "7",
+      "incomplets": "5"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[{\"control\":\"protein_floor\",\"count\":1}]",
+      "causes": "[\"cell_bounds_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 1
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 1
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 1
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 1
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "26",
+          "① référence vérifiée": "25",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "1"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "non mesurable",
+            "2026-09-16  lunch         1346.35       1346.35   1346.35          —           —  ⚪ non mesurable (dish_incomplete)"
+          ],
+          [
+            "journée",
+            "2026-09-16      3           2         2861.00        2861.00    1509.55           —  ⚪ non mesurable — 1 portion(s) non mesurée(s) sur 3"
+          ],
+          [
+            "densité",
+            "2026-09-16  lunch      [214–250] aim 235       [214–250] aim 235       [214–250] aim 235            —    ⚪ non mesurable"
+          ],
+          [
+            "protéines",
+            "2026-09-16         100 %               138          —  ⚪ non mesurable — une portion de la journée manque"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-28-p6",
+    "titre": "DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE",
+    "request_id": "f4079e3a-576c-40a8-b913-e8291cbc2857",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 98613,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "14",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "33",
+          "① référence vérifiée": "33",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "33",
+          "① référence vérifiée": "33",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  },
+  {
+    "tir": "c30-29-p8",
+    "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+    "request_id": "379620e5-2a11-43dc-9dd4-d7759af8f5ec",
+    "bouches_n": 2,
+    "cases_attendues": 14,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 102937,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "livrable_avec_ecarts",
+    "defauts_run": [
+      "cell_bounds_off",
+      "cell_bounds_off"
+    ],
+    "defauts_detail": [
+      {
+        "cause": "cell_bounds_off",
+        "day": "wed",
+        "slot": "dinner",
+        "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+        "detail": null
+      },
+      {
+        "cause": "cell_bounds_off",
+        "day": "thu",
+        "slot": "breakfast",
+        "member_id": "d3ef911a-c8bb-4e92-8f5c-fad5c6fe5d67",
+        "detail": null
+      }
+    ],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": true,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "14",
+      "cal_n": "14",
+      "compl_ok": "12",
+      "compl_n": "14",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "deliverable_with_gaps",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[\"cell_bounds_off\"]"
+    },
+    "bouches": [
+      {
+        "bouche": "Max",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "60",
+          "① référence vérifiée": "60",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 5,
+          "ko": 2,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "60",
+          "① référence vérifiée": "60",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "densité",
+            "2026-09-16  dinner     [101–250] aim 110       [101–250] aim 110       [250–250] aim 250 ⛔         99    ❌ HORS COULOIR"
+          ],
+          [
+            "densité",
+            "2026-09-17  breakfast  [100–182] aim 110       [100–182] aim 110       [100–182] aim 110          100    ❌ HORS COULOIR"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "tir": "c30-30-p9",
+    "titre": "QUATRE BOUCHES · présences variables · recettes partagées et variantes",
+    "request_id": "eb3a550b-e356-411f-80fd-f21423864ae5",
+    "bouches_n": 4,
+    "cases_attendues": 27,
+    "completees": [],
+    "http": 200,
+    "duree_ms": 112014,
+    "appels_registre": {
+      "generate-household-meal-v1:attempt_start": 1,
+      "generate-household-meal-v1:success": 1
+    },
+    "appels_total": 2,
+    "reparations_archivees": 0,
+    "reparations_plan": 0,
+    "appels_succes": 1,
+    "auxiliaires": 0,
+    "etat_run": "conforme",
+    "defauts_run": [],
+    "defauts_detail": [],
+    "incomplets_run": [],
+    "non_executes_run": [
+      "title_promises_missing_preparation"
+    ],
+    "issues_run": [],
+    "politique_sans_appel": false,
+    "refus_422": null,
+    "bilan": {
+      "cal_ok": "27",
+      "cal_n": "27",
+      "compl_ok": "27",
+      "compl_n": "27",
+      "incomplets": "0"
+    },
+    "cout": {
+      "transmissions": "1",
+      "reparations": "0",
+      "max": "2",
+      "demandees": "0"
+    },
+    "porte_journal": {
+      "livraison": "conforme",
+      "non_evalues": "[\"title_promises_missing_preparation\"]",
+      "incomplets": "[]",
+      "causes": "[]"
+    },
+    "bouches": [
+      {
+        "bouche": "Paul",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 1,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "45",
+          "① référence vérifiée": "45",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": [
+          [
+            "protéines",
+            "2026-09-15          35 %                62     61.9 g  ❌ SOUS LE PLANCHER COUVERT (−0 %)"
+          ]
+        ]
+      },
+      {
+        "bouche": "Lea",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "45",
+          "① référence vérifiée": "45",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "1",
+          "arachide"
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Nils",
+        "c4": [
+          "6",
+          "6",
+          "0"
+        ],
+        "c1": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 6,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 2,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "45",
+          "① référence vérifiée": "45",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      },
+      {
+        "bouche": "Iris",
+        "c4": [
+          "7",
+          "7",
+          "0"
+        ],
+        "c1": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c2": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c5": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "c6": {
+          "ok": 7,
+          "ko": 0,
+          "nm": 0
+        },
+        "c8": {
+          "ok": 3,
+          "ko": 0,
+          "nm": 0
+        },
+        "ingredients": {
+          "lignes d'ingrédient": "45",
+          "① référence vérifiée": "45",
+          "② estimation de groupe": "0",
+          "③ en attente de validation": "0",
+          "④ ingrédient non mesurable": "0"
+        },
+        "allergies": [
+          "0",
+          ""
+        ],
+        "prose_perimee": [
+          "0",
+          "0"
+        ],
+        "anomalies": []
+      }
+    ]
+  }
+]

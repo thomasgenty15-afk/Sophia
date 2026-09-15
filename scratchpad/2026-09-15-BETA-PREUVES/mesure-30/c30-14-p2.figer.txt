@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            2 · GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue
+   requête        751a3ad4-543d-4201-b1c9-4389c8633b10
+   bouches        1
+     · Max    78299c2b-6cc9-43d5-88a2-67e842fa0a70 · 178 cm · 62 kg · male · appétit average · objectif muscle_gain · léger [] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 7 ({"78299c2b-6cc9-43d5-88a2-67e842fa0a70":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c30-14-p2.json

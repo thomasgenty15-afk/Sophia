@@ -10,15 +10,15 @@ def num(t): return int(t["tir"].split("-")[1])
 def prof(t): return int(t["tir"].split("-p")[1])
 # ── bilan de livraison ────────────────────────────────────────────────────
 livres=[t for t in tirs if t["http"]==200]
-sans_rattrapage=[t for t in livres if (t["reparations_archivees"] or 0)==0]
+sans_rattrapage=[t for t in livres if (t.get("reparations_plan") or 0)==0]
 conformes=[t for t in livres if t["etat_run"]=="conforme"]
 avec_ecarts=[t for t in livres if t["etat_run"]=="livrable_avec_ecarts"]
 durees=sorted((t["duree_ms"] or 0)/1000 for t in livres)
 def pct(xs,p):
     if not xs: return None
     k=max(0,min(len(xs)-1,int(round(p*(len(xs)-1))))); return xs[k]
-appels=sum(t["appels_total"]//2 if t["appels_total"] else 0 for t in tirs)  # registre : attempt_start + success
-sautes=sum(1 for t in tirs if any(str(i).startswith("plan_repair_skipped:no_blocking_defect") for i in t.get("issues_run",[])))
+appels=sum(t.get("appels_succes") or 0 for t in tirs); aux=sum(t.get("auxiliaires") or 0 for t in tirs)
+sautes=sum(1 for t in tirs if t.get("politique_sans_appel"))
 # ── par profil ────────────────────────────────────────────────────────────
 par_profil=collections.defaultdict(list)
 for t in tirs: par_profil[prof(t)].append(t)
@@ -56,22 +56,22 @@ print("## 1. Bilan de livraison, par requête\n")
 print("| n | profil | bouches | HTTP | durée | appels | répar. | état du run | défauts | politique |")
 print("|---:|---:|---:|---:|---:|---:|---:|---|---|---|")
 for t in tirs:
-    pol="sans appel (écart compté)" if any(str(i).startswith("plan_repair_skipped") for i in t.get("issues_run",[])) else ("réparé" if (t["reparations_archivees"] or 0)>0 else "—")
-    print(f"| {num(t)} | {prof(t)} | {t['bouches_n']} | {t['http']} | {(t['duree_ms'] or 0)/1000:.1f} s | {t['appels_total']//2 if t['appels_total'] else '-'} | {t['reparations_archivees']} | {t['etat_run']} | {', '.join(t['defauts_run']) or '—'} | {pol} |")
+    pol=("réparé (défaut bloquant)" if (t.get("reparations_plan") or 0)>0 else "sans appel (écart compté)" if t.get("politique_sans_appel") else "—")
+    print(f"| {num(t)} | {prof(t)} | {t['bouches_n']} | {t['http']} | {(t['duree_ms'] or 0)/1000:.1f} s | {t.get('appels_succes') or 0} | {t.get('reparations_plan') or 0} | {t['etat_run'] or 'refusé'} | {', '.join(t['defauts_run']) or '—'} | {pol} |")
 print(f"\n| | résultat |\n|---|---|")
 print(f"| tirs | {N} |")
 print(f"| plans écrits | {len(livres)} / {N} |")
 print(f"| sans rattrapage modèle | {len(sans_rattrapage)} / {N} |")
 print(f"| conformes | {len(conformes)} / {N} ; livrables avec écart nommé : {len(avec_ecarts)} |")
 print(f"| plans partis avec un écart compté SANS appel (nouvelle politique) | {sautes} |")
-print(f"| appels modèle | {appels} pour {N} tirs |")
+print(f"| appels modèle | {appels} pour {N} tirs, dont {aux} auxiliaires de remplissage (2 s) |")
 if durees: print(f"| durées | min {durees[0]:.1f} s · médiane {statistics.median(durees):.1f} s · p95 {pct(durees,0.95):.1f} s · max {durees[-1]:.1f} s ; sous 150 s : {sum(1 for d in durees if d<=150)} / {len(durees)} ; sous 180 s : {sum(1 for d in durees if d<=180)} / {len(durees)} |")
 print("\n### Par profil (au moins 4 sur 5 utilisables demandés)\n")
 print("| profil | tirs | conformes | avec écart | sans rattrapage | durées |")
 print("|---:|---:|---:|---:|---:|---|")
 for p,ts in sorted(par_profil.items()):
     ds=[(t['duree_ms'] or 0)/1000 for t in ts]
-    print(f"| {p} | {len(ts)} | {sum(1 for t in ts if t['etat_run']=='conforme')} | {sum(1 for t in ts if t['etat_run']=='livrable_avec_ecarts')} | {sum(1 for t in ts if (t['reparations_archivees'] or 0)==0)} | {' · '.join(f'{d:.0f}' for d in ds)} s |")
+    print(f"| {p} | {len(ts)} | {sum(1 for t in ts if t['etat_run']=='conforme')} | {sum(1 for t in ts if t['etat_run']=='livrable_avec_ecarts')} | {sum(1 for t in ts if t['http']==200 and (t.get('reparations_plan') or 0)==0)} | {' · '.join(f'{d:.0f}' for d in ds)} s |")
 print("\n## 2. Les cinq dénominateurs\n")
 print("```text")
 print(f"cases attendues      {tot['cases_attendues']}    par personne, absences déduites")

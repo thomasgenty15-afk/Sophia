@@ -1,0 +1,11 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            8 · DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE
+   requête        1c41c366-5dfd-4f90-960b-54755ed3e714
+   bouches        2
+     · Max    f84d8db7-f1ae-42be-acc4-a8c27d951b36 · 178 cm · 68 kg · male · appétit large · objectif muscle_gain · léger [] · apports []
+     · Lea    b1d3ca1a-c1cc-4831-8bd4-f7f3e15a89d5 · 164 cm · 58 kg · female · appétit average · objectif maintenance · léger [] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 14 ({"f84d8db7-f1ae-42be-acc4-a8c27d951b36":7,"b1d3ca1a-c1cc-4831-8bd4-f7f3e15a89d5":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c30-11-p8.json

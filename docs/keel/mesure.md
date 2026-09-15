@@ -355,3 +355,42 @@ charge différente, heure différente.
   petit-déjeuner, sans fermer ni l'un ni l'autre. La garde a vu juste deux fois ; le rendement de la
   réparation, lui, est de zéro sur deux — à publier à côté du taux sans rattrapage, jamais fondu
   dedans.
+
+---
+
+## Ce que la campagne des 30 tirs a mesuré — 2026-09-15, 13 h 26 → 14 h 26, version `62815cfe`
+
+Trente demandes réelles, séquentielles, six profils × cinq, **7 cases par bouche**, un compte neuf
+par tir, journal moteur archivé dans chaque artefact. Bilan complet, anomalies nommées et décisions
+à prendre : [BILAN-CAMPAGNE-30-2026-09-15.md](BILAN-CAMPAGNE-30-2026-09-15.md).
+
+| | résultat |
+|---|---|
+| plans écrits | **27 / 30** — 3 refus : un premier jet d'une journée sur trois, deux casseroles en unités comptables courtes de 11 et 25 g |
+| sans rattrapage modèle | **26 / 30** |
+| conformes | **14 / 30** ; 13 avec un écart nommé, dont **9 à moins de 4 % du seuil** |
+| cases attendues | **380** (345 sur les plans livrés) : 345 plats, 345 boîtes, 0 manquante |
+| calories par créneau, ±10 % | **339 / 344** mesurables |
+| masse dans les bornes | **345 / 345** |
+| plancher protéique couvert | **133 / 144** journées jugées ; les 11 manquées sont toutes sur Paul (N=4), de −0 % à −4 % |
+| identités alimentaires | **2 294 / 2 296** vérifiées, 0 estimation, 0 prose périmée |
+| allergies et régimes | 9 bouches avec matière ; 0 cause d'exclusion sur les plans livrés ; 1 violation de régime du premier jet **réparée** (tir 18) |
+| appels modèle | **36** pour 30 tirs — 30 compositions, 3 réparations sur défaut bloquant, 3 remplissages |
+| durées | médiane 107 s · p95 139 s · max 207 s ; 26 sur 27 sous le plafond hébergé |
+
+### Les quatre règles que cette campagne ajoute
+
+- **Un 422 de la garde est un résultat, pas une panne.** Le lanceur s'était arrêté au premier refus ;
+  seuls un 5xx, un verrou laissé ou un dépassement d'échéance arrêtent une campagne. Un refus reste au
+  dénominateur, avec sa cause.
+- **Un écart à 1 % d'un seuil sans tolérance d'arrondi se compte à part.** 173,7 g pour un plancher de
+  176, 133 kcal/100 g pour un couloir qui commence à 134 : publier ces écarts sous le même mot que
+  −18 % masque la seule question qui compte — laquelle des deux familles on décide de fermer, et
+  comment. Le bilan les sépare ; la garde, elle, ne le fait pas encore.
+- **Une réparation du plan et un remplissage de deux secondes ne se comptent pas ensemble.**
+  `final_repair` recompose ; `composition_fill` remplit une référence. Les deux sont des appels
+  payés, un seul est un rattrapage. Les fondre gonflait le taux de rattrapage de 3 tirs.
+- **Le rendement de la réparation se publie par nature de défaut.** Sur un défaut bloquant : 1 succès
+  sur 2 (une violation de régime fermée en un appel). Sur un écart compté, hier : 0 sur 2. La
+  politique qui réserve l'appel aux défauts bloquants a été décidée sur ce chiffre, et cette campagne
+  l'a mesurée : 18 plans partis avec un écart nommé sans dépenser un appel.

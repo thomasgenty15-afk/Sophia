@@ -1,0 +1,11 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            6 · DEUX BOUCHES aux besoins différents · préparation partagée · allergie RÉELLE
+   requête        4efc2c45-56d2-4298-9afc-387b32659dbe
+   bouches        2
+     · Paul   d6e7c74a-0757-42c2-a1b3-451d81f52b1d · 178 cm · 88 kg · male · appétit average · objectif fat_loss · léger [] · apports []
+     · Lea    0a15b384-a456-4c8c-b0c1-e99b7e471059 · 164 cm · 58 kg · female · appétit small · objectif aucun · léger [] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 14 ({"d6e7c74a-0757-42c2-a1b3-451d81f52b1d":7,"0a15b384-a456-4c8c-b0c1-e99b7e471059":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c30-16-p6.json

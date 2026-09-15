@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            1 · PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers
+   requête        c383626d-dc05-4462-9f41-29f5426501a9
+   bouches        1
+     · Paul   1762cd7a-1ffa-4989-8698-00cc8f944852 · 178 cm · 88 kg · male · appétit average · objectif fat_loss · léger [] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 7 ({"1762cd7a-1ffa-4989-8698-00cc8f944852":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c30-03-p1.json
