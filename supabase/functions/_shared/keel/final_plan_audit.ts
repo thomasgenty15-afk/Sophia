@@ -57,13 +57,29 @@
 import {
   type CompositionIndex,
   type CompositionInput,
+  type CompositionUnit,
+  COMPOSITION_UNITS,
   type LineRefRefusal,
   normalizeTerm,
-  resolveCompositionLine,
   resolveIngredients,
 } from "./food_composition.ts";
 import { readEnergyBoxDishes, readIngredients, readPreparations } from "./plan_energy_read.ts";
 import { boxNutrition } from "./mouth_energy.ts";
+import {
+  foodIdentityOf,
+  isNonPurchasableIdentity,
+} from "./shopping_identity.ts";
+
+/**
+ * ⟳ 2026-09-12 · C3 — `foodIdentityOf` A DÉMÉNAGÉ D'UN CRAN, SANS CHANGER.
+ *
+ * ⛔ UN SEUL CORPS, DEUX PORTES. `retry_merge.ts` en a besoin pour cesser de
+ * jeter des lignes de courses par égalité de libellé ; l'importer d'ici aurait
+ * tiré `mouth_energy.ts` et toute la mesure énergétique dans un module de
+ * fusion. Le corps vit donc dans `shopping_identity.ts` et cette réexportation
+ * garde intacts les appelants et les tests du lot E.
+ */
+export { foodIdentityOf };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ① LES TOLÉRANCES — écrites dans le plan, branchées ICI, et nulle part ailleurs
@@ -154,29 +170,6 @@ export function weighLine(
   return { kind: "measured", grams: first.gramsRaw };
 }
 
-/**
- * L'IDENTITÉ D'UNE LIGNE — un slug quand elle en a un, un terme normalisé
- * sinon, et un troisième espace de noms pour les refus.
- *
- * ⛔ TROIS ESPACES DE NOMS, JAMAIS DEUX. Fondre `term:` et `refused:`
- * rapprocherait une ligne dont l'identifiant est FAUX d'une ligne de courses
- * homonyme, c'est-à-dire ferait exactement le rapprochement par libellé que ce
- * lot existe pour supprimer.
- */
-export function foodIdentityOf(
-  index: CompositionIndex | null,
-  line: { term: string; ref?: string | null; refRefused?: boolean },
-): { identity: string; source: "ref" | "term" | "unresolved" } {
-  const resolution = resolveCompositionLine(index, line);
-  if (resolution.ref !== null) {
-    return { identity: resolution.ref.slug, source: resolution.source ?? "term" };
-  }
-  if (resolution.refusal === "ref_refused" || resolution.refusal === "ref_unknown") {
-    return { identity: `refused:${normalizeTerm(line.term)}`, source: "unresolved" };
-  }
-  return { identity: `term:${normalizeTerm(line.term)}`, source: "unresolved" };
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // ③ LES COURSES — par identité alimentaire, présence ET quantité
 // ═══════════════════════════════════════════════════════════════════════════
@@ -204,6 +197,18 @@ export const SHOPPING_COVER_STATES = [
   "check_incomplete",
   /** Aucune ligne de courses, aucun garde-manger. Le manque de PRÉSENCE. */
   "not_bought",
+  /**
+   * ⟳ 2026-09-12 · C3 — L'EAU DE CUISSON DU ROBINET. Elle est mesurée dans la
+   * préparation et ne se met dans aucun panier.
+   *
+   * ⛔ CE N'EST NI `covered_measured` NI `present_unquantified`. « Assez
+   * acheté » serait faux (on n'a rien acheté) et « présent, quantité
+   * inconnue » ferait entrer 219 g d'eau dans les contrôles incomplets, où ils
+   * gonfleraient le dénominateur de ce qu'on ne sait pas vérifier. Un état à
+   * part, c'est la seule lecture qui ne mente pas — et ce dépôt paie en boucle
+   * les compteurs qui fondent deux états.
+   */
+  "not_purchasable",
 ] as const;
 export type ShoppingCoverState = (typeof SHOPPING_COVER_STATES)[number];
 
@@ -235,6 +240,28 @@ export interface ShoppingAudit {
   readonly identities: number;
   /** Identités dont la suffisance a pu être COMPARÉE (besoin et achat chiffrés). */
   readonly quantified: number;
+  /**
+   * ⟳ 2026-09-12 · C3 — Identités NON ACHETABLES (eau du robinet). Comptées à
+   * part pour que « 0 manque » ne se lise pas comme « tout a été acheté ».
+   */
+  readonly notPurchasable: number;
+  /**
+   * ⟳ 2026-09-12 · C3 — Identités PRÉSENTES dont la quantité n'est pas
+   * vérifiable : garde-manger sans quantité, conditionnement non convertible.
+   *
+   * ⛔ LE PLAN L'EXIGE EN TOUTES LETTRES : « Pour les repas planifiés dont TOUT
+   * le besoin doit être acheté, un contrôle quantitatif incomplet est un défaut
+   * restant à traiter. » Ce nombre EST ce défaut, nommé et chiffré — il n'est
+   * pas réparé ici, et il ne doit pas se fondre dans les manques.
+   */
+  readonly unverified: number;
+  /**
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — Identités dont le besoin a été NETTOYÉ du
+   * stock déjà déduit par la reconstruction. ⛔ À zéro, les deux modules
+   * lisaient le même besoin — ce qui est le cas nominal tant qu'aucun écran
+   * n'envoie de garde-manger. Non nul, il dit que la soustraction a servi.
+   */
+  readonly pantryNetted: number;
 }
 
 interface RawLine {
@@ -242,6 +269,19 @@ interface RawLine {
   readonly quantity?: unknown;
   readonly ref?: unknown;
   readonly ref_refused?: unknown;
+  /**
+   * ⟳ 2026-09-12 · C3 — LA QUANTITÉ STRUCTURÉE DE LA LIGNE DE COURSES.
+   *
+   * ⛔ SANS ELLE, LE CONTRÔLE QUANTITATIF DÉPENDAIT D'UNE RÉINTERPRÉTATION DU
+   * TEXTE. `weighLine` retombait sur `readQuantityFromProse`, qui ne lit que
+   * `g`, `ml` ou un nombre nu ancré des deux bouts : « 2 pitas complètes » et
+   * « 1,2 kg » ne rendaient RIEN. Mesuré le 2026-09-11 : **26 identités sur 26
+   * de GAIN restaient incontrôlables en quantité**, et l'audit rendait
+   * « incomplet » — honnêtement, mais sans rien contrôler.
+   */
+  readonly amount?: unknown;
+  readonly unit?: unknown;
+  readonly state?: unknown;
 }
 
 /** La forme persistée, snake_case, réduite à ce que l'audit lit. */
@@ -277,6 +317,28 @@ export function shoppingIdentityAudit(args: {
   index: CompositionIndex | null;
   plan: AuditPlan;
   pantryTerms: readonly string[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — CE QUE LE STOCK A DÉJÀ COUVERT
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LA MINE QUE CE PARAMÈTRE DÉSAMORCE, ET ELLE EST ÉCRITE DANS
+   * `RESTE-A-FAIRE.md`. `rebuildShoppingQuantities` DÉDUIT le stock quantifié :
+   * la ligne de courses porte alors le besoin NET. Cet audit-ci, lui, compare
+   * le besoin ENTIER du plan à ce qui est acheté — donc il lit
+   * « pas assez acheté » sur un plan parfaitement juste, et
+   * `ingredient_short_bought` sort sur une personne qui a déjà l'aliment chez
+   * elle.
+   *
+   * ⛔ REQUIS, `Map` VIDE POUR « RIEN DE DÉDUIT », JAMAIS `T?`. Un paramètre
+   * facultatif ferait de l'oubli la réponse silencieuse de tous les appelants —
+   * et ce défaut-là n'a aucun symptôme visible tant qu'aucun écran n'envoie de
+   * garde-manger, c'est-à-dire jusqu'au jour où il en envoie un.
+   *
+   * ⚠️ EN GRAMMES CRUS, indexé par IDENTITÉ alimentaire — la même clé que les
+   * besoins de ce module, et la même unité.
+   */
+  pantryCoveredG: ReadonlyMap<string, number>;
 }): ShoppingAudit {
   const { index } = args;
   const acc = new Map<string, {
@@ -363,6 +425,15 @@ export function shoppingIdentityAudit(args: {
       row.neededUnweighed += 1;
     }
   }
+  /**
+   * ⟳ 2026-09-12 · C6 — LES IDENTITÉS QUE LE PLAN DEMANDE, FIGÉES ICI.
+   *
+   * ⛔ FIGÉES AVANT LA BOUCLE D'ACHAT, ET PAS LUES DANS `acc`. `touch()` ajoute
+   * une ligne à `acc` pour CHAQUE achat aussi : interroger `acc` pendant la
+   * boucle ferait dépendre le pont de l'ordre des lignes de courses, et une
+   * ligne pourrait se voir refuser le pont à cause d'une ligne précédente.
+   */
+  const needIdentities = new Set(acc.keys());
 
   // ── ③.b L'ACHAT: les lignes de courses, avec leur quantité en clair ─────
   //
@@ -384,8 +455,44 @@ export function shoppingIdentityAudit(args: {
     if (term === "") continue;
     const ref = typeof line.ref === "string" && line.ref.trim() !== "" ? line.ref.trim() : null;
     const refRefused = line.ref_refused === true;
-    // L'alias explicite du plan, quand la ligne de courses n'a pas d'identifiant.
-    const declared = ref === null && !refRefused
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · ÉTAPE C6 — LE PONT S'APPLIQUE AUSSI QUAND LA LIGNE PORTE
+    //                UN `ref` QU'ELLE A TIRÉ DE SON PROPRE LIBELLÉ
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT MESURÉ, ET IL A COÛTÉ UN PLAN ENTIER. Tir réel n° 1 de la
+    // campagne du 2026-09-12 (`4d82720c`) : **422 `plan_not_deliverable`**, une
+    // seule cause bloquante, `ingredient_not_bought « champignons de Paris »`
+    // — alors que la ligne EST sur la liste de courses, écrite au caractère
+    // près, 200 g pour 200 g. Reproduit hors ligne, à zéro appel modèle, par
+    // `banc-lot-F.ts --reponse=<sortie du tir>` : même 422, même cause.
+    //
+    // ── POURQUOI LE PONT NE PARTAIT PAS ───────────────────────────────────
+    // La condition d'avant était `ref === null`, et le commentaire du bloc
+    // disait « LES LIGNES DE COURSES N'ONT AUCUN IDENTIFIANT AUJOURD'HUI ».
+    // **C3 leur en a donné un dans le même lot** : le parseur
+    // (`meal_generation.ts`, projection `shopping_list`) appelle
+    // `resolveCompositionLine(index, { term, ref: null })` et écrit le slug
+    // obtenu sur la ligne. Ce `ref` n'est donc PAS un identifiant déclaré par
+    // le modèle : c'est le libellé résolu. Ici il valait `champignons_de_paris`
+    // — une entrée du sas créée pour cette phrase exacte — pendant que
+    // l'ingrédient de la préparation portait le `ref` du MODÈLE,
+    // `button_mushroom_cultivated_mushroom`. Deux identités pour le même
+    // aliment, un besoin sans achat, un refus.
+    //
+    // ── LA RÈGLE EST CELLE DE `rebuildShoppingQuantities`, RECOPIÉE EXPRÈS ──
+    // « L'IDENTITÉ DE LA LIGNE D'ABORD, L'ALIAS DU PLAN ENSUITE — et jamais
+    // l'inverse. Le pont ne sert que lorsque la ligne n'atteint aucun besoin :
+    // il ne peut donc pas détourner une ligne qui en atteignait un. » Les deux
+    // lecteurs appliquent maintenant LA MÊME condition, ce qui est le seul
+    // moyen qu'ils cessent de rendre deux verdicts opposés sur le même plan :
+    // la reconstruction annonçait `needs_unbought: 0` au moment même où la
+    // garde refusait le plan.
+    //
+    // ⚠️ `refRefused` GARDE SA PRIORITÉ. Un identifiant explicitement refusé
+    // reste un contrôle incomplet ; le pont ne le recouvre pas.
+    const directIdentity = foodIdentityOf(index, { term, ref, refRefused }).identity;
+    const declared = !refRefused && !needIdentities.has(directIdentity)
       ? identityByTerm.get(normalizeTerm(term)) ?? null
       : null;
     // ⚠️ SEUL UN VRAI SLUG SERT D'ALIAS. `term:…` et `refused:…` sont des
@@ -396,13 +503,29 @@ export function shoppingIdentityAudit(args: {
       ? acc.get(declared) ?? touch({ term, ref, refRefused })
       : touch({ term, ref, refRefused });
     row.boughtLines += 1;
+    // ⟳ 2026-09-12 · C3 — LA QUANTITÉ STRUCTURÉE D'ABORD, LA PROSE ENSUITE.
+    // Même ordre que `renderQuantity` et que `resolveIngredients` : la donnée
+    // gagne sur le texte, sans exception. `null` quand la ligne n'en porte pas
+    // (plan écrit avant ce lot) ⇒ le chemin historique par la prose, intact.
+    const amount = typeof line.amount === "number" && Number.isFinite(line.amount) &&
+        line.amount > 0
+      ? line.amount
+      : null;
+    const unit = typeof line.unit === "string" &&
+        (COMPOSITION_UNITS as readonly string[]).includes(line.unit)
+      ? line.unit as CompositionUnit
+      : null;
     const w = weighLine(index, {
       term,
       ref: ref ?? declaredSlug,
       refRefused,
-      amount: null,
-      unit: null,
-      state: "raw",
+      amount,
+      unit,
+      // ⛔ `state: "raw"` EST UNE AFFIRMATION, PAS UN DÉFAUT (voir le pavé
+      // au-dessus) : 500 g de riz au magasin sont 500 g CRUS. La ligne peut
+      // désormais l'écrire elle-même ; quand elle ne le fait pas, l'affirmation
+      // du panier tient.
+      state: line.state === "cooked" ? "cooked" : "raw",
       quantity: typeof line.quantity === "string" ? line.quantity : null,
     });
     if (w.kind === "measured") row.boughtRawG = (row.boughtRawG ?? 0) + w.grams;
@@ -416,8 +539,30 @@ export function shoppingIdentityAudit(args: {
     touch({ term: clean }).inPantry = true;
   }
 
+  // ── ③.d ET CE QU'IL A DÉJÀ COUVERT, RETRANCHÉ DU BESOIN ────────────────
+  //
+  // ⛔ SANS CETTE SOUSTRACTION, LES DEUX MODULES LISENT DEUX BESOINS. La
+  // reconstruction écrit sur la ligne le besoin NET (stock déduit) ; cet audit
+  // compare au besoin ENTIER, et rend `ingredient_short_bought` sur une
+  // personne qui a déjà l'aliment chez elle. Le plan de fermeture l'exige :
+  // « faire lire le même stock/besoin net à l'audit des achats ».
+  //
+  // ⚠️ JAMAIS SOUS ZÉRO, et jamais sur un besoin non pesé : un stock ne peut
+  // pas couvrir plus que ce qui est demandé, et il ne peut rien couvrir d'une
+  // quantité qu'on n'a pas su lire.
+  let pantryNetted = 0;
+  for (const [identity, grams] of args.pantryCoveredG) {
+    const row = acc.get(identity);
+    if (row === undefined || row.neededRawG === null) continue;
+    if (!Number.isFinite(grams) || grams <= 0) continue;
+    row.neededRawG = Math.max(0, row.neededRawG - grams);
+    pantryNetted += 1;
+  }
+
   const rows: ShoppingNeedRow[] = [];
   let quantified = 0;
+  let notPurchasable = 0;
+  let unverified = 0;
   for (const row of [...acc.values()].sort((a, b) => a.identity < b.identity ? -1 : 1)) {
     // Une identité que RIEN ne demande n'est pas un défaut d'achat: c'est une
     // ligne de courses ou un garde-manger en trop. Elle sort du dénominateur.
@@ -425,7 +570,16 @@ export function shoppingIdentityAudit(args: {
     const present = row.boughtLines > 0 || row.inPantry;
     let state: ShoppingCoverState;
     let reason: string;
-    if (row.refused) {
+    if (isNonPurchasableIdentity(row.identity)) {
+      // ⟳ 2026-09-12 · C3 — L'EAU DU ROBINET N'EST PAS UN ACHAT MANQUANT.
+      // Mesuré : 2 tirs sur 6 de la campagne du 2026-09-11 réclamaient 219 g et
+      // 287 g d'eau. ⛔ Cet état se pose AVANT tous les autres, et il ne regarde
+      // NI la présence NI la quantité : une ligne « eau » écrite par le modèle
+      // ne rend pas l'eau achetable, et son absence ne la rend pas manquante.
+      state = "not_purchasable";
+      reason = "eau du robinet — mesurée dans la préparation, jamais achetée";
+      notPurchasable += 1;
+    } else if (row.refused) {
       // ⛔ UN IDENTIFIANT REFUSÉ N'A PAS D'ALIMENT: on ne sait pas ce qu'il
       // faut acheter, donc on ne peut pas dire qu'il manque. C'est un contrôle
       // incomplet, et sa cause propre vit dans la garde (`ref_refused`).
@@ -457,6 +611,12 @@ export function shoppingIdentityAudit(args: {
         reason = `${round1(row.boughtRawG)} g achetés pour ${round1(row.neededRawG)} g requis`;
       }
     }
+    // ⟳ 2026-09-12 · C3 — LE DÉFAUT RESTANT, COMPTÉ PLUTÔT QUE DÉDUIT. Une
+    // identité PRÉSENTE dont on ne sait pas dire si on en a assez est un
+    // contrôle incomplet, et le plan demande de le NOMMER.
+    if (state === "present_unquantified" || state === "check_incomplete") {
+      unverified += 1;
+    }
     rows.push({
       identity: row.identity,
       identitySource: row.identitySource,
@@ -472,7 +632,14 @@ export function shoppingIdentityAudit(args: {
       reason,
     });
   }
-  return { rows, identities: rows.length, quantified };
+  return {
+    rows,
+    identities: rows.length,
+    quantified,
+    notPurchasable,
+    unverified,
+    pantryNetted,
+  };
 }
 
 /**
@@ -609,9 +776,29 @@ export interface AuditCell {
   /** `contract.bounds`, quand elles existent. */
   readonly gramsMin: number | null;
   readonly gramsMax: number | null;
-  /** Le couloir de densité du contrat, quand il est réalisable. */
+  /**
+   * Le couloir de densité du contrat, quand il est réalisable — LES NOMBRES
+   * ÉNONCÉS, ceux que le prompt et la consigne de réparation portent.
+   */
   readonly densityMin: number | null;
   readonly densityMax: number | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1C ⑤ — LES BORNES QUI JUGENT, NON ARRONDIES
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT ② DE LA CLÔTURE: une assiette à **241,1 kcal/100 g** déclarée
+   * hors bornes contre un plafond ENTIER de 241, quand le plafond exact vaut
+   * **241,27**. L'arrondi qui rend la consigne énonçable ne doit pas devenir le
+   * seuil du verdict — « inversement un dépassement réel ne disparaît pas par
+   * l'arrondi de l'affichage ».
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un `?` oublié ferait retomber le verdict
+   * sur les entiers chez tout appelant qui l'oublie, c'est-à-dire sur le défaut
+   * qu'on ferme.
+   */
+  readonly densityMinExact: number | null;
+  readonly densityMaxExact: number | null;
 }
 
 /**
@@ -776,10 +963,13 @@ function cellStateOf(
     ((cell.gramsMin !== null && m.grams < cell.gramsMin) ||
       (cell.gramsMax !== null && m.grams > cell.gramsMax))
   ) return "bounds_off";
+  // ⟳ 2026-09-14 · BÊTA 1C ⑤ — ON JUGE SUR LES BORNES EXACTES. Voir le pavé de
+  // `densityMinExact`. Les entiers restent ce qu'on ÉNONCE; ce qu'on MESURE se
+  // compare à ce que le contrat vaut vraiment.
   if (
     m.density !== null &&
-    ((cell.densityMin !== null && m.density < cell.densityMin) ||
-      (cell.densityMax !== null && m.density > cell.densityMax))
+    ((cell.densityMinExact !== null && m.density < cell.densityMinExact) ||
+      (cell.densityMaxExact !== null && m.density > cell.densityMaxExact))
   ) return "bounds_off";
   return "conforme";
 }
@@ -839,11 +1029,30 @@ export interface ProteinFloorAllocation {
  * la MÊME que celle du contrat, jamais une seconde.
  *
  * ── ⚠️ LES APPORTS FIXES SONT COMPTÉS UNE FOIS ──────────────────────────
- * Ils sont déjà retirés du budget énergétique par le contrat. Ici, ils sont
- * retirés du plancher PROTÉIQUE, une fois, et seulement quand l'appelant sait
- * ce qu'ils apportent (`fixedProteinG`). `null` = on ne sait pas ⇒ on ne
- * retire rien, ce qui est la direction d'erreur SÛRE (on exige un peu plus,
- * jamais moins).
+ * Ils sont retirés du plancher PROTÉIQUE, une fois, et seulement quand
+ * l'appelant sait ce qu'ils apportent (`fixedProteinG`). `null` = on ne sait
+ * pas ⇒ on ne retire rien, ce qui est la direction d'erreur SÛRE (on exige un
+ * peu plus, jamais moins).
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ ⟳ 2026-09-12 · ÉTAPE C1 — LE DOUBLE COMPTAGE QUI ÉTAIT ÉCRIT ICI
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La fraction se calculait sur `coveredBudgetKcal`, qui est le budget **NET**:
+ * le contrat en a déjà sorti les kcal du shaker (`slotPlanTargets` avec
+ * `slotFixedKcal`). Un shaker de 120 kcal sur une journée de 2 000 rabotait
+ * donc déjà le plancher de 6 %, PUIS on retranchait ses 24 g de protéine —
+ * deux réductions pour un seul pot, dans le sens qui abaisse une exigence.
+ *
+ * Le plan de clôture l'écrit en toutes lettres: « calculer la part protéique
+ * couverte **avant** la soustraction des apports fixes, puis retirer leurs
+ * protéines **une fois** ». La fraction prend donc le budget **BRUT**
+ * (`coveredBudgetGrossKcal`, contrat du 2026-09-12), et la soustraction
+ * protéique reste là où elle était.
+ *
+ * ⚠️ SANS APPORT FIXE LE RÉSULTAT EST IDENTIQUE À L'OCTET — brut = net, et
+ * `fixedProteinG` vaut `null`. Ce lot ne déplace aucun plancher d'un plan qui
+ * ne déclare rien.
  */
 export function proteinFloorAllocation(args: {
   /** `envelope.proteinFloorG` — `null` si l'enveloppe est `per_portion`. */
@@ -852,7 +1061,17 @@ export function proteinFloorAllocation(args: {
   perMealFloorG: number | null;
   /** Pourquoi l'enveloppe s'abstient, quand elle s'abstient. */
   abstention: "none" | "protected" | "no_body";
-  coveredBudgetKcal: number | null;
+  /**
+   * ⟳ 2026-09-12 · C1 — LE BUDGET COUVERT **BRUT**, avant retrait des apports
+   * fixes (`SlotNutritionContract.coveredBudgetGrossKcal`).
+   *
+   * ⛔ RENOMMÉ DEPUIS `coveredBudgetKcal`, ET LE RENOMMAGE EST LA GARDE. Un
+   * paramètre optionnel ajouté à côté aurait laissé tous les appelants sur
+   * l'ancien nombre — « paramètre de garde optionnel = garde désarmée », la
+   * cicatrice n° 1 du dépôt. Le compilateur est le seul recenseur d'appelants
+   * qui ne mente pas.
+   */
+  coveredBudgetGrossKcal: number | null;
   dayTargetKcal: number | null;
   fixedProteinG: number | null;
 }): ProteinFloorAllocation {
@@ -869,7 +1088,7 @@ export function proteinFloorAllocation(args: {
     };
   }
   const day = args.dayTargetKcal;
-  const covered = args.coveredBudgetKcal;
+  const covered = args.coveredBudgetGrossKcal;
   if (day === null || !(day > 0) || covered === null || !(covered >= 0)) {
     return { ...base, coveredFloorG: null, reason: "coverage_unknown" };
   }
@@ -900,6 +1119,99 @@ export function proteinFloorAllocation(args: {
  * une portion ENTIÈRE: publier « −40 % » ferait passer une mesure absente pour
  * de la nourriture absente, et les deux appellent des corrections opposées.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-15 · BÊTA 2C — L'ÉNERGIE PAR BOUCHE, SUR LA FENÊTRE ENTIÈRE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE CONTRÔLE N'AVAIT JAMAIS TOURNÉ SUR UNE SEULE GÉNÉRATION, et c'est
+ * mesuré: le handler passait `energy: null` EN DUR à `finalPlanGate`, si bien
+ * que `energyUnmeasured` valait le nombre de bouches, à chaque fois. Relu sur
+ * les 25 tirs de la campagne du 2026-09-14, le compte d'`incomplete` pour
+ * `mouth_energy` est EXACTEMENT le nombre de bouches du tir — 1 à N=1, 2 à
+ * N=2, 4 à N=4. Ce n'était pas « un contrôle qui n'a pas pu conclure »:
+ * c'était un contrôle qu'on n'a jamais branché, et `mouth_energy_short: 0` se
+ * lisait « personne n'est sous-nourri » sur une mesure inexistante.
+ *
+ * ⚠️ LE COMMENTAIRE DU SITE D'APPEL DISAIT VRAI QUAND IL A ÉTÉ ÉCRIT (« ses
+ * sources vivent dans des blocs que ce point du fichier ne voit pas ») et il
+ * est devenu faux: `dayNutritionTable` est construite quatre lignes plus haut,
+ * et elle porte tout ce qu'il faut.
+ *
+ * ── CE QUI ENTRE, ET CE QUI N'ENTRE PAS ───────────────────────────────────
+ *
+ * On n'additionne QUE les journées entièrement lues et budgétées. Une journée
+ * à trou ferait une somme servie plus basse que la réalité, donc un faux
+ * « sous-nourrie » — la direction d'erreur la plus coûteuse, puisqu'elle
+ * accuse un plan correct.
+ *
+ * ⛔ UNE BOUCHE SANS AUCUN BUDGET N'EST PAS RENDUE DU TOUT. C'est l'abstention
+ * légitime (âge inconnu, corps absent, profil protégé), et elle est DÉJÀ
+ * nommée, case par case, par `cell_energy_no_target` — que `plan_validation`
+ * publie en `not_applicable`. La redire ici la ferait compter une seconde fois,
+ * à une autre granularité, sous un autre mot: la personne lirait « contrôle
+ * incomplet » là où une protection a simplement fermé. C'est exactement le
+ * faux positif que le lot du 2026-09-13 a retiré des cases.
+ *
+ * ⚠️ UNE BOUCHE QUI A UN BUDGET ET DONT RIEN N'EST LISIBLE EST RENDUE, avec une
+ * enveloppe à zéro: la garde la compte alors en `energy_unmeasured`, et
+ * « incomplet » veut enfin dire ce qu'il dit.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function mouthEnergyTable(
+  days: readonly DayNutritionRow[],
+): readonly {
+  readonly memberId: string;
+  readonly envelopeKcal: number;
+  readonly deliveredKcal: number;
+}[] {
+  const byMouth = new Map<
+    string,
+    { budget: number; served: number; budgeted: number; complete: number }
+  >();
+  for (const d of days) {
+    const id = String(d.memberId ?? "").trim();
+    if (id === "") continue;
+    const acc = byMouth.get(id) ??
+      { budget: 0, served: 0, budgeted: 0, complete: 0 };
+    const budget = d.coveredBudgetKcal;
+    const hasBudget = typeof budget === "number" && Number.isFinite(budget) &&
+      budget > 0;
+    if (hasBudget) acc.budgeted++;
+    const served = d.servedKcal;
+    // ⛔ `cellsMeasured === cellsExpected` ET PAS `state === "conforme"`: un
+    // jour COMPLET mais hors bande est `energy_off` — c'est un jour lu, et
+    // l'écarter ferait disparaître de la somme précisément les journées que ce
+    // contrôle existe pour voir.
+    if (
+      hasBudget && typeof served === "number" && Number.isFinite(served) &&
+      d.cellsExpected > 0 && d.cellsMeasured === d.cellsExpected
+    ) {
+      acc.budget += budget;
+      acc.served += served;
+      acc.complete++;
+    }
+    byMouth.set(id, acc);
+  }
+  const out: { memberId: string; envelopeKcal: number; deliveredKcal: number }[] =
+    [];
+  for (const [memberId, acc] of byMouth) {
+    // Aucun budget nulle part: abstention déjà nommée par les cases.
+    if (acc.budgeted === 0) continue;
+    if (acc.complete === 0) {
+      out.push({ memberId, envelopeKcal: 0, deliveredKcal: 0 });
+      continue;
+    }
+    out.push({
+      memberId,
+      envelopeKcal: Math.round(acc.budget),
+      deliveredKcal: Math.round(acc.served),
+    });
+  }
+  return out;
+}
+
 export function dayNutritionTable(args: {
   cells: readonly CellNutritionRow[];
   /** Par `memberId|date`: le budget couvert et l'allocation protéique. */

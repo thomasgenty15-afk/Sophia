@@ -32,6 +32,19 @@ const household: SafetyFingerprintInput = {
       ageState: "adult",
       gender: "female",
       regime: "vegetarian",
+      goal: "maintenance",
+      paceKgPerWeek: 0.5,
+      away: [{ day: "wed", slot: "lunch" }],
+      eatingRhythm: { breakfast: "normal", lunch: "normal", dinner: "light" },
+      lightSlots: ["dinner"],
+      body: {
+        heightCm: 168,
+        weightKg: 62,
+        ageYears: 34,
+        activityLevel: "moderate",
+        activityAxes: { walking: 3, sport: 2 },
+        appetite: "small",
+      },
       allergies: [
         { ref: "peanut", label: "arachide", severity: "medical" },
         { ref: "gluten", label: "gluten", severity: "preference" },
@@ -141,6 +154,126 @@ Deno.test("un régime, un âge ou un sexe qui change, change l'empreinte", async
       members: (household.members ?? []).map((m) => (m.memberId === LEA ? { ...m, ...patch } : m)),
     };
     assertNotEquals(await safetyFingerprintOf(moved), base, JSON.stringify(patch));
+  }
+});
+
+Deno.test("objectif, présence, rythme et dîner léger périment chacun le brouillon", async () => {
+  const base = await safetyFingerprintOf(household);
+  for (
+    const patch of [
+      { goal: "weight_loss" },
+      { away: [{ day: "thu", slot: "dinner" }] },
+      { eatingRhythm: { breakfast: "small", lunch: "normal", dinner: "normal" } },
+      { lightSlots: [] },
+    ]
+  ) {
+    const moved: SafetyFingerprintInput = {
+      ...household,
+      members: (household.members ?? []).map((m) =>
+        m.memberId === LEA ? { ...m, ...patch } : m
+      ),
+    };
+    assertNotEquals(await safetyFingerprintOf(moved), base, JSON.stringify(patch));
+  }
+});
+
+Deno.test(
+  "⟳ BÊTA 2C — L'ALLURE PÉRIME LE BROUILLON, comme la direction qu'elle chiffre",
+  async () => {
+    // ⛔ LE DÉFAUT R3, EN UNE LIGNE. `goal` disait « perdre » des deux côtés du
+    // tap; `target_pace_kg_per_week` passait de 0,5 à 0,8 sans que rien ne le
+    // voie. Les cibles, elles, sont GELÉES avec le brouillon: la personne
+    // activait donc des portions calculées contre la demande d'avant.
+    const base = await safetyFingerprintOf(household);
+    for (const pace of [0.8, 0.25, null]) {
+      const moved: SafetyFingerprintInput = {
+        ...household,
+        members: (household.members ?? []).map((m) =>
+          m.memberId === LEA ? { ...m, paceKgPerWeek: pace } : m
+        ),
+      };
+      assertNotEquals(
+        await safetyFingerprintOf(moved),
+        base,
+        `allure ${String(pace)}`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "une allure ABSENTE et une allure `null` sont le même état, pas deux",
+  async () => {
+    // « rien réglé » n'est pas une valeur: `paceByMember` n'entre que sur un
+    // nombre utilisable, et le champ manquant doit donner la même empreinte.
+    const sansChamp: SafetyFingerprintInput = {
+      ...household,
+      members: (household.members ?? []).map((m) => {
+        if (m.memberId !== LEA) return m;
+        const { paceKgPerWeek: _ignore, ...reste } = m;
+        return reste;
+      }),
+    };
+    const nul: SafetyFingerprintInput = {
+      ...household,
+      members: (household.members ?? []).map((m) =>
+        m.memberId === LEA ? { ...m, paceKgPerWeek: null } : m
+      ),
+    };
+    assertEquals(
+      await safetyFingerprintOf(sansChamp),
+      await safetyFingerprintOf(nul),
+    );
+  },
+);
+
+Deno.test(
+  "⛔ LE CÂBLAGE: le handler passe `paceByMember` à l'empreinte, pas une seconde lecture",
+  async () => {
+    const src = await Deno.readTextFile(
+      new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+    );
+    // Le constructeur `liveSafety` est le SEUL objet rangé avec le brouillon
+    // (`p_safety_fingerprint`) et relu au tap: s'il ne cite pas la table des
+    // allures, l'empreinte ne peut pas la contenir.
+    assert(
+      src.includes("paceKgPerWeek: paceByMember.get(member.memberId) ?? null,"),
+      "liveSafety ne porte plus l'allure",
+    );
+    // ⚠️ DEUX `select` ET PAS TROIS. La ligne du foyer, puis le compte quand il
+    // y en a un — `paceByMember` les fusionne une fois pour toutes. Un troisième
+    // lecteur rendrait deux allures pour une même demande: la cible dirait l'une,
+    // l'empreinte l'autre, et le désaccord ne se verrait nulle part.
+    const selects = src.match(/\.select\("[^"]*target_pace_kg_per_week[^"]*"\)/g) ??
+      [];
+    assertEquals(
+      selects.length,
+      2,
+      "une lecture par table (household_members, student_goals), pas plus",
+    );
+  },
+);
+
+Deno.test("mensurations, activité et appétit périment chacun le brouillon", async () => {
+  const base = await safetyFingerprintOf(household);
+  const lea = (household.members ?? []).find((m) => m.memberId === LEA)!;
+  for (
+    const bodyPatch of [
+      { weightKg: 63 },
+      { heightCm: 169 },
+      { ageYears: 35 },
+      { activityLevel: "high" },
+      { activityAxes: { walking: 4, sport: 2 } },
+      { appetite: "large" },
+    ]
+  ) {
+    const moved: SafetyFingerprintInput = {
+      ...household,
+      members: (household.members ?? []).map((m) =>
+        m.memberId === LEA ? { ...m, body: { ...lea.body, ...bodyPatch } } : m
+      ),
+    };
+    assertNotEquals(await safetyFingerprintOf(moved), base, JSON.stringify(bodyPatch));
   }
 });
 
