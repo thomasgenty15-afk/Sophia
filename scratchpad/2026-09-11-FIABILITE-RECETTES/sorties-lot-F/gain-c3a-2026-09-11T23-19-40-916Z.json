@@ -1,0 +1,195 @@
+{
+  "cas": "gain",
+  "titre": "banc ② · GAIN · appétit average",
+  "lance_le": "2026-09-11T23:19:40.916Z",
+  "jour_local": "2026-09-12",
+  "heure_locale": "01:00",
+  "cases_annoncees": 9,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-11T23:19:40.132Z",
+      "jour_local": "2026-09-12",
+      "heure_locale": "01:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 9,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-12",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": []
+    },
+    "jours": [
+      "sat",
+      "sun",
+      "mon"
+    ],
+    "jour_vers_date": {
+      "sat": "2026-09-12",
+      "sun": "2026-09-13",
+      "mon": "2026-09-14"
+    },
+    "cases_par_bouche": {
+      "84150310-1525-4509-99d2-e70c8d40ea09": {
+        "sat": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "sun": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "84150310-1525-4509-99d2-e70c8d40ea09": 9
+    },
+    "cases_attendues_total": 9,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 713,
+  "statut": 422,
+  "reponse": {
+    "error": "mouth_unfed",
+    "detail": [
+      {
+        "member_id": "84150310-1525-4509-99d2-e70c8d40ea09",
+        "day": "mon",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "84150310-1525-4509-99d2-e70c8d40ea09",
+        "day": "mon",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "84150310-1525-4509-99d2-e70c8d40ea09",
+        "day": "mon",
+        "slot": "dinner",
+        "cause": "no_dish"
+      }
+    ],
+    "issues": [
+      "shopping_list_unattributed: 3/26 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "empty_slots: mon/breakfast, mon/lunch, mon/dinner",
+      "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/9"
+    ],
+    "request_id": "7e5df1bd-0155-4da2-98a0-e2c203471af5"
+  },
+  "appels_fournisseur": [
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-luna",
+      "matched": "generate-household-meal-v1",
+      "bodyBytes": 46117,
+      "atMs": 1439
+    },
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-luna",
+      "matched": "generate-household-meal-v1",
+      "bodyBytes": 48092,
+      "atMs": 1583
+    }
+  ],
+  "sorties_refusees": [],
+  "ligne_ecrite": null,
+  "retaillage": {
+    "text": "{\"dishes\":[{\"name\":\"Petits-suisses aux fraises\",\"title\":\"Petits-suisses, avoine, fraises et noix\",\"slot\":\"breakfast\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"petits-suisses nature\",\"quantity\":\"200 g de petits-suisses nature\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"petit_suisse_cream_cheese\"},{\"term\":\"flocons d’avoine\",\"quantity\":\"40 g de flocons d’avoine\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"oats\"},{\"term\":\"fraises\",\"quantity\":\"150 g de fraises\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"strawberries\"},{\"term\":\"noix\",\"quantity\":\"15 g de noix\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"walnuts\"}],\"method\":\"Mettre les petits-suisses dans un bol, ajouter les flocons d’avoine, les fraises et les noix.\",\"why\":\"Les petits-suisses donnent à ce petit-déjeuner frais un ancrage protéiné avec des aliments simples.\",\"density_check\":109,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]},{\"name\":\"Couscous d’agneau aux légumes\",\"title\":\"Agneau, couscous complet, légumes rôtis, feta et citron\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"feta\",\"quantity\":\"25 g de feta\",\"amount\":25,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"feta\"},{\"term\":\"tahini\",\"quantity\":\"10 g de tahini\",\"amount\":10,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tahini\"},{\"term\":\"citron\",\"quantity\":\"la moitié d’un citron\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\",\"ref\":\"lemon\"}],\"method\":\"Réunir l’agneau, le couscous complet et les légumes rôtis, puis ajouter la feta, le tahini et le citron.\",\"why\":\"Ce bol change la préparation d’agneau en déjeuner complet avec céréale, légumes et matières grasses.\",\"density_check\":168,\"uses\":[{\"preparation_id\":\"prep_lamb\",\"servings\":1,\"kept\":\"fridge\"},{\"preparation_id\":\"prep_couscous\",\"servings\":1,\"kept\":\"fridge\"},{\"preparation_id\":\"prep_roasted_vegetables\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]},{\"name\":\"Saumon roulé au tahini\",\"title\":\"Saumon, tortilla complète, tahini, laitue et tomate\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"tortilla complète\",\"quantity\":\"1 tortilla complète\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"ref\":\"tortilla_wholemeal\"},{\"term\":\"tahini\",\"quantity\":\"60 g de tahini\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tahini\"},{\"term\":\"huile d’olive\",\"quantity\":\"15 ml d’huile d’olive\",\"amount\":15,\"unit\":\"ml\",\"state\":\"raw\",\"ref\":\"olive_oil\"},{\"term\":\"laitue\",\"quantity\":\"50 g de laitue\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"lettuce\"},{\"term\":\"tomate\",\"quantity\":\"60 g de tomate\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tomato\"},{\"term\":\"citron\",\"quantity\":\"la moitié d’un citron\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\",\"ref\":\"lemon\"}],\"method\":\"Garnir la tortilla avec le saumon, le tahini, l’huile d’olive, la laitue, la tomate et le citron, puis rouler.\",\"why\":\"Le saumon devient un dîner différent grâce à la tortilla, la sauce au tahini et la salade croquante.\",\"density_check\":274,\"uses\":[{\"preparation_id\":\"prep_salmon\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]},{\"name\":\"Yaourt grec pêche et amandes\",\"title\":\"Yaourt grec, avoine, pêche et amandes\",\"slot\":\"breakfast\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"yaourt grec nature\",\"quantity\":\"200 g de yaourt grec nature\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"greek_yogurt\"},{\"term\":\"flocons d’avoine\",\"quantity\":\"35 g de flocons d’avoine\",\"amount\":35,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"oats\"},{\"term\":\"pêche\",\"quantity\":\"130 g de pêche\",\"amount\":130,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"peach\"},{\"term\":\"amandes\",\"quantity\":\"15 g d’amandes\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"almonds\"}],\"method\":\"Verser le yaourt grec dans un bol, ajouter les flocons d’avoine, la pêche et les amandes.\",\"why\":\"Le yaourt grec garde le petit-déjeuner simple tout en apportant une base protéinée et des fruits de saison.\",\"density_check\":133,\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]},{\"name\":\"Salade de saumon et pommes de terre\",\"title\":\"Saumon, pommes de terre, feta, laitue et citron\",\"slot\":\"lunch\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"feta\",\"quantity\":\"40 g de feta\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"feta\"},{\"term\":\"laitue\",\"quantity\":\"100 g de laitue\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"lettuce\"},{\"term\":\"citron\",\"quantity\":\"la moitié d’un citron\",\"amount\":0.5,\"unit\":\"unit\",\"state\":\"raw\",\"ref\":\"lemon\"},{\"term\":\"huile d’olive\",\"quantity\":\"10 ml d’huile d’olive\",\"amount\":10,\"unit\":\"ml\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Mélanger le saumon et les pommes de terre, ajouter la feta, la laitue, l’huile d’olive et le citron.\",\"why\":\"Cette salade utilise le saumon autrement que le dîner précédent avec des pommes de terre, de la laitue et de la feta.\",\"density_check\":179,\"uses\":[{\"preparation_id\":\"prep_salmon\",\"servings\":1,\"kept\":\"fridge\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]},{\"name\":\"Lentilles crémeuses au tahini\",\"title\":\"Lentilles, couscous complet, légumes rôtis, tahini et parmesan\",\"slot\":\"dinner\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"tahini\",\"quantity\":\"100 g de tahini\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"tahini\"},{\"term\":\"huile d’olive\",\"quantity\":\"50 ml d’huile d’olive\",\"amount\":50,\"unit\":\"ml\",\"state\":\"raw\",\"ref\":\"olive_oil\"},{\"term\":\"parmesan\",\"quantity\":\"40 g de parmesan\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"parmesan\"}],\"method\":\"Assembler les lentilles avec le couscous complet et les légumes rôtis, puis napper de tahini et d’huile d’olive et terminer avec le parmesan.\",\"why\":\"Les lentilles forment l’ancrage protéiné d’un dîner sans viande, complété par le couscous, les légumes et les matières grasses.\",\"density_check\":252,\"uses\":[{\"preparation_id\":\"prep_lentils\",\"servings\":1,\"kept\":\"fridge\"},{\"preparation_id\":\"prep_couscous\",\"servings\":1,\"kept\":\"fridge\"},{\"preparation_id\":\"prep_roasted_vegetables\",\"servings\":1,\"kept\":\"fridge\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"whole_foods_first\",\"protein_at_every_meal\",\"regular_meals_beat_perfect_meals\"]}],\"preparations\":[{\"id\":\"prep_lamb\",\"title\":\"Boulettes d’agneau aux flocons d’avoine\",\"servings_made\":2,\"ingredients\":[{\"term\":\"agneau\",\"quantity\":\"300 g d’agneau\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"lamb_leg\"},{\"term\":\"oignon\",\"quantity\":\"110 g d’oignon\",\"amount\":110,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"onion\"},{\"term\":\"flocons d’avoine\",\"quantity\":\"40 g de flocons d’avoine\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"oats\"},{\"term\":\"huile d’olive\",\"quantity\":\"2 cuillères à soupe d’huile d’olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"},{\"term\":\"ail\",\"quantity\":\"5 g d’ail\",\"amount\":5,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"garlic\"}],\"method\":\"Hacher l’oignon et l’ail, mélanger avec l’agneau et les flocons d’avoine, former les boulettes, les huiler et les cuire au four jusqu’à ce qu’elles soient bien cuites.\",\"active_minutes\":15,\"total_minutes\":40,\"cook_on\":\"fri\"},{\"id\":\"prep_couscous\",\"title\":\"Couscous complet huilé\",\"servings_made\":2,\"ingredients\":[{\"term\":\"couscous complet\",\"quantity\":\"140 g de couscous complet\",\"amount\":140,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"couscous_wholemeal\"},{\"term\":\"huile d’olive\",\"quantity\":\"1 cuillère à soupe d’huile d’olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Hydrater le couscous complet, le laisser gonfler, l’égrener et incorporer l’huile d’olive.\",\"active_minutes\":5,\"total_minutes\":15,\"cook_on\":\"fri\"},{\"id\":\"prep_roasted_vegetables\",\"title\":\"Légumes rôtis au four\",\"servings_made\":2,\"ingredients\":[{\"term\":\"poivron\",\"quantity\":\"150 g de poivron\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"bell_pepper\"},{\"term\":\"carotte\",\"quantity\":\"140 g de carotte\",\"amount\":140,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"carrot\"},{\"term\":\"oignon\",\"quantity\":\"110 g d’oignon\",\"amount\":110,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"onion\"},{\"term\":\"huile d’olive\",\"quantity\":\"2 cuillères à soupe d’huile d’olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Émincer le poivron, la carotte et l’oignon, mélanger avec l’huile d’olive et rôtir au four jusqu’à ce que les légumes soient tendres et dorés.\",\"active_minutes\":10,\"total_minutes\":40,\"cook_on\":\"fri\"},{\"id\":\"prep_salmon\",\"title\":\"Saumon rôti à l’huile d’olive\",\"servings_made\":2,\"ingredients\":[{\"term\":\"saumon\",\"quantity\":\"400 g de saumon\",\"amount\":400,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"salmon\"},{\"term\":\"huile d’olive\",\"quantity\":\"2 cuillères à soupe d’huile d’olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Badigeonner le saumon d’huile d’olive et le cuire au four jusqu’à ce qu’il soit juste cuit, puis le laisser refroidir avant de le ranger.\",\"active_minutes\":10,\"total_minutes\":20,\"cook_on\":\"sat\"},{\"id\":\"prep_potatoes\",\"title\":\"Pommes de terre rôties\",\"servings_made\":2,\"ingredients\":[{\"term\":\"pomme de terre\",\"quantity\":\"400 g de pommes de terre\",\"amount\":400,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"potato\"},{\"term\":\"huile d’olive\",\"quantity\":\"1 cuillère à soupe d’huile d’olive\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"}],\"method\":\"Couper les pommes de terre, les mélanger avec l’huile d’olive et les rôtir au four jusqu’à ce qu’elles soient dorées et tendres.\",\"active_minutes\":10,\"total_minutes\":40,\"cook_on\":\"sat\"},{\"id\":\"prep_lentils\",\"title\":\"Lentilles mijotées à la carotte\",\"servings_made\":2,\"ingredients\":[{\"term\":\"lentilles sèches\",\"quantity\":\"160 g de lentilles sèches\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"lentils_dry\"},{\"term\":\"oignon\",\"quantity\":\"110 g d’oignon\",\"amount\":110,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"onion\"},{\"term\":\"carotte\",\"quantity\":\"70 g de carotte\",\"amount\":70,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"carrot\"},{\"term\":\"huile d’olive\",\"quantity\":\"2 cuillères à soupe d’huile d’olive\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\",\"ref\":\"olive_oil\"},{\"term\":\"ail\",\"quantity\":\"5 g d’ail\",\"amount\":5,\"unit\":\"g\",\"state\":\"raw\",\"ref\":\"garlic\"},{\"term\":\"cube de bouillon\",\"quantity\":\"1 cube de bouillon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\",\"ref\":\"stock_cube\"}],\"method\":\"Faire revenir l’oignon, la carotte et l’ail dans l’huile d’olive, ajouter les lentilles et le bouillon, puis mijoter jusqu’à ce que les lentilles soient tendres.\",\"active_minutes\":15,\"total_minutes\":45,\"cook_on\":\"sun\"}],\"cooking_sessions\":[{\"day\":\"sat\",\"preparation_ids\":[\"prep_lamb\",\"prep_couscous\",\"prep_roasted_vegetables\"],\"total_minutes\":45,\"run_through\":\"Préchauffer le four, préparer les boulettes d’agneau et les légumes sur leurs plaques, puis les enfourner. Pendant la cuisson, hydrater et égrener le couscous. Laisser refroidir, répartir chaque préparation en portions et ranger au réfrigérateur.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_salmon\",\"prep_potatoes\"],\"total_minutes\":40,\"run_through\":\"Acheter le saumon frais ce jour-là ou la veille. Mettre les pommes de terre huilées au four, préparer le saumon pendant que le four chauffe, puis cuire les deux préparations en parallèle. Laisser refroidir et ranger les portions au réfrigérateur.\"},{\"day\":\"sun\",\"preparation_ids\":[\"prep_lentils\"],\"total_minutes\":45,\"run_through\":\"Émincer l’oignon, la carotte et l’ail, les faire revenir dans l’huile d’olive, ajouter les lentilles et le bouillon, puis laisser mijoter jusqu’à tendreté. Répartir la préparation et assembler le dîner.\"}],\"shopping_list\":[{\"term\":\"agneau\",\"quantity\":\"300 g d’agneau\",\"aisle\":\"protein\"},{\"term\":\"saumon\",\"quantity\":\"400 g de saumon\",\"aisle\":\"protein\"},{\"term\":\"oignons\",\"quantity\":\"220 g d’oignons\",\"aisle\":\"produce\"},{\"term\":\"ail\",\"quantity\":\"10 g d’ail\",\"aisle\":\"produce\"},{\"term\":\"poivron\",\"quantity\":\"150 g de poivron\",\"aisle\":\"produce\"},{\"term\":\"carottes\",\"quantity\":\"210 g de carottes\",\"aisle\":\"produce\"},{\"term\":\"tomates\",\"quantity\":\"120 g de tomates\",\"aisle\":\"produce\"},{\"term\":\"laitue\",\"quantity\":\"150 g de laitue\",\"aisle\":\"produce\"},{\"term\":\"citrons\",\"quantity\":\"2 citrons\",\"aisle\":\"produce\"},{\"term\":\"fraises\",\"quantity\":\"150 g de fraises\",\"aisle\":\"produce\"},{\"term\":\"pêche\",\"quantity\":\"130 g de pêche\",\"aisle\":\"produce\"},{\"term\":\"pommes de terre\",\"quantity\":\"400 g de pommes de terre\",\"aisle\":\"produce\"},{\"term\":\"flocons d’avoine\",\"quantity\":\"115 g de flocons d’avoine\",\"aisle\":\"grains\"},{\"term\":\"couscous complet\",\"quantity\":\"140 g de couscous complet\",\"aisle\":\"grains\"},{\"term\":\"lentilles sèches\",\"quantity\":\"160 g de lentilles sèches\",\"aisle\":\"grains\"},{\"term\":\"pitas complètes\",\"quantity\":\"1 pita complète\",\"aisle\":\"grains\"},{\"term\":\"tortilla complète\",\"quantity\":\"1 tortilla complète\",\"aisle\":\"grains\"},{\"term\":\"huile d’olive\",\"quantity\":\"240 ml d’huile d’olive\",\"aisle\":\"pantry\"},{\"term\":\"tahini\",\"quantity\":\"210 g de tahini\",\"aisle\":\"pantry\"},{\"term\":\"cube de bouillon\",\"quantity\":\"1 cube de bouillon\",\"aisle\":\"pantry\"},{\"term\":\"petits-suisses nature\",\"quantity\":\"200 g de petits-suisses nature\",\"aisle\":\"dairy\"},{\"term\":\"yaourt grec nature\",\"quantity\":\"200 g de yaourt grec nature\",\"aisle\":\"dairy\"},{\"term\":\"feta\",\"quantity\":\"65 g de feta\",\"aisle\":\"dairy\"},{\"term\":\"parmesan\",\"quantity\":\"40 g de parmesan\",\"aisle\":\"dairy\"},{\"term\":\"noix\",\"quantity\":\"15 g de noix\",\"aisle\":\"pantry\"},{\"term\":\"amandes\",\"quantity\":\"15 g d’amandes\",\"aisle\":\"pantry\"}],\"member_portions\":[{\"member_id\":\"07965f74-c04e-40f8-acd5-54917b3739ed\",\"dishes\":[{\"day\":\"fri\",\"slot\":\"dinner\",\"instruction\":\"Servir la pita garnie de tous ses composants.\",\"components\":[{\"term\":\"portion de boulettes d’agneau\",\"amount\":192,\"unit\":\"g\"},{\"term\":\"pita complète\",\"amount\":60,\"unit\":\"g\"},{\"term\":\"tahini\",\"amount\":40,\"unit\":\"g\"},{\"term\":\"huile d’olive\",\"amount\":15,\"unit\":\"ml\"},{\"term\":\"tomate\",\"amount\":60,\"unit\":\"g\"}],\"density_check\":267},{\"day\":\"sat\",\"slot\":\"breakfast\",\"instruction\":\"Servir les petits-suisses avec l’avoine, les fraises et les noix.\",\"components\":[{\"term\":\"petits-suisses nature\",\"amount\":200,\"unit\":\"g\"},{\"term\":\"flocons d’avoine\",\"amount\":40,\"unit\":\"g\"},{\"term\":\"fraises\",\"amount\":150,\"unit\":\"g\"},{\"term\":\"noix\",\"amount\":15,\"unit\":\"g\"}],\"density_check\":109},{\"day\":\"sat\",\"slot\":\"lunch\",\"instruction\":\"Servir l’agneau avec le couscous, les légumes rôtis, la feta, le tahini et le citron.\",\"components\":[{\"term\":\"portion de boulettes d’agneau\",\"amount\":192,\"unit\":\"g\"},{\"term\":\"portion de couscous complet\",\"amount\":189.5,\"unit\":\"g\"},{\"term\":\"portion de légumes rôtis\",\"amount\":195,\"unit\":\"g\"},{\"term\":\"feta\",\"amount\":25,\"unit\":\"g\"},{\"term\":\"tahini\",\"amount\":10,\"unit\":\"g\"},{\"term\":\"citron\",\"amount\":30,\"unit\":\"g\"}],\"density_check\":168},{\"day\":\"sat\",\"slot\":\"dinner\",\"instruction\":\"Servir le saumon roulé dans la tortilla avec la sauce et la salade.\",\"components\":[{\"term\":\"portion de saumon\",\"amount\":175,\"unit\":\"g\"},{\"term\":\"tortilla complète\",\"amount\":60,\"unit\":\"g\"},{\"term\":\"tahini\",\"amount\":60,\"unit\":\"g\"},{\"term\":\"huile d’olive\",\"amount\":15,\"unit\":\"ml\"},{\"term\":\"laitue\",\"amount\":50,\"unit\":\"g\"},{\"term\":\"tomate\",\"amount\":60,\"unit\":\"g\"},{\"term\":\"citron\",\"amount\":30,\"unit\":\"g\"}],\"density_check\":274},{\"day\":\"sun\",\"slot\":\"breakfast\",\"instruction\":\"Servir le yaourt grec avec l’avoine, la pêche et les amandes.\",\"components\":[{\"term\":\"yaourt grec nature\",\"amount\":200,\"unit\":\"g\"},{\"term\":\"flocons d’avoine\",\"amount\":35,\"unit\":\"g\"},{\"term\":\"pêche\",\"amount\":130,\"unit\":\"g\"},{\"term\":\"amandes\",\"amount\":15,\"unit\":\"g\"}],\"density_check\":133},{\"day\":\"sun\",\"slot\":\"lunch\",\"instruction\":\"Servir le saumon avec les pommes de terre, la feta, la laitue, l’huile et le citron.\",\"components\":[{\"term\":\"portion de saumon\",\"amount\":175,\"unit\":\"g\"},{\"term\":\"portion de pommes de terre\",\"amount\":187.5,\"unit\":\"g\"},{\"term\":\"feta\",\"amount\":40,\"unit\":\"g\"},{\"term\":\"laitue\",\"amount\":100,\"unit\":\"g\"},{\"term\":\"huile d’olive\",\"amount\":10,\"unit\":\"ml\"},{\"term\":\"citron\",\"amount\":30,\"unit\":\"g\"}],\"density_check\":179},{\"day\":\"sun\",\"slot\":\"dinner\",\"instruction\":\"Servir les lentilles avec le couscous, les légumes rôtis, le tahini, l’huile et le parmesan.\",\"components\":[{\"term\":\"portion de lentilles mijotées\",\"amount\":295.5,\"unit\":\"g\"},{\"term\":\"portion de couscous complet\",\"amount\":189.5,\"unit\":\"g\"},{\"term\":\"portion de légumes rôtis\",\"amount\":195,\"unit\":\"g\"},{\"term\":\"tahini\",\"amount\":100,\"unit\":\"g\"},{\"term\":\"huile d’olive\",\"amount\":50,\"unit\":\"ml\"},{\"term\":\"parmesan\",\"amount\":40,\"unit\":\"g\"}],\"density_check\":252}]}],\"explanation\":[]}",
+    "dishesBefore": 7,
+    "dishesAfter": 6,
+    "moved": [
+      "prep_lamb",
+      "prep_couscous",
+      "prep_roasted_vegetables"
+    ]
+  },
+  "refus_secondaire": null,
+  "second_member": "",
+  "meta_bouche": {
+    "member_id": "84150310-1525-4509-99d2-e70c8d40ea09",
+    "user_id": "e9bb4d0d-66fa-4d7c-beb8-54e32c72c285",
+    "email": "lotf.gain.c3a@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1998-07-02",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 62,
+    "height_cm": 178
+  },
+  "journal": [
+    "   ⚠️ --reparations : tour ×1.25 — 6 ligne(s) mutée(s)",
+    "   ⚠️ --reparations : tour ×1.5 — 6 ligne(s) mutée(s)",
+    "── LOT F ② · cas GAIN · lotf.gain.c3a@keeltest.dev ────────────────",
+    "   réponse archivée RETAILLÉE : 7 → 6 plats (vendredi retiré, cuisson prep_lamb+prep_couscous+prep_roasted_vegetables déplacée au samedi)",
+    "   compte : e9bb4d0d-66fa-4d7c-beb8-54e32c72c285",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : 84150310-1525-4509-99d2-e70c8d40ea09",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-11T23:19:40.132Z · 2026-09-12 01 h (Europe/Paris)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 3 jour(s) à partir du 2026-09-12",
+    "   jours         [\"sat\",\"sun\",\"mon\"]",
+    "   CASES ATTENDUES 9 · grille par bouche {\"sat\":[\"breakfast\",\"lunch\",\"dinner\"],\"sun\":[\"breakfast\",\"lunch\",\"dinner\"],\"mon\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "{\"tag\":\"keel.household_meal.member_bodies\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"members\":1,\"accounts\":1,\"with_body\":1,\"reads\":7}",
+    "{\"tag\":\"keel.household_meal.mouth_facts\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"tally\":{\"heightCm.personal\":1,\"weightKg.personal\":1,\"gender.personal\":1,\"ageYears.personal\":1,\"activityLevel.personal\":1,\"activityAxes.personal\":1,\"appetite.member_sheet\":1}}",
+    "{\"tag\":\"keel.household_meal.condition_gate\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"pregnancy\":0,\"breastfeeding\":0,\"other\":0,\"none\":1}",
+    "{\"tag\":\"keel.household_meal.composition\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"mode\":\"per_kg\",\"deltas\":0,\"family_service\":false,\"residual_gaps_count\":1,\"residual_gaps_max_band\":\"lt_200\"}",
+    "{\"tag\":\"keel.household_meal.retained_items\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"composition\":0,\"portion\":0,\"rhythm\":0,\"logistics\":0,\"craving\":0,\"unrouted\":0,\"portion_excluded\":[],\"refused\":0,\"legacy_notes\":0,\"other_subjects\":0,\"portion_applied\":0}",
+    "{\"tag\":\"keel.household_meal.structure\",\"derived\":1,\"capped\":0,\"no_target\":0,\"no_body\":0,\"opened_total\":2,\"mouths_opened\":1}",
+    "{\"tag\":\"keel.household_meal.shake\",\"compose\":1,\"declared\":0,\"not_applicable\":0,\"taken\":0}",
+    "{\"tag\":\"keel.household_meal.cells\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"cells\":9,\"non_empty\":9,\"empty\":0,\"light\":0,\"light_mixed\":0,\"eaters_hist\":{\"1\":9,\"2\":0,\"3\":0,\"4_plus\":0},\"dedicated_cells\":0,\"dedicated_mouths\":0,\"dedicated_by_reason\":{\"regime\":0,\"own_meal\":0},\"one_eater_cells\":9,\"cook_day_cells\":0,\"spent_cells\":0,\"regime_by_cell\":{\"none\":9},\"dish_bearing_delta\":0,\"dish_bearing_only_cells\":0,\"dish_bearing_only_current\":0}",
+    "{\"tag\":\"keel.household_meal.cooking_shape\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"weekly_cooking_minutes\":null,\"time_allows_second_dish\":true,\"shape\":\"one_dish\",\"asked_shape\":null,\"computed_shape\":\"one_dish\",\"shape_capped\":false,\"shape_unused\":false,\"diverging\":[],\"dish_bearing\":[],\"from_merge\":false,\"strictest_regime\":null,\"regimes\":0}",
+    "{\"tag\":\"keel.household_meal.member_voices\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"accounts_at_table\":1,\"with_lines\":0,\"lines_raw\":0,\"reads\":0}",
+    "{\"tag\":\"keel.household_meal.composition_catalog\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"lang\":\"fr\",\"considered\":943,\"not_composable\":23,\"group_never_composed\":16,\"group_excluded\":0,\"term_excluded\":0,\"over_group_cap\":783,\"over_total_cap\":0,\"kept\":121,\"chars\":5025}",
+    "{\"tag\":\"keel.household_meal.voices_used\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"heard\":0,\"linesIn\":0,\"linesUsed\":0,\"linesWithheld\":0,\"linesOverCap\":0,\"linesTooLong\":0,\"perMember\":[]}",
+    "{\"tag\":\"keel.household_meal.notes\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"lines\":0,\"household_lines\":0,\"member_lines\":0,\"served\":0,\"block_served\":0,\"other_subjects\":0}",
+    "{\"tag\":\"keel.household_meal.prompt_cost\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"intent\":\"prepare_next\",\"user_chars_before\":18515,\"user_chars_after\":23542,\"added_chars\":5027,\"added_pct\":27.2,\"catalog_chars\":5025,\"catalog_entries\":121,\"catalog_anchor\":\"anchored\"}",
+    "{\"tag\":\"keel.household_meal.precedence\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"intent\":\"prepare_next\",\"place\":\"tail\",\"exact\":true,\"blocks_after\":0,\"ranks_with_object\":1,\"ranks_without_object\":4,\"by_rank\":{\"rank_1\":0,\"rank_2\":6,\"rank_3\":0,\"rank_4\":0,\"rank_5\":0}}",
+    "{\"tag\":\"openai_http\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"openai_api\":\"responses\",\"openai_response_id\":\"resp_lotf_1\",\"status\":200,\"ok\":true,\"duration_ms\":32,\"timeout_ms\":349529,\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"openai_result\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"keel.household_meal.pre_repair_sizing\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"measured\":null,\"dishes\":null,\"repair_asks\":0,\"bites\":0,\"pending\":[\"missing_meal\"]}",
+    "{\"tag\":\"openai_http\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"source\":\"generate-household-meal-v1.unfed_retry\",\"model\":\"gpt-5.6-luna\",\"openai_api\":\"responses\",\"openai_response_id\":\"resp_lotf_2\",\"status\":200,\"ok\":true,\"duration_ms\":17,\"timeout_ms\":300000,\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"openai_result\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"source\":\"generate-household-meal-v1.unfed_retry\",\"model\":\"gpt-5.6-luna\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"keel.household_meal.meals_delivered\",\"user_id\":\"e9bb4d0d-66fa-4d7c-beb8-54e32c72c285\",\"household_id\":\"a95766f6-f5cb-4a21-8302-ece3db77bb80\",\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\",\"mouths\":1,\"cook_day_cells_dropped\":0,\"expected\":9,\"fed\":6,\"missing\":3,\"missing_before\":3,\"held_off_regime\":0,\"held_off_exclusion\":0,\"not_named\":0,\"double\":0,\"no_dish\":3,\"cells_without_dish\":3,\"missing_rows\":[\"mon/breakfast:no_dish::8415\",\"mon/lunch:no_dish::8415\",\"mon/dinner:no_dish::8415\"],\"unplaced_dishes\":0,\"retried\":false,\"retry_attempts\":1,\"retry_accepted\":0,\"retry_merged_cells\":0,\"retry_on\":{\"no_dish\":3},\"restored\":0,\"restored_fallback\":0,\"rehomed\":0}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     422",
+    "   durée      713 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 2",
+    "     · generate-household-meal-v1  modèle=gpt-5.6-luna  corps=46117 o  à +1439 ms",
+    "     · generate-household-meal-v1  modèle=gpt-5.6-luna  corps=48092 o  à +1583 ms",
+    "   sorties réseau REFUSÉES : 0",
+    "   corps : {\"error\":\"mouth_unfed\",\"detail\":[{\"member_id\":\"84150310-1525-4509-99d2-e70c8d40ea09\",\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"84150310-1525-4509-99d2-e70c8d40ea09\",\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"84150310-1525-4509-99d2-e70c8d40ea09\",\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}],\"issues\":[\"shopping_list_unattributed: 3/26 lines match no kept and no dropped ingredient -- kept, not guessed\",\"empty_slots: mon/breakfast, mon/lunch, mon/dinner\",\"model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan\",\"uses_kept_freezer: 0/9\"],\"request_id\":\"7e5df1bd-0155-4da2-98a0-e2c203471af5\"}"
+  ]
+}

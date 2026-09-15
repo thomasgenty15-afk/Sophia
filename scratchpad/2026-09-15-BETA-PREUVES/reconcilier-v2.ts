@@ -128,6 +128,14 @@ const cases = [
     note: "plan navigateur stocké 82e60169 ; le banc --reponse a été refusé (IDs étrangers + plafond 9 plats)",
   },
   {
+    // ⟳ 2026-09-15 · LOT 4 — LE PLAN FRAIS, COMPOSÉ ET ADOPTÉ AUJOURD'HUI.
+    // C'est le seul cas de cette liste produit par la version figée des lots
+    // 1 à 3 : les quatre autres décrivent le code d'avant.
+    nom: "n4-b15b-frais",
+    rel: "scratchpad/2026-09-15-BETA-PREUVES/plan-n4-b15b.json",
+    note: "N=4 (végane, omnivore, mineure), composé en aperçu puis adopté le 2026-09-15",
+  },
+  {
     nom: "n4-away-tir9s1",
     rel: "scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/campagne-tir9-s1-2026-09-14T04-20-23-468Z.json",
     note: "plan publié N=4, Nils absent mardi ; mesuré hors handler sur la ligne écrite",
@@ -403,17 +411,28 @@ for (const r of rapport) {
     //    ne peut être arrondie que d'un gramme, plus un pour la masse prête.
     const borne = lignes + 1;
     if (rest <= borne) continue;
-    // ② SINON, LE MINIMUM MESURÉ. Une croissance a eu lieu: la seule borne
-    //    honnête est la marche de l'escalier, balayée plus haut.
+    // ② UNE CROISSANCE A EU LIEU: la seule borne honnête est la marche de
+    //    l'escalier, balayée plus haut.
     const mini = p.surplus_minimal_g as number | null;
-    if (mini !== null && rest <= mini) {
-      expliques.push(`${p.preparation_id}: +${rest} g = le minimum atteignable`);
+    if (mini !== null) {
+      if (rest <= mini) {
+        expliques.push(`${p.preparation_id}: +${rest} g = le minimum atteignable`);
+      } else {
+        horsBorne.push(`${p.preparation_id}: +${rest} g > minimum mesuré ${mini} g`);
+      }
       continue;
     }
-    horsBorne.push(
-      `${p.preparation_id}: +${rest} g > ${borne} g` +
-        (mini === null ? " (minimum non mesurable)" : ` et > minimum ${mini} g`),
-    );
+    // ③ AUCUNE CROISSANCE: ce surplus n'est PAS un arrondi, c'est le RESTE de
+    //    la composition — la recette est un peu plus grande que la somme des
+    //    parts. B4 demande des restes EXPLICITES, pas des restes nuls.
+    //
+    // ⛔ ET ON N'INVENTE AUCUN SEUIL. Choisir « 5 % » ici serait la même faute
+    //    que réemployer les 15 % du rétrécissement: un nombre posé pour faire
+    //    vert. Le moteur a DÉJÀ une décision sur la masse d'une casserole
+    //    (`decidePotMassPublication`, appelée plus bas): un reste qu'il accepte
+    //    n'a pas à être refusé par cet instrument-ci. On le NOMME, et c'est
+    //    tout ce que le critère demande.
+    expliques.push(`${p.preparation_id}: +${rest} g de reste, sans croissance`);
   }
   const counts = (r.shopping_rebuild ?? {}) as Record<string, number>;
   const achatsSansRecette =

@@ -1,0 +1,461 @@
+{
+  "cas": "gain",
+  "titre": "banc ② · GAIN · appétit average",
+  "lance_le": "2026-09-13T22:34:47.723Z",
+  "jour_local": "2026-09-14",
+  "heure_locale": "00:00",
+  "cases_annoncees": 7.5,
+  "bouches": 4,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T22:34:46.595Z",
+      "jour_local": "2026-09-14",
+      "heure_locale": "00:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 7.5,
+      "bouches_annoncees": 4,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": []
+    },
+    "jours": [
+      "mon",
+      "tue",
+      "wed"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15",
+      "wed": "2026-09-16"
+    },
+    "cases_par_bouche": {
+      "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "6ccb08db-10c0-4261-a036-7558a77e1bae": {
+        "mon": [
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      "7b1445a9-a47e-465d-9f11-817a4d0611b0": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "a8176e0e-b518-42d6-aa86-1271a0ece256": {
+        "mon": [
+          "breakfast",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c": 9,
+      "6ccb08db-10c0-4261-a036-7558a77e1bae": 6,
+      "7b1445a9-a47e-465d-9f11-817a4d0611b0": 9,
+      "a8176e0e-b518-42d6-aa86-1271a0ece256": 6
+    },
+    "cases_attendues_total": 30,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 980,
+  "statut": 422,
+  "reponse": {
+    "error": "mouth_unfed",
+    "detail": [
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "mon",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "mon",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "mon",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "tue",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "tue",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "tue",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "wed",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "wed",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "mon",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "mon",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "tue",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "tue",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "wed",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "mon",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "mon",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "mon",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "tue",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "tue",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "tue",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "wed",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "wed",
+        "slot": "lunch",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "7b1445a9-a47e-465d-9f11-817a4d0611b0",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "mon",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "mon",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "tue",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "tue",
+        "slot": "dinner",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "wed",
+        "slot": "breakfast",
+        "cause": "no_dish"
+      },
+      {
+        "member_id": "a8176e0e-b518-42d6-aa86-1271a0ece256",
+        "day": "wed",
+        "slot": "dinner",
+        "cause": "no_dish"
+      }
+    ],
+    "issues": [
+      "mouth_unfed_before_repair:30",
+      "shopping_waves: 1 (2026-09-14)",
+      "freeze_on_purchase: 0/26",
+      "waves_kept_for_freshness: 0/26",
+      "sessions_fed_from_freezer: 0/0 name the freezer",
+      "quantity_prose_stale:3",
+      "final_gate_flagged:27",
+      "final_gate_delivery:not_deliverable",
+      "plan_repair_context_truncated:6",
+      "plan_defects_at_delivery:57 (safety:7, missing_meal:39, preference:11)",
+      "shopping_list_unattributed: 2/26 lines match no kept and no dropped ingredient -- kept, not guessed",
+      "empty_slots: mon/breakfast, mon/lunch, mon/dinner, tue/breakfast, tue/lunch, tue/dinner, wed/breakfast, wed/lunch, wed/dinner",
+      "model_returned_no_box: 0/20 -- 5 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/10"
+    ],
+    "request_id": "7a406ee4-2891-4dd6-bfa8-d10fee733608"
+  },
+  "appels_fournisseur": [
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-luna",
+      "matched": "generate-household-meal-v1",
+      "bodyBytes": 62237,
+      "atMs": 1311
+    }
+  ],
+  "sorties_refusees": [],
+  "ligne_ecrite": null,
+  "retaillage": null,
+  "appels_reels": [],
+  "refus_secondaire": null,
+  "base_avant": [],
+  "base_apres": [],
+  "base_delta": {
+    "ajoutes": [],
+    "retires": [],
+    "reecrits": []
+  },
+  "demande_envoyee": {
+    "intent": "prepare_next",
+    "window": {
+      "kind": "days",
+      "count": 3
+    }
+  },
+  "exclusion_declaree": null,
+  "allergene_injecte": null,
+  "second_member": "6ccb08db-10c0-4261-a036-7558a77e1bae",
+  "meta_bouche": {
+    "member_id": "4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+    "user_id": "fa62ffbb-4f3a-4613-902f-1331c3358cfb",
+    "email": "lotf.gain.s22n4c@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1998-07-02",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 62,
+    "height_cm": 178
+  },
+  "journal": [
+    "── LOT F ② · cas GAIN · lotf.gain.s22n4c@keeltest.dev ────────────────",
+    "   réponse archivée TELLE QUELLE (7 plats)",
+    "   compte : fa62ffbb-4f3a-4613-902f-1331c3358cfb",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : 4b9c3abc-6fd4-4f6b-ae74-04a8df09387c",
+    "   bouche 2 : 6ccb08db-10c0-4261-a036-7558a77e1bae (Lea · 164 cm · 58 kg · appétit small)",
+    "   bouche 3 : 7b1445a9-a47e-465d-9f11-817a4d0611b0 (Nils · 183 cm · 92 kg · appétit large)",
+    "   bouche 4 : a8176e0e-b518-42d6-aa86-1271a0ece256 (Iris · 170 cm · 64 kg · appétit average)",
+    "   objectif bouche 1 : muscle_gain → écrit dans « student_goals.goal »",
+    "   objectif bouche 2 : maintenance → écrit dans « household_members.goal »",
+    "   objectif bouche 3 : muscle_gain → écrit dans « household_members.goal »",
+    "   objectif bouche 4 : muscle_gain → écrit dans « household_members.goal »",
+    "   ⛔ CE QUE « keel_household_roster » REND (la source du générateur) :\n      · Max    objectif=muscle_gain  âge=adult   → PORTION PESÉE (weighedPortionMembers)\n      · Lea    objectif=maintenance  âge=adult   ⚠️ BAC COMMUN — aucun gramme ne vise cette personne\n      · Nils   objectif=muscle_gain  âge=adult   → PORTION PESÉE (weighedPortionMembers)\n      · Iris   objectif=muscle_gain  âge=adult   → PORTION PESÉE (weighedPortionMembers)",
+    "   régime bouche 2 : vegan",
+    "   ⛔ RÉGIMES VUS PAR LE GÉNÉRATEUR : Max=aucun · Lea=vegan · Nils=aucun · Iris=aucun",
+    "   rythme bouche 2 : lunch, dinner (les autres moments ne sont PAS demandés)",
+    "   rythme bouche 4 : breakfast, dinner (les autres moments ne sont PAS demandés)",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-13T22:34:46.595Z · 2026-09-14 00 h (Europe/Paris)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 3 jour(s) à partir du 2026-09-14",
+    "   jours         [\"mon\",\"tue\",\"wed\"]",
+    "   CASES ATTENDUES 30 · grille par bouche {\"mon\":[\"breakfast\",\"lunch\",\"dinner\"],\"tue\":[\"breakfast\",\"lunch\",\"dinner\"],\"wed\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "\n── LA BASE AVANT L'APPEL ─────────────────────────────────────\n   0 plan(s) : []",
+    "{\"tag\":\"keel.household_meal.member_bodies\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"members\":4,\"accounts\":1,\"with_body\":4,\"reads\":8}",
+    "{\"tag\":\"keel.household_meal.mouth_facts\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"tally\":{\"heightCm.personal\":1,\"weightKg.personal\":1,\"gender.personal\":1,\"ageYears.personal\":1,\"activityLevel.personal\":1,\"activityAxes.personal\":1,\"appetite.member_sheet\":4,\"heightCm.member_sheet\":3,\"weightKg.member_sheet\":3,\"gender.member_sheet\":3,\"ageYears.member_sheet\":3,\"activityLevel.member_sheet\":3,\"activityAxes.member_sheet\":3}}",
+    "{\"tag\":\"keel.household_meal.condition_gate\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"pregnancy\":0,\"breastfeeding\":0,\"other\":0,\"none\":4}",
+    "{\"tag\":\"keel.household_meal.composition\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"mode\":\"per_kg\",\"deltas\":3,\"family_service\":false,\"residual_gaps_count\":4,\"residual_gaps_max_band\":\"lt_200\"}",
+    "{\"tag\":\"keel.household_meal.retained_items\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"composition\":0,\"portion\":0,\"rhythm\":0,\"logistics\":0,\"craving\":0,\"unrouted\":0,\"portion_excluded\":[],\"refused\":0,\"legacy_notes\":0,\"other_subjects\":0,\"portion_applied\":0}",
+    "{\"tag\":\"keel.household_meal.structure\",\"derived\":4,\"capped\":0,\"no_target\":0,\"no_body\":0,\"opened_total\":7,\"mouths_opened\":4}",
+    "{\"tag\":\"keel.household_meal.shake\",\"compose\":3,\"declared\":0,\"not_applicable\":1,\"taken\":0}",
+    "{\"tag\":\"keel.household_meal.cells\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"cells\":9,\"non_empty\":9,\"empty\":0,\"light\":0,\"light_mixed\":0,\"eaters_hist\":{\"1\":0,\"2\":0,\"3\":6,\"4_plus\":3},\"dedicated_cells\":9,\"dedicated_mouths\":24,\"dedicated_by_reason\":{\"regime\":24,\"own_meal\":0},\"one_eater_cells\":0,\"cook_day_cells\":0,\"spent_cells\":0,\"regime_by_cell\":{\"vegan\":9},\"dish_bearing_delta\":0,\"dish_bearing_only_cells\":0,\"dish_bearing_only_current\":0}",
+    "{\"tag\":\"keel.household_meal.cooking_shape\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"weekly_cooking_minutes\":null,\"time_allows_second_dish\":true,\"shape\":\"one_session\",\"asked_shape\":null,\"computed_shape\":\"one_session\",\"shape_capped\":false,\"shape_unused\":false,\"diverging\":[\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"a8176e0e-b518-42d6-aa86-1271a0ece256\"],\"dish_bearing\":[\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"a8176e0e-b518-42d6-aa86-1271a0ece256\"],\"dish_bearers_taught\":[\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"a8176e0e-b518-42d6-aa86-1271a0ece256\"],\"dish_bearing_promised_not_taught\":0,\"from_merge\":false,\"strictest_regime\":\"vegan\",\"regimes\":1}",
+    "{\"tag\":\"keel.household_meal.member_voices\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"accounts_at_table\":1,\"with_lines\":0,\"lines_raw\":0,\"reads\":0}",
+    "{\"tag\":\"keel.household_meal.composition_catalog\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lang\":\"fr\",\"considered\":943,\"not_composable\":23,\"group_never_composed\":16,\"group_excluded\":480,\"term_excluded\":0,\"over_group_cap\":343,\"over_total_cap\":0,\"kept\":81,\"chars\":3754}",
+    "{\"tag\":\"keel.household_meal.protein_brief\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"mouths\":4,\"named\":4,\"slots\":10,\"silent\":{\"protected\":0,\"no_body\":0,\"coverage_unknown\":0,\"no_covered_slot\":0,\"spread_unknown\":0}}",
+    "{\"tag\":\"keel.household_meal.voices_used\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"heard\":0,\"linesIn\":0,\"linesUsed\":0,\"linesWithheld\":0,\"linesOverCap\":0,\"linesTooLong\":0,\"perMember\":[]}",
+    "{\"tag\":\"keel.household_meal.notes\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"lines\":0,\"household_lines\":0,\"member_lines\":0,\"served\":0,\"block_served\":0,\"other_subjects\":0}",
+    "{\"tag\":\"keel.household_meal.slot_contract_brief\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lines\":30,\"silent\":0,\"truncated\":0,\"chars\":4714}",
+    "{\"tag\":\"keel.household_meal.prompt_cost\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"intent\":\"prepare_next\",\"user_chars_before\":34119,\"user_chars_after\":37875,\"added_chars\":3756,\"added_pct\":11,\"catalog_chars\":3754,\"catalog_entries\":81,\"catalog_anchor\":\"anchored\"}",
+    "{\"tag\":\"keel.household_meal.precedence\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"place\":\"tail\",\"exact\":true,\"blocks_after\":0,\"ranks_with_object\":2,\"ranks_without_object\":3,\"by_rank\":{\"rank_1\":1,\"rank_2\":6,\"rank_3\":0,\"rank_4\":0,\"rank_5\":0}}",
+    "{\"tag\":\"openai_http\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"openai_api\":\"responses\",\"openai_response_id\":\"resp_lotf_1\",\"status\":200,\"ok\":true,\"duration_ms\":22,\"timeout_ms\":349524,\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"openai_result\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"keel.household_meal.pre_repair_sizing\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"measured\":0,\"dishes\":7,\"repair_asks\":0,\"bites\":0,\"first_jet_defect_kinds\":[\"missing_meal\"]}",
+    "{\"tag\":\"keel.household_meal.protein_anchor\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"missing_before\":0,\"missing_after\":0,\"site_calls_model\":false}",
+    "{\"tag\":\"keel.household_meal.meals_delivered\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"mouths\":4,\"cook_day_cells_dropped\":0,\"expected\":30,\"fed\":0,\"missing\":30,\"missing_before\":30,\"held_off_regime\":0,\"held_off_exclusion\":0,\"not_named\":0,\"double\":0,\"no_dish\":30,\"cells_without_dish\":9,\"missing_rows\":[\"mon/breakfast:no_dish::4b9c\",\"mon/lunch:no_dish::4b9c\",\"mon/dinner:no_dish::4b9c\",\"tue/breakfast:no_dish::4b9c\",\"tue/lunch:no_dish::4b9c\",\"tue/dinner:no_dish::4b9c\",\"wed/breakfast:no_dish::4b9c\",\"wed/lunch:no_dish::4b9c\",\"wed/dinner:no_dish::4b9c\",\"mon/lunch:no_dish::6ccb\",\"mon/dinner:no_dish::6ccb\",\"tue/lunch:no_dish::6ccb\",\"tue/dinner:no_dish::6ccb\",\"wed/lunch:no_dish::6ccb\",\"wed/dinner:no_dish::6ccb\",\"mon/breakfast:no_dish::7b14\",\"mon/lunch:no_dish::7b14\",\"mon/dinner:no_dish::7b14\",\"tue/breakfast:no_dish::7b14\",\"tue/lunch:no_dish::7b14\",\"tue/dinner:no_dish::7b14\",\"wed/breakfast:no_dish::7b14\",\"wed/lunch:no_dish::7b14\",\"wed/dinner:no_dish::7b14\"],\"unplaced_dishes\":0,\"retry_on\":{},\"restored\":0,\"restored_fallback\":0,\"rehomed\":0}",
+    "{\"tag\":\"keel.household_meal.composition_fill\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"measured\":true,\"unknowns\":0,\"requested\":0,\"answered\":0,\"model\":0,\"group_bounds\":0,\"sas_group_armed\":0,\"sas_value_reused\":0,\"sas_write_skipped_reused_group\":0,\"shares\":{\"kcal\":7357,\"table\":1,\"promoted\":0,\"model\":0,\"group_bounds\":0}}",
+    "{\"tag\":\"keel.household_meal.dietary_regime\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"lock\":\"clean\",\"dishes\":7,\"mouths\":1,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"silenced\":0,\"silenced_homograph\":0,\"silenced_spelling\":0,\"unknown_mouth\":0,\"box_scoped\":0,\"citation_repaired\":0,\"item_repaired\":0,\"groups_declared\":0,\"groups_valid\":0,\"groups_refused\":0,\"groups_conflicting\":0,\"group_excluded\":0,\"group_plant_only\":0,\"group_undecided\":0}",
+    "{\"tag\":\"keel.household_meal.fridge_window\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"dishes\":7,\"violations\":0,\"within\":10,\"not_evaluated\":0,\"routed\":25,\"unknown_group\":1}",
+    "{\"tag\":\"keel.household_meal.output_contract\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lines\":49,\"ok\":49,\"convention\":0,\"dash_unreferenced\":0,\"ref_missing\":0,\"ref_refused\":0,\"quantity_missing\":0,\"defects\":0,\"named\":[],\"named_truncated\":0}",
+    "{\"tag\":\"keel.household_meal.portion_sizing\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"density\":{\"mouths\":4,\"named\":4,\"folded\":0,\"slots_above_floor\":10,\"no_target\":0,\"no_composition\":0,\"days_varied\":0,\"capped\":0,\"fixed_covered\":0,\"floor_min_kept\":0,\"empty_intersection\":0,\"by_slot\":{\"breakfast\":163,\"lunch\":235,\"dinner\":228},\"by_case\":{\"mon|breakfast\":163,\"mon|lunch\":235,\"mon|dinner\":228,\"tue|breakfast\":163,\"tue|lunch\":235,\"tue|dinner\":228,\"wed|breakfast\":163,\"wed|lunch\":235,\"wed|dinner\":228}},\"sizing_path\":\"portion_v1\",\"reason\":\"no_eater_rows\",\"applied\":false,\"mouths\":4,\"dishes\":7,\"measured\":0,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":0,\"age_unknown\":0},\"clamped\":{\"max\":0,\"min\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"pot_ingredients_without_amount\":0,\"slots\":{\"declared\":0,\"light\":0,\"composed\":3,\"without_target\":0},\"target\":{\"anchored\":0,\"no_target\":0},\"gap_closed\":0,\"fixed_covered\":0,\"fixed_conflict\":0,\"fixed_slot_kcal\":{\"declared\":0,\"referential\":0,\"unresolved\":0,\"loose\":0,\"off_day\":0,\"loose_ignored_kcal\":0},\"repairs\":{\"asked\":0,\"accepted\":0,\"rejected\":{\"belt\":0,\"unparseable\":0,\"no_cell\":0,\"title_changed\":0,\"unmeasurable\":0,\"missing_pot\":0,\"dedicated_lost\":0,\"degraded\":0,\"frozen_rewritten\":0},\"splice\":{\"fresh_spliced\":0,\"pots_spliced\":0,\"dish_missing\":0,\"pot_missing\":0,\"shopping_added\":0,\"shopping_pruned\":0,\"uses_mismatch\":0,\"density_checks_cleared\":0},\"skipped_stuck\":0,\"still_out\":0,\"skipped_budget\":0},\"rows\":[],\"shadow\":{\"applyRows\":[],\"enabled\":true,\"reason\":\"shadow\",\"mouths\":4,\"eater_rows\":0,\"dishes\":7,\"measured\":0,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":0,\"age_unknown\":0},\"bound_kind\":{\"target\":0,\"table\":0,\"no_target\":0},\"contract_missing\":0,\"no_target\":{\"no_body\":0,\"age_unknown\":0,\"restriction_unknown\":0,\"other\":0},\"lids\":{\"own_expected\":0,\"tub_expected\":0,\"tub_of_one\":0},\"lid_compare\":{\"own_compared\":0,\"tub_compared\":0,\"unmatched_model_boxes\":0,\"own_delta_band\":{\"within_10\":0,\"within_25\":0,\"over_25\":0},\"tub_delta_band\":{\"within_10\":0,\"within_25\":0,\"over_25\":0},\"model_higher\":0,\"engine_higher\":0,\"minor_rows\":0,\"minor_in_tub\":0,\"minor_model_below_engine\":0,\"lid_shape_mismatch\":0},\"day_kcal\":{\"rows\":0,\"within_5pct\":0,\"over_5pct\":0,\"per_mouth\":[]},\"pots\":0,\"pot_factor_band\":{\"lt_1\":0,\"near_1\":0,\"gt_1\":0},\"eaters_by_dish\":{\"dishes\":7,\"placed\":0,\"off_cell\":7,\"shared_fed_nobody\":0,\"dedicated_off_cell\":0,\"excluded\":0,\"complements\":0,\"fed_hist\":{\"0\":0,\"1\":0,\"2\":0,\"3_plus\":0}},\"repair_needs\":{\"would_ask\":0,\"clamped_eaters\":0,\"by_direction\":{\"densify\":0,\"lighten\":0},\"by_reason\":{\"over_max\":0,\"all_under_min\":0,\"conflict\":0,\"minor_blocks_lighten\":0,\"partial_under_min\":0,\"none\":0}},\"repair_asks\":[],\"rows_by_dish\":[],\"rows\":[],\"complement\":{\"dishes\":0,\"solved\":0,\"unsolvable\":0,\"unsolvable_by\":{},\"unsolvable_cells\":[],\"clamped\":{\"max\":0,\"min\":0},\"moved_kcal\":0}}}",
+    "{\"tag\":\"keel.household_meal.why_rule\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"holders\":1,\"dishes\":7,\"declared\":0,\"valid\":0,\"refused\":0}",
+    "{\"tag\":\"keel.household_meal.plan_explanation\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"asked\":true,\"declared\":0,\"kept\":0,\"refused\":null,\"merged_dropped\":0,\"merged_added\":0}",
+    "{\"tag\":\"keel.household_meal.plan_tradeoffs\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"families\":[],\"lines\":0,\"refusal\":null,\"away_mouths\":0,\"mouths_without_body\":0,\"shape_capped\":false,\"lane_mode\":\"per_kg\"}",
+    "{\"tag\":\"keel.household_meal.table_appetite\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"servings_headcount\":4,\"appetite_equivalent\":5.5,\"bodies_known\":4,\"mouths\":4,\"steering\":false}",
+    "{\"tag\":\"keel.household_meal.quantity_rounding\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lines\":49,\"quantified\":49,\"unquantified\":0,\"already_whole\":46,\"rounded\":3,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":3,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]}",
+    "{\"tag\":\"keel.household_meal.portion_boundary\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"boxes\":0,\"meals\":0,\"multi_box_meals\":0,\"tubs_not_judged\":0,\"judged\":0,\"already_in_bounds\":0,\"shaved\":0,\"raised\":0,\"grams_shaved\":0,\"grams_raised\":0,\"still_over_max\":0,\"still_under_min\":0,\"pot_headroom_blocked\":0}",
+    "{\"tag\":\"keel.household_meal.final_sizing\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"measured\":false,\"reason\":\"no_box\",\"boxes\":0,\"meals\":0,\"multi_box_meals\":0,\"judged\":0,\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"water\":{\"absorbed\":1,\"kept\":5,\"discarded\":0,\"undetermined\":0},\"tubs_not_judged\":0,\"out_of_bounds\":[],\"pot_density_drifted\":0,\"pot_density_gone\":0,\"pot_density_unmeasurable\":0}",
+    "{\"tag\":\"keel.household_meal.shopping_rebuild\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lines\":26,\"requantified\":26,\"unchanged\":0,\"unquantified\":0,\"dropped\":0,\"unattributed\":0,\"not_purchasable\":0,\"needs_unbought\":0,\"merged\":0,\"model_omitted\":0,\"synthesized\":0,\"synthesized_unquantified\":0,\"aisle_other\":0,\"aisle_shelf_stable\":0,\"pantry_lines\":0,\"pantry_deducted\":0,\"pantry_covered\":0,\"pantry_unknown\":0,\"unbought_terms\":[],\"omitted_terms\":[],\"pantry_check_terms\":[],\"pantryCoveredG\":{}}",
+    "{\"tag\":\"keel.household_meal.shopping_redated\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"synthesized\":0,\"lines\":26,\"still_undated\":0,\"days_before\":[\"2026-09-14\"],\"days_after\":[\"2026-09-14\"],\"new_days\":[],\"split_needs\":0,\"extra_lines\":0,\"unsplittable\":0,\"without_need\":1,\"prose_recomposed\":false}",
+    "{\"tag\":\"keel.household_meal.box_sizing\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"boxes\":0,\"common\":0,\"items\":0,\"sized\":0,\"unchanged\":0,\"capped_by_pot\":0,\"unverifiable\":0,\"mouths\":{\"sized\":1,\"sized_default_pace\":2,\"restriction_floor\":0,\"restriction_unknown\":0,\"minor\":0,\"doctrine_no_counting\":0,\"age_unknown\":0,\"no_direction\":1,\"no_pace\":0,\"no_body\":0,\"implausible_factor\":0,\"pregnancy\":0,\"breastfeeding\":0},\"share\":{\"sized\":4,\"restriction_floor\":0,\"restriction_unknown\":0,\"age_unknown\":0,\"no_body\":0,\"no_reference\":0},\"share_clamped\":1,\"anchor\":{\"anchored\":0,\"day_incomplete\":0,\"no_delivery\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"no_body\":0,\"age_unknown\":0,\"clamped\":0,\"pregnancy\":0,\"breastfeeding\":0,\"common_pot_day\":0},\"anchor_cap\":{\"none\":0,\"density\":0,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"applied\":false,\"anchor_applied\":0,\"would_resize\":{\"boxes\":0,\"items\":0},\"weight_groups_measured\":4,\"pot_attribution\":{\"drawnGrams\":0,\"attributedGrams\":1986,\"ratio\":null,\"potsUnreadable\":0},\"box_factor_source\":{\"anchor\":0,\"pot\":0,\"relative\":0,\"none\":0},\"pot\":{\"pot_sized\":0,\"pot_clamped\":0,\"pot_incomplete\":0,\"pot_mouth_unknown\":0,\"pot_empty\":0},\"pot_cap\":{\"none\":0,\"density\":0,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"pot_growth\":{\"scaled\":0,\"capped\":0,\"shopping\":26,\"unrewritable\":0,\"regrammed\":0,\"passes\":1,\"short_after\":0},\"pot_shrink\":{\"pots\":0,\"removed\":0,\"kept\":0,\"unboxed_use\":6,\"unreadable\":0,\"sessions_emptied\":0,\"lines_scaled\":26,\"lines_dropped\":0,\"lines_unattributed\":0,\"lines_unrewritable\":0},\"unmet\":{\"none\":0,\"factor_clamped\":0,\"pot_ceiling\":0,\"both\":0,\"not_anchored\":0,\"tub_estimate\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"lost_slots\":{\"mouth_days\":0,\"slots\":0,\"kcal_lt_200\":0,\"kcal_gte_200\":0,\"kcal_unknown\":0},\"lost_by_line\":{\"mouth_days\":0,\"slots\":0,\"kcal\":0,\"kcal_unknown\":0},\"note_boost\":{\"member_days\":0,\"household_dated\":0,\"unknown_member\":0,\"applied\":0,\"applied_pot\":0,\"detail\":[]},\"densify\":{\"mouth_days\":0,\"boxes_touched\":0,\"moved_g\":0,\"closed_kcal\":0,\"stopped\":{\"closed\":0,\"floor\":0,\"ceiling\":0,\"pot_exhausted\":0,\"no_dense_target\":0,\"no_box\":0,\"no_density\":0},\"remaining_lt_200\":0,\"remaining_gte_200\":0},\"quantity_rounding\":{\"lines\":49,\"quantified\":49,\"unquantified\":0,\"already_whole\":46,\"rounded\":3,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":3,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]},\"activity\":{\"answered\":4,\"partial\":0,\"not_answered\":0,\"not_asked\":0},\"activity_source\":{\"crossed\":4,\"legacy\":0,\"assumed\":0},\"appetite\":{\"declared\":4,\"not_answered\":0,\"not_asked\":0}}",
+    "{\"tag\":\"keel.household_meal.traditions\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"declared\":0,\"honoured\":0,\"composed_without_label\":0,\"not_composed\":0,\"out_of_window\":0}",
+    "{\"tag\":\"keel.household_meal.quantity_final\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"lines\":49,\"stale_before\":3,\"rewritten\":3,\"bare\":3,\"historic\":0,\"absent\":0,\"counted_fractional\":0}",
+    "{\"tag\":\"keel.household_meal.sized_shares_relinked\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"relinked\":0,\"boxes\":0,\"quantity_relinked\":3}",
+    "{\"tag\":\"keel.household_meal.food_groups\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"declared\":0,\"valid\":0,\"refused\":0,\"conflicting\":0,\"persisted\":49,\"lines\":49}",
+    "{\"tag\":\"keel.household_meal.box_counts\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"intent\":\"prepare_next\",\"boxes\":{\"meals\":5,\"with_box\":0,\"boxes\":0,\"expected\":20,\"delivery\":\"none_delivered\",\"refused\":0,\"names\":0,\"names_refused\":0,\"items\":0,\"items_in_grams\":0,\"items_from_ingredient\":0,\"items_refused\":0,\"capped\":0,\"legacy_folded\":0,\"preparations\":6,\"sum_checked\":0,\"sum_over\":0,\"sum_unverifiable\":0,\"mouth_slots\":0,\"mouths_unboxed\":0,\"mouths_double\":0,\"mouths_double_model\":0,\"cells_no_box\":7,\"mouths_no_box_cell\":28,\"mouths\":4},\"unquantified_dish_ingredients\":{\"ingredients\":28,\"unquantified\":0},\"vague_portions\":{\"notes\":0,\"vague\":0,\"quantified\":0,\"box_ids\":0},\"shares\":{\"shares\":0,\"unknown\":0,\"regime_refused\":0},\"regime_belt\":{\"mouths\":1,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"silenced\":0,\"silenced_homograph\":0,\"silenced_spelling\":0,\"unknown_mouth\":0,\"box_scoped\":0,\"citation_repaired\":0,\"item_repaired\":0,\"groups_declared\":0,\"groups_valid\":0,\"groups_refused\":0,\"groups_conflicting\":0,\"group_excluded\":0,\"group_plant_only\":0,\"group_undecided\":0},\"swap\":{\"strictest\":\"vegan\",\"bound_mouths\":1,\"free_mouths\":3,\"cells_checked\":0,\"cells_carrying\":0,\"cells_swap_absent\":0,\"flagrant\":false,\"absent_cells\":[]},\"exclusion_belt\":{\"mouths\":0,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"box_scoped\":0,\"final_bites\":0},\"preference_split\":{\"pairs\":0,\"pairs_from_stores\":0,\"pairs_fresh\":0,\"wanters\":0,\"composed\":0,\"refuser_clean\":0,\"refuser_bitten\":0},\"meals_delivered\":{\"mouths\":4,\"expected\":30,\"fed\":0,\"missing\":30,\"by_cause\":{\"held_off_regime\":0,\"held_off_exclusion\":0,\"not_named\":0,\"double\":0,\"no_dish\":30},\"cells_without_dish\":9,\"retry_on\":{},\"restored\":0,\"restored_fallback\":0,\"rehomed\":0,\"rows\":[{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"expected\":9,\"fed\":0,\"missing\":[{\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}]},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"expected\":6,\"fed\":0,\"missing\":[{\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}]},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"expected\":9,\"fed\":0,\"missing\":[{\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}]},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"expected\":6,\"fed\":0,\"missing\":[{\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}]}]},\"portion_sizing\":{\"sizing_path\":\"portion_v1\",\"reason\":\"no_eater_rows\",\"applied\":false,\"mouths\":4,\"dishes\":7,\"measured\":0,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":0,\"age_unknown\":0},\"clamped\":{\"max\":0,\"min\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"pot_ingredients_without_amount\":0,\"slots\":{\"declared\":0,\"light\":0,\"composed\":3,\"without_target\":0},\"target\":{\"anchored\":0,\"no_target\":0},\"gap_closed\":0,\"fixed_covered\":0,\"fixed_conflict\":0,\"fixed_slot_kcal\":{\"declared\":0,\"referential\":0,\"unresolved\":0,\"loose\":0,\"off_day\":0,\"loose_ignored_kcal\":0},\"repairs\":{\"asked\":0,\"accepted\":0,\"rejected\":{\"belt\":0,\"unparseable\":0,\"no_cell\":0,\"title_changed\":0,\"unmeasurable\":0,\"missing_pot\":0,\"dedicated_lost\":0,\"degraded\":0,\"frozen_rewritten\":0},\"splice\":{\"fresh_spliced\":0,\"pots_spliced\":0,\"dish_missing\":0,\"pot_missing\":0,\"shopping_added\":0,\"shopping_pruned\":0,\"uses_mismatch\":0,\"density_checks_cleared\":0},\"skipped_stuck\":0,\"still_out\":0,\"skipped_budget\":0},\"shadow\":{\"applyRows\":[],\"enabled\":true,\"reason\":\"shadow\",\"mouths\":4,\"eater_rows\":0,\"dishes\":7,\"measured\":0,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":0,\"age_unknown\":0},\"bound_kind\":{\"target\":0,\"table\":0,\"no_target\":0},\"contract_missing\":0,\"no_target\":{\"no_body\":0,\"age_unknown\":0,\"restriction_unknown\":0,\"other\":0},\"lids\":{\"own_expected\":0,\"tub_expected\":0,\"tub_of_one\":0},\"lid_compare\":{\"own_compared\":0,\"tub_compared\":0,\"unmatched_model_boxes\":0,\"own_delta_band\":{\"within_10\":0,\"within_25\":0,\"over_25\":0},\"tub_delta_band\":{\"within_10\":0,\"within_25\":0,\"over_25\":0},\"model_higher\":0,\"engine_higher\":0,\"minor_rows\":0,\"minor_in_tub\":0,\"minor_model_below_engine\":0,\"lid_shape_mismatch\":0},\"day_kcal\":{\"rows\":0,\"within_5pct\":0,\"over_5pct\":0,\"per_mouth\":[]},\"pots\":0,\"pot_factor_band\":{\"lt_1\":0,\"near_1\":0,\"gt_1\":0},\"eaters_by_dish\":{\"dishes\":7,\"placed\":0,\"off_cell\":7,\"shared_fed_nobody\":0,\"dedicated_off_cell\":0,\"excluded\":0,\"complements\":0,\"fed_hist\":{\"0\":0,\"1\":0,\"2\":0,\"3_plus\":0}},\"repair_needs\":{\"would_ask\":0,\"clamped_eaters\":0,\"by_direction\":{\"densify\":0,\"lighten\":0},\"by_reason\":{\"over_max\":0,\"all_under_min\":0,\"conflict\":0,\"minor_blocks_lighten\":0,\"partial_under_min\":0,\"none\":0}},\"repair_asks\":[],\"rows_by_dish\":[],\"rows\":[],\"complement\":{\"dishes\":0,\"solved\":0,\"unsolvable\":0,\"unsolvable_by\":{},\"unsolvable_cells\":[],\"clamped\":{\"max\":0,\"min\":0},\"moved_kcal\":0}},\"final\":{\"measured\":false,\"reason\":\"no_box\",\"boxes\":0,\"meals\":0,\"multi_box_meals\":0,\"judged\":0,\"verdicts\":{\"in_bounds\":0,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"water\":{\"absorbed\":1,\"kept\":5,\"discarded\":0,\"undetermined\":0},\"tubs_not_judged\":0,\"out_of_bounds\":[],\"pot_density_drifted\":0,\"pot_density_gone\":0,\"pot_density_unmeasurable\":0},\"verification\":{\"would_resize\":0,\"anchored\":0,\"anchor_clamped\":0,\"pot_short_after\":0,\"pot_shrunk\":0,\"pot_removed\":0,\"unmet_none\":0,\"densify_touched\":0,\"shopping_scaled\":26,\"shopping_unattributed\":0}},\"box_sizing\":{\"boxes\":0,\"common\":0,\"items\":0,\"sized\":0,\"unchanged\":0,\"capped_by_pot\":0,\"unverifiable\":0,\"mouths\":{\"sized\":1,\"sized_default_pace\":2,\"restriction_floor\":0,\"restriction_unknown\":0,\"minor\":0,\"doctrine_no_counting\":0,\"age_unknown\":0,\"no_direction\":1,\"no_pace\":0,\"no_body\":0,\"implausible_factor\":0,\"pregnancy\":0,\"breastfeeding\":0},\"share\":{\"sized\":4,\"restriction_floor\":0,\"restriction_unknown\":0,\"age_unknown\":0,\"no_body\":0,\"no_reference\":0},\"share_clamped\":1,\"anchor\":{\"anchored\":0,\"day_incomplete\":0,\"no_delivery\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"no_body\":0,\"age_unknown\":0,\"clamped\":0,\"pregnancy\":0,\"breastfeeding\":0,\"common_pot_day\":0},\"anchor_cap\":{\"none\":0,\"density\":0,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"anchor_applied\":0,\"pot_attribution\":{\"drawnGrams\":0,\"attributedGrams\":1986,\"ratio\":null,\"potsUnreadable\":0},\"pot_growth\":{\"scaled\":0,\"capped\":0,\"shopping\":26,\"unrewritable\":0,\"regrammed\":0,\"passes\":1,\"short_after\":0},\"pot_shrink\":{\"pots\":0,\"removed\":0,\"kept\":0,\"unboxed_use\":6,\"unreadable\":0,\"sessions_emptied\":0,\"lines_scaled\":26,\"lines_dropped\":0,\"lines_unattributed\":0,\"lines_unrewritable\":0},\"quantity_rounding\":{\"lines\":49,\"quantified\":49,\"unquantified\":0,\"already_whole\":46,\"rounded\":3,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":3,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]},\"quantity_final\":{\"lines\":49,\"stale_before\":3,\"rewritten\":3,\"bare\":3,\"historic\":0,\"absent\":0,\"counted_fractional\":0},\"unmet\":{\"none\":0,\"factor_clamped\":0,\"pot_ceiling\":0,\"both\":0,\"not_anchored\":0,\"tub_estimate\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"lost_slots\":{\"mouth_days\":0,\"slots\":0,\"kcal_lt_200\":0,\"kcal_gte_200\":0,\"kcal_unknown\":0},\"lost_by_line\":{\"mouth_days\":0,\"slots\":0,\"kcal\":0,\"kcal_unknown\":0},\"note_boost\":{\"member_days\":0,\"household_dated\":0,\"unknown_member\":0,\"applied\":0,\"applied_pot\":0,\"detail\":[]},\"densify\":{\"mouth_days\":0,\"boxes_touched\":0,\"moved_g\":0,\"closed_kcal\":0,\"stopped\":{\"closed\":0,\"floor\":0,\"ceiling\":0,\"pot_exhausted\":0,\"no_dense_target\":0,\"no_box\":0,\"no_density\":0},\"remaining_lt_200\":0,\"remaining_gte_200\":0},\"activity\":{\"answered\":4,\"partial\":0,\"not_answered\":0,\"not_asked\":0},\"activity_source\":{\"crossed\":4,\"legacy\":0,\"assumed\":0},\"appetite\":{\"declared\":4,\"not_answered\":0,\"not_asked\":0}},\"traditions\":{\"declared\":0,\"honoured\":0,\"composed_without_label\":0,\"not_composed\":0,\"out_of_window\":0},\"portion_quantities\":{\"notes\":0,\"model_quantity\":0,\"model_size_word\":0}}",
+    "{\"tag\":\"keel.household_meal.cross_contact_block\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"household_id\":\"b20c472c-e65d-4048-8539-fe9690aaeee3\",\"emitted\":0,\"skipped_no_medical\":1,\"skipped_no_dedicated\":0,\"medical_mouths\":0,\"unnamed_medical\":0,\"dish_bearers\":3}",
+    "{\"tag\":\"keel.household_meal.final_gate\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"ok\":false,\"refusals\":27,\"blocking\":16,\"causes\":[\"cook_day_unplaced\",\"regime_forbidden_component\",\"cell_without_dish\",\"unclassified_perishable\"],\"counters\":{\"checked\":{\"uses\":10,\"box_items\":0,\"session_ids\":6,\"cooked_pairs\":10,\"cells\":9,\"mouth_cells\":30,\"shopping_lines\":26,\"perishable_lines\":16,\"keeping_unknown_lines\":1,\"ingredient_terms\":26,\"table_dishes\":7,\"boxed_dishes\":0,\"energy_mouths\":0,\"energy_unmeasured\":4,\"shopping_identities\":26,\"shopping_quantified\":26,\"shopping_unverified\":0,\"shopping_not_purchasable\":0,\"portion_cells\":0,\"measured_cells\":0,\"cell_energy_no_target\":0,\"measured_days\":0,\"protein_days\":0,\"protein_protected\":0,\"protein_unmeasured\":12},\"refusals_by_cause\":{\"uses_dangling\":0,\"box_item_dangling\":0,\"session_cites_unknown\":0,\"eaten_before_cooked\":0,\"eaten_too_late\":0,\"cook_day_unplaced\":10,\"preparation_without_session\":0,\"session_day_mismatch\":0,\"cell_without_dish\":9,\"mouth_unfed\":0,\"boxes_none_delivered\":0,\"box_missing\":0,\"ingredient_not_bought\":0,\"ingredient_short_bought\":0,\"shopping_undated\":0,\"unclassified_perishable\":1,\"perishable_bought_too_early\":0,\"table_exclusion_served\":0,\"member_exclusion_served\":0,\"title_promises_missing_preparation\":0,\"regime_forbidden_component\":7,\"house_rule_served\":0,\"mouth_energy_short\":0,\"cell_without_portion\":0,\"cell_energy_unmeasurable\":0,\"cell_energy_off\":0,\"cell_bounds_off\":0,\"day_energy_off\":0,\"protein_floor_short\":0},\"repairs_by_kind\":{\"drop_dangling_use\":0,\"drop_dangling_box_item\":0,\"drop_dangling_session_id\":0,\"strip_title_promise\":0}},\"delivery\":\"not_deliverable\",\"unevaluated\":[\"box_item_dangling\",\"boxes_none_delivered\",\"mouth_energy_short\",\"cell_without_portion\",\"cell_energy_unmeasurable\",\"cell_energy_off\",\"cell_bounds_off\",\"day_energy_off\",\"protein_floor_short\"],\"incomplete\":[{\"control\":\"protein_floor\",\"count\":12},{\"control\":\"mouth_energy\",\"count\":4}]}",
+    "{\"tag\":\"keel.household_meal.final_gate_blocking\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"round\":0,\"refusals\":[{\"cause\":\"regime_forbidden_component\",\"day\":\"fri\",\"slot\":\"dinner\",\"dish\":\"Agneau, pita complète, tahini et tomate\",\"member_id\":null,\"term\":\"agneau\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sat\",\"slot\":\"breakfast\",\"dish\":\"Petits-suisses, avoine, fraises et noix\",\"member_id\":null,\"term\":\"petits-suisses nature\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sat\",\"slot\":\"lunch\",\"dish\":\"Agneau, couscous complet, légumes rôtis, feta et citron\",\"member_id\":null,\"term\":\"feta\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sat\",\"slot\":\"dinner\",\"dish\":\"Saumon, tortilla complète, tahini, laitue et tomate\",\"member_id\":null,\"term\":\"saumon\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sun\",\"slot\":\"breakfast\",\"dish\":\"Yaourt grec, avoine, pêche et amandes\",\"member_id\":null,\"term\":\"yaourt grec nature\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sun\",\"slot\":\"lunch\",\"dish\":\"Saumon, pommes de terre, feta, laitue et citron\",\"member_id\":null,\"term\":\"feta\"},{\"cause\":\"regime_forbidden_component\",\"day\":\"sun\",\"slot\":\"dinner\",\"dish\":\"Lentilles, couscous complet, légumes rôtis, tahini et parmesan\",\"member_id\":null,\"term\":\"parmesan\"},{\"cause\":\"cell_without_dish\",\"day\":\"mon\",\"slot\":\"breakfast\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"mon\",\"slot\":\"dinner\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"mon\",\"slot\":\"lunch\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"tue\",\"slot\":\"breakfast\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"tue\",\"slot\":\"dinner\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"tue\",\"slot\":\"lunch\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"wed\",\"slot\":\"breakfast\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"wed\",\"slot\":\"dinner\",\"dish\":null,\"member_id\":null,\"term\":null},{\"cause\":\"cell_without_dish\",\"day\":\"wed\",\"slot\":\"lunch\",\"dish\":null,\"member_id\":null,\"term\":null}]}",
+    "{\"tag\":\"keel.household_meal.plan_repair_pass\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"round\":0,\"stop\":false,\"improvement_retries\":true,\"defects\":57,\"repairable\":46,\"by_kind\":{\"safety\":7,\"missing_meal\":39,\"preference\":11},\"by_source\":{\"gate\":27,\"output_contract\":0,\"quantities\":0,\"upstream\":30},\"call\":true,\"reason\":null,\"calls_made\":0,\"measured\":{\"contracts\":30,\"measures\":0,\"unnumbered\":0},\"budget\":{\"repairs_allowed\":2,\"repairs_used\":0,\"repairs_asked\":0,\"repairs_refused\":{},\"charged\":[],\"provider_attempts\":1,\"elapsed_ms\":938,\"remaining_ms\":379062,\"usable_ms\":349062,\"reserve_ms\":30000,\"total_ms\":380000}}",
+    "{\"tag\":\"keel.household_meal.plan_repair_context\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"round\":0,\"base_version\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608#r0\",\"units\":{\"expected_cells\":30,\"present\":7,\"reserved\":30,\"complements\":0,\"unaddressed_dishes\":0},\"scope\":{\"units\":37,\"created\":30,\"preparations\":6,\"sessions\":0,\"dependents\":0,\"unresolved\":0},\"unresolved\":[],\"shared_preparations\":0,\"units_listed\":37,\"units_detailed\":7,\"units_to_create\":30,\"preparations_detailed\":6,\"sessions_projected\":0,\"pots_with_consumers\":0,\"pot_consumers_listed\":0,\"pot_consumers_unnumbered\":0,\"chars\":7622,\"identity_lines_dropped\":0,\"too_large\":false,\"defects_rendered\":{\"blocks\":46,\"dropped\":6,\"ownerless\":0},\"context_incomplete\":true,\"ownerless\":[]}",
+    "{\"tag\":\"keel.household_meal.plan_repair_done\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"rounds\":1,\"calls_made\":0,\"defects_at_delivery\":57,\"repairable_at_delivery\":46,\"by_kind\":{\"safety\":7,\"missing_meal\":39,\"preference\":11},\"by_source\":{\"gate\":27,\"output_contract\":0,\"quantities\":0,\"upstream\":30},\"trace\":[{\"round\":0,\"defects\":57,\"by_kind\":{\"safety\":7,\"missing_meal\":39,\"preference\":11},\"by_source\":{\"gate\":27,\"output_contract\":0,\"quantities\":0,\"upstream\":30},\"call\":true,\"reason\":null}],\"delivery\":\"not_deliverable\"}",
+    "{\"tag\":\"keel.household_meal.mouth_unfed_after_repair\",\"user_id\":\"fa62ffbb-4f3a-4613-902f-1331c3358cfb\",\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\",\"rounds\":1,\"calls_made\":0,\"missing\":30}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     422",
+    "   durée      980 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 1",
+    "     · generate-household-meal-v1  modèle=gpt-5.6-luna  corps=62237 o  à +1311 ms",
+    "   sorties réseau REFUSÉES : 0",
+    "   appels fournisseur RÉELS (facturés) : 0  — zéro dépense",
+    "   corps : {\"error\":\"mouth_unfed\",\"detail\":[{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"4b9c3abc-6fd4-4f6b-ae74-04a8df09387c\",\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"6ccb08db-10c0-4261-a036-7558a77e1bae\",\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"mon\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"tue\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"wed\",\"slot\":\"lunch\",\"cause\":\"no_dish\"},{\"member_id\":\"7b1445a9-a47e-465d-9f11-817a4d0611b0\",\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"mon\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"mon\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"tue\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"tue\",\"slot\":\"dinner\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"wed\",\"slot\":\"breakfast\",\"cause\":\"no_dish\"},{\"member_id\":\"a8176e0e-b518-42d6-aa86-1271a0ece256\",\"day\":\"wed\",\"slot\":\"dinner\",\"cause\":\"no_dish\"}],\"issues\":[\"mouth_unfed_before_repair:30\",\"shopping_waves: 1 (2026-09-14)\",\"freeze_on_purchase: 0/26\",\"waves_kept_for_freshness: 0/26\",\"sessions_fed_from_freezer: 0/0 name the freezer\",\"quantity_prose_stale:3\",\"final_gate_flagged:27\",\"final_gate_delivery:not_deliverable\",\"plan_repair_context_truncated:6\",\"plan_defects_at_delivery:57 (safety:7, missing_meal:39, preference:11)\",\"shopping_list_unattributed: 2/26 lines match no kept and no dropped ingredient -- kept, not guessed\",\"empty_slots: mon/breakfast, mon/lunch, mon/dinner, tue/breakfast, tue/lunch, tue/dinner, wed/breakfast, wed/lunch, wed/dinner\",\"model_returned_no_box: 0/20 -- 5 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan\",\"uses_kept_freezer: 0/10\"],\"request_id\":\"7a406ee4-2891-4dd6-bfa8-d10fee733608\"}",
+    "\n── LA BASE APRÈS L'APPEL ─────────────────────────────────────",
+    "   plans avant 0 · après 0",
+    "   lignes AJOUTÉES  : 0 []",
+    "   lignes RETIRÉES  : 0 []",
+    "   lignes RÉÉCRITES : 0 []",
+    "   ✅ REFUS SANS ÉCRITURE : la base n'a pas bougé d'une ligne."
+  ]
+}

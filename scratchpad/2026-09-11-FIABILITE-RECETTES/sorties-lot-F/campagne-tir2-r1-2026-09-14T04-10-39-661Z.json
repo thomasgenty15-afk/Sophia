@@ -1,0 +1,123 @@
+{
+  "cas": "gain",
+  "tir": 2,
+  "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+  "reel": true,
+  "lance_le": "2026-09-14T04:10:39.661Z",
+  "jour_local": "2026-09-14",
+  "heure_locale": "06:10",
+  "cases_annoncees": 9,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-14T04:10:39.661Z",
+      "jour_local": "2026-09-14",
+      "heure_locale": "06:10",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 9,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": []
+    },
+    "jours": [
+      "mon",
+      "tue",
+      "wed"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15",
+      "wed": "2026-09-16"
+    },
+    "cases_par_bouche": {
+      "afda7caa-cdb4-4368-81af-05b8f8cb550e": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "afda7caa-cdb4-4368-81af-05b8f8cb550e": 9
+    },
+    "cases_attendues_total": 9,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 58,
+  "plafond_heberge_ms": 150000,
+  "statut": 409,
+  "erreur_reseau": null,
+  "reponse": {
+    "error": "generation_in_flight",
+    "running_request_id": "2e8e790c-517e-4a51-848d-dbf5c6710241",
+    "started_at": "2026-09-14T04:09:02.237133+00:00",
+    "request_id": "580ce0c6-64d5-4206-af38-bffdb1c0185e"
+  },
+  "reponse_brute": "",
+  "etapes": {
+    "prompt_envoye": null,
+    "premier_jet": null,
+    "reparations": [],
+    "prompts_de_reparation": [],
+    "appels": {
+      "appels": [],
+      "generation_initiale": 0,
+      "reparations_du_plan": 0,
+      "auxiliaires": 0,
+      "total_fournisseur": 0,
+      "duree_totale_ms": 0,
+      "sans_duree": 0
+    },
+    "echanges_resume": []
+  },
+  "ligne_ecrite": null,
+  "meta_bouche": {
+    "member_id": "afda7caa-cdb4-4368-81af-05b8f8cb550e",
+    "second_member": null,
+    "user_id": "e88ac117-dcf5-44ea-a591-5b0a479041eb",
+    "email": "lotf.camp2.r1@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1998-07-02",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 62,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

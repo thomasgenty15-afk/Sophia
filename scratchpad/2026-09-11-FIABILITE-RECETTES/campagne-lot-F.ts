@@ -499,6 +499,8 @@ async function post(path: string, body: unknown, prefer: string) {
 // qui écriraient `campagne-tir1-*.json` dans le même dossier se liraient comme
 // une seule.
 const SUFFIXE = (Deno.args.find((a) => a.startsWith("--compte="))?.slice(9) ?? "").trim();
+/** ⟳ 2026-09-15 — composer un APERÇU (adoptable) plutôt qu'écrire un plan. */
+const BROUILLON = Deno.args.includes("--brouillon");
 const EMAIL = SUFFIXE
   ? `lotf.camp${tir.n}.${SUFFIXE}@keeltest.dev`
   : `lotf.camp${tir.n}@keeltest.dev`;
@@ -1088,7 +1090,27 @@ try {
       "content-type": "application/json",
       "x-request-id": demandeId,
     },
-    body: JSON.stringify({ intent: "prepare_next", window: { kind: "days", count: 3 } }),
+    // ⟳ 2026-09-15 · BÊTA — `--brouillon` COMPOSE UN APERÇU AU LIEU D'ÉCRIRE.
+    //
+    // ⛔ MÊME MOTEUR, MÊME PROMPT, MÊME APPEL PAYÉ: c'est le corps que
+    // `planDraft.ts::callGenerator` envoie pour le geste « Prévisualiser ».
+    // Il existe pour qu'UNE génération serve à prouver l'adoption, le second
+    // tap et la péremption d'empreinte — trois preuves pour un appel, au lieu
+    // d'une génération par preuve.
+    body: JSON.stringify(
+      BROUILLON
+        ? {
+          operation: "compose",
+          intent: "draft",
+          replaces: null,
+          window: { kind: "days", count: 3 },
+          context: null,
+          cooking_shape: null,
+          one_cooking_session: false,
+          preferences: null,
+        }
+        : { intent: "prepare_next", window: { kind: "days", count: 3 } },
+    ),
   });
 } catch (e) {
   erreurReseau = String((e as Error).message ?? e);
@@ -1100,6 +1122,10 @@ const ms = Date.now() - t0;
 const body = await res.json().catch(() => ({} as Record<string, unknown>));
 const meal = (body as Record<string, unknown>)?.meal as Record<string, unknown> | undefined;
 const mealId = String(meal?.id ?? "");
+// ⚠️ UN APERÇU N'ÉCRIT AUCUNE LIGNE, ET CE N'EST PAS UN ÉCHEC. Son identifiant
+// de brouillon est ce qui sert ensuite à l'adopter.
+const draftId = String((body as Record<string, unknown>)?.draft_id ?? "");
+if (BROUILLON) console.log(`   brouillon     ${draftId || "(aucun)"}`);
 
 console.log(`\n── RÉPONSE ───────────────────────────────────────────────`);
 console.log(`   statut        ${res.status}`);
@@ -1308,6 +1334,7 @@ Deno.writeTextFileSync(
     reponse: body,
     // ⟳ 2026-09-15 — l'issue RÉELLE de la demande, lue en base après le tir.
     etat_apres: etatApres,
+    brouillon: BROUILLON ? { draft_id: draftId || null } : null,
     reponse_brute: reponseBrute,
     // ⟳ 2026-09-11 · C0 ④ — chaque étape, séparée et nommée.
     etapes,

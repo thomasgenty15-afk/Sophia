@@ -1,0 +1,218 @@
+{
+  "cas": "perte",
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "lance_le": "2026-09-13T17:00:00.753Z",
+  "jour_local": "2026-09-13",
+  "heure_locale": "19:00",
+  "cases_annoncees": 6,
+  "bouches": 4,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.574Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": 3578631
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 4,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ]
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "9b460e2a-6a2f-4d07-ac83-a4225261c0ff": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "7e1d0495-7e77-4d71-8ee9-1437ff15008f": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "1898ce29-6ace-4ad9-a60c-ea745016577c": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      "254c424f-87fe-4ce9-92e3-bbb6d09b5fbe": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "9b460e2a-6a2f-4d07-ac83-a4225261c0ff": 6,
+      "7e1d0495-7e77-4d71-8ee9-1437ff15008f": 6,
+      "1898ce29-6ace-4ad9-a60c-ea745016577c": 6,
+      "254c424f-87fe-4ce9-92e3-bbb6d09b5fbe": 6
+    },
+    "cases_attendues_total": 24,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 106,
+  "statut": 409,
+  "reponse": {
+    "error": "plan_overlaps_existing",
+    "detail": "This household already has a plan that starts on that day or later. Replace it, or start your window before it.",
+    "request_id": "3380f47a-0ab2-4480-8b6b-9fa3b7e84aa7"
+  },
+  "appels_fournisseur": [],
+  "sorties_refusees": [],
+  "ligne_ecrite": null,
+  "retaillage": null,
+  "appels_reels": [],
+  "refus_secondaire": null,
+  "base_avant": [
+    {
+      "id": "5976d7b8-7a15-40f9-a8e8-a268396d2a2a",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-13T15:59:41.913343+00:00",
+      "updated_at": "2026-09-13T15:59:41.913343+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_apres": [
+    {
+      "id": "5976d7b8-7a15-40f9-a8e8-a268396d2a2a",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-13T15:59:41.913343+00:00",
+      "updated_at": "2026-09-13T15:59:41.913343+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_delta": {
+    "ajoutes": [],
+    "retires": [],
+    "reecrits": []
+  },
+  "demande_envoyee": {
+    "intent": "prepare_next",
+    "window": {
+      "kind": "days",
+      "count": 3
+    }
+  },
+  "exclusion_declaree": null,
+  "allergene_injecte": null,
+  "second_member": "7e1d0495-7e77-4d71-8ee9-1437ff15008f",
+  "meta_bouche": {
+    "member_id": "9b460e2a-6a2f-4d07-ac83-a4225261c0ff",
+    "user_id": "1ecc39f8-32bd-4ce2-a46b-7828906348d6",
+    "email": "lotf.perte.lot3r4@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178
+  },
+  "journal": [
+    "   ⚠️ --reponse : premier-jet-reel-n4.json — 12 plat(s), 3 préparation(s), 0 ligne(s) de courses",
+    "── LOT F ② · cas PERTE · lotf.perte.lot3r4@keeltest.dev ────────────────",
+    "   réponse archivée TELLE QUELLE (7 plats)",
+    "   compte : 1ecc39f8-32bd-4ce2-a46b-7828906348d6",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : 9b460e2a-6a2f-4d07-ac83-a4225261c0ff",
+    "   bouche 2 : 7e1d0495-7e77-4d71-8ee9-1437ff15008f (Lea · 164 cm · 58 kg · appétit small)",
+    "   bouche 3 : 1898ce29-6ace-4ad9-a60c-ea745016577c (Nils · 183 cm · 92 kg · appétit large)",
+    "   bouche 4 : 254c424f-87fe-4ce9-92e3-bbb6d09b5fbe (Iris · 170 cm · 64 kg · appétit average)",
+    "   objectif bouche 1 : fat_loss → écrit dans « student_goals.goal »",
+    "   objectif bouche 2 : fat_loss → écrit dans « household_members.goal »",
+    "   cran bouche 2 : 0.5 kg/sem → {\"ok\":false,\"reason\":\"target_incomplete\"}",
+    "   objectif bouche 3 : muscle_gain → écrit dans « household_members.goal »",
+    "   cran bouche 3 : 0.25 kg/sem → {\"ok\":false,\"reason\":\"target_incomplete\"}",
+    "   objectif bouche 4 : muscle_gain → écrit dans « household_members.goal »",
+    "   cran bouche 4 : 0.25 kg/sem → {\"ok\":false,\"reason\":\"target_incomplete\"}",
+    "   ⛔ CE QUE « keel_household_roster » REND (la source du générateur) :\n      · Paul   objectif=fat_loss     âge=adult   → PORTION PESÉE (weighedPortionMembers)\n      · Lea    objectif=fat_loss     âge=adult   → PORTION PESÉE (weighedPortionMembers)\n      · Nils   objectif=muscle_gain  âge=adult   → PORTION PESÉE (weighedPortionMembers)\n      · Iris   objectif=muscle_gain  âge=adult   → PORTION PESÉE (weighedPortionMembers)",
+    "   régime bouche 2 : vegan",
+    "   allergie bouche 2 : « arachide »",
+    "   ⛔ RÉGIMES VUS PAR LE GÉNÉRATEUR : Paul=aucun · Lea=vegan · Nils=aucun · Iris=aucun",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-13T17:00:00.574Z · 2026-09-13 19 h (Europe/Paris)   ⚠️ HORLOGE INJECTÉE (décalage 3578631 ms)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 2 jour(s) à partir du 2026-09-14   (sun retiré : shopping_cutoff)",
+    "   jours         [\"mon\",\"tue\"]",
+    "   CASES ATTENDUES 24 · grille par bouche {\"mon\":[\"breakfast\",\"lunch\",\"dinner\"],\"tue\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "\n── LA BASE AVANT L'APPEL ─────────────────────────────────────\n   1 plan(s) : [{\"id\":\"5976d7b8\",\"w\":\"2026-09-14+2\",\"retire\":null,\"maj\":\"2026-09-13T15:59:41.913343+00:00\"}]",
+    "{\"tag\":\"keel.household_meal.window_overlaps\",\"user_id\":\"1ecc39f8-32bd-4ce2-a46b-7828906348d6\",\"household_id\":\"f243dc7f-6a38-4e10-bb35-0b88bd8516f7\",\"window\":[\"2026-09-13\",3],\"clash\":[\"5976d7b8-7a15-40f9-a8e8-a268396d2a2a\",\"2026-09-14\",2],\"verdict\":\"starts_at_or_after\"}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     409",
+    "   durée      106 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 0",
+    "   sorties réseau REFUSÉES : 0",
+    "   appels fournisseur RÉELS (facturés) : 0  — zéro dépense",
+    "   corps : {\"error\":\"plan_overlaps_existing\",\"detail\":\"This household already has a plan that starts on that day or later. Replace it, or start your window before it.\",\"request_id\":\"3380f47a-0ab2-4480-8b6b-9fa3b7e84aa7\"}",
+    "\n── LA BASE APRÈS L'APPEL ─────────────────────────────────────",
+    "   plans avant 1 · après 1",
+    "   lignes AJOUTÉES  : 0 []",
+    "   lignes RETIRÉES  : 0 []",
+    "   lignes RÉÉCRITES : 0 []"
+  ]
+}

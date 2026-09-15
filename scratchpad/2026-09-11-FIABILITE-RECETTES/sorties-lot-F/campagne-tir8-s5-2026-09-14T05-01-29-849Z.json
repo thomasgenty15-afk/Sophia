@@ -1,0 +1,109 @@
+{
+  "cas": "gain",
+  "tir": 8,
+  "titre": "DEUX BOUCHES · VÉGANE + OMNIVORE · la variante alimentaire est NÉCESSAIRE",
+  "reel": true,
+  "lance_le": "2026-09-14T05:01:29.849Z",
+  "jour_local": "2026-09-14",
+  "heure_locale": "07:01",
+  "cases_annoncees": 8,
+  "bouches": 2,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-14T05:01:29.849Z",
+      "jour_local": "2026-09-14",
+      "heure_locale": "07:01",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 8,
+      "bouches_annoncees": 2,
+      "premier_jour_partiel": [
+        "breakfast"
+      ],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": [
+        "breakfast"
+      ]
+    },
+    "jours": [
+      "mon",
+      "tue",
+      "wed"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15",
+      "wed": "2026-09-16"
+    },
+    "cases_par_bouche": {
+      "087c8b48-9253-470f-9839-c5c2c2c173fa": {
+        "mon": [
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "087c8b48-9253-470f-9839-c5c2c2c173fa": 8
+    },
+    "cases_attendues_total": 16,
+    "appetit_pose": "large"
+  },
+  "duree_ms": 203329,
+  "plafond_heberge_ms": 150000,
+  "statut": 546,
+  "erreur_reseau": null,
+  "reponse": {
+    "code": "WORKER_LIMIT",
+    "message": "Worker failed to respond due to a resource limit (please check logs)"
+  },
+  "reponse_brute": "",
+  "etapes": {},
+  "ligne_ecrite": null,
+  "meta_bouche": {
+    "member_id": "087c8b48-9253-470f-9839-c5c2c2c173fa",
+    "second_member": null,
+    "user_id": "226d11cb-4b1c-40d8-8851-30870edb0467",
+    "email": "lotf.camp8.s5@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1992-05-09",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 68,
+    "height_cm": 178,
+    "appetite": "large",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

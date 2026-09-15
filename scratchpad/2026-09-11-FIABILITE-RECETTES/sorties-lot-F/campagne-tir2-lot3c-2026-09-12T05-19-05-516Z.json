@@ -1,0 +1,109 @@
+{
+  "cas": "gain",
+  "tir": 2,
+  "titre": "GAIN · même fenêtre et même rythme · petit-suisse et pita au catalogue",
+  "reel": true,
+  "lance_le": "2026-09-12T05:19:05.516Z",
+  "jour_local": "2026-09-12",
+  "heure_locale": "07:19",
+  "cases_annoncees": 8,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-12T05:19:05.516Z",
+      "jour_local": "2026-09-12",
+      "heure_locale": "07:19",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 8,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [
+        "breakfast"
+      ],
+      "attendue": {
+        "starts_on": "2026-09-12",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": [
+        "breakfast"
+      ]
+    },
+    "jours": [
+      "sat",
+      "sun",
+      "mon"
+    ],
+    "jour_vers_date": {
+      "sat": "2026-09-12",
+      "sun": "2026-09-13",
+      "mon": "2026-09-14"
+    },
+    "cases_par_bouche": {
+      "ce85b0ed-af17-485a-b9a4-87c94147865a": {
+        "sat": [
+          "lunch",
+          "dinner"
+        ],
+        "sun": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "ce85b0ed-af17-485a-b9a4-87c94147865a": 8
+    },
+    "cases_attendues_total": 8,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 289180,
+  "plafond_heberge_ms": 150000,
+  "statut": 546,
+  "erreur_reseau": null,
+  "reponse": {
+    "code": "WORKER_LIMIT",
+    "message": "Worker failed to respond due to a resource limit (please check logs)"
+  },
+  "reponse_brute": "",
+  "etapes": {},
+  "ligne_ecrite": null,
+  "meta_bouche": {
+    "member_id": "ce85b0ed-af17-485a-b9a4-87c94147865a",
+    "second_member": null,
+    "user_id": "aa5b29d0-9482-40eb-9019-408c27d29c97",
+    "email": "lotf.camp2.lot3c@keeltest.dev",
+    "first_name": "Max",
+    "birth_date": "1998-07-02",
+    "goal": "muscle_gain",
+    "pace": 0.25,
+    "weight_kg": 62,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

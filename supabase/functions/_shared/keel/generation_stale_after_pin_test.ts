@@ -47,3 +47,59 @@ Deno.test("la lecture de statut lit l'âge du verrou ET du brouillon en vol", ()
   // La lecture ne balaie rien : c'est la prise qui le fait.
   assertEquals(SQL.includes("delete from"), false);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-15 · BÊTA 2C — LE SECOND TAP NE SE BLOQUE PAS LUI-MÊME
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE DÉFAUT N'A ÉTÉ VU QUE SUR LE CHEMIN RÉEL, ET C'EST LA LEÇON. Le
+// correctif de `adoptability` (200 `already_written` au lieu d'un 409) passait
+// tous ses tests de module — parce qu'ils appellent `adoptDraft` EN DIRECT.
+// Dans le handler, une porte tombe 5 600 lignes plus tôt: le second tap se
+// heurte à `plan_overlaps_existing`, où le plan qui « chevauche » est celui
+// que ce brouillon vient lui-même d'écrire.
+//
+// Mesuré le 2026-09-15 contre la fonction edge servie:
+//   avant · ① 200 meal=e629297a  ② 409 plan_overlaps_existing
+//   après · ① 200 meal=e629297a  ② 200 meal=e629297a already_written=true
+//   (0 appel modèle, 0 verrou laissé, un seul plan porte le brouillon)
+
+Deno.test("l'adoption exclut de la fenêtre le plan que CE brouillon a écrit", () => {
+  assert(
+    HANDLER.includes("if (adoptingDraft && editDraftId !== null) {"),
+    "la lecture du brouillon avant la porte de fenêtre a disparu",
+  );
+  assert(
+    HANDLER.includes("selfAdoptedPlanId = String(ligne.adopted_meal_id ?? \"\").trim();"),
+    "le plan déjà adopté n'est plus relevé",
+  );
+  // ⛔ ET RIEN D'AUTRE. Ouvrir la porte à tous les plans ferait adopter un
+  // aperçu qui percute le plan d'à côté — ce que ce contrôle existe pour
+  // empêcher. Le filtre lit `selfAdoptedPlanId`, pas `adoptingDraft` seul.
+  assertEquals(
+    (HANDLER.match(
+      /\.filter\(\(p\) => selfAdoptedPlanId === "" \|\| p\.id !== selfAdoptedPlanId\)/g,
+    ) ?? []).length,
+    1,
+  );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-15 · BÊTA 2C — LE REFUS DIT LA VRAIE RAISON
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ MESURÉ SUR LE CHEMIN RÉEL. Adopter le brouillon d'un AUTRE foyer, ou un
+// brouillon inexistant, rendait `plan_overlaps_existing` — « ta fenêtre
+// chevauche un plan que tu as déjà ». Rien n'était écrit, la protection
+// tenait, et la phrase envoyait la personne changer une fenêtre qui n'y est
+// pour rien. Après: `draft_not_found`, 404, zéro écriture.
+
+Deno.test("un brouillon étranger ou absent refuse AVANT la porte de fenêtre", () => {
+  const i = HANDLER.indexOf('error: "draft_not_found",\n            detail: `le brouillon');
+  const j = HANDLER.indexOf('error: "plan_overlaps_existing"');
+  assert(i > 0, "le refus `draft_not_found` du chemin d'adoption a disparu");
+  assert(j > 0, "la porte de fenêtre a disparu");
+  // ⛔ L'ORDRE EST LA MOITIÉ DU CORRECTIF. Le même refus placé APRÈS ne serait
+  // jamais atteint: c'est exactement l'état qu'on vient de corriger.
+  assert(i < j, "le refus de brouillon doit tomber AVANT le refus de fenêtre");
+});

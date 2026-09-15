@@ -1,0 +1,105 @@
+{
+  "cas": "perte",
+  "tir": 1,
+  "titre": "PERTE · une personne · fenêtre qui commence aujourd'hui, puis deux jours entiers",
+  "reel": true,
+  "lance_le": "2026-09-14T04:08:06.044Z",
+  "jour_local": "2026-09-14",
+  "heure_locale": "06:08",
+  "cases_annoncees": 9,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge réelle du lancement)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'heure du lancement — JAMAIS de la liste des plats",
+      "slots": "rythme déclaré du tir, sinon les trois repas de la maison",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-14T04:08:06.044Z",
+      "jour_local": "2026-09-14",
+      "heure_locale": "06:08",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": null,
+      "decalage_ms": 0
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 9,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 3,
+        "dropped": null,
+        "cause": null
+      },
+      "moments_passes": [],
+      "moments_retenus_pour_les_courses": []
+    },
+    "jours": [
+      "mon",
+      "tue",
+      "wed"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15",
+      "wed": "2026-09-16"
+    },
+    "cases_par_bouche": {
+      "fbacb4a4-e452-4ecc-811a-e0fade95578a": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "wed": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "fbacb4a4-e452-4ecc-811a-e0fade95578a": 9
+    },
+    "cases_attendues_total": 9,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 46306,
+  "plafond_heberge_ms": 150000,
+  "statut": 502,
+  "erreur_reseau": null,
+  "reponse": {
+    "message": "An invalid response was received from the upstream server"
+  },
+  "reponse_brute": "",
+  "etapes": {},
+  "ligne_ecrite": null,
+  "meta_bouche": {
+    "member_id": "fbacb4a4-e452-4ecc-811a-e0fade95578a",
+    "second_member": null,
+    "user_id": "1c1f4974-7b30-48fa-9715-d54edb22f60a",
+    "email": "lotf.camp1.r1@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178,
+    "appetite": "average",
+    "rhythm": null,
+    "fixed_intakes": null,
+    "allergie": null
+  }
+}

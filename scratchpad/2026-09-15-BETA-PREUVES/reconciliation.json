@@ -1,5 +1,5 @@
 {
-  "mesure_le": "2026-09-15T09:30:28.342Z",
+  "mesure_le": "2026-09-15T10:02:33.077Z",
   "rapport": [
     {
       "nom": "sna1",
@@ -1431,6 +1431,758 @@
       ]
     },
     {
+      "nom": "n4-b15b-frais",
+      "note": "N=4 (végane, omnivore, mineure), composé en aperçu puis adopté le 2026-09-15",
+      "n_dishes": 13,
+      "n_preps": 7,
+      "n_shop_avant": 25,
+      "overdrawn_before": 0,
+      "overdrawn_after": 0,
+      "unreadable_drawn": 0,
+      "grown": 0,
+      "ready_after": 9067,
+      "drawn_final": 9044,
+      "reste": 23,
+      "equation_ok": true,
+      "publication": "published",
+      "shopping_rebuild": {
+        "lines": 25,
+        "requantified": 0,
+        "unchanged": 25,
+        "unquantified": 0,
+        "dropped": 0,
+        "unattributed": 0,
+        "not_purchasable": 0,
+        "needs_unbought": 0,
+        "merged": 0,
+        "model_omitted": 0,
+        "synthesized": 0,
+        "synthesized_unquantified": 0,
+        "aisle_other": 0,
+        "aisle_shelf_stable": 0,
+        "pantry_lines": 0,
+        "pantry_deducted": 0,
+        "pantry_covered": 0,
+        "pantry_unknown": 0
+      },
+      "achats_inutiles": [],
+      "achats_manquants": [],
+      "shopping_final": [
+        {
+          "ref": "tofu",
+          "term": "tofu",
+          "amount": 3562,
+          "unit": "g",
+          "quantity": "3562 g"
+        },
+        {
+          "ref": "white_beans",
+          "term": "haricots blancs cuits",
+          "amount": 320,
+          "unit": "g",
+          "quantity": "320 g"
+        },
+        {
+          "ref": "barley",
+          "term": "orge sèche",
+          "amount": 130,
+          "unit": "g",
+          "quantity": "130 g"
+        },
+        {
+          "ref": "edamame",
+          "term": "edamame",
+          "amount": 445,
+          "unit": "g",
+          "quantity": "445 g"
+        },
+        {
+          "ref": "broccoli",
+          "term": "brocoli",
+          "amount": 225,
+          "unit": "g",
+          "quantity": "225 g"
+        },
+        {
+          "ref": "olive_oil",
+          "term": "huile d'olive",
+          "amount": 119,
+          "unit": "g",
+          "quantity": "119 g"
+        },
+        {
+          "ref": "lentils_dry",
+          "term": "lentilles sèches",
+          "amount": 695,
+          "unit": "g",
+          "quantity": "695 g"
+        },
+        {
+          "ref": "tomato",
+          "term": "tomate",
+          "amount": 534,
+          "unit": "g",
+          "quantity": "534 g"
+        },
+        {
+          "ref": "spinach",
+          "term": "épinards",
+          "amount": 193,
+          "unit": "g",
+          "quantity": "193 g"
+        },
+        {
+          "ref": "chickpeas_tinned",
+          "term": "pois chiches cuits",
+          "amount": 775,
+          "unit": "g",
+          "quantity": "775 g"
+        },
+        {
+          "ref": "sweet_potato",
+          "term": "patate douce",
+          "amount": 160,
+          "unit": "g",
+          "quantity": "160 g"
+        },
+        {
+          "ref": "bell_pepper",
+          "term": "poivron",
+          "amount": 173,
+          "unit": "g",
+          "quantity": "173 g"
+        },
+        {
+          "ref": "tempeh",
+          "term": "tempeh",
+          "amount": 525,
+          "unit": "g",
+          "quantity": "525 g"
+        },
+        {
+          "ref": "potato",
+          "term": "pommes de terre",
+          "amount": 573,
+          "unit": "g",
+          "quantity": "573 g"
+        },
+        {
+          "ref": "turkey_breast",
+          "term": "blanc de dinde",
+          "amount": 1338,
+          "unit": "g",
+          "quantity": "1338 g"
+        },
+        {
+          "ref": "pork_loin",
+          "term": "filet de porc",
+          "amount": 685,
+          "unit": "g",
+          "quantity": "685 g"
+        },
+        {
+          "ref": "oats",
+          "term": "flocons d'avoine",
+          "amount": 190,
+          "unit": "g",
+          "quantity": "190 g"
+        },
+        {
+          "ref": "soy_yogurt",
+          "term": "yaourt de soja nature",
+          "amount": 461,
+          "unit": "g",
+          "quantity": "461 g"
+        },
+        {
+          "ref": "mixed_berries",
+          "term": "fruits rouges mélangés",
+          "amount": 51,
+          "unit": "g",
+          "quantity": "51 g"
+        },
+        {
+          "ref": "apple",
+          "term": "pomme",
+          "amount": 50,
+          "unit": "g",
+          "quantity": "50 g"
+        },
+        {
+          "ref": "wholemeal_bread",
+          "term": "pain complet",
+          "amount": 200,
+          "unit": "g",
+          "quantity": "200 g"
+        },
+        {
+          "ref": "rapeseed_oil",
+          "term": "huile de colza",
+          "amount": 144,
+          "unit": "g",
+          "quantity": "144 g"
+        },
+        {
+          "ref": "couscous_wholemeal",
+          "term": "couscous complet",
+          "amount": 223,
+          "unit": "g",
+          "quantity": "223 g"
+        },
+        {
+          "ref": "peach",
+          "term": "pêche",
+          "amount": 247,
+          "unit": "g",
+          "quantity": "247 g"
+        },
+        {
+          "ref": "wholewheat_pasta",
+          "term": "pâtes complètes",
+          "amount": 129,
+          "unit": "g",
+          "quantity": "129 g"
+        }
+      ],
+      "per_pot": [
+        {
+          "preparation_id": "prep_shared_tue_dinner",
+          "surplus_minimal_g": null,
+          "title": "Tofu, haricots blancs, orge, edamame et brocoli",
+          "cook_on": "tue",
+          "ready_before_g": 1486,
+          "drawn_g": 1485,
+          "ready_after_g": 1486,
+          "rest_g": 1,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1485,
+            "byDay": {
+              "tue": 1485
+            },
+            "byMouth": {
+              "4674428c-6d2f-48e5-9d2e-661aac16376c": 470,
+              "a18d53a2-59d5-46ad-a593-c0cc839daf01": 622,
+              "b488ef59-2523-4e3e-8483-131ce4ae7c76": 393
+            }
+          },
+          "ingredients": [
+            {
+              "term": "tofu",
+              "ref": "tofu",
+              "amount": 595,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "595 g",
+              "gramsRaw": 595,
+              "yieldClass": null
+            },
+            {
+              "term": "haricots blancs cuits",
+              "ref": "white_beans",
+              "amount": 320,
+              "unit": "g",
+              "state": "cooked",
+              "quantity": "320 g",
+              "gramsRaw": 320,
+              "yieldClass": null
+            },
+            {
+              "term": "orge sèche",
+              "ref": "barley",
+              "amount": 130,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "130 g",
+              "gramsRaw": 130,
+              "yieldClass": null
+            },
+            {
+              "term": "edamame",
+              "ref": "edamame",
+              "amount": 105,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "105 g",
+              "gramsRaw": 105,
+              "yieldClass": null
+            },
+            {
+              "term": "brocoli",
+              "ref": "broccoli",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "120 g",
+              "gramsRaw": 120,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "20 g",
+              "gramsRaw": 20,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_shared_wed_lunch",
+          "surplus_minimal_g": null,
+          "title": "Lentilles, tofu, edamame, épinards et tomate",
+          "cook_on": "tue",
+          "ready_before_g": 1577,
+          "drawn_g": 1572,
+          "ready_after_g": 1577,
+          "rest_g": 5,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1572,
+            "byDay": {
+              "wed": 1572
+            },
+            "byMouth": {
+              "4674428c-6d2f-48e5-9d2e-661aac16376c": 498,
+              "a18d53a2-59d5-46ad-a593-c0cc839daf01": 658,
+              "b488ef59-2523-4e3e-8483-131ce4ae7c76": 416
+            }
+          },
+          "ingredients": [
+            {
+              "term": "lentilles sèches",
+              "ref": "lentils_dry",
+              "amount": 260,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "260 g",
+              "gramsRaw": 260,
+              "yieldClass": null
+            },
+            {
+              "term": "tofu",
+              "ref": "tofu",
+              "amount": 630,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "630 g",
+              "gramsRaw": 630,
+              "yieldClass": null
+            },
+            {
+              "term": "edamame",
+              "ref": "edamame",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "120 g",
+              "gramsRaw": 120,
+              "yieldClass": null
+            },
+            {
+              "term": "tomate",
+              "ref": "tomato",
+              "amount": 105,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "105 g",
+              "gramsRaw": 105,
+              "yieldClass": null
+            },
+            {
+              "term": "épinards",
+              "ref": "spinach",
+              "amount": 75,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "75 g",
+              "gramsRaw": 75,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "30 g",
+              "gramsRaw": 30,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_shared_wed_dinner",
+          "surplus_minimal_g": null,
+          "title": "Tofu, pois chiches, edamame, patate douce et poivron",
+          "cook_on": "tue",
+          "ready_before_g": 1478,
+          "drawn_g": 1473,
+          "ready_after_g": 1478,
+          "rest_g": 5,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1473,
+            "byDay": {
+              "wed": 1473
+            },
+            "byMouth": {
+              "4674428c-6d2f-48e5-9d2e-661aac16376c": 466,
+              "a18d53a2-59d5-46ad-a593-c0cc839daf01": 617,
+              "b488ef59-2523-4e3e-8483-131ce4ae7c76": 390
+            }
+          },
+          "ingredients": [
+            {
+              "term": "tofu",
+              "ref": "tofu",
+              "amount": 640,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "640 g",
+              "gramsRaw": 640,
+              "yieldClass": null
+            },
+            {
+              "term": "pois chiches cuits",
+              "ref": "chickpeas_tinned",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked",
+              "quantity": "480 g",
+              "gramsRaw": 480,
+              "yieldClass": null
+            },
+            {
+              "term": "edamame",
+              "ref": "edamame",
+              "amount": 105,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "105 g",
+              "gramsRaw": 105,
+              "yieldClass": null
+            },
+            {
+              "term": "patate douce",
+              "ref": "sweet_potato",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "160 g",
+              "gramsRaw": 160,
+              "yieldClass": null
+            },
+            {
+              "term": "poivron",
+              "ref": "bell_pepper",
+              "amount": 105,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "105 g",
+              "gramsRaw": 105,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 14,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "14 g",
+              "gramsRaw": 14,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_shared_thu_lunch",
+          "surplus_minimal_g": null,
+          "title": "Tofu, pois chiches, lentilles, edamame, épinards et tomate",
+          "cook_on": "wed",
+          "ready_before_g": 1612,
+          "drawn_g": 1601,
+          "ready_after_g": 1612,
+          "rest_g": 11,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1601,
+            "byDay": {
+              "thu": 1601
+            },
+            "byMouth": {
+              "4674428c-6d2f-48e5-9d2e-661aac16376c": 507,
+              "a18d53a2-59d5-46ad-a593-c0cc839daf01": 670,
+              "b488ef59-2523-4e3e-8483-131ce4ae7c76": 424
+            }
+          },
+          "ingredients": [
+            {
+              "term": "tofu",
+              "ref": "tofu",
+              "amount": 535,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "535 g",
+              "gramsRaw": 535,
+              "yieldClass": null
+            },
+            {
+              "term": "pois chiches cuits",
+              "ref": "chickpeas_tinned",
+              "amount": 295,
+              "unit": "g",
+              "state": "cooked",
+              "quantity": "295 g",
+              "gramsRaw": 295,
+              "yieldClass": null
+            },
+            {
+              "term": "edamame",
+              "ref": "edamame",
+              "amount": 115,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "115 g",
+              "gramsRaw": 115,
+              "yieldClass": null
+            },
+            {
+              "term": "lentilles sèches",
+              "ref": "lentils_dry",
+              "amount": 210,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "210 g",
+              "gramsRaw": 210,
+              "yieldClass": null
+            },
+            {
+              "term": "tomate",
+              "ref": "tomato",
+              "amount": 70,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "70 g",
+              "gramsRaw": 70,
+              "yieldClass": null
+            },
+            {
+              "term": "épinards",
+              "ref": "spinach",
+              "amount": 70,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "70 g",
+              "gramsRaw": 70,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "30 g",
+              "gramsRaw": 30,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_shared_thu_dinner",
+          "surplus_minimal_g": null,
+          "title": "Tempeh, lentilles, pommes de terre et brocoli",
+          "cook_on": "wed",
+          "ready_before_g": 1450,
+          "drawn_g": 1450,
+          "ready_after_g": 1450,
+          "rest_g": 0,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 1450,
+            "byDay": {
+              "thu": 1450
+            },
+            "byMouth": {
+              "4674428c-6d2f-48e5-9d2e-661aac16376c": 459,
+              "a18d53a2-59d5-46ad-a593-c0cc839daf01": 607,
+              "b488ef59-2523-4e3e-8483-131ce4ae7c76": 384
+            }
+          },
+          "ingredients": [
+            {
+              "term": "tempeh",
+              "ref": "tempeh",
+              "amount": 525,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "525 g",
+              "gramsRaw": 525,
+              "yieldClass": null
+            },
+            {
+              "term": "lentilles sèches",
+              "ref": "lentils_dry",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "225 g",
+              "gramsRaw": 225,
+              "yieldClass": null
+            },
+            {
+              "term": "pommes de terre",
+              "ref": "potato",
+              "amount": 295,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "295 g",
+              "gramsRaw": 295,
+              "yieldClass": null
+            },
+            {
+              "term": "brocoli",
+              "ref": "broccoli",
+              "amount": 105,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "105 g",
+              "gramsRaw": 105,
+              "yieldClass": null
+            },
+            {
+              "term": "huile d'olive",
+              "ref": "olive_oil",
+              "amount": 25,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "25 g",
+              "gramsRaw": 25,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_nils_turkey",
+          "surplus_minimal_g": null,
+          "title": "Dinde rôtie en portions",
+          "cook_on": "tue",
+          "ready_before_g": 937,
+          "drawn_g": 936,
+          "ready_after_g": 937,
+          "rest_g": 1,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 936,
+            "byDay": {
+              "wed": 462,
+              "thu": 474
+            },
+            "byMouth": {
+              "a0fb8fe7-22a0-4bae-aaec-a18b646f9f6f": 936
+            }
+          },
+          "ingredients": [
+            {
+              "term": "blanc de dinde",
+              "ref": "turkey_breast",
+              "amount": 1338,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "1338 g",
+              "gramsRaw": 1338,
+              "yieldClass": null
+            }
+          ]
+        },
+        {
+          "preparation_id": "prep_nils_pork",
+          "surplus_minimal_g": null,
+          "title": "Filet de porc rôti",
+          "cook_on": "tue",
+          "ready_before_g": 527,
+          "drawn_g": 527,
+          "ready_after_g": 527,
+          "rest_g": 0,
+          "equation_ok": true,
+          "grown": false,
+          "fit": {
+            "changed": 0,
+            "attempts": 0,
+            "factor": 1,
+            "shortfallG": null
+          },
+          "draws": {
+            "grams": 527,
+            "byDay": {
+              "wed": 260,
+              "thu": 267
+            },
+            "byMouth": {
+              "a0fb8fe7-22a0-4bae-aaec-a18b646f9f6f": 527
+            }
+          },
+          "ingredients": [
+            {
+              "term": "filet de porc",
+              "ref": "pork_loin",
+              "amount": 685,
+              "unit": "g",
+              "state": "raw",
+              "quantity": "685 g",
+              "gramsRaw": 685,
+              "yieldClass": null
+            }
+          ]
+        }
+      ]
+    },
+    {
       "nom": "n4-away-tir9s1",
       "note": "plan publié N=4, Nils absent mardi ; mesuré hors handler sur la ligne écrite",
       "n_dishes": 15,
@@ -2470,6 +3222,20 @@
       "deficits": [],
       "hors_borne": [],
       "surplus_expliques": [],
+      "unattributed": 0,
+      "needs_unbought": 0,
+      "achats_sans_recette": [],
+      "achats_manquants": [],
+      "verdict": "ok"
+    },
+    {
+      "nom": "n4-b15b-frais",
+      "pots": 7,
+      "deficits": [],
+      "hors_borne": [],
+      "surplus_expliques": [
+        "prep_shared_thu_lunch: +11 g de reste, sans croissance"
+      ],
       "unattributed": 0,
       "needs_unbought": 0,
       "achats_sans_recette": [],

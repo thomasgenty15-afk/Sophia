@@ -1,0 +1,190 @@
+{
+  "cas": "perte",
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "lance_le": "2026-09-13T17:00:01.297Z",
+  "jour_local": "2026-09-13",
+  "heure_locale": "19:00",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.649Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": -37224724
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ]
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "02b2075c-012b-42c6-a5e9-495da678f0ca": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "02b2075c-012b-42c6-a5e9-495da678f0ca": 6
+    },
+    "cases_attendues_total": 6,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 558,
+  "statut": 503,
+  "reponse": {
+    "error": "composition_unavailable",
+    "request_id": "cba2de73-aca9-41fd-8531-941426295a4a"
+  },
+  "appels_fournisseur": [
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-luna",
+      "matched": "PANNE:connection_cut",
+      "bodyBytes": 48725,
+      "atMs": 1209
+    },
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-sol",
+      "matched": "PANNE:connection_cut",
+      "bodyBytes": 48724,
+      "atMs": 1224
+    }
+  ],
+  "sorties_refusees": [],
+  "ligne_ecrite": null,
+  "retaillage": null,
+  "appels_reels": [],
+  "refus_secondaire": null,
+  "base_avant": [],
+  "base_apres": [],
+  "base_delta": {
+    "ajoutes": [],
+    "retires": [],
+    "reecrits": []
+  },
+  "demande_envoyee": {
+    "intent": "prepare_next",
+    "window": {
+      "kind": "days",
+      "count": 3
+    }
+  },
+  "exclusion_declaree": null,
+  "allergene_injecte": null,
+  "second_member": "",
+  "meta_bouche": {
+    "member_id": "02b2075c-012b-42c6-a5e9-495da678f0ca",
+    "user_id": "5498526b-d65d-4fa5-ae04-4abfc340363b",
+    "email": "lotf.perte.bqcoupure@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178
+  },
+  "journal": [
+    "   ⚠️ --reponse : ref1.json — 6 plat(s), 2 préparation(s), 12 ligne(s) de courses",
+    "\n   ⚡ PANNE PROGRAMMÉE : coupure au tour * (0 = premier jet, ≥1 = réparation, * = permanente)\n",
+    "── LOT F ② · cas PERTE · lotf.perte.bqcoupure@keeltest.dev ────────────────",
+    "   réponse archivée TELLE QUELLE (7 plats)",
+    "   compte : 5498526b-d65d-4fa5-ae04-4abfc340363b",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : 02b2075c-012b-42c6-a5e9-495da678f0ca",
+    "   repas léger : lunch (par les HABITUDES, pas par eating_rhythm.size)",
+    "   apport fixe : 200 g greek_yogurt @breakfast → écrit dans « student_goals »",
+    "   relu en base : student_goals.practical_constraints.fixed_intakes = [{\"days\":[],\"slot\":\"breakfast\",\"unit\":\"g\",\"label\":\"yaourt grec\",\"amount\":200,\"food_ref\":\"greek_yogurt\",\"replaces_meal\":false}]",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-13T17:00:00.649Z · 2026-09-13 19 h (Europe/Paris)   ⚠️ HORLOGE INJECTÉE (décalage -37224724 ms)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 2 jour(s) à partir du 2026-09-14   (sun retiré : shopping_cutoff)",
+    "   jours         [\"mon\",\"tue\"]",
+    "   CASES ATTENDUES 6 · grille par bouche {\"mon\":[\"breakfast\",\"lunch\",\"dinner\"],\"tue\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "\n── LA BASE AVANT L'APPEL ─────────────────────────────────────\n   0 plan(s) : []",
+    "{\"tag\":\"keel.household_meal.member_bodies\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"members\":1,\"accounts\":1,\"with_body\":1,\"reads\":7}",
+    "{\"tag\":\"keel.household_meal.mouth_facts\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"tally\":{\"heightCm.personal\":1,\"weightKg.personal\":1,\"gender.personal\":1,\"ageYears.personal\":1,\"activityLevel.personal\":1,\"activityAxes.personal\":1,\"appetite.member_sheet\":1}}",
+    "{\"tag\":\"keel.household_meal.condition_gate\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"pregnancy\":0,\"breastfeeding\":0,\"other\":0,\"none\":1}",
+    "{\"tag\":\"keel.household_meal.composition\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"mode\":\"per_kg\",\"deltas\":0,\"family_service\":false,\"residual_gaps_count\":1,\"residual_gaps_max_band\":\"lt_200\"}",
+    "{\"tag\":\"keel.household_meal.retained_items\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"composition\":0,\"portion\":0,\"rhythm\":0,\"logistics\":0,\"craving\":0,\"unrouted\":0,\"portion_excluded\":[],\"refused\":0,\"legacy_notes\":0,\"other_subjects\":0,\"portion_applied\":0}",
+    "{\"tag\":\"keel.household_meal.structure\",\"derived\":1,\"capped\":0,\"no_target\":0,\"no_body\":0,\"opened_total\":0,\"mouths_opened\":0}",
+    "{\"tag\":\"keel.household_meal.fixed_intakes\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"mouths\":1,\"intakes\":1,\"demoted\":0,\"discarded\":0,\"dropped\":0,\"reads\":1}",
+    "{\"tag\":\"keel.household_meal.cells\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"cells\":6,\"non_empty\":6,\"empty\":0,\"light\":2,\"light_mixed\":0,\"eaters_hist\":{\"1\":6,\"2\":0,\"3\":0,\"4_plus\":0},\"dedicated_cells\":0,\"dedicated_mouths\":0,\"dedicated_by_reason\":{\"regime\":0,\"own_meal\":0},\"one_eater_cells\":6,\"cook_day_cells\":0,\"spent_cells\":0,\"regime_by_cell\":{\"none\":6},\"dish_bearing_delta\":0,\"dish_bearing_only_cells\":0,\"dish_bearing_only_current\":0}",
+    "{\"tag\":\"keel.household_meal.cooking_shape\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"weekly_cooking_minutes\":null,\"time_allows_second_dish\":true,\"shape\":\"one_dish\",\"asked_shape\":null,\"computed_shape\":\"one_dish\",\"shape_capped\":false,\"shape_unused\":false,\"diverging\":[],\"dish_bearing\":[],\"dish_bearers_taught\":[],\"dish_bearing_promised_not_taught\":0,\"from_merge\":false,\"strictest_regime\":null,\"regimes\":0}",
+    "{\"tag\":\"keel.household_meal.member_voices\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"accounts_at_table\":1,\"with_lines\":0,\"lines_raw\":0,\"reads\":0}",
+    "{\"tag\":\"keel.household_meal.composition_catalog\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"lang\":\"fr\",\"considered\":943,\"not_composable\":23,\"group_never_composed\":16,\"group_excluded\":0,\"term_excluded\":0,\"over_group_cap\":783,\"over_total_cap\":0,\"kept\":121,\"chars\":5025}",
+    "{\"tag\":\"keel.household_meal.protein_brief\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"mouths\":1,\"named\":1,\"slots\":3,\"silent\":{\"protected\":0,\"no_body\":0,\"coverage_unknown\":0,\"no_covered_slot\":0,\"spread_unknown\":0}}",
+    "{\"tag\":\"keel.household_meal.voices_used\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"heard\":0,\"linesIn\":0,\"linesUsed\":0,\"linesWithheld\":0,\"linesOverCap\":0,\"linesTooLong\":0,\"perMember\":[]}",
+    "{\"tag\":\"keel.household_meal.notes\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"lines\":0,\"household_lines\":0,\"member_lines\":0,\"served\":0,\"block_served\":0,\"other_subjects\":0}",
+    "{\"tag\":\"keel.household_meal.slot_contract_brief\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"lines\":6,\"silent\":0,\"truncated\":0,\"chars\":1669}",
+    "{\"tag\":\"keel.household_meal.prompt_cost\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"intent\":\"prepare_next\",\"user_chars_before\":21118,\"user_chars_after\":26145,\"added_chars\":5027,\"added_pct\":23.8,\"catalog_chars\":5025,\"catalog_entries\":121,\"catalog_anchor\":\"anchored\"}",
+    "{\"tag\":\"keel.household_meal.precedence\",\"user_id\":\"5498526b-d65d-4fa5-ae04-4abfc340363b\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"intent\":\"prepare_next\",\"place\":\"tail\",\"exact\":true,\"blocks_after\":0,\"ranks_with_object\":1,\"ranks_without_object\":4,\"by_rank\":{\"rank_1\":0,\"rank_2\":6,\"rank_3\":0,\"rank_4\":0,\"rank_5\":0}}",
+    "   ⚡ PANNE INJECTÉE : connection_cut (tour 0)",
+    "[LLM] OpenAI call failed model=gpt-5.6-luna request_id=cba2de73-aca9-41fd-8531-941426295a4a: error sending request: connection closed before message completed",
+    "[Gemini] Switching model (fallback) request_id=cba2de73-aca9-41fd-8531-941426295a4a attempt=1/1 gpt-5.6-luna -> gpt-5.6-sol",
+    "   ⚠️ REPLI FOURNISSEUR : gpt-5.6-luna → gpt-5.6-sol. L'appel précédent a ÉCHOUÉ. Ce tour est routé comme une composition, pas comme un remplissage — sans quoi une réparation recevrait la conserve « items:[] » et serait rejetée pour une raison qui n'est pas la sienne.",
+    "   ⚡ PANNE INJECTÉE : connection_cut (tour 1)",
+    "[LLM] OpenAI call failed model=gpt-5.6-sol request_id=cba2de73-aca9-41fd-8531-941426295a4a: error sending request: connection closed before message completed",
+    "[Gemini] request_id=cba2de73-aca9-41fd-8531-941426295a4a source=generate-household-meal-v1 model=gpt-5.6-sol attempt=1/1 error: {}",
+    "{\"tag\":\"keel.household_meal.model_call_failed\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"phase\":\"composition\",\"wall_ms\":541}",
+    "{\"tag\":\"keel.household_meal.generation_lock_released\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\",\"household_id\":\"f33cfe43-0729-4ff5-99e0-81a8232b067c\",\"why\":\"request_end\",\"released\":1}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     503",
+    "   durée      558 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 2",
+    "     · PANNE:connection_cut  modèle=gpt-5.6-luna  corps=48725 o  à +1209 ms",
+    "     · PANNE:connection_cut  modèle=gpt-5.6-sol  corps=48724 o  à +1224 ms",
+    "   sorties réseau REFUSÉES : 0",
+    "   appels fournisseur RÉELS (facturés) : 0  — zéro dépense",
+    "   corps : {\"error\":\"composition_unavailable\",\"request_id\":\"cba2de73-aca9-41fd-8531-941426295a4a\"}",
+    "\n── LA BASE APRÈS L'APPEL ─────────────────────────────────────",
+    "   plans avant 0 · après 0",
+    "   lignes AJOUTÉES  : 0 []",
+    "   lignes RETIRÉES  : 0 []",
+    "   lignes RÉÉCRITES : 0 []"
+  ]
+}

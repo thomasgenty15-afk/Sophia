@@ -2691,8 +2691,61 @@ Deno.serve(async (req) => {
       // 409 de la base. C'est le bon sens du compromis — un second lecteur avec
       // un troisième prédicat est la dette que ce chantier a payée deux fois le
       // 2026-08-12.
+      // ══════════════════════════════════════════════════════════════════
+      // ⟳ 2026-09-15 · BÊTA 2C — LE SECOND TAP NE SE BLOQUE PAS LUI-MÊME
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ MESURÉ SUR LE CHEMIN RÉEL, LE 2026-09-15. Le premier tap adopte et
+      // écrit son plan; le second retape la MÊME demande — et se heurte à
+      // `plan_overlaps_existing`, parce que le plan qui « chevauche » est
+      // celui qu'il vient lui-même d'écrire. La personne voit un refus sur un
+      // plan qui existe et qui est le sien.
+      //
+      // ⚠️ ET LE CORRECTIF D'`adoptability` NE POUVAIT PAS LE VOIR: cette
+      // porte-ci tombe 5 600 lignes AVANT `adoptDraft`. Les tests unitaires
+      // appelaient `adoptDraft` en direct, donc ils passaient tous — la preuve
+      // qu'un test de module ne ferme pas un chemin de handler.
+      //
+      // ⛔ ON N'OUVRE QUE CE PLAN-LÀ. Le chevauchement reste vérifié pour tout
+      // le reste: adopter un aperçu qui percute un AUTRE plan doit refuser.
+      let selfAdoptedPlanId = "";
+      if (adoptingDraft && editDraftId !== null) {
+        const ligne = (await admin
+          .from("student_meal_drafts")
+          .select("adopted_meal_id")
+          .eq("id", editDraftId)
+          .eq("user_id", userId)
+          .maybeSingle()).data as { adopted_meal_id?: unknown } | null;
+
+        // ══════════════════════════════════════════════════════════════════
+        // ⟳ 2026-09-15 · BÊTA 2C — LE REFUS DIT LA VRAIE RAISON
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // ⛔ MESURÉ LE 2026-09-15. Adopter le brouillon d'UN AUTRE foyer, ou un
+        // brouillon qui n'existe pas, rendait `plan_overlaps_existing`: « ta
+        // fenêtre chevauche un plan que tu as déjà ». Rien n'était écrit — la
+        // protection tenait — mais la phrase envoyait la personne changer une
+        // fenêtre qui n'y est pour rien. C'est la cicatrice
+        // `refusal-far-from-the-gesture-reads-as-a-dead-button`, encore elle.
+        //
+        // ⚠️ MÊME VERDICT QUE `adoptDraft`, JUSTE PLUS TÔT. Il charge la même
+        // ligne avec les deux mêmes filtres et refuse `draft_not_found` si elle
+        // manque; ce retour-ci ne fait que le dire avant une porte qui parle
+        // d'autre chose. Aucune écriture, aucun appel modèle.
+        if (ligne === null) {
+          return jsonResponse(req, {
+            error: "draft_not_found",
+            detail: `le brouillon « ${editDraftId} » n'existe pas, ou n'est pas le vôtre`,
+            request_id: requestId,
+          }, { status: 404 });
+        }
+        selfAdoptedPlanId = String(ligne.adopted_meal_id ?? "").trim();
+      }
+
       const blocking = firstBlockingPlan({
-        live: householdPlans.map((p) => ({
+        live: householdPlans
+          .filter((p) => selfAdoptedPlanId === "" || p.id !== selfAdoptedPlanId)
+          .map((p) => ({
           id: p.id,
           startsOn: p.startsOn,
           durationDays: p.durationDays,

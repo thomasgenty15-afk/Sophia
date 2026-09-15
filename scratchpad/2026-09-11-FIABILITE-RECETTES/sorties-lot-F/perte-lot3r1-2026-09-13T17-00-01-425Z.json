@@ -1,0 +1,3592 @@
+{
+  "cas": "perte",
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "lance_le": "2026-09-13T17:00:01.425Z",
+  "jour_local": "2026-09-13",
+  "heure_locale": "19:00",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.650Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": 2698365
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ]
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "e3717b2d-67ad-4f3d-b44d-c09760bacf81": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "e3717b2d-67ad-4f3d-b44d-c09760bacf81": 6
+    },
+    "cases_attendues_total": 6,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 693,
+  "statut": 200,
+  "reponse": {
+    "ok": true,
+    "meal": {
+      "id": "d151b5e0-d5ff-411c-9c40-13bb173fc9ae"
+    },
+    "window": {
+      "starts_on": "2026-09-14",
+      "duration_days": 2
+    },
+    "timing": {
+      "kind": "starts_tomorrow",
+      "reason": "today_already_spent",
+      "lead_day": null
+    },
+    "suggested_window": {
+      "starts_on": "2026-09-14",
+      "shifted": "shopping_cutoff"
+    },
+    "rationale": {
+      "lines": [
+        "Ce plan couvre 2 jours, à partir de lundi 2026-09-14.",
+        "Tu en avais demandé 3 : dimanche était déjà entamé, le plan commence donc demain et en couvre 2.",
+        "Une seule course, lundi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+        "Chaque personne a chacun de ses repas."
+      ],
+      "refusal": null
+    },
+    "request_report": {
+      "lines": [],
+      "refusal": null
+    },
+    "explanation": {
+      "lines": [],
+      "refusal": null
+    },
+    "household": {
+      "id": "9f770751-7968-4c0f-aca4-1a0b8c413900",
+      "member_count": 1
+    },
+    "dishes": [
+      {
+        "name": "Brouillade avoine et cheddar",
+        "title": "Blancs d'œufs, avoine, cheddar et yaourt grec",
+        "slot": "breakfast",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "blancs d'œufs",
+            "ref": "egg_white",
+            "ref_refused": false,
+            "quantity": "386 g de blancs d'œufs",
+            "in_pantry": false,
+            "amount": 386,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 386,
+            "group": "eggs",
+            "quantity_source": "structured",
+            "part": "egg_oat_main"
+          },
+          {
+            "term": "flocons d'avoine",
+            "ref": "oats",
+            "ref_refused": false,
+            "quantity": "25 g de flocons d'avoine",
+            "in_pantry": false,
+            "amount": 25,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 25,
+            "group": "whole_grain",
+            "quantity_source": "structured",
+            "part": "egg_oat_main"
+          },
+          {
+            "term": "cheddar",
+            "ref": "cheddar",
+            "ref_refused": false,
+            "quantity": "55 g de cheddar",
+            "in_pantry": false,
+            "amount": 55,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 55,
+            "group": "dairy_cheese",
+            "quantity_source": "structured",
+            "part": "cheddar_finish"
+          }
+        ],
+        "method": "Cuire les flocons d'avoine avec un peu d'eau. Brouiller les blancs d'œufs, incorporer le cheddar, puis servir avec le yaourt grec déjà prévu.",
+        "why": "Cette assiette associe des aliments simples, une source de protéines et un petit-déjeuner régulier.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_mon_breakfast_0",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "blancs d'œufs",
+                "grams": 386,
+                "ref": "egg_white",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "flocons d'avoine",
+                "grams": 25,
+                "ref": "oats",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "cheddar",
+                "grams": 55,
+                "ref": "cheddar",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "egg_oat_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cheddar_finish",
+            "role": "garnish_fat",
+            "part_of": "egg_oat_main"
+          }
+        ]
+      },
+      {
+        "name": "Bol de poulet au couscous",
+        "title": "Poulet, poivron, couscous, tomate, feta et huile",
+        "slot": "lunch",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "100 g de tomate",
+            "in_pantry": false,
+            "amount": 100,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 100,
+            "group": "non_starchy_veg",
+            "quantity_source": "structured",
+            "part": "tomato_side"
+          },
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "20 g de feta",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20,
+            "group": "dairy_cheese",
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "18 g d'huile d'olive",
+            "in_pantry": false,
+            "amount": 18,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 18,
+            "group": "olive_oil",
+            "quantity_source": "structured",
+            "part": "tomato_dressing"
+          }
+        ],
+        "method": "Réchauffer le poulet et le couscous, puis ajouter la tomate, la feta et l'huile d'olive.",
+        "why": "Le poulet rôti et le couscous forment un déjeuner complet, rapide à assembler et différent du dîner.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_couscous",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_lunch_1",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti aux poivrons",
+                "grams": 275,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_couscous",
+                "term": "Couscous complet préparé",
+                "grams": 104,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 100,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 20,
+                "ref": "feta",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 18,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "chicken_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "couscous_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "chicken_base"
+          },
+          {
+            "id": "tomato_dressing",
+            "role": "seasoning",
+            "part_of": "tomato_side"
+          }
+        ]
+      },
+      {
+        "name": "Dinde rôtie, riz et feta",
+        "title": "Dinde, poivrons, riz et feta",
+        "slot": "dinner",
+        "day": "mon",
+        "ingredients": [
+          {
+            "term": "feta",
+            "ref": "feta",
+            "ref_refused": false,
+            "quantity": "88 g de feta",
+            "in_pantry": false,
+            "amount": 88,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 88,
+            "group": "dairy_cheese",
+            "quantity_source": "structured",
+            "part": "feta_finish"
+          }
+        ],
+        "method": "Réchauffer la dinde, les poivrons et le riz, puis émietter la feta dessus.",
+        "why": "La dinde, le riz et la feta donnent un dîner chaud et nourrissant sans reprendre la forme du déjeuner.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_turkey",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_dinner_2",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_turkey",
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 285,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_rice",
+                "term": "Riz blanc cuit",
+                "grams": 208,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "feta",
+                "grams": 88,
+                "ref": "feta",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "turkey_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "rice_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "turkey_base"
+          }
+        ]
+      },
+      {
+        "name": "Brouillade au cheddar frais",
+        "title": "Blancs d'œufs, cheddar, tomate, pain et yaourt grec",
+        "slot": "breakfast",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "blancs d'œufs",
+            "ref": "egg_white",
+            "ref_refused": false,
+            "quantity": "355 g de blancs d'œufs",
+            "in_pantry": false,
+            "amount": 355,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 355,
+            "group": "eggs",
+            "quantity_source": "structured",
+            "part": "egg_main"
+          },
+          {
+            "term": "cheddar",
+            "ref": "cheddar",
+            "ref_refused": false,
+            "quantity": "48 g de cheddar",
+            "in_pantry": false,
+            "amount": 48,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 48,
+            "group": "dairy_cheese",
+            "quantity_source": "structured",
+            "part": "cheddar_finish"
+          },
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "35 g de tomate",
+            "in_pantry": false,
+            "amount": 35,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 35,
+            "group": "non_starchy_veg",
+            "quantity_source": "structured",
+            "part": "tomato_side"
+          },
+          {
+            "term": "pain complet",
+            "ref": "wholemeal_bread",
+            "ref_refused": false,
+            "quantity": "48 g de pain complet",
+            "in_pantry": false,
+            "amount": 48,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 48,
+            "group": "whole_grain",
+            "quantity_source": "structured",
+            "part": "bread_side"
+          }
+        ],
+        "method": "Brouiller les blancs d'œufs avec le cheddar, griller le pain et servir avec la tomate crue et le yaourt grec déjà prévu.",
+        "why": "Cette variante garde le petit-déjeuner régulier tout en changeant les accompagnements et la texture.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_tue_breakfast_3",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": null,
+                "term": "blancs d'œufs",
+                "grams": 355,
+                "ref": "egg_white",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "cheddar",
+                "grams": 48,
+                "ref": "cheddar",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 35,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pain complet",
+                "grams": 48,
+                "ref": "wholemeal_bread",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "egg_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cheddar_finish",
+            "role": "garnish_fat",
+            "part_of": "egg_main"
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          }
+        ]
+      },
+      {
+        "name": "Pita de poulet au houmous",
+        "title": "Pita de poulet, couscous, laitue, houmous et citron",
+        "slot": "lunch",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "pita complète",
+            "ref": "pita_wholemeal",
+            "ref_refused": false,
+            "quantity": "60 g de pita complète",
+            "in_pantry": false,
+            "amount": 60,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 60,
+            "group": "whole_grain",
+            "quantity_source": "structured",
+            "part": "filled_chicken"
+          },
+          {
+            "term": "houmous",
+            "ref": "hummus",
+            "ref_refused": false,
+            "quantity": "20 g de houmous",
+            "in_pantry": false,
+            "amount": 20,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 20,
+            "group": "legumes",
+            "quantity_source": "structured",
+            "part": "hummus_sauce"
+          },
+          {
+            "term": "laitue",
+            "ref": "lettuce",
+            "ref_refused": false,
+            "quantity": "50 g de laitue",
+            "in_pantry": false,
+            "amount": 50,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 50,
+            "group": "leafy_greens",
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "citron",
+            "ref": "lemon",
+            "ref_refused": false,
+            "quantity": "10 g de citron",
+            "in_pantry": false,
+            "amount": 10,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 10,
+            "group": "citrus",
+            "quantity_source": "structured",
+            "part": "salad_side"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "1 g d'huile d'olive",
+            "in_pantry": false,
+            "amount": 1,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 1,
+            "group": "olive_oil",
+            "quantity_source": "structured",
+            "part": "olive_finish"
+          }
+        ],
+        "method": "Réchauffer le poulet et le couscous, garnir la pita avec le houmous, puis ajouter la laitue, le citron et l'huile d'olive.",
+        "why": "La pita transforme les mêmes préparations en déjeuner à manger avec les mains, avec des aliments simples et rassasiants.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_chicken",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_couscous",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_lunch_4",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_chicken",
+                "term": "Poulet rôti aux poivrons",
+                "grams": 275,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_couscous",
+                "term": "Couscous complet préparé",
+                "grams": 104,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "pita complète",
+                "grams": 60,
+                "ref": "pita_wholemeal",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "houmous",
+                "grams": 20,
+                "ref": "hummus",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "laitue",
+                "grams": 50,
+                "ref": "lettuce",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "citron",
+                "grams": 10,
+                "ref": "lemon",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 1,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "filled_chicken",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "couscous_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "hummus_sauce",
+            "role": "sauce",
+            "part_of": "filled_chicken"
+          },
+          {
+            "id": "olive_finish",
+            "role": "garnish_fat",
+            "part_of": "filled_chicken"
+          }
+        ]
+      },
+      {
+        "name": "Dinde rôtie au parmesan",
+        "title": "Dinde, poivrons, riz, tomate, parmesan et huile",
+        "slot": "dinner",
+        "day": "tue",
+        "ingredients": [
+          {
+            "term": "tomate",
+            "ref": "tomato",
+            "ref_refused": false,
+            "quantity": "150 g de tomate",
+            "in_pantry": false,
+            "amount": 150,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 150,
+            "group": "non_starchy_veg",
+            "quantity_source": "structured",
+            "part": "tomato_side"
+          },
+          {
+            "term": "parmesan",
+            "ref": "parmesan",
+            "ref_refused": false,
+            "quantity": "30 g de parmesan",
+            "in_pantry": false,
+            "amount": 30,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 30,
+            "group": "dairy_cheese",
+            "quantity_source": "structured",
+            "part": "parmesan_finish"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "11 g d'huile d'olive",
+            "in_pantry": false,
+            "amount": 11,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 11,
+            "group": "olive_oil",
+            "quantity_source": "structured",
+            "part": "tomato_dressing"
+          }
+        ],
+        "method": "Réchauffer la dinde, les poivrons et le riz. Ajouter la tomate, le parmesan et l'huile d'olive au moment de servir.",
+        "why": "La tomate, le parmesan et l'huile donnent au même lot de dinde une assiette différente, chaude et complète.",
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ],
+        "uses": [
+          {
+            "preparation_id": "prep_turkey",
+            "servings": 1,
+            "kept": "fridge"
+          },
+          {
+            "preparation_id": "prep_rice",
+            "servings": 1,
+            "kept": "fridge"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_dinner_5",
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "items": [
+              {
+                "preparation_id": "prep_turkey",
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 285,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": "prep_rice",
+                "term": "Riz blanc cuit",
+                "grams": 208,
+                "ref": null,
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "tomate",
+                "grams": 150,
+                "ref": "tomato",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "parmesan",
+                "grams": 30,
+                "ref": "parmesan",
+                "ref_refused": false
+              },
+              {
+                "preparation_id": null,
+                "term": "huile d'olive",
+                "grams": 11,
+                "ref": "olive_oil",
+                "ref_refused": false
+              }
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "member_id": null,
+        "complements_shared": false,
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "components": [
+          {
+            "id": "turkey_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "rice_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "parmesan_finish",
+            "role": "garnish_fat",
+            "part_of": "turkey_base"
+          },
+          {
+            "id": "tomato_dressing",
+            "role": "seasoning",
+            "part_of": "tomato_side"
+          }
+        ]
+      }
+    ],
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti aux poivrons",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "blanc de poulet",
+            "ref": "chicken_breast",
+            "ref_refused": false,
+            "quantity": "500 g",
+            "in_pantry": false,
+            "amount": 500,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 500,
+            "group": "poultry",
+            "quantity_source": "structured",
+            "part": "chicken_main"
+          },
+          {
+            "term": "poivron",
+            "ref": "bell_pepper",
+            "ref_refused": false,
+            "quantity": "200 g",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 200,
+            "group": "non_starchy_veg",
+            "quantity_source": "structured",
+            "part": "roasted_peppers"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "10 g",
+            "in_pantry": false,
+            "amount": 10,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 10,
+            "group": "olive_oil",
+            "quantity_source": "structured",
+            "part": "roasting_fat"
+          }
+        ],
+        "method": "Disposer le poulet et le poivron sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit. Laisser tiédir et répartir au frais.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "chicken_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_peppers",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "chicken_main"
+          }
+        ]
+      },
+      {
+        "id": "prep_couscous",
+        "title": "Couscous complet préparé",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "couscous complet",
+            "ref": "couscous_wholemeal",
+            "ref_refused": false,
+            "quantity": "80 g",
+            "in_pantry": false,
+            "amount": 80,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 80,
+            "group": "whole_grain",
+            "quantity_source": "structured",
+            "part": "couscous_main"
+          }
+        ],
+        "method": "Verser de l'eau chaude sur le couscous complet, couvrir, puis égrener avant de répartir au frais.",
+        "active_minutes": 5,
+        "total_minutes": 10,
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "couscous_main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      },
+      {
+        "id": "prep_turkey",
+        "title": "Dinde rôtie aux poivrons",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "blanc de dinde",
+            "ref": "turkey_breast",
+            "ref_refused": false,
+            "quantity": "500 g de blanc de dinde",
+            "in_pantry": false,
+            "amount": 500,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 500,
+            "group": "lean_protein",
+            "quantity_source": "structured",
+            "part": "turkey_main"
+          },
+          {
+            "term": "poivron",
+            "ref": "bell_pepper",
+            "ref_refused": false,
+            "quantity": "200 g de poivron",
+            "in_pantry": false,
+            "amount": 200,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 200,
+            "group": "non_starchy_veg",
+            "quantity_source": "structured",
+            "part": "roasted_peppers"
+          },
+          {
+            "term": "huile d'olive",
+            "ref": "olive_oil",
+            "ref_refused": false,
+            "quantity": "40 g d'huile d'olive",
+            "in_pantry": false,
+            "amount": 40,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 40,
+            "group": "olive_oil",
+            "quantity_source": "structured",
+            "part": "roasting_fat"
+          }
+        ],
+        "method": "Disposer la dinde et le poivron sur une plaque, les arroser d'huile d'olive, puis rôtir jusqu'à ce que la dinde soit cuite. Laisser tiédir et répartir au frais.",
+        "active_minutes": 15,
+        "total_minutes": 35,
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "turkey_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_peppers",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "turkey_main"
+          }
+        ]
+      },
+      {
+        "id": "prep_rice",
+        "title": "Riz blanc cuit",
+        "servings_made": 2,
+        "ingredients": [
+          {
+            "term": "riz blanc",
+            "ref": "white_rice",
+            "ref_refused": false,
+            "quantity": "160 g de riz blanc",
+            "in_pantry": false,
+            "amount": 160,
+            "unit": "g",
+            "state": "raw",
+            "grams_raw": 160,
+            "group": "refined_grain",
+            "quantity_source": "structured",
+            "part": "rice_main"
+          }
+        ],
+        "method": "Cuire le riz blanc dans l'eau jusqu'à absorption complète, puis refroidir rapidement et répartir au frais.",
+        "active_minutes": 5,
+        "total_minutes": 25,
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "rice_main",
+            "role": "main",
+            "part_of": null
+          }
+        ]
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "mon",
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_couscous",
+          "prep_turkey",
+          "prep_rice"
+        ],
+        "run_through": "Préchauffer le four, préparer les plaques de poulet et de dinde avec les poivrons, puis enfourner les deux préparations. Mettre le riz à cuire pendant la cuisson au four, hydrater le couscous ensuite, puis laisser tiédir et répartir chaque préparation au réfrigérateur.",
+        "total_minutes": 55
+      }
+    ],
+    "shopping_list": [
+      {
+        "term": "blanc de poulet",
+        "quantity": "500 g",
+        "aisle": "protein",
+        "food_group": "poultry",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "chicken_breast",
+        "amount": 500,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "poivron",
+        "quantity": "400 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "bell_pepper",
+        "amount": 400,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "huile d'olive",
+        "quantity": "80 g",
+        "aisle": "pantry",
+        "food_group": "olive_oil",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "olive_oil",
+        "amount": 80,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "couscous complet",
+        "quantity": "80 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "couscous_wholemeal",
+        "amount": 80,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "blanc de dinde",
+        "quantity": "500 g",
+        "aisle": "protein",
+        "food_group": "lean_protein",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "turkey_breast",
+        "amount": 500,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "riz blanc",
+        "quantity": "160 g",
+        "aisle": "grains",
+        "food_group": "refined_grain",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "white_rice",
+        "amount": 160,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "blancs d'œufs",
+        "quantity": "741 g",
+        "aisle": "protein",
+        "food_group": "eggs",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "egg_white",
+        "amount": 741,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "flocons d'avoine",
+        "quantity": "25 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "oats",
+        "amount": 25,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "cheddar",
+        "quantity": "103 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "cheddar",
+        "amount": 103,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "tomate",
+        "quantity": "285 g",
+        "aisle": "produce",
+        "food_group": "non_starchy_veg",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "tomato",
+        "amount": 285,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "feta",
+        "quantity": "108 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "feta",
+        "amount": 108,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "pain complet",
+        "quantity": "48 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "wholemeal_bread",
+        "amount": 48,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "pita complète",
+        "quantity": "60 g",
+        "aisle": "grains",
+        "food_group": "whole_grain",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "pita_wholemeal",
+        "amount": 60,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "houmous",
+        "quantity": "20 g",
+        "aisle": "pantry",
+        "food_group": "legumes",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "hummus",
+        "amount": 20,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "laitue",
+        "quantity": "50 g",
+        "aisle": "produce",
+        "food_group": "leafy_greens",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "lettuce",
+        "amount": 50,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "citron",
+        "quantity": "10 g",
+        "aisle": "produce",
+        "food_group": "citrus",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "lemon",
+        "amount": 10,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      },
+      {
+        "term": "parmesan",
+        "quantity": "30 g",
+        "aisle": "dairy",
+        "food_group": "dairy_cheese",
+        "buy_on": "2026-09-14",
+        "freeze_on_purchase": false,
+        "ref": "parmesan",
+        "amount": 30,
+        "unit": "g",
+        "state": "raw",
+        "purchasable": true
+      }
+    ],
+    "member_portions": [
+      {
+        "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+        "display_name": "Paul",
+        "portion_note": null,
+        "eating_slots": null,
+        "preparation_shares": []
+      }
+    ],
+    "member_deltas": [],
+    "merged_members": [],
+    "issues": [
+      "spent_first_day_dropped: sun (shopping_cutoff)",
+      "shopping_waves: 1 (2026-09-14)",
+      "freeze_on_purchase: 0/17",
+      "raw_keeping_needs_later_shop: 0/2 preparations",
+      "waves_kept_for_freshness: 0/17",
+      "sessions_fed_from_freezer: 0/0 name the freezer",
+      "quantity_prose_stale:10",
+      "final_gate_delivery:conforme",
+      "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+      "uses_kept_freezer: 0/8"
+    ],
+    "validation": {
+      "version": 1,
+      "state": "conforme",
+      "defects": [],
+      "incomplete": [
+        {
+          "control": "mouth_energy",
+          "count": 1
+        }
+      ],
+      "not_applicable": [],
+      "not_run": [
+        "title_promises_missing_preparation",
+        "mouth_energy_short"
+      ],
+      "counts": {
+        "blocking": 0,
+        "gaps": 0,
+        "incomplete": 1,
+        "not_applicable": 0,
+        "not_run": 2
+      },
+      "repair": {
+        "rounds": 1,
+        "calls_made": 0,
+        "defects_at_delivery": 0,
+        "by_kind": {},
+        "by_source": {
+          "gate": 0,
+          "output_contract": 0,
+          "quantities": 0,
+          "upstream": 0
+        }
+      }
+    },
+    "request_id": "c5d76702-29d1-45ec-aea4-f56a6a9d42b2"
+  },
+  "appels_fournisseur": [
+    {
+      "url": "https://api.openai.com/v1/responses",
+      "model": "gpt-5.6-luna",
+      "matched": "generate-household-meal-v1",
+      "bodyBytes": 48725,
+      "atMs": 1176
+    }
+  ],
+  "sorties_refusees": [],
+  "ligne_ecrite": {
+    "id": "d151b5e0-d5ff-411c-9c40-13bb173fc9ae",
+    "user_id": "fba9ecdb-3762-41e4-8198-f1b46f7b3ed5",
+    "scope": "several_days",
+    "mode": "to_shop",
+    "meal_slot": null,
+    "servings": 1,
+    "context": null,
+    "pantry": [],
+    "dishes": [
+      {
+        "day": "mon",
+        "why": "Cette assiette associe des aliments simples, une source de protéines et un petit-déjeuner régulier.",
+        "name": "Brouillade avoine et cheddar",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_mon_breakfast_0",
+            "items": [
+              {
+                "ref": "egg_white",
+                "term": "blancs d'œufs",
+                "grams": 386,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "oats",
+                "term": "flocons d'avoine",
+                "grams": 25,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "cheddar",
+                "term": "cheddar",
+                "grams": 55,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Blancs d'œufs, avoine, cheddar et yaourt grec",
+        "method": "Cuire les flocons d'avoine avec un peu d'eau. Brouiller les blancs d'œufs, incorporer le cheddar, puis servir avec le yaourt grec déjà prévu.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "egg_oat_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cheddar_finish",
+            "role": "garnish_fat",
+            "part_of": "egg_oat_main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "egg_white",
+            "part": "egg_oat_main",
+            "term": "blancs d'œufs",
+            "unit": "g",
+            "group": "eggs",
+            "state": "raw",
+            "amount": 386,
+            "quantity": "386 g de blancs d'œufs",
+            "grams_raw": 386,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "oats",
+            "part": "egg_oat_main",
+            "term": "flocons d'avoine",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 25,
+            "quantity": "25 g de flocons d'avoine",
+            "grams_raw": 25,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "cheddar",
+            "part": "cheddar_finish",
+            "term": "cheddar",
+            "unit": "g",
+            "group": "dairy_cheese",
+            "state": "raw",
+            "amount": 55,
+            "quantity": "55 g de cheddar",
+            "grams_raw": 55,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "mon",
+        "why": "Le poulet rôti et le couscous forment un déjeuner complet, rapide à assembler et différent du dîner.",
+        "name": "Bol de poulet au couscous",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_couscous"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_lunch_1",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti aux poivrons",
+                "grams": 275,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": null,
+                "term": "Couscous complet préparé",
+                "grams": 104,
+                "ref_refused": false,
+                "preparation_id": "prep_couscous"
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 100,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 20,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 18,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Poulet, poivron, couscous, tomate, feta et huile",
+        "method": "Réchauffer le poulet et le couscous, puis ajouter la tomate, la feta et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "chicken_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "couscous_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "chicken_base"
+          },
+          {
+            "id": "tomato_dressing",
+            "role": "seasoning",
+            "part_of": "tomato_side"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "tomato",
+            "part": "tomato_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 100,
+            "quantity": "100 g de tomate",
+            "grams_raw": 100,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": "dairy_cheese",
+            "state": "raw",
+            "amount": 20,
+            "quantity": "20 g de feta",
+            "grams_raw": 20,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "tomato_dressing",
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 18,
+            "quantity": "18 g d'huile d'olive",
+            "grams_raw": 18,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "mon",
+        "why": "La dinde, le riz et la feta donnent un dîner chaud et nourrissant sans reprendre la forme du déjeuner.",
+        "name": "Dinde rôtie, riz et feta",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_turkey"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_rice"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_mon_dinner_2",
+            "items": [
+              {
+                "ref": null,
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 285,
+                "ref_refused": false,
+                "preparation_id": "prep_turkey"
+              },
+              {
+                "ref": null,
+                "term": "Riz blanc cuit",
+                "grams": 208,
+                "ref_refused": false,
+                "preparation_id": "prep_rice"
+              },
+              {
+                "ref": "feta",
+                "term": "feta",
+                "grams": 88,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Dinde, poivrons, riz et feta",
+        "method": "Réchauffer la dinde, les poivrons et le riz, puis émietter la feta dessus.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "turkey_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "rice_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "feta_finish",
+            "role": "garnish_fat",
+            "part_of": "turkey_base"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "feta",
+            "part": "feta_finish",
+            "term": "feta",
+            "unit": "g",
+            "group": "dairy_cheese",
+            "state": "raw",
+            "amount": 88,
+            "quantity": "88 g de feta",
+            "grams_raw": 88,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "tue",
+        "why": "Cette variante garde le petit-déjeuner régulier tout en changeant les accompagnements et la texture.",
+        "name": "Brouillade au cheddar frais",
+        "slot": "breakfast",
+        "uses": [],
+        "boxes": [
+          {
+            "id": "box_tue_breakfast_3",
+            "items": [
+              {
+                "ref": "egg_white",
+                "term": "blancs d'œufs",
+                "grams": 355,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "cheddar",
+                "term": "cheddar",
+                "grams": 48,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 35,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "wholemeal_bread",
+                "term": "pain complet",
+                "grams": 48,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Blancs d'œufs, cheddar, tomate, pain et yaourt grec",
+        "method": "Brouiller les blancs d'œufs avec le cheddar, griller le pain et servir avec la tomate crue et le yaourt grec déjà prévu.",
+        "same_day": {
+          "kind": "cook_fresh",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "egg_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "cheddar_finish",
+            "role": "garnish_fat",
+            "part_of": "egg_main"
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "bread_side",
+            "role": "separable_side",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "egg_white",
+            "part": "egg_main",
+            "term": "blancs d'œufs",
+            "unit": "g",
+            "group": "eggs",
+            "state": "raw",
+            "amount": 355,
+            "quantity": "355 g de blancs d'œufs",
+            "grams_raw": 355,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "cheddar",
+            "part": "cheddar_finish",
+            "term": "cheddar",
+            "unit": "g",
+            "group": "dairy_cheese",
+            "state": "raw",
+            "amount": 48,
+            "quantity": "48 g de cheddar",
+            "grams_raw": 48,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "tomato",
+            "part": "tomato_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 35,
+            "quantity": "35 g de tomate",
+            "grams_raw": 35,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "wholemeal_bread",
+            "part": "bread_side",
+            "term": "pain complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 48,
+            "quantity": "48 g de pain complet",
+            "grams_raw": 48,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "tue",
+        "why": "La pita transforme les mêmes préparations en déjeuner à manger avec les mains, avec des aliments simples et rassasiants.",
+        "name": "Pita de poulet au houmous",
+        "slot": "lunch",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_chicken"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_couscous"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_lunch_4",
+            "items": [
+              {
+                "ref": null,
+                "term": "Poulet rôti aux poivrons",
+                "grams": 275,
+                "ref_refused": false,
+                "preparation_id": "prep_chicken"
+              },
+              {
+                "ref": null,
+                "term": "Couscous complet préparé",
+                "grams": 104,
+                "ref_refused": false,
+                "preparation_id": "prep_couscous"
+              },
+              {
+                "ref": "pita_wholemeal",
+                "term": "pita complète",
+                "grams": 60,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "hummus",
+                "term": "houmous",
+                "grams": 20,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lettuce",
+                "term": "laitue",
+                "grams": 50,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "lemon",
+                "term": "citron",
+                "grams": 10,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 1,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Pita de poulet, couscous, laitue, houmous et citron",
+        "method": "Réchauffer le poulet et le couscous, garnir la pita avec le houmous, puis ajouter la laitue, le citron et l'huile d'olive.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "filled_chicken",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "couscous_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "salad_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "hummus_sauce",
+            "role": "sauce",
+            "part_of": "filled_chicken"
+          },
+          {
+            "id": "olive_finish",
+            "role": "garnish_fat",
+            "part_of": "filled_chicken"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "pita_wholemeal",
+            "part": "filled_chicken",
+            "term": "pita complète",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 60,
+            "quantity": "60 g de pita complète",
+            "grams_raw": 60,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "hummus",
+            "part": "hummus_sauce",
+            "term": "houmous",
+            "unit": "g",
+            "group": "legumes",
+            "state": "raw",
+            "amount": 20,
+            "quantity": "20 g de houmous",
+            "grams_raw": 20,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lettuce",
+            "part": "salad_side",
+            "term": "laitue",
+            "unit": "g",
+            "group": "leafy_greens",
+            "state": "raw",
+            "amount": 50,
+            "quantity": "50 g de laitue",
+            "grams_raw": 50,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "lemon",
+            "part": "salad_side",
+            "term": "citron",
+            "unit": "g",
+            "group": "citrus",
+            "state": "raw",
+            "amount": 10,
+            "quantity": "10 g de citron",
+            "grams_raw": 10,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "olive_finish",
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 1,
+            "quantity": "1 g d'huile d'olive",
+            "grams_raw": 1,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      },
+      {
+        "day": "tue",
+        "why": "La tomate, le parmesan et l'huile donnent au même lot de dinde une assiette différente, chaude et complète.",
+        "name": "Dinde rôtie au parmesan",
+        "slot": "dinner",
+        "uses": [
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_turkey"
+          },
+          {
+            "kept": "fridge",
+            "servings": 1,
+            "preparation_id": "prep_rice"
+          }
+        ],
+        "boxes": [
+          {
+            "id": "box_tue_dinner_5",
+            "items": [
+              {
+                "ref": null,
+                "term": "Dinde rôtie aux poivrons",
+                "grams": 285,
+                "ref_refused": false,
+                "preparation_id": "prep_turkey"
+              },
+              {
+                "ref": null,
+                "term": "Riz blanc cuit",
+                "grams": 208,
+                "ref_refused": false,
+                "preparation_id": "prep_rice"
+              },
+              {
+                "ref": "tomato",
+                "term": "tomate",
+                "grams": 150,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "parmesan",
+                "term": "parmesan",
+                "grams": 30,
+                "ref_refused": false,
+                "preparation_id": null
+              },
+              {
+                "ref": "olive_oil",
+                "term": "huile d'olive",
+                "grams": 11,
+                "ref_refused": false,
+                "preparation_id": null
+              }
+            ],
+            "member_ids": [
+              "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+            ],
+            "legacy_total_grams": null
+          }
+        ],
+        "title": "Dinde, poivrons, riz, tomate, parmesan et huile",
+        "method": "Réchauffer la dinde, les poivrons et le riz. Ajouter la tomate, le parmesan et l'huile d'olive au moment de servir.",
+        "same_day": {
+          "kind": "assemble",
+          "minutes": 10
+        },
+        "member_id": null,
+        "components": [
+          {
+            "id": "turkey_base",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "rice_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "tomato_side",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "parmesan_finish",
+            "role": "garnish_fat",
+            "part_of": "turkey_base"
+          },
+          {
+            "id": "tomato_dressing",
+            "role": "seasoning",
+            "part_of": "tomato_side"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "tomato",
+            "part": "tomato_side",
+            "term": "tomate",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 150,
+            "quantity": "150 g de tomate",
+            "grams_raw": 150,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "parmesan",
+            "part": "parmesan_finish",
+            "term": "parmesan",
+            "unit": "g",
+            "group": "dairy_cheese",
+            "state": "raw",
+            "amount": 30,
+            "quantity": "30 g de parmesan",
+            "grams_raw": 30,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "tomato_dressing",
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 11,
+            "quantity": "11 g d'huile d'olive",
+            "grams_raw": 11,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "complements_shared": false,
+        "honours_belief_keys": [
+          "whole_foods_first",
+          "protein_at_every_meal",
+          "regular_meals_beat_perfect_meals"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "ref": "chicken_breast",
+        "term": "blanc de poulet",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 500,
+        "buy_on": "2026-09-14",
+        "quantity": "500 g",
+        "food_group": "poultry",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "bell_pepper",
+        "term": "poivron",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 400,
+        "buy_on": "2026-09-14",
+        "quantity": "400 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "olive_oil",
+        "term": "huile d'olive",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 80,
+        "buy_on": "2026-09-14",
+        "quantity": "80 g",
+        "food_group": "olive_oil",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "couscous_wholemeal",
+        "term": "couscous complet",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 80,
+        "buy_on": "2026-09-14",
+        "quantity": "80 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "turkey_breast",
+        "term": "blanc de dinde",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 500,
+        "buy_on": "2026-09-14",
+        "quantity": "500 g",
+        "food_group": "lean_protein",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "white_rice",
+        "term": "riz blanc",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 160,
+        "buy_on": "2026-09-14",
+        "quantity": "160 g",
+        "food_group": "refined_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "egg_white",
+        "term": "blancs d'œufs",
+        "unit": "g",
+        "aisle": "protein",
+        "state": "raw",
+        "amount": 741,
+        "buy_on": "2026-09-14",
+        "quantity": "741 g",
+        "food_group": "eggs",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "oats",
+        "term": "flocons d'avoine",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 25,
+        "buy_on": "2026-09-14",
+        "quantity": "25 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "cheddar",
+        "term": "cheddar",
+        "unit": "g",
+        "aisle": "dairy",
+        "state": "raw",
+        "amount": 103,
+        "buy_on": "2026-09-14",
+        "quantity": "103 g",
+        "food_group": "dairy_cheese",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "tomato",
+        "term": "tomate",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 285,
+        "buy_on": "2026-09-14",
+        "quantity": "285 g",
+        "food_group": "non_starchy_veg",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "feta",
+        "term": "feta",
+        "unit": "g",
+        "aisle": "dairy",
+        "state": "raw",
+        "amount": 108,
+        "buy_on": "2026-09-14",
+        "quantity": "108 g",
+        "food_group": "dairy_cheese",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "wholemeal_bread",
+        "term": "pain complet",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 48,
+        "buy_on": "2026-09-14",
+        "quantity": "48 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "pita_wholemeal",
+        "term": "pita complète",
+        "unit": "g",
+        "aisle": "grains",
+        "state": "raw",
+        "amount": 60,
+        "buy_on": "2026-09-14",
+        "quantity": "60 g",
+        "food_group": "whole_grain",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "hummus",
+        "term": "houmous",
+        "unit": "g",
+        "aisle": "pantry",
+        "state": "raw",
+        "amount": 20,
+        "buy_on": "2026-09-14",
+        "quantity": "20 g",
+        "food_group": "legumes",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "lettuce",
+        "term": "laitue",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 50,
+        "buy_on": "2026-09-14",
+        "quantity": "50 g",
+        "food_group": "leafy_greens",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "lemon",
+        "term": "citron",
+        "unit": "g",
+        "aisle": "produce",
+        "state": "raw",
+        "amount": 10,
+        "buy_on": "2026-09-14",
+        "quantity": "10 g",
+        "food_group": "citrus",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      },
+      {
+        "ref": "parmesan",
+        "term": "parmesan",
+        "unit": "g",
+        "aisle": "dairy",
+        "state": "raw",
+        "amount": 30,
+        "buy_on": "2026-09-14",
+        "quantity": "30 g",
+        "food_group": "dairy_cheese",
+        "purchasable": true,
+        "freeze_on_purchase": false
+      }
+    ],
+    "generated_from": {
+      "goal": "fat_loss",
+      "names": {
+        "kept": 6,
+        "dishes": 6,
+        "refused": 0,
+        "declared": 6
+      },
+      "intent": "replace_current",
+      "issues": [
+        "spent_first_day_dropped: sun (shopping_cutoff)",
+        "shopping_waves: 1 (2026-09-14)",
+        "freeze_on_purchase: 0/17",
+        "raw_keeping_needs_later_shop: 0/2 preparations",
+        "waves_kept_for_freshness: 0/17",
+        "sessions_fed_from_freezer: 0/0 name the freezer",
+        "quantity_prose_stale:10",
+        "model_returned_no_box: 0/4 -- 4 meals take from a batch and the model emitted no box key; a deterministic sizing path may still author them downstream, so this line is about the MODEL's output, not about the shipped plan",
+        "uses_kept_freezer: 0/8"
+      ],
+      "timing": {
+        "kind": "starts_tomorrow",
+        "reason": "today_already_spent",
+        "lead_day": null
+      },
+      "coach_id": "00000000-0000-4000-8000-00000000d15c",
+      "same_day": {
+        "dishes": 6,
+        "invalid": 0,
+        "declared": 6,
+        "minutes_missing": 0
+      },
+      "household": {
+        "id": "9f770751-7968-4c0f-aca4-1a0b8c413900",
+        "hand": {
+          "taken": [],
+          "partial": [],
+          "unmerged": [],
+          "reclaimed": []
+        },
+        "swap": {
+          "flagrant": false,
+          "strictest": null,
+          "free_mouths": 0,
+          "absent_cells": [],
+          "bound_mouths": 0,
+          "cells_checked": 0,
+          "cells_carrying": 0,
+          "cells_swap_absent": 0
+        },
+        "boxes": {
+          "boxes": 0,
+          "items": 0,
+          "meals": 4,
+          "names": 0,
+          "capped": 0,
+          "mouths": 1,
+          "refused": 0,
+          "delivery": "none_delivered",
+          "expected": 4,
+          "sum_over": 0,
+          "with_box": 0,
+          "mouth_slots": 0,
+          "sum_checked": 0,
+          "cells_no_box": 6,
+          "preparations": 4,
+          "items_refused": 0,
+          "legacy_folded": 0,
+          "mouths_double": 0,
+          "names_refused": 0,
+          "mouths_unboxed": 0,
+          "sum_unverifiable": 0,
+          "mouths_no_box_cell": 6,
+          "mouths_double_model": 0
+        },
+        "shares": {
+          "shares": 0,
+          "unknown": 0,
+          "regime_refused": 0
+        },
+        "voices": {
+          "heard": 0,
+          "lines_in": 0,
+          "over_cap": 0,
+          "withheld": 0,
+          "lines_used": 0,
+          "per_member": [],
+          "accounts_at_table": 1
+        },
+        "cooking": {
+          "asked": null,
+          "capped": false,
+          "served": "one_dish",
+          "unused": false,
+          "computed": "one_dish",
+          "diverging": [],
+          "dish_bearing": []
+        },
+        "kitchen": {
+          "missing": [],
+          "declared": null
+        },
+        "presence": {
+          "members": [],
+          "deserted": [],
+          "servings": 1
+        },
+        "why_rule": {
+          "valid": 0,
+          "dishes": 6,
+          "holders": 0,
+          "refused": 0,
+          "declared": 0
+        },
+        "envy_week": "2026-09-07",
+        "box_sizing": {
+          "boxes": 6,
+          "items": 27,
+          "share": {
+            "sized": 0,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 1,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "sized": 26,
+          "unmet": {
+            "both": 0,
+            "none": 1,
+            "pot_ceiling": 0,
+            "not_anchored": 0,
+            "tub_estimate": 0,
+            "factor_clamped": 1
+          },
+          "anchor": {
+            "clamped": 1,
+            "no_body": 0,
+            "anchored": 1,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_delivery": 0,
+            "breastfeeding": 0,
+            "common_pot_day": 0,
+            "day_incomplete": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0
+          },
+          "common": 0,
+          "mouths": {
+            "minor": 0,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 0,
+            "pregnancy": 0,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "breastfeeding": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "sized_default_pace": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+          },
+          "densify": {
+            "skipped": "standard_recipe"
+          },
+          "activity": {
+            "partial": 0,
+            "answered": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "appetite": {
+            "declared": 1,
+            "not_asked": 0,
+            "not_answered": 0
+          },
+          "unchanged": 1,
+          "anchor_cap": {
+            "none": 1,
+            "density": 1,
+            "factor_bound": 0,
+            "density_floor": 0,
+            "assumed_density": 0
+          },
+          "lost_slots": {
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_lt_200": 0,
+            "kcal_gte_200": 0,
+            "kcal_unknown": 0
+          },
+          "note_boost": {
+            "detail": [],
+            "applied": 0,
+            "applied_pot": 0,
+            "member_days": 0,
+            "unknown_member": 0,
+            "household_dated": 0
+          },
+          "pot_growth": {
+            "capped": 0,
+            "passes": 1,
+            "scaled": 2,
+            "shopping": 1,
+            "regrammed": 4,
+            "short_after": 0,
+            "unrewritable": 0
+          },
+          "pot_shrink": {
+            "kept": 4,
+            "pots": 0,
+            "removed": 0,
+            "unreadable": 0,
+            "unboxed_use": 0,
+            "lines_scaled": 1,
+            "lines_dropped": 0,
+            "sessions_emptied": 0,
+            "lines_unattributed": 0,
+            "lines_unrewritable": 0
+          },
+          "unmet_band": {
+            "lt_200": 1,
+            "gte_200": 0
+          },
+          "lost_by_line": {
+            "kcal": 0,
+            "slots": 0,
+            "mouth_days": 0,
+            "kcal_unknown": 0
+          },
+          "unverifiable": 0,
+          "capped_by_pot": 0,
+          "share_clamped": 0,
+          "anchor_applied": 6,
+          "quantity_final": {
+            "bare": 0,
+            "lines": 27,
+            "absent": 0,
+            "historic": 0,
+            "rewritten": 10,
+            "stale_before": 10,
+            "counted_fractional": 0
+          },
+          "activity_source": {
+            "legacy": 0,
+            "assumed": 0,
+            "crossed": 1
+          },
+          "pot_attribution": {
+            "ratio": 1,
+            "drawnGrams": 1744,
+            "potsUnreadable": 0,
+            "attributedGrams": 1744
+          },
+          "quantity_rounding": {
+            "lines": 27,
+            "zeroed": [],
+            "rounded": 23,
+            "regrammed": 23,
+            "quantified": 27,
+            "spoon_to_ml": 0,
+            "unknown_unit": 0,
+            "unquantified": 0,
+            "already_whole": 4,
+            "piece_to_grams": 0,
+            "pots_overdrawn": 0,
+            "zero_unresolved": 0,
+            "pots_unmeasurable": 0,
+            "pots_overdrawn_before": 0,
+            "pots_overdrawn_worst_per_mille": 0
+          }
+        },
+        "eating_out": {
+          "cells": 0,
+          "mouths": 0
+        },
+        "precedence": {
+          "exact": true,
+          "place": "tail",
+          "by_rank": {
+            "rank_1": 0,
+            "rank_2": 6,
+            "rank_3": 0,
+            "rank_4": 0,
+            "rank_5": 0
+          },
+          "blocks_after": 0,
+          "ranks_with_object": 1,
+          "ranks_without_object": 4
+        },
+        "traditions": {
+          "declared": 0,
+          "honoured": 0,
+          "not_composed": 0,
+          "out_of_window": 0,
+          "composed_without_label": 0
+        },
+        "work_lunch": {
+          "cold": 0,
+          "mouths": 0
+        },
+        "dish_owners": {
+          "asked": 0,
+          "refused": 0,
+          "declared": 0,
+          "attributed": 0
+        },
+        "minor_count": 0,
+        "regime_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "silenced": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "groups_valid": 0,
+          "item_repaired": 0,
+          "not_separated": 0,
+          "unknown_mouth": 0,
+          "group_excluded": 0,
+          "groups_refused": 0,
+          "group_undecided": 0,
+          "groups_declared": 0,
+          "group_plant_only": 0,
+          "citation_repaired": 0,
+          "silenced_spelling": 0,
+          "groups_conflicting": 0,
+          "silenced_homograph": 0
+        },
+        "member_count": 1,
+        "member_deltas": [],
+        "envy_line_used": false,
+        "exclusion_belt": {
+          "kept": 0,
+          "bites": 0,
+          "mouths": 0,
+          "checked": 0,
+          "refused": 0,
+          "separated": 0,
+          "box_scoped": 0,
+          "final_bites": 0,
+          "not_separated": 0
+        },
+        "portion_sizing": {
+          "apply": {
+            "regrammed": 27,
+            "pots_scaled": 4,
+            "fresh_scaled": 19,
+            "own_authored": 0,
+            "tubs_authored": 0,
+            "boxes_authored": 6,
+            "dishes_unsized": 0,
+            "eaters_unsized": 0,
+            "fresh_unweighed": 0,
+            "pots_unreadable": 0,
+            "items_unresolved": 0,
+            "servings_rewritten": 0
+          },
+          "final": {
+            "boxes": 6,
+            "water": {
+              "kept": 2,
+              "absorbed": 2,
+              "discarded": 0,
+              "undetermined": 0
+            },
+            "judged": 6,
+            "reason": "remeasured_after_apply",
+            "measured": true,
+            "verdicts": {
+              "over_max": 0,
+              "in_bounds": 6,
+              "under_min": 0,
+              "unmeasurable": 0
+            },
+            "out_of_bounds": [],
+            "tubs_not_judged": 0,
+            "pot_density_gone": 0,
+            "pot_density_drifted": 0,
+            "pot_density_unmeasurable": 0
+          },
+          "slots": {
+            "light": 1,
+            "composed": 3,
+            "declared": 0,
+            "without_target": 0
+          },
+          "dishes": 6,
+          "mouths": 1,
+          "reason": "one_mouth",
+          "target": {
+            "anchored": 1,
+            "no_target": 0
+          },
+          "applied": true,
+          "clamped": {
+            "max": 0,
+            "min": 0
+          },
+          "repairs": {
+            "asked": 0,
+            "splice": {
+              "pot_missing": 0,
+              "dish_missing": 0,
+              "pots_spliced": 0,
+              "fresh_spliced": 0,
+              "uses_mismatch": 0,
+              "shopping_added": 0,
+              "shopping_pruned": 0,
+              "density_checks_cleared": 0
+            },
+            "accepted": 0,
+            "attempts": 0,
+            "rejected": {
+              "belt": 0,
+              "no_cell": 0,
+              "degraded": 0,
+              "missing_pot": 0,
+              "unparseable": 0,
+              "unmeasurable": 0,
+              "title_changed": 0,
+              "dedicated_lost": 0,
+              "frozen_rewritten": 0
+            },
+            "still_out": 0,
+            "pot_forked": 0,
+            "pots_frozen": 0,
+            "fresh_frozen": 0,
+            "pot_unforked": 0,
+            "recipe_terms": 0,
+            "stuck_dishes": 0,
+            "stuck_eaters": 0,
+            "fill_absorbed": null,
+            "retried_after": null,
+            "skipped_stuck": 0,
+            "residual_stuck": 0,
+            "skipped_budget": 0,
+            "residual_eaters": 0,
+            "recipe_quantified": 0,
+            "retry_skipped_small": 0
+          },
+          "measured": 6,
+          "verdicts": {
+            "over_max": 0,
+            "in_bounds": 6,
+            "under_min": 0,
+            "unmeasurable": 0
+          },
+          "gap_closed": 0,
+          "unmet_band": {
+            "lt_200": 0,
+            "gte_200": 0
+          },
+          "sizing_path": "portion_v1",
+          "verification": {
+            "anchored": 1,
+            "pot_shrunk": 0,
+            "unmet_none": 1,
+            "pot_removed": 0,
+            "would_resize": 0,
+            "anchor_clamped": 1,
+            "densify_touched": 0,
+            "pot_short_after": 0,
+            "shopping_scaled": 1,
+            "shopping_unattributed": 0
+          },
+          "bounds_source": {
+            "age_known": 6,
+            "age_unknown": 0
+          },
+          "fixed_covered": 0,
+          "fixed_conflict": 0,
+          "fixed_slot_kcal": {
+            "loose": 0,
+            "off_day": 0,
+            "declared": 0,
+            "unresolved": 0,
+            "referential": 2,
+            "loose_ignored_kcal": 0
+          },
+          "unmeasurable_by": {},
+          "contract_missing": 0,
+          "pot_ingredients_without_amount": 0
+        },
+        "vague_portions": {
+          "notes": 0,
+          "vague": 0,
+          "box_ids": 0,
+          "quantified": 0
+        },
+        "meals_delivered": {
+          "fed": 6,
+          "rows": [],
+          "mouths": 1,
+          "missing": 0,
+          "rehomed": 0,
+          "by_cause": {
+            "double": 0,
+            "no_dish": 0,
+            "not_named": 0,
+            "held_off_regime": 0,
+            "held_off_exclusion": 0
+          },
+          "expected": 6,
+          "restored": 0,
+          "retry_on": {},
+          "restored_fallback": 0,
+          "cells_without_dish": 0
+        },
+        "preference_split": {
+          "pairs": 0,
+          "wanters": 0,
+          "composed": 0,
+          "pairs_fresh": 0,
+          "refuser_clean": 0,
+          "refuser_bitten": 0,
+          "pairs_from_stores": 0
+        },
+        "accountless_count": 0,
+        "restriction_count": 0,
+        "unknown_age_count": 0,
+        "portion_quantities": {
+          "notes": 0,
+          "model_quantity": 0,
+          "model_size_word": 0
+        },
+        "cross_contact_block": {
+          "emitted": 0,
+          "skipped_no_medical": 1,
+          "skipped_no_dedicated": 0
+        },
+        "unquantified_dish_ingredients": {
+          "ingredients": 19,
+          "unquantified": 0
+        }
+      },
+      "rationale": {
+        "lines": [
+          "Ce plan couvre 2 jours, à partir de lundi 2026-09-14.",
+          "Tu en avais demandé 3 : dimanche était déjà entamé, le plan commence donc demain et en couvre 2.",
+          "Une seule course, lundi : tout ce que le plan demande tient jusqu'à sa cuisson.",
+          "Chaque personne a chacun de ses repas."
+        ],
+        "refusal": null
+      },
+      "validation": {
+        "state": "conforme",
+        "counts": {
+          "gaps": 0,
+          "not_run": 2,
+          "blocking": 0,
+          "incomplete": 1,
+          "not_applicable": 0
+        },
+        "repair": {
+          "rounds": 1,
+          "by_kind": {},
+          "by_source": {
+            "gate": 0,
+            "upstream": 0,
+            "quantities": 0,
+            "output_contract": 0
+          },
+          "calls_made": 0,
+          "defects_at_delivery": 0
+        },
+        "defects": [],
+        "not_run": [
+          "title_promises_missing_preparation",
+          "mouth_energy_short"
+        ],
+        "version": 1,
+        "incomplete": [
+          {
+            "count": 1,
+            "control": "mouth_energy"
+          }
+        ],
+        "not_applicable": []
+      },
+      "belief_keys": [
+        "whole_foods_first",
+        "protein_at_every_meal",
+        "regular_meals_beat_perfect_meals",
+        "one_change_at_a_time",
+        "a_missed_day_is_data",
+        "this_is_a_discovery_program"
+      ],
+      "empty_slots": [],
+      "explanation": {
+        "kept": 0,
+        "lines": [],
+        "refusal": null,
+        "declared": 0
+      },
+      "food_groups": {
+        "lines": 27,
+        "valid": 0,
+        "refused": 0,
+        "declared": 0,
+        "persisted": 27,
+        "conflicting": 0
+      },
+      "hunger_days": 0,
+      "mouth_facts": {
+        "gender.personal": 1,
+        "ageYears.personal": 1,
+        "heightCm.personal": 1,
+        "weightKg.personal": 1,
+        "activityAxes.personal": 1,
+        "appetite.member_sheet": 1,
+        "activityLevel.personal": 1
+      },
+      "plan_budget": {
+        "charged": [],
+        "total_ms": 380000,
+        "usable_ms": 349351,
+        "elapsed_ms": 649,
+        "reserve_ms": 30000,
+        "remaining_ms": 379351,
+        "repairs_used": 0,
+        "repairs_asked": 0,
+        "repairs_allowed": 2,
+        "repairs_refused": {},
+        "provider_attempts": 1
+      },
+      "budget_floor": {
+        "asked": null,
+        "floor": 5.3,
+        "plausible": 7.54,
+        "ceiling_sent": false
+      },
+      "prompt_version": "meal.en.v33_the_recipe_writes_the_shopping_list+household.v33_one_standard_recipe_the_engine_multiplies",
+      "request_report": {
+        "lines": [],
+        "refusal": null
+      },
+      "doctrine_reason": "loaded",
+      "output_contract": {
+        "ok": 27,
+        "lines": 27,
+        "defects": 0,
+        "findings": [],
+        "convention": 0,
+        "ref_missing": 0,
+        "ref_refused": 0,
+        "quantity_missing": 0,
+        "dash_unreferenced": 0
+      },
+      "doctrine_version": 1,
+      "satiety_priority": false,
+      "hunger_window_end": "2026-09-13",
+      "generation_context": {
+        "write_scope": "household",
+        "household_size": 1,
+        "master_member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+        "served_member_ids": [
+          "e3717b2d-67ad-4f3d-b44d-c09760bacf81"
+        ],
+        "plan_owner_user_id": "fba9ecdb-3762-41e4-8198-f1b46f7b3ed5",
+        "coverage_unreadable": false
+      },
+      "hunger_window_days": 7,
+      "hunger_window_start": "2026-09-07",
+      "protein_anchor_retry": false,
+      "protein_anchor_missing": []
+    },
+    "content_locale": "fr-FR",
+    "created_at": "2026-09-13T16:15:03.039021+00:00",
+    "updated_at": "2026-09-13T16:15:03.039021+00:00",
+    "preparations": [
+      {
+        "id": "prep_chicken",
+        "title": "Poulet rôti aux poivrons",
+        "method": "Disposer le poulet et le poivron sur une plaque, les enrober d'huile d'olive, puis rôtir jusqu'à ce que le poulet soit cuit. Laisser tiédir et répartir au frais.",
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "chicken_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_peppers",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "chicken_main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "chicken_breast",
+            "part": "chicken_main",
+            "term": "blanc de poulet",
+            "unit": "g",
+            "group": "poultry",
+            "state": "raw",
+            "amount": 500,
+            "quantity": "500 g",
+            "grams_raw": 500,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "roasted_peppers",
+            "term": "poivron",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 200,
+            "quantity": "200 g",
+            "grams_raw": 200,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "roasting_fat",
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 10,
+            "quantity": "10 g",
+            "grams_raw": 10,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 15
+      },
+      {
+        "id": "prep_couscous",
+        "title": "Couscous complet préparé",
+        "method": "Verser de l'eau chaude sur le couscous complet, couvrir, puis égrener avant de répartir au frais.",
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "couscous_main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "couscous_wholemeal",
+            "part": "couscous_main",
+            "term": "couscous complet",
+            "unit": "g",
+            "group": "whole_grain",
+            "state": "raw",
+            "amount": 80,
+            "quantity": "80 g",
+            "grams_raw": 80,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 10,
+        "active_minutes": 5
+      },
+      {
+        "id": "prep_turkey",
+        "title": "Dinde rôtie aux poivrons",
+        "method": "Disposer la dinde et le poivron sur une plaque, les arroser d'huile d'olive, puis rôtir jusqu'à ce que la dinde soit cuite. Laisser tiédir et répartir au frais.",
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "turkey_main",
+            "role": "main",
+            "part_of": null
+          },
+          {
+            "id": "roasted_peppers",
+            "role": "separable_side",
+            "part_of": null
+          },
+          {
+            "id": "roasting_fat",
+            "role": "garnish_fat",
+            "part_of": "turkey_main"
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "turkey_breast",
+            "part": "turkey_main",
+            "term": "blanc de dinde",
+            "unit": "g",
+            "group": "lean_protein",
+            "state": "raw",
+            "amount": 500,
+            "quantity": "500 g de blanc de dinde",
+            "grams_raw": 500,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "bell_pepper",
+            "part": "roasted_peppers",
+            "term": "poivron",
+            "unit": "g",
+            "group": "non_starchy_veg",
+            "state": "raw",
+            "amount": 200,
+            "quantity": "200 g de poivron",
+            "grams_raw": 200,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          },
+          {
+            "ref": "olive_oil",
+            "part": "roasting_fat",
+            "term": "huile d'olive",
+            "unit": "g",
+            "group": "olive_oil",
+            "state": "raw",
+            "amount": 40,
+            "quantity": "40 g d'huile d'olive",
+            "grams_raw": 40,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 35,
+        "active_minutes": 15
+      },
+      {
+        "id": "prep_rice",
+        "title": "Riz blanc cuit",
+        "method": "Cuire le riz blanc dans l'eau jusqu'à absorption complète, puis refroidir rapidement et répartir au frais.",
+        "cook_on": "mon",
+        "components": [
+          {
+            "id": "rice_main",
+            "role": "main",
+            "part_of": null
+          }
+        ],
+        "ingredients": [
+          {
+            "ref": "white_rice",
+            "part": "rice_main",
+            "term": "riz blanc",
+            "unit": "g",
+            "group": "refined_grain",
+            "state": "raw",
+            "amount": 160,
+            "quantity": "160 g de riz blanc",
+            "grams_raw": 160,
+            "in_pantry": false,
+            "ref_refused": false,
+            "quantity_source": "structured"
+          }
+        ],
+        "servings_made": 2,
+        "total_minutes": 25,
+        "active_minutes": 5
+      }
+    ],
+    "cooking_sessions": [
+      {
+        "day": "mon",
+        "run_through": "Préchauffer le four, préparer les plaques de poulet et de dinde avec les poivrons, puis enfourner les deux préparations. Mettre le riz à cuire pendant la cuisson au four, hydrater le couscous ensuite, puis laisser tiédir et répartir chaque préparation au réfrigérateur.",
+        "total_minutes": 55,
+        "preparation_ids": [
+          "prep_chicken",
+          "prep_couscous",
+          "prep_turkey",
+          "prep_rice"
+        ]
+      }
+    ],
+    "preferences": null,
+    "starts_on": "2026-09-14",
+    "duration_days": 2,
+    "retired_at": null,
+    "ends_on": "2026-09-15",
+    "household_id": "9f770751-7968-4c0f-aca4-1a0b8c413900",
+    "member_portions": [
+      {
+        "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+        "display_name": "Paul",
+        "eating_slots": null,
+        "portion_note": null,
+        "preparation_shares": []
+      }
+    ],
+    "plan_kind": "household",
+    "validated_at": null,
+    "composition_unknowns": 0,
+    "composition_energy_sources": {
+      "kcal": 4006,
+      "model": 0,
+      "table": 1,
+      "promoted": 0,
+      "group_bounds": 0
+    },
+    "lead_days": 0
+  },
+  "retaillage": null,
+  "appels_reels": [],
+  "refus_secondaire": null,
+  "base_avant": [
+    {
+      "id": "a316c5e5-4f3d-42b3-83cc-e3817179b58c",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-13T15:32:00.565071+00:00",
+      "updated_at": "2026-09-13T15:32:00.565071+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_apres": [
+    {
+      "id": "a316c5e5-4f3d-42b3-83cc-e3817179b58c",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": "2026-09-13T16:15:03.039021+00:00",
+      "created_at": "2026-09-13T15:32:00.565071+00:00",
+      "updated_at": "2026-09-13T16:15:03.039021+00:00",
+      "plan_kind": "household"
+    },
+    {
+      "id": "d151b5e0-d5ff-411c-9c40-13bb173fc9ae",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-13T16:15:03.039021+00:00",
+      "updated_at": "2026-09-13T16:15:03.039021+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_delta": {
+    "ajoutes": [
+      "d151b5e0-d5ff-411c-9c40-13bb173fc9ae"
+    ],
+    "retires": [
+      "a316c5e5-4f3d-42b3-83cc-e3817179b58c"
+    ],
+    "reecrits": [
+      "a316c5e5-4f3d-42b3-83cc-e3817179b58c"
+    ]
+  },
+  "demande_envoyee": {
+    "intent": "replace_current",
+    "replaces": "a316c5e5-4f3d-42b3-83cc-e3817179b58c",
+    "window": {
+      "kind": "days",
+      "count": 3
+    }
+  },
+  "exclusion_declaree": null,
+  "allergene_injecte": null,
+  "second_member": "",
+  "meta_bouche": {
+    "member_id": "e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+    "user_id": "fba9ecdb-3762-41e4-8198-f1b46f7b3ed5",
+    "email": "lotf.perte.lot3r1@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178
+  },
+  "journal": [
+    "   ⚠️ --reponse : premier-jet-reel-n1.json — 6 plat(s), 4 préparation(s), 0 ligne(s) de courses",
+    "── LOT F ② · cas PERTE · lotf.perte.lot3r1@keeltest.dev ────────────────",
+    "   réponse archivée TELLE QUELLE (7 plats)",
+    "   compte : fba9ecdb-3762-41e4-8198-f1b46f7b3ed5",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : e3717b2d-67ad-4f3d-b44d-c09760bacf81",
+    "   repas léger : lunch (par les HABITUDES, pas par eating_rhythm.size)",
+    "   apport fixe : 200 g greek_yogurt @breakfast → écrit dans « student_goals »",
+    "   relu en base : student_goals.practical_constraints.fixed_intakes = [{\"days\":[],\"slot\":\"breakfast\",\"unit\":\"g\",\"label\":\"yaourt grec\",\"amount\":200,\"food_ref\":\"greek_yogurt\",\"replaces_meal\":false}]",
+    "   objectif bouche 1 : fat_loss → écrit dans « student_goals.goal »",
+    "   ⛔ CE QUE « keel_household_roster » REND (la source du générateur) :\n      · Paul   objectif=fat_loss     âge=adult   → PORTION PESÉE (weighedPortionMembers)",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-13T17:00:00.650Z · 2026-09-13 19 h (Europe/Paris)   ⚠️ HORLOGE INJECTÉE (décalage 2698365 ms)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 2 jour(s) à partir du 2026-09-14   (sun retiré : shopping_cutoff)",
+    "   jours         [\"mon\",\"tue\"]",
+    "   CASES ATTENDUES 6 · grille par bouche {\"mon\":[\"breakfast\",\"lunch\",\"dinner\"],\"tue\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "\n── LA BASE AVANT L'APPEL ─────────────────────────────────────\n   1 plan(s) : [{\"id\":\"a316c5e5\",\"w\":\"2026-09-14+2\",\"retire\":null,\"maj\":\"2026-09-13T15:32:00.565071+00:00\"}]",
+    "   --remplace : intent=replace_current, replaces=a316c5e5",
+    "{\"tag\":\"keel.household_meal.member_bodies\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"members\":1,\"accounts\":1,\"with_body\":1,\"reads\":7}",
+    "{\"tag\":\"keel.household_meal.mouth_facts\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"tally\":{\"heightCm.personal\":1,\"weightKg.personal\":1,\"gender.personal\":1,\"ageYears.personal\":1,\"activityLevel.personal\":1,\"activityAxes.personal\":1,\"appetite.member_sheet\":1}}",
+    "{\"tag\":\"keel.household_meal.condition_gate\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"pregnancy\":0,\"breastfeeding\":0,\"other\":0,\"none\":1}",
+    "{\"tag\":\"keel.household_meal.composition\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"mode\":\"per_kg\",\"deltas\":0,\"family_service\":false,\"residual_gaps_count\":1,\"residual_gaps_max_band\":\"lt_200\"}",
+    "{\"tag\":\"keel.household_meal.retained_items\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"composition\":0,\"portion\":0,\"rhythm\":0,\"logistics\":0,\"craving\":0,\"unrouted\":0,\"portion_excluded\":[],\"refused\":0,\"legacy_notes\":0,\"other_subjects\":0,\"portion_applied\":0}",
+    "{\"tag\":\"keel.household_meal.structure\",\"derived\":1,\"capped\":0,\"no_target\":0,\"no_body\":0,\"opened_total\":0,\"mouths_opened\":0}",
+    "{\"tag\":\"keel.household_meal.fixed_intakes\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"mouths\":1,\"intakes\":1,\"demoted\":0,\"discarded\":0,\"dropped\":0,\"reads\":1}",
+    "{\"tag\":\"keel.household_meal.cells\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"cells\":6,\"non_empty\":6,\"empty\":0,\"light\":2,\"light_mixed\":0,\"eaters_hist\":{\"1\":6,\"2\":0,\"3\":0,\"4_plus\":0},\"dedicated_cells\":0,\"dedicated_mouths\":0,\"dedicated_by_reason\":{\"regime\":0,\"own_meal\":0},\"one_eater_cells\":6,\"cook_day_cells\":0,\"spent_cells\":0,\"regime_by_cell\":{\"none\":6},\"dish_bearing_delta\":0,\"dish_bearing_only_cells\":0,\"dish_bearing_only_current\":0}",
+    "{\"tag\":\"keel.household_meal.cooking_shape\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"weekly_cooking_minutes\":null,\"time_allows_second_dish\":true,\"shape\":\"one_dish\",\"asked_shape\":null,\"computed_shape\":\"one_dish\",\"shape_capped\":false,\"shape_unused\":false,\"diverging\":[],\"dish_bearing\":[],\"from_merge\":false,\"strictest_regime\":null,\"regimes\":0}",
+    "{\"tag\":\"keel.household_meal.member_voices\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"accounts_at_table\":1,\"with_lines\":0,\"lines_raw\":0,\"reads\":0}",
+    "{\"tag\":\"keel.household_meal.composition_catalog\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lang\":\"fr\",\"considered\":943,\"not_composable\":23,\"group_never_composed\":16,\"group_excluded\":0,\"term_excluded\":0,\"over_group_cap\":783,\"over_total_cap\":0,\"kept\":121,\"chars\":5025}",
+    "{\"tag\":\"keel.household_meal.protein_brief\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"mouths\":1,\"named\":1,\"slots\":3,\"silent\":{\"protected\":0,\"no_body\":0,\"coverage_unknown\":0,\"no_covered_slot\":0,\"spread_unknown\":0}}",
+    "{\"tag\":\"keel.household_meal.voices_used\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"heard\":0,\"linesIn\":0,\"linesUsed\":0,\"linesWithheld\":0,\"linesOverCap\":0,\"linesTooLong\":0,\"perMember\":[]}",
+    "{\"tag\":\"keel.household_meal.notes\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"lines\":0,\"household_lines\":0,\"member_lines\":0,\"served\":0,\"block_served\":0,\"other_subjects\":0}",
+    "{\"tag\":\"keel.household_meal.slot_contract_brief\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":6,\"silent\":0,\"truncated\":0,\"chars\":1669}",
+    "{\"tag\":\"keel.household_meal.prompt_cost\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"intent\":\"replace_current\",\"user_chars_before\":21118,\"user_chars_after\":26145,\"added_chars\":5027,\"added_pct\":23.8,\"catalog_chars\":5025,\"catalog_entries\":121,\"catalog_anchor\":\"anchored\"}",
+    "{\"tag\":\"keel.household_meal.precedence\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"place\":\"tail\",\"exact\":true,\"blocks_after\":0,\"ranks_with_object\":1,\"ranks_without_object\":4,\"by_rank\":{\"rank_1\":0,\"rank_2\":6,\"rank_3\":0,\"rank_4\":0,\"rank_5\":0}}",
+    "{\"tag\":\"openai_http\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"openai_api\":\"responses\",\"openai_response_id\":\"resp_lotf_1\",\"status\":200,\"ok\":true,\"duration_ms\":16,\"timeout_ms\":349562,\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"openai_result\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"source\":\"generate-household-meal-v1\",\"model\":\"gpt-5.6-luna\",\"json_mode\":true,\"tool_choice\":\"auto\",\"has_tools\":false,\"outcome\":\"text\",\"attempt\":1,\"chain_index\":0}",
+    "{\"tag\":\"keel.household_meal.pre_repair_sizing\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"measured\":null,\"dishes\":null,\"repair_asks\":0,\"bites\":0,\"first_jet_defect_kinds\":[]}",
+    "{\"tag\":\"keel.household_meal.protein_anchor\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"missing_before\":0,\"missing_after\":0,\"site_calls_model\":false}",
+    "{\"tag\":\"keel.household_meal.meals_delivered\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"mouths\":1,\"cook_day_cells_dropped\":0,\"expected\":6,\"fed\":6,\"missing\":0,\"missing_before\":0,\"held_off_regime\":0,\"held_off_exclusion\":0,\"not_named\":0,\"double\":0,\"no_dish\":0,\"cells_without_dish\":0,\"missing_rows\":[],\"unplaced_dishes\":0,\"retry_on\":{},\"restored\":0,\"restored_fallback\":0,\"rehomed\":0}",
+    "{\"tag\":\"keel.household_meal.composition_fill\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"measured\":true,\"unknowns\":0,\"requested\":0,\"answered\":0,\"model\":0,\"group_bounds\":0,\"sas_group_armed\":0,\"sas_value_reused\":0,\"sas_write_skipped_reused_group\":0,\"shares\":{\"kcal\":4006,\"table\":1,\"promoted\":0,\"model\":0,\"group_bounds\":0}}",
+    "{\"tag\":\"keel.household_meal.dietary_regime\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"lock\":\"clean\",\"dishes\":6,\"mouths\":0,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"silenced\":0,\"silenced_homograph\":0,\"silenced_spelling\":0,\"unknown_mouth\":0,\"box_scoped\":0,\"citation_repaired\":0,\"item_repaired\":0,\"groups_declared\":0,\"groups_valid\":0,\"groups_refused\":0,\"groups_conflicting\":0,\"group_excluded\":0,\"group_plant_only\":0,\"group_undecided\":0}",
+    "{\"tag\":\"keel.household_meal.fridge_window\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"dishes\":6,\"violations\":0,\"within\":8,\"not_evaluated\":0,\"routed\":0,\"unknown_group\":0}",
+    "{\"tag\":\"keel.household_meal.output_contract\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":27,\"ok\":27,\"convention\":0,\"dash_unreferenced\":0,\"ref_missing\":0,\"ref_refused\":0,\"quantity_missing\":0,\"defects\":0,\"named\":[],\"named_truncated\":0}",
+    "{\"tag\":\"keel.household_meal.proportion_adjust\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"path\":\"one_mouth\",\"outcome\":\"closed\",\"ms\":11,\"moves_paired\":3,\"moves_one_sided\":0,\"consumers_total\":6,\"consumers_off_before\":1,\"consumers_off_after\":0,\"consumers_closed\":1,\"consumers_degraded\":0,\"rejected_would_degrade\":0,\"measure_calls\":28,\"stopped\":{\"closed\":4,\"floor\":0,\"ceiling\":0,\"no_improving_move\":0,\"would_degrade\":0,\"move_budget\":0,\"all_fixed\":0,\"unmeasurable\":0,\"no_consumer\":0,\"reverted_after_measure\":0},\"reverted_after_measure\":0,\"units_total\":10,\"units_adjustable\":10,\"ingredients_adjustable\":15,\"fixed_by_reason\":{\"caller_fixed\":0,\"condiment\":0,\"water\":0,\"unweighed\":0,\"unmeasurable\":0,\"no_yield\":0,\"unit_fixed\":0,\"component_locked\":12,\"no_component\":0},\"rewritten\":4,\"prose_rewritten\":4,\"prose_stale\":0,\"unknown_lines\":0,\"regrammed\":0,\"density_checks_cleared\":1,\"missing_pots\":0,\"units_fixed_method\":0,\"lines_locked\":{\"no_structured_amount\":0,\"counted_unit\":0,\"prose_not_numeric\":0,\"unresolved\":0},\"structure\":{\"units\":10,\"units_contracted\":6,\"units_conservative\":{\"contract_absent\":0,\"line_without_part\":0,\"part_unknown\":0,\"duplicate_component\":0,\"role_unknown\":0,\"link_missing\":0,\"link_cycle\":0,\"component_without_line\":4},\"components_free\":10,\"components_dependent\":4,\"bodies_movable\":10,\"bodies_locked\":4,\"lines_movable\":15,\"lines_locked\":12,\"demoted_dense_seasoning\":0},\"bodies_total\":14,\"bodies_movable\":10,\"bodies_multi_line\":4}",
+    "{\"tag\":\"keel.household_meal.portion_sizing\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"density\":{\"mouths\":1,\"named\":1,\"folded\":0,\"slots_above_floor\":2,\"no_target\":0,\"no_composition\":0,\"days_varied\":0,\"capped\":0,\"fixed_covered\":0,\"floor_min_kept\":1,\"empty_intersection\":0,\"by_slot\":{\"breakfast\":100,\"lunch\":104,\"dinner\":145},\"by_case\":{\"mon|breakfast\":100,\"mon|lunch\":104,\"mon|dinner\":145,\"tue|breakfast\":100,\"tue|lunch\":104,\"tue|dinner\":145}},\"sizing_path\":\"portion_v1\",\"reason\":\"one_mouth\",\"applied\":true,\"mouths\":1,\"dishes\":6,\"measured\":6,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":6,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":6,\"age_unknown\":0},\"clamped\":{\"max\":0,\"min\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"pot_ingredients_without_amount\":0,\"slots\":{\"declared\":0,\"light\":1,\"composed\":3,\"without_target\":0},\"contract_missing\":0,\"target\":{\"anchored\":1,\"no_target\":0},\"gap_closed\":0,\"fixed_covered\":0,\"fixed_conflict\":0,\"fixed_slot_kcal\":{\"declared\":0,\"referential\":2,\"unresolved\":0,\"loose\":0,\"off_day\":0,\"loose_ignored_kcal\":0},\"apply\":{\"boxes_authored\":6,\"dishes_unsized\":0,\"fresh_scaled\":19,\"fresh_unweighed\":0,\"pots_scaled\":4,\"pots_unreadable\":0,\"servings_rewritten\":0,\"items_unresolved\":0,\"own_authored\":0,\"tubs_authored\":0,\"eaters_unsized\":0,\"regrammed\":27},\"repairs\":{\"asked\":0,\"accepted\":0,\"rejected\":{\"belt\":0,\"unparseable\":0,\"no_cell\":0,\"title_changed\":0,\"unmeasurable\":0,\"missing_pot\":0,\"dedicated_lost\":0,\"degraded\":0,\"frozen_rewritten\":0},\"splice\":{\"fresh_spliced\":0,\"pots_spliced\":0,\"dish_missing\":0,\"pot_missing\":0,\"shopping_added\":0,\"shopping_pruned\":0,\"uses_mismatch\":0,\"density_checks_cleared\":0},\"skipped_stuck\":0,\"still_out\":0,\"skipped_budget\":0,\"pots_frozen\":0,\"pot_unforked\":0,\"pot_forked\":0,\"fresh_frozen\":0,\"stuck_dishes\":0,\"stuck_eaters\":0,\"residual_eaters\":0,\"residual_stuck\":0,\"recipe_terms\":0,\"recipe_quantified\":0,\"attempts\":0,\"retry_skipped_small\":0,\"retried_after\":null,\"fill_absorbed\":null},\"rows\":[{\"dish_id\":\"Blancs d'œufs, avoine, cheddar et yaourt grec\",\"day\":\"mon\",\"slot\":\"breakfast\",\"standard_kcal\":270,\"density\":106.5,\"density_check\":109.4,\"density_check_gap\":2.7,\"target_kcal\":496,\"unmet_kcal\":0,\"standard_cooked_g\":254,\"factor\":1.836,\"person_cooked_g\":466,\"bounds\":{\"min\":250,\"max\":496,\"verdict\":\"in_bounds\"},\"pots\":0,\"floored\":false},{\"dish_id\":\"Poulet, poivron, couscous, tomate, feta et huile\",\"day\":\"mon\",\"slot\":\"lunch\",\"standard_kcal\":722,\"density\":139.7,\"density_check\":139.7,\"density_check_gap\":0,\"target_kcal\":722,\"unmet_kcal\":0,\"standard_cooked_g\":517,\"factor\":1,\"person_cooked_g\":517,\"bounds\":{\"min\":250,\"max\":700,\"verdict\":\"in_bounds\"},\"pots\":2,\"floored\":false},{\"dish_id\":\"Dinde, poivrons, riz et feta\",\"day\":\"mon\",\"slot\":\"dinner\",\"standard_kcal\":1010,\"density\":173.9,\"density_check\":174,\"density_check_gap\":0.1,\"target_kcal\":1010,\"unmet_kcal\":0,\"standard_cooked_g\":581,\"factor\":1,\"person_cooked_g\":581,\"bounds\":{\"min\":250,\"max\":700,\"verdict\":\"in_bounds\"},\"pots\":2,\"floored\":false},{\"dish_id\":\"Blancs d'œufs, cheddar, tomate, pain et yaourt grec\",\"day\":\"tue\",\"slot\":\"breakfast\",\"standard_kcal\":301,\"density\":102,\"density_check\":null,\"density_check_gap\":null,\"target_kcal\":496,\"unmet_kcal\":0,\"standard_cooked_g\":295,\"factor\":1.647,\"person_cooked_g\":486,\"bounds\":{\"min\":250,\"max\":496,\"verdict\":\"in_bounds\"},\"pots\":0,\"floored\":false},{\"dish_id\":\"Pita de poulet, couscous, laitue, houmous et citron\",\"day\":\"tue\",\"slot\":\"lunch\",\"standard_kcal\":722,\"density\":138.8,\"density_check\":138.8,\"density_check_gap\":0,\"target_kcal\":722,\"unmet_kcal\":0,\"standard_cooked_g\":520,\"factor\":1,\"person_cooked_g\":520,\"bounds\":{\"min\":250,\"max\":700,\"verdict\":\"in_bounds\"},\"pots\":2,\"floored\":false},{\"dish_id\":\"Dinde, poivrons, riz, tomate, parmesan et huile\",\"day\":\"tue\",\"slot\":\"dinner\",\"standard_kcal\":1010,\"density\":147.6,\"density_check\":147.7,\"density_check_gap\":0.1,\"target_kcal\":1010,\"unmet_kcal\":0,\"standard_cooked_g\":684,\"factor\":1,\"person_cooked_g\":684,\"bounds\":{\"min\":250,\"max\":700,\"verdict\":\"in_bounds\"},\"pots\":2,\"floored\":false}]}",
+    "{\"tag\":\"keel.household_meal.plan_explanation\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"asked\":true,\"declared\":0,\"kept\":0,\"refused\":null,\"merged_dropped\":0,\"merged_added\":0}",
+    "{\"tag\":\"keel.household_meal.shopping_seeded\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":17,\"synthesized\":17,\"needs_unbought\":0,\"aisle_other\":0,\"aisle_shelf_stable\":0}",
+    "{\"tag\":\"keel.household_meal.plan_tradeoffs\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"families\":[],\"lines\":0,\"refusal\":null,\"away_mouths\":0,\"mouths_without_body\":0,\"shape_capped\":false,\"lane_mode\":\"per_kg\"}",
+    "{\"tag\":\"keel.household_meal.table_appetite\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"servings_headcount\":1,\"appetite_equivalent\":1.5,\"bodies_known\":1,\"mouths\":1,\"steering\":false}",
+    "{\"tag\":\"keel.household_meal.quantity_rounding\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":27,\"quantified\":27,\"unquantified\":0,\"already_whole\":4,\"rounded\":23,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":23,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]}",
+    "{\"tag\":\"keel.household_meal.portion_boundary\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"boxes\":6,\"judged\":6,\"already_in_bounds\":6,\"shaved\":0,\"raised\":0,\"grams_shaved\":0,\"grams_raised\":0,\"still_over_max\":0,\"still_under_min\":0,\"pot_headroom_blocked\":0}",
+    "{\"tag\":\"keel.household_meal.final_sizing\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"measured\":true,\"reason\":\"remeasured_after_apply\",\"boxes\":6,\"judged\":6,\"verdicts\":{\"in_bounds\":6,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"water\":{\"absorbed\":2,\"kept\":2,\"discarded\":0,\"undetermined\":0},\"tubs_not_judged\":0,\"out_of_bounds\":[],\"pot_density_drifted\":0,\"pot_density_gone\":0,\"pot_density_unmeasurable\":0}",
+    "{\"tag\":\"keel.household_meal.shopping_rebuild\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":17,\"requantified\":1,\"unchanged\":16,\"unquantified\":0,\"dropped\":0,\"unattributed\":0,\"not_purchasable\":0,\"needs_unbought\":0,\"merged\":0,\"model_omitted\":0,\"synthesized\":0,\"synthesized_unquantified\":0,\"aisle_other\":0,\"aisle_shelf_stable\":0,\"pantry_lines\":0,\"pantry_deducted\":0,\"pantry_covered\":0,\"pantry_unknown\":0,\"unbought_terms\":[],\"omitted_terms\":[],\"pantry_check_terms\":[],\"pantryCoveredG\":{}}",
+    "{\"tag\":\"keel.household_meal.shopping_redated\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"synthesized\":0,\"lines\":17,\"still_undated\":0,\"days_before\":[\"2026-09-14\"],\"days_after\":[\"2026-09-14\"],\"new_days\":[],\"split_needs\":0,\"extra_lines\":0,\"unsplittable\":0,\"without_need\":0,\"prose_recomposed\":false}",
+    "{\"tag\":\"keel.household_meal.box_sizing\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"boxes\":6,\"common\":0,\"items\":27,\"sized\":26,\"unchanged\":1,\"capped_by_pot\":0,\"unverifiable\":0,\"mouths\":{\"sized\":1,\"sized_default_pace\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"minor\":0,\"doctrine_no_counting\":0,\"age_unknown\":0,\"no_direction\":0,\"no_pace\":0,\"no_body\":0,\"implausible_factor\":0,\"pregnancy\":0,\"breastfeeding\":0},\"share\":{\"sized\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"age_unknown\":0,\"no_body\":0,\"no_reference\":1},\"share_clamped\":0,\"anchor\":{\"anchored\":1,\"day_incomplete\":0,\"no_delivery\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"no_body\":0,\"age_unknown\":0,\"clamped\":1,\"pregnancy\":0,\"breastfeeding\":0,\"common_pot_day\":0},\"anchor_cap\":{\"none\":1,\"density\":1,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"applied\":false,\"anchor_applied\":6,\"would_resize\":{\"boxes\":6,\"items\":26},\"weight_groups_measured\":1,\"pot_attribution\":{\"drawnGrams\":1744,\"attributedGrams\":1744,\"ratio\":1,\"potsUnreadable\":0},\"box_factor_source\":{\"anchor\":6,\"pot\":0,\"relative\":0,\"none\":0},\"pot\":{\"pot_sized\":0,\"pot_clamped\":0,\"pot_incomplete\":0,\"pot_mouth_unknown\":0,\"pot_empty\":0},\"pot_cap\":{\"none\":0,\"density\":0,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"pot_growth\":{\"scaled\":2,\"capped\":0,\"shopping\":1,\"unrewritable\":0,\"regrammed\":4,\"passes\":1,\"short_after\":0},\"pot_shrink\":{\"pots\":0,\"removed\":0,\"kept\":4,\"unboxed_use\":0,\"unreadable\":0,\"sessions_emptied\":0,\"lines_scaled\":1,\"lines_dropped\":0,\"lines_unattributed\":0,\"lines_unrewritable\":0},\"unmet\":{\"none\":1,\"factor_clamped\":1,\"pot_ceiling\":0,\"both\":0,\"not_anchored\":0,\"tub_estimate\":0},\"unmet_band\":{\"lt_200\":1,\"gte_200\":0},\"lost_slots\":{\"mouth_days\":0,\"slots\":0,\"kcal_lt_200\":0,\"kcal_gte_200\":0,\"kcal_unknown\":0},\"lost_by_line\":{\"mouth_days\":0,\"slots\":0,\"kcal\":0,\"kcal_unknown\":0},\"note_boost\":{\"member_days\":0,\"household_dated\":0,\"unknown_member\":0,\"applied\":0,\"applied_pot\":0,\"detail\":[]},\"densify\":{\"skipped\":\"standard_recipe\"},\"quantity_rounding\":{\"lines\":27,\"quantified\":27,\"unquantified\":0,\"already_whole\":4,\"rounded\":23,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":23,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]},\"activity\":{\"answered\":1,\"partial\":0,\"not_answered\":0,\"not_asked\":0},\"activity_source\":{\"crossed\":1,\"legacy\":0,\"assumed\":0},\"appetite\":{\"declared\":1,\"not_answered\":0,\"not_asked\":0}}",
+    "{\"tag\":\"keel.household_meal.traditions\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"declared\":0,\"honoured\":0,\"composed_without_label\":0,\"not_composed\":0,\"out_of_window\":0}",
+    "{\"tag\":\"keel.household_meal.quantity_final\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"lines\":27,\"stale_before\":10,\"rewritten\":10,\"bare\":0,\"historic\":0,\"absent\":0,\"counted_fractional\":0}",
+    "{\"tag\":\"keel.household_meal.sized_shares_relinked\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"relinked\":0,\"boxes\":6,\"quantity_relinked\":19}",
+    "{\"tag\":\"keel.household_meal.food_groups\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"declared\":0,\"valid\":0,\"refused\":0,\"conflicting\":0,\"persisted\":27,\"lines\":27}",
+    "{\"tag\":\"keel.household_meal.box_counts\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"intent\":\"replace_current\",\"boxes\":{\"meals\":4,\"with_box\":0,\"boxes\":0,\"expected\":4,\"delivery\":\"none_delivered\",\"refused\":0,\"names\":0,\"names_refused\":0,\"items\":0,\"items_refused\":0,\"capped\":0,\"legacy_folded\":0,\"preparations\":4,\"sum_checked\":0,\"sum_over\":0,\"sum_unverifiable\":0,\"mouth_slots\":0,\"mouths_unboxed\":0,\"mouths_double\":0,\"mouths_double_model\":0,\"cells_no_box\":6,\"mouths_no_box_cell\":6,\"mouths\":1},\"unquantified_dish_ingredients\":{\"ingredients\":19,\"unquantified\":0},\"vague_portions\":{\"notes\":0,\"vague\":0,\"quantified\":0,\"box_ids\":0},\"shares\":{\"shares\":0,\"unknown\":0,\"regime_refused\":0},\"regime_belt\":{\"mouths\":0,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"silenced\":0,\"silenced_homograph\":0,\"silenced_spelling\":0,\"unknown_mouth\":0,\"box_scoped\":0,\"citation_repaired\":0,\"item_repaired\":0,\"groups_declared\":0,\"groups_valid\":0,\"groups_refused\":0,\"groups_conflicting\":0,\"group_excluded\":0,\"group_plant_only\":0,\"group_undecided\":0},\"swap\":{\"strictest\":null,\"bound_mouths\":0,\"free_mouths\":0,\"cells_checked\":0,\"cells_carrying\":0,\"cells_swap_absent\":0,\"flagrant\":false,\"absent_cells\":[]},\"exclusion_belt\":{\"mouths\":0,\"checked\":0,\"kept\":0,\"refused\":0,\"bites\":0,\"separated\":0,\"not_separated\":0,\"box_scoped\":0,\"final_bites\":0},\"preference_split\":{\"pairs\":0,\"pairs_from_stores\":0,\"pairs_fresh\":0,\"wanters\":0,\"composed\":0,\"refuser_clean\":0,\"refuser_bitten\":0},\"meals_delivered\":{\"mouths\":1,\"expected\":6,\"fed\":6,\"missing\":0,\"by_cause\":{\"held_off_regime\":0,\"held_off_exclusion\":0,\"not_named\":0,\"double\":0,\"no_dish\":0},\"cells_without_dish\":0,\"retry_on\":{},\"restored\":0,\"restored_fallback\":0,\"rehomed\":0,\"rows\":[]},\"portion_sizing\":{\"sizing_path\":\"portion_v1\",\"reason\":\"one_mouth\",\"applied\":true,\"mouths\":1,\"dishes\":6,\"measured\":6,\"unmeasurable_by\":{},\"verdicts\":{\"in_bounds\":6,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"bounds_source\":{\"age_known\":6,\"age_unknown\":0},\"clamped\":{\"max\":0,\"min\":0},\"unmet_band\":{\"lt_200\":0,\"gte_200\":0},\"pot_ingredients_without_amount\":0,\"slots\":{\"declared\":0,\"light\":1,\"composed\":3,\"without_target\":0},\"contract_missing\":0,\"target\":{\"anchored\":1,\"no_target\":0},\"gap_closed\":0,\"fixed_covered\":0,\"fixed_conflict\":0,\"fixed_slot_kcal\":{\"declared\":0,\"referential\":2,\"unresolved\":0,\"loose\":0,\"off_day\":0,\"loose_ignored_kcal\":0},\"apply\":{\"boxes_authored\":6,\"dishes_unsized\":0,\"fresh_scaled\":19,\"fresh_unweighed\":0,\"pots_scaled\":4,\"pots_unreadable\":0,\"servings_rewritten\":0,\"items_unresolved\":0,\"own_authored\":0,\"tubs_authored\":0,\"eaters_unsized\":0,\"regrammed\":27},\"repairs\":{\"asked\":0,\"accepted\":0,\"rejected\":{\"belt\":0,\"unparseable\":0,\"no_cell\":0,\"title_changed\":0,\"unmeasurable\":0,\"missing_pot\":0,\"dedicated_lost\":0,\"degraded\":0,\"frozen_rewritten\":0},\"splice\":{\"fresh_spliced\":0,\"pots_spliced\":0,\"dish_missing\":0,\"pot_missing\":0,\"shopping_added\":0,\"shopping_pruned\":0,\"uses_mismatch\":0,\"density_checks_cleared\":0},\"skipped_stuck\":0,\"still_out\":0,\"skipped_budget\":0,\"pots_frozen\":0,\"pot_unforked\":0,\"pot_forked\":0,\"fresh_frozen\":0,\"stuck_dishes\":0,\"stuck_eaters\":0,\"residual_eaters\":0,\"residual_stuck\":0,\"recipe_terms\":0,\"recipe_quantified\":0,\"attempts\":0,\"retry_skipped_small\":0,\"retried_after\":null,\"fill_absorbed\":null},\"final\":{\"measured\":true,\"reason\":\"remeasured_after_apply\",\"boxes\":6,\"judged\":6,\"verdicts\":{\"in_bounds\":6,\"over_max\":0,\"under_min\":0,\"unmeasurable\":0},\"water\":{\"absorbed\":2,\"kept\":2,\"discarded\":0,\"undetermined\":0},\"tubs_not_judged\":0,\"out_of_bounds\":[],\"pot_density_drifted\":0,\"pot_density_gone\":0,\"pot_density_unmeasurable\":0},\"verification\":{\"would_resize\":0,\"anchored\":1,\"anchor_clamped\":1,\"pot_short_after\":0,\"pot_shrunk\":0,\"pot_removed\":0,\"unmet_none\":1,\"densify_touched\":0,\"shopping_scaled\":1,\"shopping_unattributed\":0}},\"box_sizing\":{\"boxes\":6,\"common\":0,\"items\":27,\"sized\":26,\"unchanged\":1,\"capped_by_pot\":0,\"unverifiable\":0,\"mouths\":{\"sized\":1,\"sized_default_pace\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"minor\":0,\"doctrine_no_counting\":0,\"age_unknown\":0,\"no_direction\":0,\"no_pace\":0,\"no_body\":0,\"implausible_factor\":0,\"pregnancy\":0,\"breastfeeding\":0},\"share\":{\"sized\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"age_unknown\":0,\"no_body\":0,\"no_reference\":1},\"share_clamped\":0,\"anchor\":{\"anchored\":1,\"day_incomplete\":0,\"no_delivery\":0,\"restriction_floor\":0,\"restriction_unknown\":0,\"no_body\":0,\"age_unknown\":0,\"clamped\":1,\"pregnancy\":0,\"breastfeeding\":0,\"common_pot_day\":0},\"anchor_cap\":{\"none\":1,\"density\":1,\"density_floor\":0,\"assumed_density\":0,\"factor_bound\":0},\"anchor_applied\":6,\"pot_attribution\":{\"drawnGrams\":1744,\"attributedGrams\":1744,\"ratio\":1,\"potsUnreadable\":0},\"pot_growth\":{\"scaled\":2,\"capped\":0,\"shopping\":1,\"unrewritable\":0,\"regrammed\":4,\"passes\":1,\"short_after\":0},\"pot_shrink\":{\"pots\":0,\"removed\":0,\"kept\":4,\"unboxed_use\":0,\"unreadable\":0,\"sessions_emptied\":0,\"lines_scaled\":1,\"lines_dropped\":0,\"lines_unattributed\":0,\"lines_unrewritable\":0},\"quantity_rounding\":{\"lines\":27,\"quantified\":27,\"unquantified\":0,\"already_whole\":4,\"rounded\":23,\"spoon_to_ml\":0,\"piece_to_grams\":0,\"zero_unresolved\":0,\"unknown_unit\":0,\"regrammed\":23,\"pots_overdrawn\":0,\"pots_overdrawn_worst_per_mille\":0,\"pots_overdrawn_before\":0,\"pots_unmeasurable\":0,\"zeroed\":[]},\"quantity_final\":{\"lines\":27,\"stale_before\":10,\"rewritten\":10,\"bare\":0,\"historic\":0,\"absent\":0,\"counted_fractional\":0},\"unmet\":{\"none\":1,\"factor_clamped\":1,\"pot_ceiling\":0,\"both\":0,\"not_anchored\":0,\"tub_estimate\":0},\"unmet_band\":{\"lt_200\":1,\"gte_200\":0},\"lost_slots\":{\"mouth_days\":0,\"slots\":0,\"kcal_lt_200\":0,\"kcal_gte_200\":0,\"kcal_unknown\":0},\"lost_by_line\":{\"mouth_days\":0,\"slots\":0,\"kcal\":0,\"kcal_unknown\":0},\"note_boost\":{\"member_days\":0,\"household_dated\":0,\"unknown_member\":0,\"applied\":0,\"applied_pot\":0,\"detail\":[]},\"densify\":{\"skipped\":\"standard_recipe\"},\"activity\":{\"answered\":1,\"partial\":0,\"not_answered\":0,\"not_asked\":0},\"activity_source\":{\"crossed\":1,\"legacy\":0,\"assumed\":0},\"appetite\":{\"declared\":1,\"not_answered\":0,\"not_asked\":0}},\"traditions\":{\"declared\":0,\"honoured\":0,\"composed_without_label\":0,\"not_composed\":0,\"out_of_window\":0},\"portion_quantities\":{\"notes\":0,\"model_quantity\":0,\"model_size_word\":0}}",
+    "{\"tag\":\"keel.household_meal.cross_contact_block\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"household_id\":\"9f770751-7968-4c0f-aca4-1a0b8c413900\",\"emitted\":0,\"skipped_no_medical\":1,\"skipped_no_dedicated\":0,\"medical_mouths\":0,\"unnamed_medical\":0,\"dish_bearers\":0}",
+    "{\"tag\":\"keel.household_meal.final_gate\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"ok\":true,\"refusals\":0,\"blocking\":0,\"causes\":[],\"counters\":{\"checked\":{\"uses\":8,\"box_items\":27,\"session_ids\":4,\"cooked_pairs\":8,\"cells\":6,\"mouth_cells\":6,\"shopping_lines\":17,\"perishable_lines\":10,\"keeping_unknown_lines\":0,\"ingredient_terms\":17,\"table_dishes\":0,\"boxed_dishes\":6,\"energy_mouths\":0,\"energy_unmeasured\":1,\"shopping_identities\":17,\"shopping_quantified\":17,\"shopping_unverified\":0,\"shopping_not_purchasable\":0,\"portion_cells\":6,\"measured_cells\":6,\"measured_days\":2,\"protein_days\":2,\"protein_protected\":0,\"protein_unmeasured\":0},\"refusals_by_cause\":{\"uses_dangling\":0,\"box_item_dangling\":0,\"session_cites_unknown\":0,\"eaten_before_cooked\":0,\"eaten_too_late\":0,\"cook_day_unplaced\":0,\"preparation_without_session\":0,\"session_day_mismatch\":0,\"cell_without_dish\":0,\"mouth_unfed\":0,\"boxes_none_delivered\":0,\"box_missing\":0,\"ingredient_not_bought\":0,\"ingredient_short_bought\":0,\"shopping_undated\":0,\"unclassified_perishable\":0,\"perishable_bought_too_early\":0,\"table_exclusion_served\":0,\"member_exclusion_served\":0,\"title_promises_missing_preparation\":0,\"regime_forbidden_component\":0,\"house_rule_served\":0,\"mouth_energy_short\":0,\"cell_without_portion\":0,\"cell_energy_unmeasurable\":0,\"cell_energy_off\":0,\"cell_bounds_off\":0,\"day_energy_off\":0,\"protein_floor_short\":0},\"repairs_by_kind\":{\"drop_dangling_use\":0,\"drop_dangling_box_item\":0,\"drop_dangling_session_id\":0,\"strip_title_promise\":0}},\"delivery\":\"conforme\",\"unevaluated\":[\"title_promises_missing_preparation\",\"mouth_energy_short\"],\"incomplete\":[{\"control\":\"mouth_energy\",\"count\":1}]}",
+    "{\"tag\":\"keel.household_meal.plan_repair_pass\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"round\":0,\"stop\":false,\"improvement_retries\":true,\"defects\":0,\"repairable\":0,\"by_kind\":{},\"by_source\":{\"gate\":0,\"output_contract\":0,\"quantities\":0,\"upstream\":0},\"call\":false,\"reason\":\"no_defects\",\"calls_made\":0,\"measured\":{\"contracts\":6,\"measures\":0,\"unnumbered\":0},\"budget\":{\"repairs_allowed\":2,\"repairs_used\":0,\"repairs_asked\":0,\"repairs_refused\":{},\"charged\":[],\"provider_attempts\":1,\"elapsed_ms\":659,\"remaining_ms\":379341,\"usable_ms\":349341,\"reserve_ms\":30000,\"total_ms\":380000}}",
+    "{\"tag\":\"keel.household_meal.plan_repair_done\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"rounds\":1,\"calls_made\":0,\"defects_at_delivery\":0,\"repairable_at_delivery\":0,\"by_kind\":{},\"by_source\":{\"gate\":0,\"output_contract\":0,\"quantities\":0,\"upstream\":0},\"trace\":[{\"round\":0,\"defects\":0,\"by_kind\":{},\"by_source\":{\"gate\":0,\"output_contract\":0,\"quantities\":0,\"upstream\":0},\"call\":false,\"reason\":\"no_defects\"}],\"delivery\":\"conforme\"}",
+    "{\"tag\":\"keel.household_meal.output_lock_final\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"surfaces\":{\"dish\":6,\"preparation\":4,\"cooking_session\":1,\"portion_note\":0,\"box_item\":27,\"shopping\":17,\"explanation\":0},\"bites\":0}",
+    "{\"tag\":\"keel.household_meal.wall\",\"user_id\":\"fba9ecdb-3762-41e4-8198-f1b46f7b3ed5\",\"request_id\":\"c5d76702-29d1-45ec-aea4-f56a6a9d42b2\",\"intent\":\"replace_current\",\"outcome\":\"written\",\"wall_ms\":681}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     200",
+    "   durée      693 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 1",
+    "     · generate-household-meal-v1  modèle=gpt-5.6-luna  corps=48725 o  à +1176 ms",
+    "   sorties réseau REFUSÉES : 0",
+    "   appels fournisseur RÉELS (facturés) : 0  — zéro dépense",
+    "\n── LA BASE APRÈS L'APPEL ─────────────────────────────────────",
+    "   plans avant 1 · après 2",
+    "   lignes AJOUTÉES  : 1 [\"d151b5e0\"]",
+    "   lignes RETIRÉES  : 1 [\"a316c5e5\"]",
+    "   lignes RÉÉCRITES : 1 [\"a316c5e5\"]"
+  ]
+}

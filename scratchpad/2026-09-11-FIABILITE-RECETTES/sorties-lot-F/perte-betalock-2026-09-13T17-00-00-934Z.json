@@ -1,0 +1,188 @@
+{
+  "cas": "perte",
+  "titre": "banc ② · PERTE · appétit average · horloge injectée 2026-09-13T19:00:00+02:00",
+  "lance_le": "2026-09-13T17:00:00.935Z",
+  "jour_local": "2026-09-13",
+  "heure_locale": "19:00",
+  "cases_annoncees": 6,
+  "bouches": 1,
+  "demande": {
+    "source": {
+      "instant": "harnais_avant_appel (horloge INJECTÉE)",
+      "fenetre": "plan_hours.ts + meal_plan_window.ts, appelées avant l'appel",
+      "jours": "dérivés de l'horloge du harnais — JAMAIS de la liste des plats",
+      "slots": "les trois repas de la maison (aucun rythme déclaré sur ce banc)",
+      "bouches": "harnais_avant_appel (posées par les RPC du produit)"
+    },
+    "instant": {
+      "lance_le": "2026-09-13T17:00:00.780Z",
+      "jour_local": "2026-09-13",
+      "heure_locale": "19:00",
+      "fuseau": "Europe/Paris",
+      "horloge_injectee": "2026-09-13T19:00:00+02:00",
+      "decalage_ms": -34419355
+    },
+    "fenetre": {
+      "demandee": {
+        "kind": "days",
+        "count": 3
+      },
+      "cases_annoncees": 6,
+      "bouches_annoncees": 1,
+      "premier_jour_partiel": [],
+      "attendue": {
+        "starts_on": "2026-09-14",
+        "duration_days": 2,
+        "dropped": "sun",
+        "cause": "shopping_cutoff"
+      },
+      "moments_passes": [
+        "breakfast",
+        "lunch"
+      ],
+      "moments_retenus_pour_les_courses": [
+        "dinner"
+      ]
+    },
+    "jours": [
+      "mon",
+      "tue"
+    ],
+    "jour_vers_date": {
+      "mon": "2026-09-14",
+      "tue": "2026-09-15"
+    },
+    "cases_par_bouche": {
+      "5683d589-0645-4434-a832-def8b42604b1": {
+        "mon": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tue": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      }
+    },
+    "cases_attendues_par_bouche": {
+      "5683d589-0645-4434-a832-def8b42604b1": 6
+    },
+    "cases_attendues_total": 6,
+    "appetit_pose": "average"
+  },
+  "duree_ms": 74,
+  "statut": 503,
+  "reponse": {
+    "error": "generation_paused",
+    "detail": "Incident de bêta : on vérifie un plan. Rien n'est perdu.",
+    "request_id": "20e7a404-09f8-455c-8a88-13d7844ca5b5"
+  },
+  "appels_fournisseur": [],
+  "sorties_refusees": [],
+  "ligne_ecrite": null,
+  "retaillage": null,
+  "appels_reels": [],
+  "refus_secondaire": null,
+  "base_avant": [
+    {
+      "id": "4e953739-833c-4e18-a825-872fd7401d50",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": "2026-09-14T02:30:55.06376+00:00",
+      "created_at": "2026-09-14T02:30:45.375028+00:00",
+      "updated_at": "2026-09-14T02:30:55.06376+00:00",
+      "plan_kind": "household"
+    },
+    {
+      "id": "9bd74720-cc65-479e-9a5f-5bc65a75e73f",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-14T02:30:55.06376+00:00",
+      "updated_at": "2026-09-14T02:30:55.06376+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_apres": [
+    {
+      "id": "4e953739-833c-4e18-a825-872fd7401d50",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": "2026-09-14T02:30:55.06376+00:00",
+      "created_at": "2026-09-14T02:30:45.375028+00:00",
+      "updated_at": "2026-09-14T02:30:55.06376+00:00",
+      "plan_kind": "household"
+    },
+    {
+      "id": "9bd74720-cc65-479e-9a5f-5bc65a75e73f",
+      "starts_on": "2026-09-14",
+      "duration_days": 2,
+      "retired_at": null,
+      "created_at": "2026-09-14T02:30:55.06376+00:00",
+      "updated_at": "2026-09-14T02:30:55.06376+00:00",
+      "plan_kind": "household"
+    }
+  ],
+  "base_delta": {
+    "ajoutes": [],
+    "retires": [],
+    "reecrits": []
+  },
+  "demande_envoyee": {
+    "intent": "replace_current",
+    "replaces": "9bd74720-cc65-479e-9a5f-5bc65a75e73f",
+    "window": {
+      "kind": "days",
+      "count": 3
+    }
+  },
+  "exclusion_declaree": null,
+  "allergene_injecte": null,
+  "second_member": "",
+  "meta_bouche": {
+    "member_id": "5683d589-0645-4434-a832-def8b42604b1",
+    "user_id": "cb68f18d-0155-4b01-ad61-5c86679c7639",
+    "email": "lotf.perte.betalock@keeltest.dev",
+    "first_name": "Paul",
+    "birth_date": "1990-03-14",
+    "goal": "fat_loss",
+    "pace": 0.5,
+    "weight_kg": 88,
+    "height_cm": 178
+  },
+  "journal": [
+    "   ⚠️ --reponse : ref1.json — 6 plat(s), 2 préparation(s), 12 ligne(s) de courses",
+    "── LOT F ② · cas PERTE · lotf.perte.betalock@keeltest.dev ────────────────",
+    "   réponse archivée TELLE QUELLE (7 plats)",
+    "   compte : cb68f18d-0155-4b01-ad61-5c86679c7639",
+    "   coach maison : {\"joined\":true}",
+    "   bouche : 5683d589-0645-4434-a832-def8b42604b1",
+    "   repas léger : lunch (par les HABITUDES, pas par eating_rhythm.size)",
+    "   apport fixe : 200 g greek_yogurt @breakfast → écrit dans « student_goals »",
+    "   relu en base : student_goals.practical_constraints.fixed_intakes = [{\"days\":[],\"slot\":\"breakfast\",\"unit\":\"g\",\"label\":\"yaourt grec\",\"amount\":200,\"food_ref\":\"greek_yogurt\",\"replaces_meal\":false}]",
+    "\n── LA DEMANDE, FIGÉE AVANT L'APPEL ───────────────────────────",
+    "   horloge       2026-09-13T17:00:00.780Z · 2026-09-13 19 h (Europe/Paris)   ⚠️ HORLOGE INJECTÉE (décalage -34419355 ms)",
+    "   appétit       average",
+    "   fenêtre       3 jours demandés ⇒ 2 jour(s) à partir du 2026-09-14   (sun retiré : shopping_cutoff)",
+    "   jours         [\"mon\",\"tue\"]",
+    "   CASES ATTENDUES 6 · grille par bouche {\"mon\":[\"breakfast\",\"lunch\",\"dinner\"],\"tue\":[\"breakfast\",\"lunch\",\"dinner\"]}",
+    "   ⛔ CE NOMBRE NE VIENT PAS DES PLATS. Une case sans plat restera attendue, et se comptera absente.",
+    "\n── LA BASE AVANT L'APPEL ─────────────────────────────────────\n   2 plan(s) : [{\"id\":\"4e953739\",\"w\":\"2026-09-14+2\",\"retire\":\"2026-09-14T02:30:55.06376+00:00\",\"maj\":\"2026-09-14T02:30:55.06376+00:00\"},{\"id\":\"9bd74720\",\"w\":\"2026-09-14+2\",\"retire\":null,\"maj\":\"2026-09-14T02:30:55.06376+00:00\"}]",
+    "   --remplace : intent=replace_current, replaces=9bd74720",
+    "{\"tag\":\"keel.household_meal.generation_paused\",\"user_id\":\"cb68f18d-0155-4b01-ad61-5c86679c7639\",\"household_id\":\"efec01bc-0fd4-488e-be67-11c40fc130b7\",\"request_id\":\"20e7a404-09f8-455c-8a88-13d7844ca5b5\",\"since\":\"2026-09-14T02:33:38.401025+00:00\"}",
+    "\n── RÉPONSE ───────────────────────────────────────────────",
+    "   statut     503",
+    "   durée      74 ms  (hors appel fournisseur réel)",
+    "   appels fournisseur interceptés : 0",
+    "   sorties réseau REFUSÉES : 0",
+    "   appels fournisseur RÉELS (facturés) : 0  — zéro dépense",
+    "   corps : {\"error\":\"generation_paused\",\"detail\":\"Incident de bêta : on vérifie un plan. Rien n'est perdu.\",\"request_id\":\"20e7a404-09f8-455c-8a88-13d7844ca5b5\"}",
+    "\n── LA BASE APRÈS L'APPEL ─────────────────────────────────────",
+    "   plans avant 2 · après 2",
+    "   lignes AJOUTÉES  : 0 []",
+    "   lignes RETIRÉES  : 0 []",
+    "   lignes RÉÉCRITES : 0 []"
+  ]
+}
