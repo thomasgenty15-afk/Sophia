@@ -1,0 +1,23 @@
+── état initial
+   frein avant : [{"paused":false,"reason":""}]
+   free_until avant : "2026-09-22"
+   abonnement avant : []
+   frein ARMÉ : [{"paused":true}]
+── ① état de départ (essai posé à la création, J+7) → couvert, admis, frein
+   couvert=true · génération → 503 generation_paused
+── ② essai expiré hier → gelé
+   couvert=false · génération → 402 household_frozen
+── ③ webhook customer.subscription.created (active) → le maître paie → réadmis
+   webhook → 200 {'ok': True, 'type': 'customer.subscription.created', 'request_id': '95714e1e-b1d5-4adb-ae19-90db70948f70'}
+   abonnement : [{"status":"active","stripe_price_id":"price_1UBgU5PljiMVCeeKoeICe5Xf","current_period_end":"2026-10-15T15:09:37+00:00"}]
+   couvert=true · génération → 503 generation_paused
+── ④ webhook customer.subscription.deleted (canceled) → gelé
+   webhook → 200 {'ok': True, 'type': 'customer.subscription.deleted', 'request_id': '3d7e5899-134a-4df4-8c49-b24d34e19bbb'}
+   abonnement : [{"status":"canceled"}]
+   couvert=false · génération → 402 household_frozen
+── ⑤ dernier jour d'essai INCLUS → couvert
+   couvert=true · génération → 503 generation_paused
+── ⑥ écran : keel_household_my_coverage vu par le maître
+{"role": "owner", "frozen": false, "covered": true, "free_until": "2026-09-15", "household_id": "a16e036e-6f0b-4b22-89c4-12b98a76cb12", "in_household": true}
+── remise en état
+   frein après : [{"paused":false,"reason":""}] · free_until : [{"free_until":"2026-09-22"}] · abonnement : []

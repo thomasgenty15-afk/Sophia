@@ -15,6 +15,11 @@ import {
 } from "../_shared/keel/reengagement_io.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { toneInstruction } from "../_shared/keel/reengagement.ts";
+import {
+  HOUSEHOLD_COVERAGE_UNREADABLE,
+  HOUSEHOLD_FROZEN_SKIP,
+  householdProductionGate,
+} from "../_shared/keel/household_production_gate.ts";
 
 /**
  * PIVOT NUTRITION §1.3 — la boucle REMARQUER, en job.
@@ -127,6 +132,18 @@ Deno.serve(async (req) => {
       if (d.decision === "defer") {
         deferred++;
         continue;
+      }
+      // ⟳ 2026-09-15 — LE GEL COUPE LA PRODUCTION, ET UNE RELANCE EN EST
+      // (trou n° 7 de FF-049). Avant le tour à blanc aussi : un compte gelé
+      // n'est pas « armé ». Une couverture illisible passe et se compte.
+      const gate = await householdProductionGate(admin, outcome.userId);
+      if (gate.frozen) {
+        bySkipReason[HOUSEHOLD_FROZEN_SKIP] = (bySkipReason[HOUSEHOLD_FROZEN_SKIP] ?? 0) + 1;
+        continue;
+      }
+      if (gate.unreadable) {
+        bySkipReason[HOUSEHOLD_COVERAGE_UNREADABLE] =
+          (bySkipReason[HOUSEHOLD_COVERAGE_UNREADABLE] ?? 0) + 1;
       }
 
       // ══════════════════════════════════════════════════════════════════

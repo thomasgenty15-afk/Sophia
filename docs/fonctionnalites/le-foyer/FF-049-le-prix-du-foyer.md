@@ -94,7 +94,7 @@ sont **les bouches**, c'est-à-dire les enfants.
    keel_household_max_mouths()  = 8             1. deux prix Stripe mensuels,
        │  immutable · garde de COÛT LLM            créés à la main et DIFFÉRENTS
        ▼                                          · 12,99 €  foyer   qté 1
-   keel_household_add_member                      · 2,00 €   profil  qté réconciliée
+   keel_household_add_member                      · 1,99 €   profil  qté réconciliée
        cite le plafond, refuse `household_full`    (la fonction REFUSE si les deux
                                                     secrets portent le même id)
    keel_household_billable_profiles()
@@ -171,7 +171,7 @@ son foyer couvert sans les 12,99 €. Population négligeable aujourd'hui.
 | R1 | **Le plafond et le compte facturable sont deux choses différentes** | Le test le dit **côte à côte** : un foyer PLEIN (8 bouches) avec 4 profils réclamés. Les confondre ferait facturer des enfants. Le commentaire de chaque fonction renvoie à l'autre. |
 | R2 | **Une bouche sans compte ne compte pas** | C'est tout le modèle : décrire sa famille ne coûte rien. |
 | R3 | **Une invitation non consommée ne compte pas** | Un lien envoyé n'est pas un accès. `household_invitations` n'est pas lue par la fonction. |
-| R4 | **Le maître n'est jamais compté** | Son accès est dans le prix du foyer. Le facturer 2 € de plus produirait 14,99 € pour un foyer d'une personne — **un nombre plausible, donc invisible**. |
+| R4 | **Le maître n'est jamais compté** | Son accès est dans le prix du foyer. Le facturer 1,99 € de plus produirait 14,98 € pour un foyer d'une personne — **un nombre plausible, donc invisible**. |
 | R5 | **Une seule carte dans tout le foyer** | La machinerie existe : `stripe-reconcile-seats` sait déjà pousser une **quantité** sur un item d'abonnement, sans proration et avec clé d'idempotence. |
 | R6 | **La définition vit en SQL, pas en TypeScript** | Un module sans importeur est le mode d'échec n°1 de ce dépôt, et `wiring-check` le signale déjà pour d'autres. En SQL, l'appelant — le job de réconciliation — est **nommé** dans le commentaire, et son absence est visible. |
 | R7 | **Le plafond est nommé une fois et cité, jamais recopié** | Ce dépôt a déjà payé le prix d'une constante dupliquée entre deux runtimes. Le remède retenu est toujours le même : une seule source, et un test qui le prouve. |
@@ -188,8 +188,8 @@ son foyer couvert sans les 12,99 €. Population négligeable aujourd'hui.
 | Situation | Comportement attendu |
 |---|---|
 | **⚠️ Aujourd'hui, quel que soit l'état de l'abonnement** | **TROU n°6 — PARTIELLEMENT REFERMÉ, et il faut dire exactement où.** La **garde existe** : `keel_household_is_covered` (`20260811050000:163`), refus **402 `household_frozen`** sur les **deux** générateurs — celui du foyer (`generate-household-meal-v1/index.ts:269-292`) et, depuis le 2026-08-12, celui du **plan personnel** (`generate-meal-v1/index.ts:386-411`, L1/D13 : sans lui le 402 se contournait par la porte voisine) —, saut nommé sur la reco du soir (`daily_recommendation_engine.ts:152`), et la branche `household_member` de `recompute_profile_access_tier` (`:408`) avec trois déclencheurs. **Rien ne facture** pour autant, et rien ne gèle : tant que les prix Stripe ne sont pas posés (§7 ci-dessous), `free_until IS NULL` vaut **couvert** — l'inverse gèlerait tous les foyers existants d'un coup, en leur offrant un tunnel qui refuse faute de prix. Ni « ouvert » ni « fermé » : **branché et désarmé**. |
-| **⚠️ `keel-daily-pulse-v1` et `keel-weekly-flow-v1`** | **TROU CONNU n°7, NON REFERMÉ.** Ni l'un ni l'autre ne porte une seule occurrence de `household` : ils tournent à l'identique sur un foyer gelé. D4 nomme **deux** portes, et ce sont exactement les deux qui ont été fermées. Reste à trancher si le tap du soir et le bilan hebdo comptent comme **production**. |
-| **⚠️ Un mineur avec un compte** | **Compté comme facturable.** Facturer 2 € l'accès d'un enfant est une décision commerciale ; elle est rendue **lisible et non prise**. |
+| **⚠️ `keel-daily-pulse-v1` et `keel-weekly-flow-v1`** | ~~**TROU CONNU n°7, NON REFERMÉ.** Ni l'un ni l'autre ne porte une seule occurrence de `household` : ils tournent à l'identique sur un foyer gelé.~~ ⟳ **REFERMÉ le 2026-09-15**, décision du propriétaire : **le gel coupe toute la production.** `keel-daily-pulse-v1` n'existe plus ; les deux crons de production vivants — `keel-weekly-flow-v1` (le bilan rangé) et `keel-reengage-v1` (la relance) — passent par `householdProductionGate` (`_shared/keel/household_production_gate.ts`), qui lit `keel_household_coverage_for_user` et fait sauter le compte gelé **avant** de produire (`bySkip.household_frozen`) ; une couverture illisible passe et se compte (`household_coverage_unreadable`), même arbitrage que l'admission du générateur. Tenu par `household_production_gate_test.ts` (lecture stricte, illisible qui passe, câblage des deux crons AVANT la production). La lecture reste ouverte (R12). |
+| **⚠️ Un mineur avec un compte** | **Compté comme facturable.** Facturer 1,99 € l'accès d'un enfant est une décision commerciale ; elle est rendue **lisible et non prise**. |
 | Une bouche dont le compte est supprimé | Elle **cesse de compter** comme facturable — `user_id` passe à NULL — et **la ligne reste**. C'était faux avant `e2899897` : la cascade emportait la ligne entière, et le foyer maigrissait sans que personne l'ait décidé (ancien trou n°5, voir [FF-048](FF-048-reclamer-son-profil.md) §7). Le compte facturable était juste ; le foyer, lui, avait maigri. |
 | Quelqu'un veut payer **pendant** son essai | ✅ **ACCEPTÉ.** ⟳ **RENVERSÉ le 2026-09-09** (FF-064, décision du propriétaire) : le tunnel accepte désormais un paiement anticipé, et `subscription_data[trial_end]` tombe le lendemain de `free_until` à 00:00 UTC. L'objection ci-contre était juste ; sa réponse est le repli à 49 h de `householdStripeTrialEnd`, qui ne peut que **dépasser** la promesse, jamais la raccourcir. Ne pas effacer le texte d'origine : on doit pouvoir lire pourquoi c'était l'inverse. *(Texte d'avant : « Refusé, `409 household_in_trial`. Décision produit non tranchée (§11 n°4). »)* |
 | Le job tourne **sans prix configuré** | `500 « Missing env var »`, **zéro foyer traité**. Vérifié par un run réel contre la vraie base. Un job de facturation qui démarre à moitié configuré est pire qu'un job qui ne démarre pas. |
@@ -203,12 +203,14 @@ son foyer couvert sans les 12,99 €. Population négligeable aujourd'hui.
 ### Les cinq gestes humains, dans l'ordre — aucun n'est faisable par un agent
 
 1. Créer **deux** prix Stripe récurrents mensuels, **différents** : 12,99 €
-   foyer (quantité 1) et 2,00 € profil réclamé (quantité réconciliée).
+   foyer (quantité 1) et 1,99 € profil réclamé (quantité réconciliée) — ⟳ 2026-09-15, tranché par le propriétaire : 1,99 €, le chiffre de l'offre (`PRICES.claimedProfile`), pas 2,00 €.
 2. `supabase secrets set STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY=price_…
    STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY=price_…`
 3. `supabase db push`
 4. `supabase functions deploy stripe-create-checkout-session
    stripe-reconcile-households`
+⚠️ **Mesuré le 2026-09-15 sur la pile locale** : les deux identifiants `STRIPE_PRICE_ID_HOUSEHOLD_*` posés dans `supabase/.env` ne résolvent pas dans le compte Stripe de test que `STRIPE_SECRET_KEY` désigne (« No such price »). Les gestes 1 et 2 ne sont donc faits nulle part, même en test : aucune session de paiement du foyer ne peut être créée aujourd'hui. Le reste du tunnel (webhook signé → `subscriptions` → `keel_household_is_covered` → 402/admission → écran) a été rejoué localement sans Stripe et tient : `docs/keel/VERIFICATION-PAIEMENT-2026-09-15.md`.
+
 5. **Le jour du branchement seulement** :
    `update households set free_until = current_date + 30 where free_until is null`
 

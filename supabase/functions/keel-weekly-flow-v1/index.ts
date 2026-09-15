@@ -18,6 +18,11 @@ import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 import { resolveStudentFollowing } from "../_shared/keel/following_io.ts";
 import { localHourFor } from "../_shared/keel/reengagement_io.ts";
 import {
+  HOUSEHOLD_COVERAGE_UNREADABLE,
+  HOUSEHOLD_FROZEN_SKIP,
+  householdProductionGate,
+} from "../_shared/keel/household_production_gate.ts";
+import {
   computeAndStoreWeekReview,
   readWeekReview,
 } from "../_shared/keel/week_review_io.ts";
@@ -254,6 +259,18 @@ Deno.serve(async (req) => {
         if (localHour === null || localDow !== 0 || localHour < 18 || localHour >= 21) {
           bySkip.outside_window = (bySkip.outside_window ?? 0) + 1;
           continue;
+        }
+
+        // ⟳ 2026-09-15 — LE GEL COUPE LA PRODUCTION, ET UN BILAN RANGÉ EN EST
+        // (trou n° 7 de FF-049). Un compte d'un foyer gelé ne reçoit pas de
+        // bilan ; une couverture illisible passe et se compte.
+        const gate = await householdProductionGate(admin, cursor);
+        if (gate.frozen) {
+          bySkip[HOUSEHOLD_FROZEN_SKIP] = (bySkip[HOUSEHOLD_FROZEN_SKIP] ?? 0) + 1;
+          continue;
+        }
+        if (gate.unreadable) {
+          bySkip[HOUSEHOLD_COVERAGE_UNREADABLE] = (bySkip[HOUSEHOLD_COVERAGE_UNREADABLE] ?? 0) + 1;
         }
 
         try {
