@@ -374,6 +374,12 @@ export const SCOPE = {
   mealCompositionVerdicts:
     "id,meal_id,verdict,envelope_mode,resolution_coverage,unresolved_terms,tokens_served,coverage_flag,prompt_version,doctrine_version,created_at",
 
+  // Lot R (2026-09-15) — LES PLANS QU'ON LUI A REFUSÉS, ET POURQUOI. Un plan
+  // composé pour quelqu'un puis refusé par nos contrôles reste SON plan : les
+  // motifs, le candidat et la fenêtre sortent. `user_id` ne sort pas (sa clé).
+  planRefusals:
+    "id,created_at,household_id,request_id,draft_id,mode,intent,starts_on,duration_days,http_status,token,detail,refusals,unevaluated,incomplete,validation,plan,rounds,calls_made,wall_ms,attempt,prompt_version,model",
+
   // A8.2 — LE SORT DES BOÎTES QU'IL A DÉCLARÉES. Ce sont ses PHRASES: « je
   // n'ai pas mangé ma part », « je la garde pour jeudi », « je l'ai jetée ».
   // Un export qui ne rendrait pas ce que la personne a elle-même déclaré ne

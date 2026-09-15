@@ -1076,6 +1076,8 @@ const HORS_EXPORT: Record<string, [string[], string][]> = {
   student_weight_divergence_episodes: [[["user_id"], "sa propre cle"]],
   memory_clarifications: [[["user_id"], "sa propre cle"]],
   meal_composition_verdicts: [[["user_id"], "sa propre cle"]],
+  // Lot R (2026-09-15) — les plans refusés et leurs motifs.
+  keel_plan_refusals: [[["user_id"], "sa propre cle"]],
   // A8.2 — `declared_by` vaut son id a CHAQUE ligne: la rendre ajouterait son
   // identifiant N fois sans rien lui apprendre. C'est la colonne PAR LAQUELLE
   // l'export filtre, donc sa valeur est connue d'avance. `member_id`, lui,

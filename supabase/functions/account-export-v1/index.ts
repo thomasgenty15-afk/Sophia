@@ -369,6 +369,7 @@ async function buildExportPayload(
     studentGeneratedMeals,
     studentMealDocuments,
     mealCompositionVerdicts,
+    planRefusals,
     mealShareOutcomes,
     recurringMeals,
     studentFacts,
@@ -588,6 +589,16 @@ async function buildExportPayload(
       admin,
       "meal_composition_verdicts",
       SCOPE.mealCompositionVerdicts,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    // Lot R (2026-09-15) — LES PLANS REFUSÉS, réclamés par le cycle de vie DÈS
+    // LEUR MIGRATION. Même cicatrice que les deux lignes au-dessus.
+    fetchKeelRows(
+      admin,
+      "keel_plan_refusals",
+      SCOPE.planRefusals,
       "user_id",
       user.id,
       keelUnavailable,
@@ -1017,6 +1028,8 @@ async function buildExportPayload(
         // d'énergie ni de macro n'y figure — le verdict est en mots par
         // construction (FF-039 R9).
         mesures_de_composition: mealCompositionVerdicts,
+        // Lot R — ce que nos contrôles ont REFUSÉ de lui servir, et pourquoi.
+        refus_de_composition: planRefusals,
         // A8.2 — ce qu'il a dit du sort de SA part: pas mangée, gardée pour
         // un autre jour, congelée, jetée. Ses phrases, pas un calcul.
         sort_de_mes_parts: mealShareOutcomes,

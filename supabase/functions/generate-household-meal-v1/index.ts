@@ -16,11 +16,18 @@ import {
 } from "../_shared/keel/model_call_failure.ts";
 import {
   GENERATION_LOCK_MARGIN_MS,
+  keelGenerationModel,
   PLAN_HTTP_TIMEOUT_MS,
   PLAN_COMPOSITION_HTTP_TIMEOUT_MS,
   PLAN_REPAIR_MIN_MS,
   PLAN_REQUEST_BUDGET_MS,
 } from "../_shared/keel/generation_model.ts";
+import {
+  isPlanRefusal,
+  type PlanRefusalContext,
+  type PlanRefusalWho,
+  recordPlanRefusal,
+} from "../_shared/keel/plan_refusal_log.ts";
 import {
   createPlanBudget,
   planCallMeta,
@@ -1501,9 +1508,21 @@ function resolveUnmergeRequest(args: {
 // ⚠️ `catch (failure)` ET PAS `catch (error)`, wrapper AVANT `handle` : des
 // tests épinglent que le dernier `} finally {` du fichier suit son dernier
 // `} catch (error) {`, et qu'il n'y a qu'un seul `let draftId`.
-interface EarlyAccept {
+interface HandlerContext {
   /** Rend cette réponse au client tout de suite; la composition continue. Une fois. */
   respondEarly: (response: Response, draftId: string) => void;
+  /**
+   * ⟳ LOT R — QUI DEMANDAIT, posé par `handle` dès l'admission. Sans lui, un
+   * refus n'a pas de propriétaire et le journal ne l'écrit pas.
+   */
+  who: PlanRefusalWho | null;
+  /**
+   * ⟳ LOT R — CE QUE LE CORPS PUBLIC NE DIT PAS, posé par `handle` au contrôle
+   * final juste avant son 422 : le détail non masqué, le candidat refusé, les
+   * tours et les appels. Le wrapper le consigne dans `keel_plan_refusals`.
+   * (`refused`, pas `refusal:` — un scanner de refus lit ce mot-clé.)
+   */
+  refused: PlanRefusalContext | null;
 }
 
 /** Un uuid, et rien d'autre — pour les en-têtes du relanceur (lot C). */
@@ -1515,17 +1534,25 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
  * refuse d'écraser `done`/`adopted`, donc un refus arrivé après l'écriture ne
  * défait rien.
  */
-async function foldLateOutcome(draftId: string, late: Response): Promise<void> {
+async function foldLateOutcome(draftId: string, late: Response, wallMs: number): Promise<void> {
   if (late.status < 400) return;
   const body = await late.clone().json().catch(() => ({})) as Record<string, unknown>;
   const token = typeof body.error === "string" ? body.error.trim() : "";
   const errorCode = token !== "" ? token : "compose_failed";
-  const detail = typeof body.detail === "string"
+  // ⚠️ LE POURQUOI, PAS SEULEMENT LE JETON. Mesuré le 2026-09-15 sur staging :
+  // un `plan_not_deliverable` plié avec `error: null` — le 422 ne porte pas de
+  // `detail`, il porte `refusals`/`unevaluated`/`incomplete`. Sans eux, la
+  // ligne dit « refusé » et personne ne sait par quel contrôle.
+  const why: Record<string, unknown> = {};
+  for (const key of ["detail", "refusals", "unevaluated", "incomplete"]) {
+    if (body[key] != null) why[key] = body[key];
+  }
+  const detail = typeof body.detail === "string" && Object.keys(why).length === 1
     ? body.detail
-    : body.detail == null
+    : Object.keys(why).length === 0
     ? null
-    : JSON.stringify(body.detail);
-  await failDraft(adminClient(), draftId, { errorCode, error: detail });
+    : JSON.stringify(why);
+  await failDraft(adminClient(), draftId, { errorCode, error: detail, wallMs });
   console.log(JSON.stringify({
     tag: "keel.household_meal.late_outcome",
     draft_id: draftId,
@@ -1535,17 +1562,36 @@ async function foldLateOutcome(draftId: string, late: Response): Promise<void> {
 }
 
 Deno.serve((req) => {
+  const wrapperT0 = performance.now();
   let settleEarly: ((early: { response: Response; draftId: string }) => void) | null = null;
   const accepted = new Promise<{ response: Response; draftId: string }>((resolve) => {
     settleEarly = resolve;
   });
   let acceptedDraftId: string | null = null;
-  const ctx: EarlyAccept = {
+  const ctx: HandlerContext = {
     respondEarly: (response, draftId) => {
       if (acceptedDraftId !== null) return;
       acceptedDraftId = draftId;
       settleEarly?.({ response, draftId });
     },
+    who: null,
+    refused: null,
+  };
+  // ⟳ LOT R — LE SEUL ÉCRIVAIN DU JOURNAL DES REFUS. Il voit toute réponse du
+  // handler, rendue tout de suite (`sync`) ou après le 202 (`async`).
+  const journalRefusalWithBody = async (response: Response, mode: "sync" | "async", draftId: string | null) => {
+    const body = await response.clone().json().catch(() => null);
+    return recordPlanRefusal(adminClient(), {
+      who: ctx.who,
+      requestId: getRequestId(req),
+      draftId,
+      mode,
+      status: response.status,
+      body,
+      context: ctx.refused,
+      wallMs: Math.round(performance.now() - wrapperT0),
+      attempt: ctx.who?.attempt ?? null,
+    });
   };
   // ⛔ `.catch` ICI: `handle` rend une `Response` sur toutes ses sorties, sauf
   // si son propre `catch` jette (le journal d'erreur, par exemple). Une course
@@ -1561,8 +1607,20 @@ Deno.serve((req) => {
     accepted.then((early) => ({ kind: "early" as const, ...early })),
     work.then((response) => ({ kind: "full" as const, response })),
   ]).then((winner) => {
-    if (winner.kind === "full") return winner.response;
-    const kept = keepWorking(work.then((late) => foldLateOutcome(winner.draftId, late)));
+    if (winner.kind === "full") {
+      // Un refus rendu tout de suite (chemin synchrone) est consigné APRÈS la
+      // réponse, sans la retarder : le runtime garde l'isolat pour la promesse.
+      if (isPlanRefusal(winner.response.status, false)) {
+        keepWorking(journalRefusalWithBody(winner.response, "sync", null));
+      }
+      return winner.response;
+    }
+    const kept = keepWorking(work.then(async (late) => {
+      await foldLateOutcome(winner.draftId, late, Math.round(performance.now() - wrapperT0));
+      if (isPlanRefusal(late.status, true)) {
+        await journalRefusalWithBody(late, "async", winner.draftId);
+      }
+    }));
     console.log(JSON.stringify({
       tag: "keel.household_meal.accepted",
       request_id: getRequestId(req),
@@ -1573,7 +1631,7 @@ Deno.serve((req) => {
   });
 });
 
-async function handle(req: Request, ctx: EarlyAccept): Promise<Response> {
+async function handle(req: Request, ctx: HandlerContext): Promise<Response> {
   // ── LOT 0 (2026-09-06) · LE TEMPS MUR, QUI N'ÉTAIT MESURÉ NULLE PART ──────
   //
   // `llm_usage_events.latency_ms` mesure UN appel modèle, et seulement ceux qui
@@ -2303,6 +2361,8 @@ async function handle(req: Request, ctx: EarlyAccept): Promise<Response> {
     }
     /** Un aperçu: tout se calcule, rien ne s'écrit. */
     const isDraft = operation === "compose" && intent === "draft";
+    // ⟳ LOT R — qui demandait, pour le journal des refus (voir `HandlerContext`).
+    ctx.who = { userId, householdId, intent, attempt: relaunchOf ? 2 : 1 };
     // Après validation d'un aperçu, une seule passe modèle doit pouvoir
     // atteindre l'écriture avant l'expiration de la fonction. Les gardes de
     // sécurité restent actives; seules les relances d'amélioration sont
@@ -20477,6 +20537,20 @@ async function handle(req: Request, ctx: EarlyAccept): Promise<Response> {
         calls_made: c4CallsMade,
         wall_ms: wallMs(),
       }));
+      // ⟳ LOT R — ce que le corps public ne dit pas, pour `keel_plan_refusals`.
+      ctx.refused = {
+        startsOn,
+        durationDays,
+        refusals: [],
+        unevaluated: [],
+        incomplete: [],
+        validation: planValidation,
+        plan: { dishes: meal.dishes, preparations: meal.preparations, cooking_sessions: meal.cooking_sessions },
+        rounds: c4Round + 1,
+        callsMade: c4CallsMade,
+        promptVersion: HOUSEHOLD_PROMPT_VERSION,
+        generationModel: keelGenerationModel(),
+      };
       await releaseMergeQuota("final_gate_unavailable");
       return jsonResponse(req, {
         // ⛔ UN MOTIF À PART. `plan_not_deliverable` accuse le plan; celui-ci
@@ -20506,6 +20580,21 @@ async function handle(req: Request, ctx: EarlyAccept): Promise<Response> {
       // ⛔ L'UNITÉ DE FUSION EST RENDUE: aucun plan n'a été écrit, donc elle
       // n'a pas été méritée. Sans cette ligne, un refus coûterait au foyer une
       // fusion pour un plan qu'il n'a jamais reçu.
+      // ⟳ LOT R — LES MOTIFS EXACTS, DÉTAIL COMPRIS, et le candidat refusé :
+      // c'est ce que le 422 masque à l'écran et ce que l'amélioration exige.
+      ctx.refused = {
+        startsOn,
+        durationDays,
+        refusals: publication.delivery.blocking,
+        unevaluated: publication.delivery.unevaluated,
+        incomplete: publication.delivery.incomplete,
+        validation: planValidation,
+        plan: { dishes: meal.dishes, preparations: meal.preparations, cooking_sessions: meal.cooking_sessions },
+        rounds: c4Round + 1,
+        callsMade: c4CallsMade,
+        promptVersion: HOUSEHOLD_PROMPT_VERSION,
+        generationModel: keelGenerationModel(),
+      };
       await releaseMergeQuota("final_gate_blocking");
       return jsonResponse(req, {
         error: "plan_not_deliverable",
