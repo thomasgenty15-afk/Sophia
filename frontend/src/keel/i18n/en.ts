@@ -4556,6 +4556,8 @@ export const en = {
   "plan.validation.cause.unmeasurable": "A portion could not be measured",
   "plan.validation.cause.shopping_missing": "An ingredient is on no shopping line",
   "plan.validation.cause.shopping_short": "A shopping line buys less than the recipe needs",
+  "plan.validation.cause.shopping_unused":
+    "A shopping line buys food that no recipe uses",
   "plan.validation.cause.shopping_undated": "A shopping line has no day",
   "plan.validation.cause.shopping_too_early": "Something fresh is bought too early",
   "plan.validation.cause.cooking_window": "A dish is eaten outside its cooking window",

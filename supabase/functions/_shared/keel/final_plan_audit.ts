@@ -209,6 +209,29 @@ export const SHOPPING_COVER_STATES = [
    * les compteurs qui fondent deux états.
    */
   "not_purchasable",
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-15 · BÊTA 2C — ACHETÉ, ET AUCUNE RECETTE NE S'EN SERT.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CE CAS SORTAIT DE CET AUDIT PAR UN `continue`, DONC SANS UN MOT. Le
+   * commentaire disait vrai à moitié — « une identité que RIEN ne demande n'est
+   * pas un défaut d'ACHAT » — et tirait la mauvaise conclusion: il n'y a rien
+   * qui manque, mais la liste fait acheter de la nourriture que le plan ne
+   * cuisinera pas. C'est B4 dans l'autre sens: « grammes, préparations et
+   * courses décrivent la même nourriture ».
+   *
+   * ⛔ MESURÉ, SUR DEUX PLANS N=4 (2026-09-14, `scratchpad/2026-09-14-B4-FINAL`):
+   * 260 g de `lentils_dry` sur la liste, zéro lentille dans la seule casserole
+   * et dans tous les plats. Le compteur `shopping_unattributed: 1` existait déjà
+   * et ne NOMMAIT rien — il a fallu ouvrir le JSON pour savoir de quel aliment
+   * on parlait.
+   *
+   * ⚠️ UN GARDE-MANGER DÉCLARÉ SANS BESOIN N'EST PAS CE CAS. « J'ai de l'huile
+   * chez moi » et le plan n'en veut pas: personne n'achète rien, il n'y a rien
+   * à dire. Seule une LIGNE DE COURSES fait dépenser.
+   */
+  "bought_unused",
 ] as const;
 export type ShoppingCoverState = (typeof SHOPPING_COVER_STATES)[number];
 
@@ -564,9 +587,32 @@ export function shoppingIdentityAudit(args: {
   let notPurchasable = 0;
   let unverified = 0;
   for (const row of [...acc.values()].sort((a, b) => a.identity < b.identity ? -1 : 1)) {
-    // Une identité que RIEN ne demande n'est pas un défaut d'achat: c'est une
-    // ligne de courses ou un garde-manger en trop. Elle sort du dénominateur.
-    if (row.neededLines === 0) continue;
+    // ⟳ 2026-09-15 · BÊTA 2C — UNE IDENTITÉ QUE RIEN NE DEMANDE.
+    //
+    // Ce n'est pas un défaut d'ACHAT (rien ne manque), et ce `continue` était
+    // donc juste sur les causes de manque. Mais une LIGNE DE COURSES que
+    // personne ne cuisine fait dépenser: elle sort maintenant sous son propre
+    // état, nommée. Un garde-manger en trop, lui, ne coûte rien et reste muet.
+    if (row.neededLines === 0) {
+      if (row.boughtLines === 0) continue;
+      rows.push({
+        identity: row.identity,
+        identitySource: row.identitySource,
+        displayTerm: row.displayTerm,
+        neededRawG: null,
+        neededLines: 0,
+        neededUnweighed: 0,
+        boughtRawG: row.boughtRawG,
+        boughtLines: row.boughtLines,
+        boughtUnweighed: row.boughtUnweighed,
+        inPantry: row.inPantry,
+        state: "bought_unused",
+        reason: row.boughtRawG === null
+          ? `acheté (${row.boughtLines} ligne(s)), aucune recette ne l'emploie`
+          : `${round1(row.boughtRawG)} g achetés, aucune recette ne les emploie`,
+      });
+      continue;
+    }
     const present = row.boughtLines > 0 || row.inPantry;
     let state: ShoppingCoverState;
     let reason: string;

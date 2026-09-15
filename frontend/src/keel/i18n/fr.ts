@@ -2145,6 +2145,8 @@ export const fr: TranslatedMessages = {
   "plan.validation.cause.shopping_missing": "Un ingrédient n’est sur aucune ligne de courses",
   "plan.validation.cause.shopping_short":
     "Une ligne de courses achète moins que ce que la recette demande",
+  "plan.validation.cause.shopping_unused":
+    "Une ligne de courses achète un aliment qu’aucune recette n’emploie",
   "plan.validation.cause.shopping_undated": "Une ligne de courses n’a pas de jour",
   "plan.validation.cause.shopping_too_early": "Un produit frais est acheté trop tôt",
   "plan.validation.cause.cooking_window": "Un plat se mange hors de sa fenêtre de cuisson",

@@ -86,7 +86,6 @@ import {
   cookedWindowVerdict,
   type KeptWhere,
   keptWindowDays,
-  rawWindowDaysFor,
 } from "./fridge_window.ts";
 import {
   type DeliveredDish,
@@ -102,6 +101,7 @@ import {
 } from "./dietary_regime.ts";
 import { applyHouseRuleLock } from "./household_restriction_lock.ts";
 import { PERISHABLE_AISLES } from "./grocery_waves.ts";
+import { keepingOf } from "./food_keeping.ts";
 import { normalizePantryTerm } from "./meal_generation.ts";
 import { addDays } from "./meal_plan_window.ts";
 import { FOOD_GROUP_REFS, type FoodGroupRef } from "./tokens.ts";
@@ -162,6 +162,17 @@ export interface GateDish {
   readonly why?: string | null;
   /** La bouche à qui ce plat est dédié. `null` = plat de la table. */
   readonly member_id?: string | null;
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A — CE PLAT COMPLÈTE LA TABLE AU LIEU DE LA REMPLACER.
+   *
+   * ⛔ LA DIFFÉRENCE DÉCIDE D'UNE OBLIGATION. Un complément est une entrée de
+   * DERNIER RECOURS créée à la réparation: son porteur RESTE mangeur du plat
+   * partagé, sa part commune est rabotée et le petit plat porte la différence
+   * (`splitPlateWithComplement`). Il ne peut donc jamais satisfaire une
+   * obligation de RÉGIME — la personne mangerait quand même la base que sa
+   * ligne lui interdit. Persisté `complements_shared` par `mealDishesPayload`.
+   */
+  readonly complements_shared?: boolean | null;
   readonly ingredients: readonly GateIngredient[];
   readonly uses: readonly GateUse[];
   readonly boxes: readonly GateBox[];
@@ -238,6 +249,34 @@ export interface GateContext {
     readonly regime: DietaryRegime | null;
     readonly cells: readonly { readonly day: string; readonly slot: string }[];
   }[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A — CE QUE LA GRILLE DOIT À CHAQUE BOUCHE, PAR CASE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `householdCells(...).cells[].dedicated`, aplati — la MÊME décision que le
+   * prompt emporte et que le parseur valide, jamais une seconde lecture.
+   *
+   * ⛔ `null` = LA GRILLE N'A PAS TOURNÉ (lane solo, chemin d'adoption) ⇒ les
+   * deux causes ne sont PAS évaluées, et `checked.dedicated_obligations` reste
+   * à zéro pour le dire. `[]` est une réponse: « la grille a tourné, elle ne
+   * doit de plat à personne ».
+   */
+  readonly dedicated:
+    | readonly {
+      readonly day: string;
+      readonly slot: string;
+      readonly memberId: string;
+      readonly reason: "regime" | "own_meal";
+      /**
+       * ⟳ 2026-09-14 · BÊTA 1A — LA BASE DE CETTE CASE EST-ELLE MANGEABLE PAR
+       * ELLE ? `false` ⇒ sans plat à elle, cette personne n'a RIEN à manger
+       * ici, et c'est le seul cas qui refuse. Voir le pavé de
+       * `dedicated_dish_missing`.
+       */
+      readonly baseEdible: boolean;
+    }[]
+    | null;
   /**
    * L'énergie SERVIE contre l'enveloppe, par bouche, MESURÉE PAR L'APPELANT.
    * `null` = pas mesurable ici (index de composition absent) — et le compteur
@@ -330,7 +369,17 @@ export interface ShoppingCoverRow {
     | "short"
     | "present_unquantified"
     | "check_incomplete"
-    | "not_bought";
+    | "not_bought"
+    /**
+     * ⟳ 2026-09-12 · C3 — l'eau de cuisson du robinet. Ni achetée, ni
+     * manquante, ni « non vérifiée » : hors du panier, et dite comme telle.
+     */
+    | "not_purchasable"
+    /**
+     * ⟳ 2026-09-15 · BÊTA 2C — acheté, et aucune recette ne s'en sert. Voir le
+     * pavé de `SHOPPING_COVER_STATES` dans `final_plan_audit.ts`.
+     */
+    | "bought_unused";
   readonly reason: string;
 }
 
@@ -347,6 +396,23 @@ export interface CellNutritionRow {
   readonly proteinG: number | null;
   readonly deltaPct: number | null;
   readonly gap: string | null;
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — LES DEUX MESURES QUE `cell_bounds_off` NOMME.
+   *
+   * ⚠️ FACULTATIVES, ET LEUR ABSENCE S'ÉCRIT. `CellNutritionRow`
+   * (`final_plan_audit.ts`) les porte toutes les deux: la production les a
+   * toujours. Les fixtures d'adoption, qui décrivent un plan relu en base sans
+   * référentiel, ne les ont pas — et les rendre obligatoires aurait refusé ce
+   * chemin-là. Quand elles manquent, le `detail` écrit « masse et densité non
+   * transmises » plutôt qu'une phrase propre: c'est la règle du dépôt, un
+   * champ absent ne doit pas ressembler à un champ mesuré.
+   *
+   * ⛔ ET CE NE SONT PAS DES PARAMÈTRES DE GARDE. La garde MORD sur
+   * `cell.state`, qui est calculé ailleurs et toujours présent; ces deux-là ne
+   * servent qu'à écrire la phrase.
+   */
+  readonly grams?: number | null;
+  readonly densityPer100G?: number | null;
   /** Une portion INDIVIDUELLE est-elle attendue sur cette case ? */
   readonly portionExpected: boolean;
   readonly state:
@@ -405,11 +471,101 @@ export const FINAL_GATE_CAUSES = [
   // ── les cases et les bouches ────────────────────────────────────────────
   "cell_without_dish",
   "mouth_unfed",
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A — UNE BOUCHE QUE LA CASSEROLE NE PEUT PAS NOURRIR,
+   *                ET AUCUN PLAT À ELLE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ C'EST LE POINT 8 DE LA CLÔTURE, ET IL SORTAIT `conforme`. La grille
+   * décide qu'une bouche a besoin d'un plat à elle parce que la base descendue
+   * au plus strict NE PEUT PAS LA SERVIR (`dietDiverges`, prémisse ⓪ ou un
+   * conflit de service). Si ce plat n'existe pas dans le plan livré, cette
+   * personne n'a rien de compatible à manger — et rien ne le disait: `swap`
+   * comptait, `dish_owners` comptait, et la porte finale ne posait pas la
+   * question.
+   *
+   * ⛔ CE N'EST PAS `mouth_unfed`. Celle-ci dit « aucun contenant ne te
+   * nomme »; une bouche divergente PEUT être nommée sur le contenant du plat
+   * partagé — c'est exactement ce qui se passait — et être quand même devant
+   * une assiette que sa ligne lui interdit. Les deux contrôles regardent deux
+   * choses différentes, et les fondre en rendrait une invisible.
+   *
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⚠️ UNE SEULE PRÉMISSE REFUSE, ET C'EST UNE CORRECTION MESURÉE DU 2026-09-14
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ CETTE CAUSE A D'ABORD LU `dietDiverges` TOUT ENTIER, ET C'ÉTAIT FAUX.
+   * Rejouée sur la référence N=2 (`ref2.json`, végane + omnivore) à travers le
+   * vrai handler: **6 refus bloquants** sur un plan dont le plancher protéique
+   * est tenu (`protein_floor_short: 0` sur `protein_days: 4`). L'omnivore
+   * mangeait la casserole végane — sa ligne ne lui interdit rien — et il était
+   * correctement nourri. Une garde qui refuse un plan correct est aussi fausse
+   * qu'une garde qui en laisse passer un mauvais.
+   *
+   * ⛔ CE QUI REFUSE DÉSORMAIS EST LA PRÉMISSE ⓪ SEULE (`baseEdible === false`):
+   * la base N'EST PAS MANGEABLE par cette bouche — un plat végane et une bouche
+   * sans gluten, deux axes qui ne se rencontrent jamais. Là, sans plat à elle,
+   * cette personne n'a RIEN à manger.
+   *
+   * ⚠️ L'AUTRE MOITIÉ NE DISPARAÎT PAS: une variante réclamée et non servie
+   * sort dans `own_meal_dish_missing`, qui COMPTE. Et ce qu'elle coûte
+   * vraiment — moins de protéine que le contrat — a déjà son contrôle.
+   */
+  "dedicated_dish_missing",
+  /**
+   * LE MÊME MANQUE, SANS IMPOSSIBILITÉ — UNE PRÉFÉRENCE.
+   *
+   * ⟳ 2026-09-14 · BÊTA 1A — DEUX POPULATIONS, ET ELLES PARTAGENT LEUR DURETÉ:
+   * « mon petit-déjeuner à moi » non servi, et une VARIANTE de régime réclamée
+   * par la grille dont la base reste mangeable. Dans les deux cas la personne
+   * a quelque chose à manger; ce qui manque est ce qu'elle préférait.
+   *
+   * ⛔ ELLE EST SÉPARÉE PARCE QUE LE PLAN DE BÊTA L'EXIGE: « une préférence
+   * souple non suivie peut être annoncée ; une incompatibilité impérative non
+   * résolue empêche l'activation ». Les fondre reviendrait soit à refuser un
+   * plan pour une habitude, soit à laisser passer une assiette immangeable.
+   */
+  "own_meal_dish_missing",
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A ⑥ — DEUX PLATS DE TABLE SUR UNE MÊME CASE.
+   *
+   * ⛔ POINT 7 DE LA CLÔTURE: « rien ne les retire ». Le plan tombait bien,
+   * mais par `mouth_unfed / double` — c'est-à-dire sous un nom qui décrit la
+   * CONSÉQUENCE (chaque bouche nommée deux fois) et pas la CAUSE. La consigne
+   * de réparation partait donc réparer des couvercles au lieu de retirer un
+   * repas concurrent.
+   *
+   * ⛔ ET ON NE DEVINE PAS LEQUEL EST DE TROP. Attribuer d'office le second à
+   * une bouche divergente servirait peut-être le plat de l'omnivore à la
+   * végane: « ne jamais attribuer au hasard un plat dont le destinataire est
+   * invalide ». La cardinalité est NOMMÉE ici, et c'est le modèle qui tranche
+   * à la réparation.
+   *
+   * ⚠️ UN COMPLÉMENT N'EN EST PAS UN. Un plat qui complète la table porte un
+   * `member_id`; seuls les plats SANS adresse comptent ici.
+   */
+  "cell_two_table_dishes",
   // ── les boîtes ──────────────────────────────────────────────────────────
   "boxes_none_delivered",
   "box_missing",
   // ── les courses ─────────────────────────────────────────────────────────
   "ingredient_not_bought",
+  /**
+   * ⟳ 2026-09-15 · BÊTA 2C — LE MANQUE, DANS L'AUTRE SENS.
+   *
+   * ⛔ LES QUATRE AUTRES CAUSES D'ACHAT DISENT « il en faut et il n'y en a
+   * pas ». Celle-ci dit « il y en a sur la liste et personne n'en veut »: la
+   * personne paie et jette. Mesuré sur deux plans N=4 du 2026-09-14 — 260 g de
+   * lentilles achetées, zéro lentille dans la seule casserole et dans tous les
+   * plats. B4 demande que grammes, préparations et courses décrivent la MÊME
+   * nourriture; sans cette cause, un seul des deux sens était contrôlé.
+   *
+   * ⚠️ `count`, COMME SES DEUX VOISINES, et pour la raison déjà tranchée le
+   * 2026-09-12: « un plan entier jeté pour une ligne d'achat est le pire des
+   * deux mondes ». Elle sort dans `gaps`, donc à l'écran — pas dans un 422.
+   */
+  "ingredient_bought_unused",
   // ⟳ 2026-09-11 · LOT E — PRÉSENCE **ET** QUANTITÉ. « Il est sur la liste »
   // ne prouve pas « il y en a assez »; c'était la moitié du contrôle qui
   // n'existait nulle part.
@@ -436,8 +592,37 @@ export const FINAL_GATE_CAUSES = [
   "cell_without_portion",
   /** Une portion existe et son énergie n'est pas lisible. */
   "cell_energy_unmeasurable",
-  /** ±10 % par repas dépassés, ou bornes de masse / couloir de densité violés. */
+  /**
+   * ⛔ ±10 % PAR REPAS DÉPASSÉS, ET RIEN D'AUTRE DEPUIS LE 2026-09-12.
+   *
+   * Elle portait AUSSI les bornes de masse et le couloir de densité, et c'est
+   * le défaut n° 2 de la revue de clôture C6: `energy_off` et `bounds_off`
+   * rendaient la MÊME cause, donc la même phrase. Sur le tir n° 4, la
+   * consigne de réparation demandait de corriger « sun/breakfast : 0 % contre
+   * 728 kcal visées » — **0 %**, alors que le vrai défaut était la densité.
+   * On ne demande pas une correction calorique quand les calories sont déjà
+   * bonnes: le modèle relit les contraintes générales et n'obtient pas le
+   * diagnostic que le moteur possède.
+   */
   "cell_energy_off",
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — LA MASSE ET LA DENSITÉ, SÉPARÉES DES CALORIES.
+   *
+   * ⚠️ ELLE NE DIT PAS LAQUELLE DES DEUX. `CellNutritionRow` porte les MESURES
+   * (grammes, kcal/100 g) et pas les BORNES du contrat: la garde nomme donc la
+   * nature (« ce n'est pas l'énergie ») et les deux nombres mesurés. Le
+   * chiffrage complet — quelle borne, de combien — est écrit par
+   * `plan_defect_pass.ts`, qui reçoit les contrats (`contracts`).
+   *
+   * ⛔ ELLE N'EST PAS DANS `CALORIE_PROTECTED_CAUSES`, ET C'EST UNE DETTE
+   * ÉCRITE. Son `detail` porte une densité en kcal/100 g, donc un nombre de la
+   * famille calorique. La liste des causes protégées est DOUBLÉE côté écran
+   * (`frontend/src/keel/api/planValidation.ts`) et un test épingle l'égalité
+   * des deux: l'ajouter ici seul rendrait ce test rouge. Tant qu'elle vaut
+   * `count` dans la politique livrée, elle n'atteint jamais `blocking`, donc
+   * jamais le corps 422 — c'est ce qui rend l'attente sûre, pas un oubli.
+   */
+  "cell_bounds_off",
   /** ±5 % sur la journée COUVERTE dépassés. */
   "day_energy_off",
   /**
@@ -544,9 +729,40 @@ export interface FinalGateChecked {
   readonly cells: number;
   /** Couples (bouche, case) — le dénominateur de `mouth_unfed`. */
   readonly mouth_cells: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1A — COUPLES (BOUCHE, CASE) CONFRONTÉS À LA GRILLE.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ C'EST LE DÉNOMINATEUR, ET CE N'EST PAS LE NOMBRE D'OBLIGATIONS. Un foyer
+   * où personne ne diverge n'a AUCUNE obligation, et pourtant la question lui a
+   * bien été posée, case par case: son zéro est « rien à devoir », pas « rien
+   * n'a tourné ». Prendre le compte des obligations comme dénominateur aurait
+   * rendu les deux indiscernables — exactement la faute que `SANS OBJET` a
+   * coûtée à l'instrument le 2026-09-13.
+   *
+   * Vaut zéro dans les deux seuls cas où la question n'est PAS posée:
+   * `ctx.dedicated === null` (la grille n'a pas tourné — chemin d'adoption,
+   * lane solo) ou aucune bouche.
+   */
+  readonly dedicated_cells_checked: number;
+  /**
+   * ⚠️ TÉMOIN, PAS DÉNOMINATEUR. Combien de plats à part la grille réclame,
+   * motifs confondus. Il dit si le foyer avait quelque chose à prouver.
+   */
+  readonly dedicated_obligations: number;
   readonly shopping_lines: number;
   /** Lignes dont le rayon est dans `PERISHABLE_AISLES`. */
   readonly perishable_lines: number;
+  /**
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — LIGNES DONT LA CONSERVATION EST INCONNUE.
+   *
+   * ⛔ « NON VÉRIFIÉ » N'EST PAS « SANS CONTRAINTE ». À zéro, la lecture a
+   * couvert toute la liste ; sans ce nombre, une liste dont aucune ligne ne
+   * porte d'identité rendrait exactement le même verdict qu'une liste
+   * parfaitement résolue — la façon dont ces contrôles meurent.
+   */
+  readonly keeping_unknown_lines: number;
   /** Termes d'ingrédient DISTINCTS (plats + préparations). */
   readonly ingredient_terms: number;
   /** Plats sans aucune boîte — la surface de la table. */
@@ -581,10 +797,29 @@ export interface FinalGateChecked {
    * additionner à `ingredient_not_bought` inventerait des achats absents.
    */
   readonly shopping_unverified: number;
+  /**
+   * ⟳ 2026-09-12 · C3 — Identités NON ACHETABLES (eau du robinet), mesurées
+   * dans la préparation et hors de tout panier. ⛔ Ni un manque, ni un contrôle
+   * incomplet : un état à part, compté pour que « 0 manque » reste lisible.
+   */
+  readonly shopping_not_purchasable: number;
   /** Cases attendues passées au contrôle de portion. */
   readonly portion_cells: number;
   /** Cases dont l'énergie servie a été LUE. Le dénominateur de `cell_energy_off`. */
   readonly measured_cells: number;
+  /**
+   * ⟳ 2026-09-13 · LOT 1 — Cases où une portion EXISTE et où le contrat s'est
+   * abstenu (âge inconnu, corps absent, ceinture illisible): la personne reçoit
+   * la part de recette, et il n'y a AUCUNE cible à comparer.
+   *
+   * ⛔ NI UN SUCCÈS NI UN ÉCHEC, ET NI UN TROU. Ces cases sont hors de
+   * `measured_cells` (elles ne peuvent pas rendre `cell_energy_off`) ET hors de
+   * `incomplete` (le contrôle n'a pas manqué de mesure, il n'a pas d'objet).
+   * `plan_validation.ts` les publie en `not_applicable`. Les laisser dans le
+   * dénominateur faisait lire « contrôle d'énergie réussi » d'une case que
+   * personne n'a jamais pu juger — mesuré sur `perte-l1age`, six cases.
+   */
+  readonly cell_energy_no_target: number;
   /** Journées-bouche entièrement mesurées, avec un budget couvert. */
   readonly measured_days: number;
   /**
@@ -688,6 +923,9 @@ export const FINAL_GATE_POLICY_LOT_3: Readonly<
   ...FINAL_GATE_POLICY_LOT_2,
   perishable_bought_too_early: "refuse",
   ingredient_not_bought: "refuse",
+  // ⟳ 2026-09-15 — `count` DÈS LE LOT 1, et jamais autre chose: voir son pavé
+  // dans `FINAL_GATE_CAUSES`. Un achat en trop se retire, il ne jette pas un plan.
+  ingredient_bought_unused: "count",
   mouth_energy_short: "count",
 });
 
@@ -696,11 +934,25 @@ export const FINAL_GATE_POLICY_LOT_3: Readonly<
  * LOT 4 — ⟳ 2026-09-11 · LOT E. LES CAUSES DONT LE FAUX POSITIF EST FERMÉ.
  * ══════════════════════════════════════════════════════════════════════════
  *
- * ⛔ ELLE N'EST PAS BRANCHÉE, ET C'EST LE POINT. Le plan interdit d'« activer
+ * ⟳ 2026-09-12 · ÉTAPE C5 — ELLE EST BRANCHÉE. `generate-household-meal-v1`
+ * la passe à son unique appel de `finalPlanGate`, et `FINAL_GATE_POLICY_LOT_1`
+ * n'y est plus passé nulle part (épinglé dans les deux sens par
+ * `plan_validation_wiring_test.ts` § ①). La note précédente disait « elle n'est
+ * pas branchée, et c'est le point » ; elle est remplacée plutôt que gardée,
+ * parce qu'une contrainte documentée survit à sa cause.
+ *
+ * ⛔ L'ORDRE A ÉTÉ TENU, ET IL EST MESURÉ. Le plan interdit d'« activer
  * globalement `FINAL_GATE_POLICY_LOT_3` pour obtenir un label plus strict » :
  * on corrige les faux positifs, PUIS on arme, cause par cause, celles dont le
- * dénominateur a été mesuré sur une campagne réelle. Ce lot a fait la première
- * moitié ; la seconde demande des tirs, c'est-à-dire le lot F.
+ * dénominateur a été mesuré. Sur les onze sorties du transport contrôlé du
+ * 2026-09-11 (`scratchpad/2026-09-11-FIABILITE-RECETTES/sorties-lot-F/`), les
+ * douze causes armées ci-dessous valent ZÉRO sur dix ; la onzième (`gain`,
+ * `ingredient_not_bought`) est un vrai manque d'achat — le faux positif de
+ * pluriel est mort avec `covers()` au lot E.
+ *
+ * ⚠️ ET LA BRANCHE DE REFUS VIT APRÈS LA BOUCLE DE RÉPARATION, pas à l'endroit
+ * de la garde : armer un `return` là où cette garde s'exécute aurait refusé le
+ * PREMIER jet et rendu la réparation inatteignable.
  *
  * ⚠️ CE QUI EST ARMÉ ICI, ET CE QUI RESTE EN `count` :
  *
@@ -731,12 +983,115 @@ export const FINAL_GATE_POLICY_LOT_4: Readonly<
   Record<FinalGateCause, GateSeverity>
 > = policyOf({
   ...FINAL_GATE_POLICY_LOT_3,
+  // ════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 · BÊTA 1A — LES DEUX SEULES CAUSES ARMÉES DU LOT, ET ELLES
+  //                SONT DES IMPOSSIBILITÉS, PAS DES PRÉFÉRENCES
+  // ════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ `dedicated_dish_missing` REFUSE PARCE QU'IL N'Y A RIEN À MANGER. La
+  // grille a établi que la casserole commune ne peut pas servir cette bouche;
+  // sans plat à elle, le plan lui pose devant une assiette que sa ligne lui
+  // interdit. C'est la définition même d'« essentiel » du contrat de bêta
+  // (exclusions, attribution, présence), et le livrer serait livrer un
+  // résultat incorrect comme utilisable.
+  //
+  // ⛔ `cell_two_table_dishes` REFUSE PARCE QUE DEUX REPAS CONCURRENTS SERVENT
+  // LA MÊME BOUCHE DEUX FOIS. Sur le chemin en BOÎTES, ces plans tombaient
+  // déjà — sous le nom `mouth_unfed / double`, c'est-à-dire sous la
+  // CONSÉQUENCE (chaque bouche nommée sur deux couvercles) au lieu de la
+  // CAUSE; la consigne de réparation partait donc corriger des couvercles.
+  //
+  // ⚠️ MAIS CE N'EST PAS QU'UN RENOMMAGE, ET IL FAUT LE DIRE: sur une case
+  // dont AUCUN des deux plats ne porte de boîte, `mealsDelivered` ne comptait
+  // aucun couvercle en double et le plan passait. Cette cause-là refuse donc
+  // des plans qui passaient hier — c'est exactement le point ⑦ de la clôture
+  // (« rien ne les retire »), et une épreuve du banc le montre.
+  //
+  // ⚠️ `own_meal_dish_missing` RESTE À `count` PAR DÉFAUT, et il n'est pas
+  // écrit ici exprès: la seule façon de le passer bloquant serait de le nommer,
+  // et le plan de bêta l'interdit — « une préférence de variété ne devient pas
+  // automatiquement bloquante ».
+  dedicated_dish_missing: "refuse",
+  cell_two_table_dishes: "refuse",
   cell_without_portion: "refuse",
-  ingredient_short_bought: "refuse",
   cell_energy_unmeasurable: "count",
   cell_energy_off: "count",
+  // ⟳ 2026-09-12 · LOT 2 — voir le pavé `cell_bounds_off` dans
+  // `FINAL_GATE_CAUSES`: tant qu'elle n'est pas dans la liste protégée des
+  // DEUX côtés, elle ne doit pas pouvoir atteindre le corps 422.
+  cell_bounds_off: "count",
   day_energy_off: "count",
   protein_floor_short: "count",
+  // ════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 2 — LES DEUX CAUSES D'ACHAT PASSENT EN `count`,
+  // ET ELLES RESTENT COMPTÉES
+  // ════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ C'EST UN ARBITRAGE DE LIVRAISON DÉJÀ TRANCHÉ, PAS UN ASSOUPLISSEMENT
+  // DE MESURE. La décision écrite: « après deux réparations infructueuses,
+  // livrer la meilleure version sûre et complète avec ses écarts signalés;
+  // une portion obligatoire absente ou dangereuse empêche l'activation ».
+  // Ce qui bloque reste donc la SÉCURITÉ (allergène, exclusion médicale,
+  // règle de maison, régime) et `cell_without_portion`.
+  //
+  // ⛔ ET LA REVUE C6 § 5 INTERDIT L'AUTRE LECTURE: « la solution n'est pas de
+  // choisir entre tout refuser et masquer le manque ». Ces deux causes
+  // continuent de sortir dans `refusals[]`, dans `gaps`, dans
+  // `planValidationRecord.defects` et dans les défauts de réparation — on
+  // mesure toujours l'omission INITIALE du modèle. Ce qui change est qu'elle
+  // ne jette plus un plan que le lot 1 (reconstruction déterministe des
+  // achats) rend structurellement complet.
+  //
+  // ⚠️ LES DEUX TIRS REFUSÉS DE LA CAMPAGNE DU 2026-09-11 (n° 1 et n° 3) l'ont
+  // été SUR CES DEUX CAUSES, et le tir n° 1 était un FAUX refus d'identité.
+  // Un plan entier jeté pour une ligne d'achat que le moteur sait recalculer
+  // est le pire des deux mondes.
+  ingredient_not_bought: "count",
+  ingredient_short_bought: "count",
+  // ════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · LOT 3 — ON NE REFUSE PAS LE PLAN DE QUELQU'UN POUR UNE
+  //                DATE QUE C'EST NOUS QUI AVONS CHOISIE
+  // ════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ `buy_on` N'EST PAS ÉCRIT PAR LE MODÈLE. Il est calculé par
+  // `buyDatesByIndex` (`grocery_waves.ts`), c'est-à-dire par NOUS. Cette cause
+  // accuse donc notre propre ordonnancement des courses — et y répondre par un
+  // refus fait payer à la personne une décision qu'elle n'a pas prise. Ce qu'il
+  // faut faire d'une vague mal placée, c'est la REPLACER, pas jeter six repas.
+  //
+  // ⛔ ET SON FAUX POSITIF EST MESURÉ, SUR UN TIR RÉEL. Le 2026-09-12, tir 3 :
+  // « thon en conserve acheté le 2026-09-12, tenu 1 jour, attendu cuisiné le
+  // 2026-09-14 — sans congélation ». Une boîte de thon se garde des années. Le
+  // rayon venait du groupe `white_fish`, que `tuna_tinned` partage avec
+  // `tuna_fresh`. La classification est corrigée à sa source
+  // (`SHELF_STABLE_SLUGS`) ; cette sévérité-ci est la seconde ceinture.
+  //
+  // ⚠️ LA CAUSE RESTE COMPTÉE, ET ELLE RESTE UTILE : du poisson FRAIS acheté
+  // trois jours avant sa cuisson sans congélation est un vrai sujet.
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-12 · FERMETURE LOT 2 — ELLE EST RÉARMÉE, ET LE FAUX POSITIF EST
+  //                MORT À SA SOURCE
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ « LA DATE VIENT DE NOUS » JUSTIFIE DE LA CORRIGER, PAS DE SERVIR LE
+  // RÉSULTAT. C'est la correction que la revue du 2026-09-12 demande en toutes
+  // lettres : « pour un produit effectivement périssable, il faut déplacer
+  // l'achat, adapter la cuisson/congélation si le plan le permet, puis
+  // contrôler à nouveau. Une impossibilité de conservation non résolue ne
+  // satisfait pas la règle de livraison d'un plan sûr. »
+  //
+  // ⛔ ET CE QUI A CHANGÉ DEPUIS LE PASSAGE EN `count` EST LA CAUSE DU FAUX
+  // POSITIF, pas la sévérité. La datation et cette garde lisent désormais la
+  // MÊME conservation (`keepingOf`, `food_keeping.ts`) : une conserve n'a plus
+  // de fenêtre des deux côtés, et une fenêtre qui mord ici est une
+  // incompatibilité RÉELLE — `buyOn = max(début, cuisson − fenêtre)` la rend
+  // impossible par construction tant que la ligne est datée.
+  //
+  // ⚠️ UNE CONSERVATION INCONNUE NE REFUSE PAS. Elle sort `keeping_unknown_lines`
+  // et ne passe jamais par ce refus : accuser ce qu'on n'a pas su lire est la
+  // faute symétrique.
+  perishable_bought_too_early: "refuse",
 });
 
 // ---------------------------------------------------------------------------
@@ -785,7 +1140,119 @@ export interface FinalGateDelivery {
    * quantifié inventé ».
    */
   readonly incomplete: readonly { readonly control: string; readonly count: number }[];
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1B ⑧ — LES CONTRÔLES EXIGÉS QUI N'ONT PAS CONCLU.
+   *
+   * ⛔ NON VIDE ⇒ `state` VAUT `not_deliverable`, même sans aucun refus. C'est
+   * la différence entre « rien n'a mordu » et « tout a été regardé », et le
+   * plan de bêta en fait un critère de lancement (B3).
+   */
+  readonly missingEssential: readonly EssentialControl[];
 }
+
+// ---------------------------------------------------------------------------
+// ④ ter ⟳ 2026-09-14 · BÊTA 1B ⑦⑧ — LES CONTRÔLES ESSENTIELS
+// ---------------------------------------------------------------------------
+
+/**
+ * LES CONTRÔLES QU'UN PLAN LIVRABLE DOIT AVOIR FAIT CONCLURE.
+ *
+ * ⛔ CE SONT DES CONTRÔLES, PAS DES CAUSES. Une CAUSE accuse le plan (« cet
+ * ingrédient est interdit »); un CONTRÔLE dit seulement qu'on a regardé. Un
+ * plan sans aucun refus dont la nutrition n'a jamais été mesurée n'est pas un
+ * plan propre: c'est un plan qu'on n'a pas lu.
+ *
+ * ⚠️ LA LISTE EST FERMÉE ET NOMMÉE, jamais dérivée des dénominateurs à zéro.
+ * `unevaluated` en compte beaucoup qui sont légitimement sans objet — un plan
+ * sans ligne périssable n'a rien à prouver sur la conservation. Choisir
+ * lesquels sont ESSENTIELS est une décision de produit, et elle s'écrit.
+ */
+export const ESSENTIAL_CONTROLS = [
+  /** Des cases étaient attendues. À zéro, la grille n'a pas tourné. */
+  "cells_expected",
+  /** Des couples (bouche, case) ont été confrontés au plan. */
+  "mouth_cells",
+  /** La nutrition par case a été lue. À zéro, aucune portion n'a été mesurée. */
+  "portions_measured",
+  /** Les achats ont été confrontés aux recettes. */
+  "shopping_audited",
+  /** Les obligations de plat à part ont été confrontées au plan livré. */
+  "dedicated_checked",
+  /**
+   * L'énergie par case a CONCLU quelque part. ⛔ Ce n'est PAS « aucune case
+   * n'est incomplète »: une journée à trou existe et se lit dans `incomplete`,
+   * c'est un écart nommé, pas un contrôle absent. Ce qui est exigé ici est
+   * qu'au moins une case ait été jugée alors que des cases étaient jugeables.
+   */
+  "cell_energy_concluded",
+  /** Le plancher protéique a CONCLU quelque part, même règle exactement. */
+  "protein_floor_concluded",
+] as const;
+export type EssentialControl = (typeof ESSENTIAL_CONTROLS)[number];
+
+/**
+ * QUAND CHAQUE CONTRÔLE EST « APPLICABLE ET NON CONCLU ».
+ *
+ * ⛔ FERMÉE PAR LE TYPE: `Record<EssentialControl, …>` fait recenser par le
+ * compilateur tout contrôle ajouté plus tard. Un contrôle sans prédicat serait
+ * un contrôle qu'on exige sans savoir le lire.
+ *
+ * ⚠️ `protein_floor_concluded` LIT `protein_unmeasured`, PAS `protein_days`.
+ * Une abstention LÉGITIME (plancher TCA, mineur, objectif absent) sort dans
+ * `protein_protected` et ne bloque rien: refuser un plan parce qu'une
+ * protection a fermé serait retourner la protection contre la personne.
+ */
+const ESSENTIAL_CONTROL_MISSING: Readonly<
+  Record<EssentialControl, (checked: FinalGateChecked) => boolean>
+> = Object.freeze({
+  cells_expected: (c) => c.cells === 0,
+  mouth_cells: (c) => c.mouth_cells === 0,
+  portions_measured: (c) => c.portion_cells === 0,
+  shopping_audited: (c) => c.shopping_identities === 0,
+  dedicated_checked: (c) => c.dedicated_cells_checked === 0,
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ CES DEUX-LÀ LISENT UN DÉNOMINATEUR, PAS DES LIGNES. LA DIFFÉRENCE A UN
+  //    PRIX MESURÉ, ET IL EST ÉCRIT ICI.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // La première écriture exigeait ZÉRO LIGNE incomplète
+  // (`portion_cells - measured_cells - no_target > 0` ⇒ manquant). Passée sur
+  // le foyer propre du banc, elle le refusait: son DIMANCHE est
+  // délibérément `unmeasurable` — « sa somme manque la part du dahl, qu'aucun
+  // contenant ne porte » — et sa protéine sort `coverage_unknown` sur quatre
+  // journées-bouche sur huit. C'est-à-dire qu'elle refusait le cas que ce
+  // dépôt a écrit comme étant PROPRE.
+  //
+  // ⛔ ET CE N'ÉTAIT PAS LE BON CONTRÔLE. « Cette journée-là n'a pas pu être
+  // lue » est un ÉCART NOMMÉ: il sort déjà dans `incomplete`, dans
+  // `planValidationRecord` et dans les défauts de réparation. Ce que la garde
+  // ne savait pas dire, c'est « ce contrôle n'a JAMAIS conclu » — un
+  // dénominateur à zéro. Les deux appellent des corrections opposées: la
+  // première se répare dans le plan, la seconde dans l'instrument.
+  //
+  // ⚠️ CE QUE ÇA LAISSE OUVERT, ET IL FAUT LE DIRE: un plan dont UNE journée
+  // sur sept reste illisible est livrable, avec son écart écrit. Le passer à
+  // « zéro ligne incomplète » est une décision de périmètre, pas un réglage —
+  // et elle demande d'abord de mesurer combien de plans elle coûterait.
+  cell_energy_concluded: (c) =>
+    c.portion_cells > 0 && c.measured_cells === 0 &&
+    c.cell_energy_no_target === 0,
+  protein_floor_concluded: (c) =>
+    c.protein_days === 0 && c.protein_protected === 0 &&
+    c.protein_unmeasured > 0,
+});
+
+/**
+ * CE QUE LA LANE FOYER EXIGE POUR LA BÊTA.
+ *
+ * ⛔ LES SEPT, ET LE PLAN LES NOMME: « exclusions, attribution, présence,
+ * quantités mesurables nécessaires, calories et protéines quand leur contrat
+ * s'applique, bornes, intégrité des références, cuisine/courses exécutables ».
+ * Retirer une ligne d'ici est un CHANGEMENT DE PÉRIMÈTRE, pas un réglage — le
+ * plan exige qu'il apparaisse comme tel dans le rapport.
+ */
+export const HOUSEHOLD_BETA_ESSENTIALS: readonly EssentialControl[] = Object
+  .freeze([...ESSENTIAL_CONTROLS]);
 
 /**
  * LE DÉNOMINATEUR DE CHAQUE CAUSE — la table qui rend `unevaluated` calculable.
@@ -808,9 +1275,15 @@ const CAUSE_DENOMINATOR: Readonly<
   session_day_mismatch: "session_ids",
   cell_without_dish: "cells",
   mouth_unfed: "mouth_cells",
+  dedicated_dish_missing: "dedicated_cells_checked",
+  own_meal_dish_missing: "dedicated_cells_checked",
+  cell_two_table_dishes: "cells",
   boxes_none_delivered: "boxed_dishes",
   box_missing: "mouth_cells",
   ingredient_not_bought: "shopping_identities",
+  // ⚠️ LES LIGNES, PAS LES IDENTITÉS: cette cause naît d'une LIGNE DE COURSES
+  // écrite en trop. Sans ligne, elle n'a rien à regarder.
+  ingredient_bought_unused: "shopping_lines",
   ingredient_short_bought: "shopping_quantified",
   shopping_undated: "shopping_lines",
   unclassified_perishable: "perishable_lines",
@@ -824,6 +1297,10 @@ const CAUSE_DENOMINATOR: Readonly<
   cell_without_portion: "portion_cells",
   cell_energy_unmeasurable: "portion_cells",
   cell_energy_off: "measured_cells",
+  // ⚠️ LE MÊME DÉNOMINATEUR QUE L'ÉNERGIE, ET C'EST EXACT: une case hors
+  // bornes a été MESURÉE (elle a une portion, une masse et une énergie
+  // lisibles). Lui en donner un autre ferait lire son zéro autrement.
+  cell_bounds_off: "measured_cells",
   day_energy_off: "measured_days",
   protein_floor_short: "protein_days",
 });
@@ -841,6 +1318,27 @@ const CAUSE_DENOMINATOR: Readonly<
  */
 export function finalGateDelivery(
   outcome: FinalGateOutcome,
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-14 · BÊTA 1B ⑦⑧ — LES CONTRÔLES QUE CE CHEMIN-CI EXIGE
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS, ET POSITIONNEL. `[]` est une réponse — « ce chemin n'exige
+   * aucun contrôle » — et c'est celle du chemin d'ADOPTION, qui n'a ni
+   * référentiel ni grille et qui ne doit pas se mettre à refuser des
+   * brouillons. Le rendre facultatif ferait exactement ce que ce dépôt paie
+   * en boucle: une garde construite, branchée, et désarmée chez tous ceux qui
+   * l'oublient.
+   *
+   * ⛔ CE QU'IL FERME. `state` ne lisait que `blocking` et `gaps`: un plan
+   * dont AUCUN contrôle essentiel n'avait tourné sortait `conforme`. Le plan
+   * de bêta l'interdit en toutes lettres — « aucun plan utilisable n'a d'écart
+   * essentiel non résolu OU de contrôle essentiel applicable resté inconnu ».
+   *
+   * ⚠️ ET CE N'EST PAS UN SECOND VERDICT. On réutilise `not_deliverable`, le
+   * même état, lu par les mêmes appelants: l'écran ne montre qu'une histoire.
+   */
+  essential: readonly EssentialControl[],
 ): FinalGateDelivery {
   const blocking = outcome.refusals.filter((r) => r.severity === "refuse");
   const gaps = outcome.refusals.filter((r) => r.severity !== "refuse");
@@ -850,14 +1348,28 @@ export function finalGateDelivery(
   const checked = outcome.counters.checked;
   const incomplete = ([
     ["shopping_quantity", checked.shopping_unverified],
-    ["cell_energy", checked.portion_cells - checked.measured_cells],
+    // ⟳ 2026-09-13 · LOT 1 — LES CASES SANS CIBLE SORTENT DES DEUX CÔTÉS.
+    // Elles ont quitté `measured_cells`; sans cette soustraction elles
+    // tomberaient dans `incomplete`, c'est-à-dire « on n'a pas pu vérifier »
+    // — une demande de réparation là où une protection a simplement fermé.
+    [
+      "cell_energy",
+      checked.portion_cells - checked.measured_cells - checked.cell_energy_no_target,
+    ],
     ["protein_floor", checked.protein_unmeasured],
     ["mouth_energy", checked.energy_unmeasured],
   ] as const)
     .filter(([, n]) => n > 0)
     .map(([control, count]) => ({ control, count }));
+  // ⟳ 2026-09-14 · BÊTA 1B ⑦ — LES QUATRE ÉTATS DU PLAN, APPLIQUÉS À UN
+  // CONTRÔLE. « Applicable et réussi », « applicable et échoué » (c'est
+  // `gaps`/`blocking`), « applicable et non conclu » (ICI), « non applicable »
+  // (ce que `CAUSE_DENOMINATOR` et `cell_energy_no_target` disent déjà).
+  const missingEssential = essential.filter((control) =>
+    ESSENTIAL_CONTROL_MISSING[control](checked)
+  );
   return {
-    state: blocking.length > 0
+    state: blocking.length > 0 || missingEssential.length > 0
       ? "not_deliverable"
       : gaps.length > 0
       ? "deliverable_with_gaps"
@@ -866,6 +1378,7 @@ export function finalGateDelivery(
     gaps,
     unevaluated,
     incomplete,
+    missingEssential,
   };
 }
 
@@ -1604,6 +2117,8 @@ export function finalPlanGate(
 
   const expectedCells = new Set<string>();
   let mouthCells = 0;
+  /** ⟳ 2026-09-14 · BÊTA 1A — le témoin: combien de plats à part sont dus. */
+  let dedicatedObligations = 0;
   for (const m of ctx.mouths) {
     for (const c of m.cells ?? []) {
       const day = String(c?.day ?? "").trim();
@@ -1673,6 +2188,166 @@ export function finalPlanGate(
         detail: `unfed:${row.cause}`,
       });
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 · BÊTA 1A — CE QUE LA GRILLE DOIT, SERVI OU NON
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LA QUESTION EST « CETTE BOUCHE A-T-ELLE UN PLAT À ELLE SUR CETTE CASE »,
+  // et la réponse se lit sur `member_id`, le champ que le parseur vient de
+  // valider. Un plat de la table ne compte pas: c'est précisément celui dont
+  // la grille a dit qu'il ne peut pas la nourrir.
+  const dedicatedAt = new Set<string>();
+  for (const d of dishes) {
+    const day = String(d?.day ?? "").trim();
+    const slot = String(d?.slot ?? "").trim();
+    const owner = String(d?.member_id ?? "").trim();
+    if (!day || !slot || !owner) continue;
+    // ⛔ UN COMPLÉMENT NE REMPLACE RIEN, voir `GateDish.complements_shared`.
+    // Le compter ici ferait lire « elle a son plat » d'une personne qui mange
+    // toujours la casserole interdite, avec une petite assiette en plus.
+    if (d?.complements_shared === true) continue;
+    dedicatedAt.add(`${day}/${slot}/${owner}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-14 · BÊTA 1A — LE SECOND CANAL: UN COMPOSANT SERVI **PAR BOÎTE**
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LA PREMIÈRE ÉCRITURE DE CE CONTRÔLE NE LISAIT QUE `member_id`, ET ELLE
+  // A REFUSÉ UNE RÉFÉRENCE QUI NOURRIT CORRECTEMENT. Mesuré le 2026-09-14 en
+  // rejouant `ref2.json` (foyer végane + omnivore) à travers le vrai handler:
+  // **6 refus `dedicated_dish_missing`** sur un plan dont la clôture avait
+  // mesuré « jambon 150 g / 37,1 g de protéines chez l'omnivore, tofu 150 g /
+  // 29,6 g chez la végane, zéro jambon dans sa boîte ». La divergence était
+  // servie — par le canal des BOÎTES, pas par un plat à part.
+  //
+  // ⛔ LES DEUX CANAUX EXISTENT DANS LE PRODUIT, ET LE CONTRÔLE DOIT LIRE LES
+  // DEUX. N'en lire qu'un refuserait des plans qui servent la bonne assiette,
+  // ce qui est exactement l'inverse du but: « ne pas livrer un résultat
+  // incorrect comme utilisable » ne veut pas dire « refuser ce qui est
+  // correct ».
+  //
+  // ── CE QUE « SERVI PAR BOÎTE » VEUT DIRE ICI, ET C'EST MESURABLE ────────
+  // Cette bouche a, sur cette case, un contenant À SON SEUL NOM qui porte un
+  // composant qu'AUCUN contenant d'une autre bouche ne porte. C'est la
+  // définition du partage par boîte telle que le bloc de régime la commande:
+  // « one box for the people that line binds … one box for everyone else with
+  // the original ».
+  //
+  // ⚠️ UN CONTENANT IDENTIQUE À CELUI DES AUTRES NE COMPTE PAS. Deux boîtes
+  // qui puisent la même casserole dans les mêmes proportions sont un PARTAGE,
+  // pas une variante — et la bouche qui diverge y mange ce que sa ligne
+  // refuse.
+  //
+  // ⚠️ LA CLÉ D'UN COMPOSANT EST SA CASSEROLE, sinon son terme normalisé. Deux
+  // termes différents pour une même casserole restent LE MÊME composant.
+  const itemKey = (it: GateBoxItem): string =>
+    String(it?.preparation_id ?? "").trim() !== ""
+      ? `p:${String(it.preparation_id).trim()}`
+      : `t:${flatten(it?.term)}`;
+  /** `jour/moment/bouche` → les composants que SEULE cette bouche reçoit. */
+  const exclusiveAt = new Map<string, Set<string>>();
+  {
+    const boxesByCell = new Map<
+      string,
+      { mouths: readonly string[]; keys: string[] }[]
+    >();
+    for (const d of dishes) {
+      const day = String(d?.day ?? "").trim();
+      const slot = String(d?.slot ?? "").trim();
+      if (!day || !slot) continue;
+      const key = `${day}/${slot}`;
+      const list = boxesByCell.get(key) ?? [];
+      for (const b of d?.boxes ?? []) {
+        list.push({
+          mouths: (b?.member_ids ?? []).map((m) => String(m ?? "").trim()),
+          keys: (b?.items ?? []).map(itemKey),
+        });
+      }
+      boxesByCell.set(key, list);
+    }
+    for (const [cell, boxes] of boxesByCell) {
+      const mouths = new Set(boxes.flatMap((b) => b.mouths).filter(Boolean));
+      for (const mouth of mouths) {
+        // ⛔ « CHEZ LES AUTRES » EST LU SUR LES CONTENANTS QUI NE NOMMENT PAS
+        // CETTE BOUCHE. Un bac partagé qui la nomme AVEC d'autres n'est pas un
+        // contenant « des autres »: il est le sien aussi.
+        const ailleurs = new Set(
+          boxes.filter((b) => !b.mouths.includes(mouth)).flatMap((b) => b.keys),
+        );
+        const sien = new Set(
+          boxes
+            .filter((b) => b.mouths.length === 1 && b.mouths[0] === mouth)
+            .flatMap((b) => b.keys),
+        );
+        const propres = [...sien].filter((k) => !ailleurs.has(k));
+        if (propres.length > 0) {
+          exclusiveAt.set(`${cell}/${mouth}`, new Set(propres));
+        }
+      }
+    }
+  }
+  const obligations = ctx.dedicated ?? [];
+  for (const o of obligations) {
+    const day = String(o?.day ?? "").trim();
+    const slot = String(o?.slot ?? "").trim();
+    const memberId = String(o?.memberId ?? "").trim();
+    if (!day || !slot || !memberId) continue;
+    dedicatedObligations++;
+    const adresse = `${day}/${slot}/${memberId}`;
+    // ⛔ LES DEUX CANAUX, ET UN SEUL SUFFIT. Voir le pavé de `exclusiveAt`.
+    if (dedicatedAt.has(adresse) || exclusiveAt.has(adresse)) continue;
+    // ⛔ SEULE L'IMPOSSIBILITÉ REFUSE. Voir le pavé de `dedicated_dish_missing`
+    // et celui de `dietBaseEdible`: « elle ne peut RIEN manger ici » et « elle
+    // mangerait mieux autre chose » ne se réparent pas au même endroit.
+    if (o.reason === "regime" && o.baseEdible !== true) {
+      refuse("dedicated_dish_missing", {
+        day,
+        slot,
+        member_id: memberId,
+        detail:
+          "la base partagée de cette case ne peut pas nourrir cette bouche, et " +
+          "aucun plat ne lui est attribué ici",
+      });
+      continue;
+    }
+    refuse("own_meal_dish_missing", {
+      day,
+      slot,
+      member_id: memberId,
+      detail: o.reason === "regime"
+        ? "la variante réclamée pour cette bouche n'est pas servie ici -- elle " +
+          "mange la base commune, qui lui convient sans lui donner ce qu'elle demande"
+        : "cette bouche a déclaré son propre repas ici, et n'a pas de plat à elle",
+    });
+  }
+
+  // ── LA CARDINALITÉ: UN REPAS LOGIQUE PAR CASE ──────────────────────────
+  //
+  // ⚠️ ON COMPTE LES PLATS SANS ADRESSE, et eux seuls. Un plat dédié et un
+  // complément portent un `member_id`: deux contenants sur une case sont
+  // normaux, deux REPAS concurrents ne le sont pas.
+  const tableDishesAt = new Map<string, number>();
+  for (const d of dishes) {
+    const day = String(d?.day ?? "").trim();
+    const slot = String(d?.slot ?? "").trim();
+    if (!day || !slot) continue;
+    if (String(d?.member_id ?? "").trim() !== "") continue;
+    const key = `${day}/${slot}`;
+    tableDishesAt.set(key, (tableDishesAt.get(key) ?? 0) + 1);
+  }
+  for (const key of [...tableDishesAt.keys()].sort()) {
+    const n = tableDishesAt.get(key) ?? 0;
+    if (n < 2) continue;
+    const [day, slot] = key.split("/");
+    refuse("cell_two_table_dishes", {
+      day,
+      slot,
+      detail:
+        `${n} plats de table sur cette case: chaque bouche y est servie ${n} fois`,
+    });
   }
 
   if (boxContract !== null && boxContract.expected > 0) {
@@ -1753,9 +2428,30 @@ export function finalPlanGate(
   let shoppingIdentities = 0;
   let shoppingQuantified = 0;
   let shoppingUnverified = 0;
+  let shoppingNotPurchasable = 0;
   if (shoppingRows !== null) {
     for (const row of [...shoppingRows].sort((a, b) => a.identity < b.identity ? -1 : 1)) {
       shoppingIdentities++;
+      // ⟳ 2026-09-12 · C3 — L'EAU DU ROBINET SORT DES QUATRE CAUSES D'ACHAT.
+      // ⛔ ET ELLE NE TOMBE PAS DANS `shopping_unverified` : « non applicable »
+      // n'est pas « non contrôlé » (faute de mesure n° 4 du lot 0). Elle a son
+      // propre compteur, et elle reste dans le dénominateur des identités —
+      // sinon un plan qui n'aurait que de l'eau se lirait « rien à regarder ».
+      if (row.state === "not_purchasable") {
+        shoppingNotPurchasable++;
+        continue;
+      }
+      // ⟳ 2026-09-15 · BÊTA 2C — LA LIGNE QUE PERSONNE NE CUISINE. Elle reste
+      // dans le dénominateur des identités (on l'a bien regardée), comme l'eau
+      // du robinet juste au-dessus, et elle n'entre pas dans `quantified`: il
+      // n'y a pas de besoin à comparer.
+      if (row.state === "bought_unused") {
+        refuse("ingredient_bought_unused", {
+          term: row.displayTerm,
+          detail: `« ${row.displayTerm} » : ${row.reason}`,
+        });
+        continue;
+      }
       if (row.state === "covered_measured" || row.state === "short") shoppingQuantified++;
       if (row.state === "covered_measured") continue;
       if (row.state === "not_bought") {
@@ -1784,6 +2480,13 @@ export function finalPlanGate(
 
   // ── ⑥.b LES LIGNES DE COURSES ────────────────────────────────────────
   let perishableLines = 0;
+  /**
+   * ⟳ 2026-09-12 · FERMETURE LOT 2 — LES LIGNES DONT LA CONSERVATION EST
+   * INCONNUE. ⛔ À ZÉRO, la lecture a couvert toute la liste ; sans ce nombre,
+   * une liste dont aucune ligne ne porte d'identité rendrait exactement le même
+   * verdict qu'une liste parfaitement résolue.
+   */
+  let keepingUnknown = 0;
   for (const line of shopping) {
     const term = String(line?.term ?? "");
     const aisle = String(line?.aisle ?? "");
@@ -1799,18 +2502,40 @@ export function finalPlanGate(
       continue;
     }
 
-    const group = asFoodGroup(line?.food_group);
-    if (perishable && group === null) {
-      refuse("unclassified_perishable", {
-        term,
-        detail:
-          `« ${term} » est au rayon « ${aisle} » sans groupe d'aliment — sa fenêtre crue est inconnue`,
-      });
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-12 · FERMETURE LOT 2 — LA MÊME LECTURE QUE LA DATATION
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE BLOC LISAIT LE GROUPE, ET LA DATATION LISAIT LE RAYON. Deux
+    // lectures d'un même fait, qui ont divergé : le thon EN CONSERVE partait
+    // au rayon `pantry` (donc daté comme du stable) et gardait le groupe
+    // `white_fish` (donc refusé ici avec la fenêtre du poisson frais, un jour).
+    // Le plan de fermeture l'exige : « faire utiliser cette lecture par le
+    // calcul des dates ET par `finalPlanGate` ».
+    //
+    // ⛔ ET LE GESTE DU CONGÉLATEUR EST DANS LA LECTURE, plus dans un `continue`
+    // posé après. Il décrit la même chose — ce que cet achat peut attendre.
+    const keeping = keepingOf({
+      ref: line?.ref ?? null,
+      group: line?.food_group ?? null,
+      frozen: line?.freeze_on_purchase === true,
+    });
+    if (keeping.kind === "unknown") {
+      // ⛔ NON VÉRIFIÉ N'EST PAS SANS CONTRAINTE. On ne peut pas dire de cette
+      // ligne qu'elle se garde ; on dit qu'on ne sait pas, et ça se compte.
+      keepingUnknown++;
+      if (perishable) {
+        refuse("unclassified_perishable", {
+          term,
+          detail:
+            `« ${term} » est au rayon « ${aisle} » sans groupe d'aliment — sa fenêtre crue est inconnue`,
+        });
+      }
       continue;
     }
-    if (group === null) continue;
-
-    const window = rawWindowDaysFor(group);
+    const window = keeping.rawWindowDays;
+    // ⚠️ `stable` ET `frozen` N'ONT PAS DE FENÊTRE, ET C'EST UNE RÉPONSE, pas
+    // une abstention : rien ne les fait attendre.
     if (window === null) continue;
 
     const needRank = earliestRankByTerm.get(normalizePantryTerm(term));
@@ -1818,7 +2543,6 @@ export function finalPlanGate(
     const needBy = addDays(ctx.startsOn, needRank);
     const lastGoodDay = addDays(buyOn, window);
     if (lastGoodDay >= needBy) continue;
-    if (line?.freeze_on_purchase === true) continue;
     refuse("perishable_bought_too_early", {
       term,
       day: ctx.windowDays[needRank] ?? null,
@@ -1882,6 +2606,8 @@ export function finalPlanGate(
   // ferait accuser l'invariant d'un défaut qui a déjà son nom.
   let portionCells = 0;
   let measuredCells = 0;
+  // ⟳ 2026-09-13 · LOT 1 — les cases dont le contrat s'est abstenu.
+  let cellEnergyNoTarget = 0;
   let measuredDays = 0;
   let proteinDays = 0;
   let proteinProtected = 0;
@@ -1896,6 +2622,27 @@ export function finalPlanGate(
       // où la règle n'a simplement pas d'objet.
       if (!cell.portionExpected) continue;
       portionCells++;
+      // ══════════════════════════════════════════════════════════════════
+      // ⟳ 2026-09-13 · LOT 1 — UNE CASE SANS CIBLE N'EST NI JUSTE NI FAUSSE
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ ELLE ÉTAIT COMPTÉE COMME UNE RÉUSSITE, ET C'EST UN FAUX VERT.
+      // `cellStateOf` rend `no_target` quand une portion EXISTE et que le
+      // contrat s'est abstenu (âge inconnu, corps absent, ceinture illisible).
+      // Son `servedKcal` est lisible, donc elle entrait dans `measured_cells`
+      // — le dénominateur de `cell_energy_off` — sans pouvoir jamais en sortir
+      // un refus. Mesuré le 2026-09-13 sur `perte-l1age`: six cases d'une
+      // bouche d'âge inconnu se lisaient « 24 contrôles d'énergie réussis ».
+      //
+      // ⛔ ET ELLE NE PART PAS DANS `incomplete` NON PLUS. « Le contrôle a
+      // tourné et n'a pas conclu » et « le contrôle n'a pas d'objet » sont deux
+      // phrases différentes: la première demande une réparation, la seconde
+      // décrit une protection qui fonctionne. C'est la quatrième liste de
+      // `plan_validation.ts` (`not_applicable`) qui la reçoit.
+      if (cell.state === "no_target") {
+        cellEnergyNoTarget++;
+        continue;
+      }
       if (cell.servedKcal !== null) measuredCells++;
       if (cell.state === "no_portion") {
         if (!cell.hasDish) continue; // dit par `cell_without_dish`
@@ -1919,17 +2666,47 @@ export function finalPlanGate(
         });
         continue;
       }
-      if (cell.state === "energy_off" || cell.state === "bounds_off") {
-        const written = cell.deltaPct === null
-          ? "hors bornes de masse ou de couloir"
-          : `${cell.deltaPct > 0 ? "+" : ""}${Math.round(cell.deltaPct)} % contre ${
-            spacedInt(cell.targetKcal ?? 0)
-          } kcal visées`;
+      // ══════════════════════════════════════════════════════════════════
+      // ⟳ 2026-09-12 · LOT 2 — DEUX ÉTATS, DEUX CAUSES, DEUX PHRASES
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ AVANT, LES DEUX RENDAIENT `cell_energy_off`, ET SI `deltaPct`
+      // EXISTAIT LE TEXTE NE DÉCRIVAIT QUE L'ÉCART CALORIQUE. Un
+      // `bounds_off` a par construction un `deltaPct` DANS la tolérance — il
+      // ne franchit ses bornes qu'après avoir passé le test d'énergie. Le
+      // texte disait donc « 0 % contre 728 kcal visées » d'une case dont les
+      // calories étaient justes, et demandait de réparer les calories.
+      if (cell.state === "energy_off") {
         refuse("cell_energy_off", {
           day: cell.day,
           slot: cell.slot,
           member_id: cell.memberId,
-          detail: `${cell.date} ${cell.slot} : ${written}`,
+          detail: `${cell.date} ${cell.slot} : ${
+            cell.deltaPct === null
+              ? "écart calorique illisible"
+              : `${cell.deltaPct > 0 ? "+" : ""}${Math.round(cell.deltaPct)} % contre ${
+                spacedInt(cell.targetKcal ?? 0)
+              } kcal visées`
+          }`,
+        });
+      } else if (cell.state === "bounds_off") {
+        // ⚠️ ON NOMME CE QUI EST MESURÉ, ET ON NE DEVINE PAS LA BORNE. La
+        // ligne ne porte pas le contrat; `plan_defect_pass.ts` le reçoit et
+        // écrit la phrase chiffrée qui part au modèle.
+        const mesures =
+          cell.grams === undefined || cell.grams === null ||
+            cell.densityPer100G === undefined || cell.densityPer100G === null
+            ? "masse et densité non transmises"
+            : `${spacedInt(cell.grams)} g cuits, ${
+              spacedInt(cell.densityPer100G)
+            } kcal/100 g`;
+        refuse("cell_bounds_off", {
+          day: cell.day,
+          slot: cell.slot,
+          member_id: cell.memberId,
+          detail:
+            `${cell.date} ${cell.slot} : calories dans la tolérance, mais hors bornes de masse ` +
+            `ou du couloir de densité (${mesures})`,
         });
       }
     }
@@ -1937,6 +2714,24 @@ export function finalPlanGate(
       if (day.state !== "unmeasurable") measuredDays++;
       if (day.state === "energy_off") {
         refuse("day_energy_off", {
+          // ══════════════════════════════════════════════════════════════
+          // ⟳ 2026-09-12 · ÉTAPE C4 — LA DATE ENTRE DANS L'IDENTITÉ DU REFUS
+          // ══════════════════════════════════════════════════════════════
+          //
+          // ⛔ SANS ELLE, DEUX JOURNÉES DE LA MÊME BOUCHE ONT LA MÊME CLÉ.
+          // `violationKey` (`plan_repair_loop.ts`) joint cause/jour/moment/
+          // plat/préparation/bouche/terme: à `day: null`, les deux journées du
+          // tir n° 1 (−42 % et −43 %) rendaient UNE seule identité — leurs
+          // ampleurs s'écrasaient, et une réparation qui corrigeait l'une
+          // pouvait casser l'autre sans que `compareSafety` ni
+          // `magnitudeComparison` le voient.
+          //
+          // ⚠️ C'EST UNE DATE, PAS UN JETON DE JOUR, et c'est la seule clé que
+          // `DayNutritionRow` porte. Les causes de CASE (`cell_energy_off`)
+          // continuent de porter le jeton, qui est ce que leur ligne porte.
+          // Les deux se lisent dans le `detail`, qui écrit la date en toutes
+          // lettres depuis le lot E.
+          day: day.date,
           member_id: day.memberId,
           detail: `${day.date} : ${spacedInt(day.servedKcal ?? 0)} kcal servies pour ${
             spacedInt(day.coveredBudgetKcal ?? 0)
@@ -1963,6 +2758,10 @@ export function finalPlanGate(
       if (day.proteinG >= floor) continue;
       const percent = Math.round((day.proteinG / floor) * 100);
       refuse("protein_floor_short", {
+        // ⟳ 2026-09-12 · ÉTAPE C4 — même raison qu'au-dessus: c'est cette clé
+        // qui permet à `nutritionMagnitudes` de dire DE COMBIEN il manque, et
+        // à la réparation de nommer la journée qu'elle doit recomposer.
+        day: day.date,
         member_id: day.memberId,
         detail: `${day.date} : ${
           Math.round(day.proteinG * 10) / 10
@@ -1980,9 +2779,15 @@ export function finalPlanGate(
       session_ids: sessionIdsChecked,
       cooked_pairs: cookedPairs,
       cells: expectedCells.size,
+      // ⚠️ `mouthCells` ET PAS LE COMPTE DES OBLIGATIONS: voir le pavé du
+      // champ. La question a été posée à chaque couple (bouche, case) dès lors
+      // que la grille a tourné.
+      dedicated_cells_checked: ctx.dedicated === null ? 0 : mouthCells,
+      dedicated_obligations: dedicatedObligations,
       mouth_cells: mouthCells,
       shopping_lines: shopping.length,
       perishable_lines: perishableLines,
+      keeping_unknown_lines: keepingUnknown,
       ingredient_terms: usedTerms.size,
       table_dishes: tableDishes,
       boxed_dishes: boxedDishes,
@@ -1991,8 +2796,10 @@ export function finalPlanGate(
       shopping_identities: shoppingIdentities,
       shopping_quantified: shoppingQuantified,
       shopping_unverified: shoppingUnverified,
+      shopping_not_purchasable: shoppingNotPurchasable,
       portion_cells: portionCells,
       measured_cells: measuredCells,
+      cell_energy_no_target: cellEnergyNoTarget,
       measured_days: measuredDays,
       protein_days: proteinDays,
       protein_protected: proteinProtected,
