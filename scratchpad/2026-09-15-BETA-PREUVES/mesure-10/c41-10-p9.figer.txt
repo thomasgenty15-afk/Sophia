@@ -1,0 +1,13 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            9 · QUATRE BOUCHES · présences variables · recettes partagées et variantes
+   requête        6b0c0e3e-59e5-4ac9-8d7e-7b08b87cb64f
+   bouches        4
+     · Paul   e5b11209-3e8c-4ef9-ac15-1e2f84f5e6e6 · 178 cm · 88 kg · male · appétit average · objectif fat_loss · léger [] · apports []
+     · Lea    55bdb671-413a-4f30-a8cf-517cde07f491 · 164 cm · 58 kg · female · appétit small · objectif fat_loss · léger [] · apports []
+     · Nils   5bd5ae5a-b963-4373-8b9a-1c1ab2af5127 · 186 cm · 74 kg · male · appétit large · objectif muscle_gain · léger [] · apports []
+     · Iris   92761553-45df-4f7d-9f6e-e23dbad24e1a · 140 cm · 34 kg · female · appétit average · objectif aucun · léger [] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 27 ({"e5b11209-3e8c-4ef9-ac15-1e2f84f5e6e6":7,"55bdb671-413a-4f30-a8cf-517cde07f491":7,"5bd5ae5a-b963-4373-8b9a-1c1ab2af5127":6,"92761553-45df-4f7d-9f6e-e23dbad24e1a":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c41-10-p9.json

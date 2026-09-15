@@ -1,0 +1,10 @@
+── DEMANDE FIGÉE ─────────────────────────────────────────────
+   tir            7 · MAINTIEN · une personne · appétit petit et dîner léger déclarés
+   requête        27c5a8ff-7323-4a85-9ec4-367b9e0421b8
+   bouches        1
+     · Paul   6a286727-2fca-4dc7-a759-9b320fb78376 · 172 cm · 86 kg · male · appétit small · objectif maintenance · léger ["dinner"] · apports []
+   jours          ["tue","wed","thu"]
+   cases attendues 7 ({"6a286727-2fca-4dc7-a759-9b320fb78376":7}) · FIGÉE AVANT L'APPEL
+   étapes         premier jet oui · réparations 0 · prompt oui · journal 24 ligne(s)
+
+   écrit : /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-09-11-CLOTURE/fixtures/c41-07-p7.json
