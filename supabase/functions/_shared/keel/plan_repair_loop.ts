@@ -39,6 +39,10 @@
  */
 
 import type { GateRefusal } from "./final_plan_gate.ts";
+import type {
+  OutputContractFinding,
+  OutputContractReport,
+} from "./composition_contract.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ① LES DÉFAUTS, ET L'ORDRE DANS LEQUEL ON EN PARLE AU MODÈLE
@@ -60,12 +64,133 @@ export const REPAIR_DEFECT_KINDS = [
 ] as const;
 export type RepairDefectKind = (typeof REPAIR_DEFECT_KINDS)[number];
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-12 · LOT 2 — LA MESURE RÉELLE D'UN DÉFAUT, ET SA CIBLE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI ELLE EXISTE, ET LE DÉFAUT EST MESURÉ. Jusqu'ici un défaut ne
+ * portait que `detail` (une phrase) et `magnitude` (un nombre SANS unité ni
+ * nature). Deux conséquences, toutes deux vues sur les archives du
+ * 2026-09-11:
+ *
+ *   · `energy_off` et `bounds_off` rendaient la même cause, donc la même
+ *     phrase, et la phrase parlait de calories. Le tir n° 4 a demandé au
+ *     modèle de corriger « 0 % contre 728 kcal visées » — le vrai défaut
+ *     était la densité;
+ *   · rien, en aval, ne pouvait décider « ne demande pas une correction
+ *     calorique, les calories sont bonnes »: l'information n'existait pas
+ *     dans le type.
+ *
+ * ⛔ TROIS NATURES QUI NE SE MÉLANGENT JAMAIS: l'ÉNERGIE (kcal), la MASSE
+ * (grammes de l'assiette cuite), la DENSITÉ (kcal/100 g). Plus la PROTÉINE
+ * (grammes), qui avait déjà son chemin. Chacune porte sa mesure ET sa cible
+ * ou ses bornes — « de combien ça manque » ne veut rien dire sans « par
+ * rapport à quoi ».
+ *
+ * ⚠️ TOUS LES NOMBRES SONT NULLABLES, JAMAIS ABSENTS. `null` = « on ne sait
+ * pas », et il se lit; `0` dirait « il ne manque rien ».
+ */
+export type RepairMeasure =
+  | {
+    readonly of: "energy";
+    readonly servedKcal: number | null;
+    readonly targetKcal: number | null;
+    readonly deltaPct: number | null;
+    /** La tolérance appliquée, en POURCENTS. */
+    readonly tolerancePct: number | null;
+  }
+  | {
+    readonly of: "mass";
+    readonly grams: number | null;
+    readonly minG: number | null;
+    readonly maxG: number | null;
+  }
+  | {
+    readonly of: "density";
+    readonly per100G: number | null;
+    readonly minPer100G: number | null;
+    readonly maxPer100G: number | null;
+  }
+  | {
+    readonly of: "protein";
+    readonly servedG: number | null;
+    readonly floorG: number | null;
+  };
+
+/** Les natures de mesure, fermées — un `switch` exhaustif s'y appuie. */
+export const REPAIR_MEASURE_KINDS = [
+  "energy",
+  "mass",
+  "density",
+  "protein",
+] as const;
+
+/**
+ * ⟳ 2026-09-12 · FERMETURE LOT 1 — D'OÙ VIENT UN CONSTAT.
+ *
+ * ⛔ SANS LUI, « 37 défauts » NE SE RELIT PAS. `PlanDefectPass.bySource`
+ * comptait déjà les trois familles, mais le compte vivait à côté des défauts
+ * et pas DEDANS : un défaut isolé ne savait plus dire qui l'avait vu.
+ */
+export const REPAIR_DEFECT_SOURCES = [
+  "gate",
+  "output_contract",
+  "quantities",
+  /** Un constat d'amont (ancre protéique, exclusion, bouche non nourrie…). */
+  "upstream",
+] as const;
+export type RepairDefectSource = (typeof REPAIR_DEFECT_SOURCES)[number];
+
 export interface RepairDefect {
   kind: RepairDefectKind;
   /** Le jour, le moment, le plat — ce qui permet de dire OÙ, au modèle. */
   day: string | null;
   slot: string | null;
   dish: string | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * ⟳ 2026-09-12 · FERMETURE LOT 1 — L'ADRESSE STRUCTURÉE, PAS UNE PHRASE
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QUE CES QUATRE CHAMPS FERMENT. `GateRefusal` porte `cause` et
+   * `preparation_id` ; `defectsFromRefusals` les JETAIT. En aval, le seul
+   * moyen de savoir « quelle préparation » ou « est-ce une portion absente »
+   * était de relire `detail` — une phrase anglaise écrite pour le modèle. Le
+   * plan l'interdit en toutes lettres : « ne jamais retrouver une préparation
+   * par recherche dans `detail` ou par rapprochement de titres ».
+   *
+   * ⛔ REQUIS ET NULLABLES, JAMAIS `?` — la règle du dépôt
+   * (`optional-gate-params-are-disarmed-gates`). Un champ facultatif ferait de
+   * « je ne sais pas » la réponse silencieuse de tous les constructeurs.
+   */
+  /** La cause de la garde finale (`protein_floor_short`…). `null` = autre source. */
+  cause: string | null;
+  /**
+   * ⛔ LA DATE ISO, SÉPARÉE DU JETON DE JOUR. `day` porte tantôt `sat`, tantôt
+   * `2026-09-14` selon la cause — et c'est cette ambiguïté qui faisait rendre
+   * un périmètre vide à `repairScopeOf` pour un défaut journalier.
+   */
+  date: string | null;
+  /** La préparation en cause. `null` = le défaut ne porte pas sur un lot. */
+  preparationId: string | null;
+  /**
+   * ⟳ 2026-09-13 · LOT 2 — LA SESSION EN CAUSE, PAR SON INDEX DANS LE PLAN.
+   *
+   * ⛔ POURQUOI UN INDEX ET PAS UN JETON. Le jeton (`S1`) est attribué par la
+   * TABLE DES SESSIONS, qui se construit au moment de la réparation ; le
+   * constat, lui, naît bien plus tôt — le verrou de sortie rend un
+   * `sessionIndex`. Traduire ici demanderait au producteur de constat de
+   * connaître la table, c'est-à-dire d'être branché sur l'aval.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?`. `null` = ce défaut ne porte pas sur une
+   * session. Facultatif, il ferait de « je ne sais pas » la réponse silencieuse
+   * de tous les constructeurs — le mode d'échec n° 1 du dépôt
+   * (`optional-gate-params-are-disarmed-gates`).
+   */
+  sessionIndex: number | null;
+  /** Qui a vu ce défaut. */
+  source: RepairDefectSource;
   /** À qui ce défaut appartient. `null` = il porte sur le plat, pas une bouche. */
   memberId: string | null;
   /** La phrase qui part au modèle. Jamais un code interne. */
@@ -103,6 +228,32 @@ export interface RepairDefect {
    * dépôt (`optional-gate-params-are-disarmed-gates`).
    */
   magnitude: number | null;
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — CE QUI A ÉTÉ MESURÉ, ET CONTRE QUOI.
+   *
+   * ⛔ REQUIS ET NULLABLE, JAMAIS `?` — même règle que `magnitude` juste
+   * au-dessus, et pour la même raison mesurée. `null` = « aucune mesure
+   * chiffrable pour ce défaut » (une identité manquante, une ligne d'achat
+   * absente): c'est un aveu, pas un zéro.
+   */
+  measure: RepairMeasure | null;
+}
+
+/**
+ * L'UNITÉ D'UNE MESURE, EN TOUTES LETTRES. Sert aux phrases envoyées au
+ * modèle. PURE.
+ */
+export function measureUnit(m: RepairMeasure): string {
+  switch (m.of) {
+    case "energy":
+      return "kcal";
+    case "mass":
+      return "g";
+    case "density":
+      return "kcal/100 g";
+    case "protein":
+      return "g of protein";
+  }
 }
 
 const KIND_ORDER: Record<RepairDefectKind, number> = Object.freeze(
@@ -131,6 +282,22 @@ export function orderDefects(defects: readonly RepairDefect[]): RepairDefect[] {
       a.i - b.i
     )
     .map((x) => x.d);
+}
+
+/**
+ * Un repas absent est réparé avant les défauts de finition du reste du plan.
+ * Les défauts de sécurité voyagent toujours avec lui; rien de moins prioritaire
+ * ne gonfle ce premier message. Au tour suivant, le plan complet est remesuré
+ * et les défauts différés reviennent normalement.
+ */
+export function defectsForRepairAttempt(
+  defects: readonly RepairDefect[],
+): RepairDefect[] {
+  const hasMissingMeal = defects.some((d) => d.kind === "missing_meal");
+  if (!hasMissingMeal) return orderDefects(defects);
+  return orderDefects(
+    defects.filter((d) => d.kind === "safety" || d.kind === "missing_meal"),
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -258,6 +425,185 @@ export function planRepairPass(args: {
     return { call: false, reason: "nothing_repairable" };
   }
   return { call: true, defects: reparables, timeoutMs: args.remainingMs };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ③ bis · ⟳ 2026-09-12 · LOT 2 — DEUX APPELS RÉELS, ET LE SECOND APRÈS UN REJET
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * ⛔ LE PLAFOND EST UN NOMBRE D'APPELS RÉELLEMENT PARTIS, PAS D'ADOPTIONS.
+ *
+ * La revue de clôture C6 § 4 le dit sans détour: « la formulation "deux
+ * adoptions possibles" n'est pas une description fiable du contrat. Le budget
+ * compte des tentatives; un appel rejeté consomme bien une tentative. » Un
+ * appel qui part, échoue, revient illisible ou se fait rejeter par le juge a
+ * été facturé et a coûté du temps: il compte.
+ */
+export const PLAN_REPAIR_MAX_CALLS = 2;
+
+export const REPAIR_DECISION_REFUSALS = [
+  ...REPAIR_PASS_REFUSALS,
+  /** ⟳ 2026-09-12 · LOT 2 — deux appels sont PARTIS, quel qu'ait été leur sort. */
+  "calls_exhausted",
+  /**
+   * ⟳ 2026-09-15 · DÉCISION PRODUIT — IL Y A DES DÉFAUTS, MAIS AUCUN NE BLOQUE
+   * LA LIVRAISON : on ne rappelle pas le modèle, le plan part avec ses écarts
+   * NOMMÉS à l'écran (c'est ce que la garde fait déjà en `count`).
+   *
+   * ⛔ MESURÉ SUR LA CAMPAGNE DU 2026-09-15 : les deux seuls tirs réparés (sur
+   * huit) ont dépensé quatre appels et une centaine de secondes chacun pour un
+   * −5 % de protéines sur une journée couverte à 35 % et une densité de
+   * petit-déjeuner — deux écarts COMPTÉS, non bloquants — sans en fermer aucun.
+   * La réparation coûtait tout et ne rendait rien ; on la réserve à ce qui
+   * empêcherait le plan de partir.
+   */
+  "no_blocking_defect",
+] as const;
+export type RepairDecisionRefusal = (typeof REPAIR_DECISION_REFUSALS)[number];
+
+export type RepairDecision =
+  | {
+    call: true;
+    defects: readonly RepairDefect[];
+    timeoutMs: number;
+    /**
+     * Le verdict de la candidate précédente, quand il y en a eu une.
+     * ⛔ IL VOYAGE JUSQU'À L'INSTRUCTION: un second essai qui ne dit pas
+     * pourquoi le premier a été jeté redemande la même chose.
+     */
+    afterVerdict: CandidateVerdict | null;
+  }
+  | { call: false; reason: RepairDecisionRefusal };
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA DÉCISION DE RÉPARATION — UNE SEULE, APRÈS LA PASSE COMMUNE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QU'ELLE REMPLACE, ET LE DÉFAUT EST MESURÉ. Le générateur posait
+ * `c4Stop = true` dès qu'une candidate était rejetée par `judgeCandidate`, et
+ * `!c4Stop` interdisait tout nouvel appel. Les tirs n° 1 et n° 3 de la
+ * campagne du 2026-09-11 ont fait **une seule** réparation, ont été refusés,
+ * et n'ont jamais épuisé leur budget. L'arrêt précoce était une règle
+ * SUPPLÉMENTAIRE, invisible dans le contrat annoncé.
+ *
+ * ⛔ ELLE NE PROMET RIEN. « Réévaluer l'intérêt et la faisabilité d'une
+ * seconde tentative » n'est pas « un second essai réussira »: elle rend
+ * `call: true` quand il reste un appel, du temps et un défaut réparable, et
+ * `false` avec son motif sinon.
+ *
+ * ⛔ L'ORDRE DES REFUS EST LE CONTRAT. `calls_exhausted` se lit AVANT
+ * `attempts_exhausted`: le plafond dur du chantier porte sur les appels
+ * réellement partis, et le budget partagé (qui compte aussi les rattrapages
+ * d'amont) est le second verrou, pas le premier. Les confondre ferait
+ * chercher un budget trop petit là où c'est le plafond d'appels qui a mordu.
+ *
+ * PURE: no I/O, no clock, no randomness — l'horloge est un ARGUMENT.
+ */
+export function planRepairDecision(args: {
+  readonly defects: readonly RepairDefect[];
+  /**
+   * ⟳ 2026-09-15 — COMBIEN DE CES DÉFAUTS EMPÊCHERAIENT LE PLAN DE PARTIR.
+   *
+   * ⛔ REQUIS, JAMAIS `?` (règle du dépôt : un paramètre de garde optionnel est
+   * une garde désarmée). C'est `collectPlanDefects` qui le compte, depuis la
+   * sévérité `refuse` de la garde finale ; à zéro, aucun appel modèle ne part,
+   * quel que soit le nombre de défauts comptés.
+   */
+  readonly blocking: number;
+  /** Les appels de réparation RÉELLEMENT partis, échecs et rejets compris. */
+  readonly callsMade: number;
+  readonly maxCalls: number;
+  /** Ce que le budget PARTAGÉ a déjà accordé (rattrapages d'amont compris). */
+  readonly attemptsUsed: number;
+  readonly maxAttempts: number;
+  /** Ce qui reste avant l'échéance absolue, réserve d'écriture déjà retirée. */
+  readonly remainingMs: number;
+  /** Le verdict de la dernière candidate jugée. `null` = aucune encore. */
+  readonly lastVerdict: CandidateVerdict | null;
+}): RepairDecision {
+  if (args.defects.length === 0) return { call: false, reason: "no_defects" };
+  // ⛔ LA POLITIQUE AVANT LES RESSOURCES. « Il reste du budget » ne fait pas
+  // partir un appel pour un écart que la garde ne fait que compter.
+  if (args.blocking <= 0) return { call: false, reason: "no_blocking_defect" };
+  if (args.callsMade >= args.maxCalls) {
+    return { call: false, reason: "calls_exhausted" };
+  }
+  if (args.attemptsUsed >= args.maxAttempts) {
+    return { call: false, reason: "attempts_exhausted" };
+  }
+  if (args.remainingMs < REPAIR_MIN_CALL_MS) {
+    return { call: false, reason: "no_time_left" };
+  }
+  const reparables = orderDefects(args.defects.filter((d) => d.repairable));
+  if (reparables.length === 0) {
+    return { call: false, reason: "nothing_repairable" };
+  }
+  return {
+    call: true,
+    defects: reparables,
+    timeoutMs: args.remainingMs,
+    // ⚠️ `adopt` N'EST PAS UN REJET: on ne dit au modèle « ta réponse a été
+    // jetée » que lorsqu'elle l'a été.
+    afterVerdict: args.lastVerdict === "adopt" ? null : args.lastVerdict,
+  };
+}
+
+/** Ce qu'on garde d'un tour, et si un tour de plus a un sens. */
+export interface RepairRoundOutcome {
+  /** `previous_best` = la candidate est jetée, l'ancienne version revient. */
+  readonly keep: "candidate" | "previous_best";
+  /**
+   * ⛔ `true` NE VEUT PAS DIRE « ÇA VA MARCHER ». Il veut dire: il reste un
+   * appel, du temps, et au moins un défaut qu'un appel modèle peut réparer.
+   */
+  readonly mayRetry: boolean;
+  /** Pourquoi `mayRetry` est faux. Vide quand il est vrai. */
+  readonly reason: RepairDecisionRefusal | "";
+}
+
+/**
+ * CE QU'ON FAIT D'UNE CANDIDATE JUGÉE — ET POURQUOI UN REJET N'ARRÊTE PLUS.
+ *
+ * ⛔ LE REJET RESTAURE, IL NE FERME PAS. C'est la correction attendue de la
+ * revue § 4: « rejeter la candidate dégradée, conserver la meilleure version,
+ * puis réévaluer l'intérêt et la faisabilité d'une seconde tentative avec le
+ * budget et le temps restants ».
+ *
+ * ⚠️ ET LE COMPTE D'APPELS EST CELUI D'APRÈS L'APPEL QUI VIENT D'ÊTRE FAIT.
+ * L'appel rejeté a été payé: le passer à `callsMade` est ce qui empêche une
+ * boucle qui rejette indéfiniment.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function repairRoundOutcome(args: {
+  readonly verdict: CandidateVerdict;
+  readonly remainingDefects: readonly RepairDefect[];
+  /** ⟳ 2026-09-15 — ceux des défauts restants qui BLOQUENT ; voir `planRepairDecision`. */
+  readonly remainingBlocking: number;
+  readonly callsMade: number;
+  readonly maxCalls: number;
+  readonly attemptsUsed: number;
+  readonly maxAttempts: number;
+  readonly remainingMs: number;
+}): RepairRoundOutcome {
+  const keep = args.verdict === "adopt" ? "candidate" : "previous_best";
+  const suite = planRepairDecision({
+    defects: args.remainingDefects,
+    blocking: args.remainingBlocking,
+    callsMade: args.callsMade,
+    maxCalls: args.maxCalls,
+    attemptsUsed: args.attemptsUsed,
+    maxAttempts: args.maxAttempts,
+    remainingMs: args.remainingMs,
+    lastVerdict: args.verdict,
+  });
+  return {
+    keep,
+    mayRetry: suite.call,
+    reason: suite.call ? "" : suite.reason,
+  };
 }
 
 /**
@@ -515,6 +861,13 @@ export const REPAIR_LABEL_KIND: Readonly<Record<string, RepairDefectKind>> =
   Object
     .freeze({
       // lane du foyer
+      // ⟳ 2026-09-12 · ÉTAPE C4 — LE DERNIER SITE, APRÈS LA GARDE FINALE.
+      // ⛔ `safety` PARCE QU'IL PORTE TOUT: son instruction part avec TOUS les
+      // défauts réparables mesurés, sécurité comprise. Le classer plus bas le
+      // ferait refuser par la table de réserve — c'est-à-dire couperait le seul
+      // site qui répare le plancher protéique, le défaut n° 1 de la campagne du
+      // 2026-09-11 (4 plans sur 6).
+      final_repair: "safety",
       exclusion_retry: "safety",
       unfed_retry: "missing_meal",
       density_repair: "sizing",
@@ -598,8 +951,41 @@ const CAUSE_TO_DEFECT: Readonly<
   cell_without_portion: { kind: "missing_meal", repairable: true },
   ingredient_not_bought: { kind: "missing_meal", repairable: true },
   ingredient_short_bought: { kind: "missing_meal", repairable: true },
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A — UNE BOUCHE QUE LA CASSEROLE NE PEUT PAS NOURRIR
+   * ET QUI N'A PAS DE PLAT À ELLE N'A RIEN À MANGER. C'est un repas qui
+   * manque, au sens propre: le plan pose devant elle une assiette que sa ligne
+   * lui interdit.
+   *
+   * ⛔ ET ELLE EST RÉPARABLE, CE QUI N'EST PAS UN DÉTAIL. Elle est BLOQUANTE au
+   * lot 4: sans entrée ici, elle tomberait dans le repli « cause inconnue ⇒
+   * preference, non réparable », c'est-à-dire un verrou qui refuse le plan sans
+   * jamais laisser personne le corriger. Ce dépôt appelle ça une garde cassée,
+   * et il en a déjà payé une.
+   */
+  dedicated_dish_missing: { kind: "missing_meal", repairable: true },
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A — DEUX REPAS CONCURRENTS SUR UNE CASE. Même famille
+   * (c'est le REPAS de la case qui est faux) et réparable pour la même raison:
+   * elle bloque, donc elle doit pouvoir être corrigée. Ce que le modèle doit
+   * faire est retirer l'un des deux ou adresser l'un d'eux à une bouche — et
+   * c'est lui qui sait lequel, puisque c'est lui qui a composé les deux.
+   */
+  cell_two_table_dishes: { kind: "missing_meal", repairable: true },
+  /**
+   * ⟳ 2026-09-14 · BÊTA 1A — « MON REPAS À MOI » NON SERVI: une préférence,
+   * annoncée, jamais bloquante — et réparable, parce qu'un appel modèle sait
+   * très bien ajouter ce plat quand il reste de la place.
+   */
+  own_meal_dish_missing: { kind: "preference", repairable: true },
   // ── la taille ──────────────────────────────────────────────────────────
   cell_energy_off: { kind: "sizing", repairable: true },
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — LA MASSE ET LA DENSITÉ, SÉPARÉES DES CALORIES.
+   * Même nature (`sizing`) et même réparabilité que l'énergie: ce qui change
+   * est la PHRASE, écrite par `plan_defect_pass.ts` sur le contrat de la case.
+   */
+  cell_bounds_off: { kind: "sizing", repairable: true },
   day_energy_off: { kind: "sizing", repairable: true },
   mouth_energy_short: { kind: "sizing", repairable: true },
   // ── la protéine ────────────────────────────────────────────────────────
@@ -640,6 +1026,28 @@ const CAUSE_TO_DEFECT: Readonly<
 export function defectsFromRefusals(
   refusals: readonly GateRefusal[],
   magnitudes?: ReadonlyMap<string, number>,
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — LA MESURE ET SA CIBLE, INDEXÉES PAR `violationKey`.
+   *
+   * ⚠️ FACULTATIVE ICI, ARMÉE CHEZ SON APPELANT. `collectPlanDefects`
+   * (`plan_defect_pass.ts`) la construit TOUJOURS et la passe TOUJOURS — un
+   * test l'épingle. Elle reste facultative sur cette signature-ci uniquement
+   * pour que le chemin d'adoption, qui n'a aucun contrat en main, puisse
+   * continuer d'appeler sans mentir sur ce qu'il a mesuré.
+   */
+  measures?: ReadonlyMap<string, RepairMeasure>,
+  /**
+   * ⟳ 2026-09-12 · LOT 2 — LA PHRASE RÉÉCRITE, INDEXÉE PAR `violationKey`.
+   *
+   * ⛔ POURQUOI RÉÉCRIRE. `GateRefusal.detail` est écrit en FRANÇAIS, pour le
+   * journal et l'écran; `RepairDefect.detail` part au MODÈLE, dans une
+   * instruction anglaise. Mesuré sur le tir n° 1 archivé: la consigne de
+   * réparation contenait « "champignons de Paris" n'est ni sur la liste de
+   * courses ni au garde-manger » au milieu d'un bloc anglais. Quand
+   * l'appelant sait dire la même chose en anglais ET avec les nombres du
+   * contrat, c'est sa phrase qui part.
+   */
+  details?: ReadonlyMap<string, string>,
 ): RepairDefect[] {
   const out: RepairDefect[] = [];
   for (const r of refusals ?? []) {
@@ -649,18 +1057,116 @@ export function defectsFromRefusals(
     // disparaître d'un verdict la cause ajoutée le mois prochain.
     const kind = mapped?.kind ?? "preference";
     const repairable = mapped?.repairable ?? false;
+    const key = violationKey(r);
+    // ⛔ LE JOUR D'UN REFUS EST TANTÔT UN JETON, TANTÔT UNE DATE, et la cause
+    // seule ne le dit pas de façon fiable (`protein_floor_short` et
+    // `day_energy_off` portent une date ; les refus de case portent `sat`). On
+    // lit donc la FORME, qui ne ment pas : `2026-09-14` est une date.
+    const jour = String(r.day ?? "").trim();
+    const estDate = /^\d{4}-\d{2}-\d{2}$/.test(jour);
     out.push({
       kind,
       day: r.day,
       slot: r.slot,
       dish: r.dish,
+      cause: r.cause,
+      date: estDate ? jour : null,
+      // ⚠️ UNE GARDE FINALE NE VOIT PAS DE SESSION: elle juge des assiettes.
+      sessionIndex: null,
+      preparationId: r.preparation_id,
+      source: "gate",
       memberId: r.member_id,
-      detail: r.detail,
+      detail: details?.get(key) ?? r.detail,
       repairable,
-      magnitude: magnitudes?.get(violationKey(r)) ?? null,
+      magnitude: magnitudes?.get(key) ?? null,
+      measure: measures?.get(key) ?? null,
     });
   }
   return orderDefects(out);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⑥ bis · ⟳ 2026-09-12 · ÉTAPE C1 — DU CONTRAT DE SORTIE AUX MÊMES DÉFAUTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * LA PHRASE QU'UN CONSTAT DE CONTRAT DIT AU MODÈLE.
+ *
+ * ⛔ EN ANGLAIS, COMME TOUTE INSTRUCTION DE RÉPARATION, et SANS jargon interne:
+ * `ref_missing` est un code, « you weighed it and gave no id » est une consigne.
+ * `RepairDefect.detail` porte « la phrase qui part au modèle. Jamais un code
+ * interne », et ce contrat-là ne se contourne pas ici.
+ */
+function outputContractDetail(finding: OutputContractFinding): string {
+  const where = finding.site.preparationId !== null
+    ? `preparation "${finding.site.preparationId}"`
+    : "this dish";
+  switch (finding.verdict) {
+    case "ref_missing":
+      return `"${finding.term}" in ${where} carries a weight but no "ref". ` +
+        `Give it the id from the food list, spelled exactly as listed, or make ` +
+        `it a dash with no amount.`;
+    case "ref_refused":
+      return `"${finding.term}" in ${where} carries a "ref" that is not on the ` +
+        `food list. Use one that is, spelled exactly as listed.`;
+    case "quantity_missing":
+      return `"${finding.term}" in ${where} has an id but no "amount"/"unit", ` +
+        `and it is not a dash. Write how much of it goes in.`;
+    default:
+      return `"${finding.term}" in ${where} does not meet the ingredient contract.`;
+  }
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES DÉFAUTS DU CONTRAT DE SORTIE, DANS LE MÊME TYPE QUE LES AUTRES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI `sizing` ET POURQUOI `repairable: true`. Il y a déjà, dans
+ * `CAUSE_TO_DEFECT` juste au-dessus, une cause d'identité NON réparable:
+ * `cell_energy_unmeasurable`, avec la note « une portion illisible ne se répare
+ * pas par une recette… la correction est au référentiel ». Elle reste vraie —
+ * et elle parle d'autre chose. Là-bas, l'aliment est introuvable: le modèle ne
+ * fera pas exister une fiche. ICI, le catalogue A ÉTÉ SERVI dans le prompt
+ * (121 lignes au tir n° 2) et le modèle ne l'a pas cité: un appel qui redonne
+ * la liste répare pour de bon. Confondre les deux brûlerait une tentative pour
+ * rien d'un côté, et en refuserait une utile de l'autre.
+ *
+ * ⛔ `magnitude: null`, ET C'EST UN AVEU, PAS UN ZÉRO. Un identifiant manquant
+ * ne se compte ni en kcal/100 g ni en grammes; lui inventer une amplitude
+ * ferait comparer des grandeurs sans unité commune, ce que
+ * `magnitudeComparison` refuse par construction.
+ *
+ * ⚠️ `memberId: null` — le défaut porte sur la LIGNE, pas sur une bouche. Une
+ * pita non pesée éteint le plat pour tout le monde qui en mange.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function defectsFromOutputContract(
+  report: OutputContractReport,
+): RepairDefect[] {
+  return orderDefects(report.findings.map((finding) => ({
+    kind: "sizing" as RepairDefectKind,
+    day: finding.site.day,
+    slot: finding.site.slot,
+    dish: finding.site.dish,
+    cause: null,
+    date: null,
+    // ⛔ ET LA PRÉPARATION EST NOMMÉE. `OutputContractFinding.site` la porte
+    // déjà ; la perdre ici obligeait le périmètre à deviner le lot en cause.
+    preparationId: finding.site.preparationId,
+    // ⚠️ LE CONTRAT DE SORTIE PORTE SUR DES RECETTES, jamais sur un déroulé.
+    sessionIndex: null,
+    source: "output_contract" as RepairDefectSource,
+    memberId: null,
+    detail: outputContractDetail(finding),
+    repairable: true,
+    magnitude: null,
+    // ⛔ AUCUNE MESURE: un identifiant manquant ne se compte ni en kcal, ni en
+    // grammes, ni en kcal/100 g. Lui en inventer une ferait comparer des
+    // grandeurs sans unité commune.
+    measure: null,
+  })));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -693,11 +1199,60 @@ export type ReplacementVerdict = (typeof REPLACEMENT_VERDICTS)[number];
  *
  * PURE: no I/O, no clock, no randomness.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-12 · LOT 2 — L'ÉTAT D'UNE CANDIDATE, ET LE QUATRIÈME EN EST UN
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ « UN ÉCART MESURÉ » ET « UNE VALIDATION INDISPONIBLE » SONT DEUX ÉTATS
+ * DIFFÉRENTS, ET ILS DOIVENT L'ÊTRE DANS LE TYPE. La revue § 7 le mesure: une
+ * exception de la garde finale laissait continuer la livraison avec
+ * `validation: null` — l'absence d'un verdict « conforme » prise pour un
+ * verdict. Un plan dont on ne sait RIEN n'est pas un plan « livrable avec des
+ * écarts »: il n'a pas été contrôlé.
+ *
+ * ⚠️ ET CE N'EST PAS UN QUATRIÈME ÉTAT PERSISTÉ. `PLAN_VALIDATION_STATES`
+ * (`plan_validation.ts`) en compte trois, doublés côté écran, et un test
+ * épingle la bijection avec `DELIVERY_STATES`. Ce quatrième-ci vit dans la
+ * DÉCISION D'ACTIVATION, qui est justement l'endroit où il change quelque
+ * chose: on n'active pas, et on ne raconte rien de faux.
+ */
+export const CANDIDATE_STATES = [
+  "conforme",
+  "deliverable_with_gaps",
+  "not_deliverable",
+  /** ⛔ LA GARDE N'A PAS RENDU DE VERDICT. Ce n'est PAS « pas d'écart ». */
+  "validation_unavailable",
+] as const;
+export type CandidateState = (typeof CANDIDATE_STATES)[number];
+
+/**
+ * L'ÉTAT D'UNE CANDIDATE, LU SUR LA LIVRAISON DE LA GARDE. PURE.
+ *
+ * ⛔ `null` EN ENTRÉE = LA GARDE A JETÉ (exception attrapée, contexte absent),
+ * et rend `validation_unavailable`. C'est le seul producteur de cet état: le
+ * fabriquer ailleurs rouvrirait la confusion que ce lot ferme.
+ */
+export function candidateStateOf(
+  delivery: { readonly state: "conforme" | "deliverable_with_gaps" | "not_deliverable" } | null,
+): CandidateState {
+  return delivery === null ? "validation_unavailable" : delivery.state;
+}
+
 export function chooseReplacement(args: {
-  candidate: "conforme" | "deliverable_with_gaps" | "not_deliverable";
+  candidate: CandidateState;
   /** `null` = aucune version valide en base. */
   previousIsUsable: boolean;
 }): ReplacementVerdict {
-  if (args.candidate !== "not_deliverable") return "replace";
-  return args.previousIsUsable ? "keep_previous" : "fail_explicit";
+  // ⛔ DEUX ÉTATS N'ÉCRIVENT PAS, ET ILS N'ONT PAS LA MÊME CAUSE. `not_deliverable`
+  // est un plan MESURÉ et jugé mauvais; `validation_unavailable` est un plan
+  // dont on ne sait rien. Les deux préservent l'ancien — c'est la seule chose
+  // qu'ils partagent, et c'est ce que cette fonction décide.
+  if (
+    args.candidate === "not_deliverable" ||
+    args.candidate === "validation_unavailable"
+  ) {
+    return args.previousIsUsable ? "keep_previous" : "fail_explicit";
+  }
+  return "replace";
 }

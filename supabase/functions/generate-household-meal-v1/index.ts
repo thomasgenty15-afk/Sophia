@@ -11205,6 +11205,8 @@ Deno.serve(async (req) => {
     let c4BestSourceText = mealSourceText;
     /** Les défauts et les refus du meilleur tour. `null` = premier tour. */
     let c4BestDefects: readonly RepairDefect[] | null = null;
+    /** ⟳ 2026-09-15 — ceux des défauts de la meilleure version qui BLOQUENT. */
+    let c4BestBlocking: readonly RepairDefect[] | null = null;
     let c4BestRefusals: readonly GateRefusal[] = [];
     /** Ce tour juge-t-il une candidate issue d'un appel de réparation ? */
     let c4FromRepair = false;
@@ -18731,6 +18733,7 @@ Deno.serve(async (req) => {
           // ⛔ LES DÉFAUTS DE LA MEILLEURE VERSION, pas ceux de la candidate
           // qu'on vient de jeter: c'est ce plan-là qui repart.
           remainingDefects: c4BestDefects ?? [],
+          remainingBlocking: (c4BestBlocking ?? []).length,
           callsMade: c4CallsMade,
           maxCalls: PLAN_REPAIR_MAX_CALLS,
           attemptsUsed: planBudget.snapshot().repairs_used,
@@ -18747,6 +18750,7 @@ Deno.serve(async (req) => {
     c4BestEntry = c4Entry;
     c4BestSourceText = c4EntrySourceText;
     c4BestDefects = c4Pass.defects;
+    c4BestBlocking = c4Pass.blocking;
     c4BestRefusals = gateOut?.refusals ?? [];
 
     // ── ⑦ FAUT-IL REDEMANDER ? ───────────────────────────────────────────────
@@ -18763,6 +18767,9 @@ Deno.serve(async (req) => {
     // budget trop petit là où c'est le plafond qui a mordu.
     const c4Decision = planRepairDecision({
       defects: c4Pass.defects,
+      // ⟳ 2026-09-15 · DÉCISION PRODUIT — seul un défaut BLOQUANT fait partir un
+      // appel de réparation ; un écart compté part nommé, sans rappeler le modèle.
+      blocking: c4Pass.blocking.length,
       // ⛔ LES APPELS PARTIS DE CE SITE, pas les tentatives accordées.
       callsMade: c4CallsMade,
       maxCalls: PLAN_REPAIR_MAX_CALLS,
@@ -18788,6 +18795,7 @@ Deno.serve(async (req) => {
       improvement_retries: improvementRetries,
       defects: c4Pass.defects.length,
       repairable: c4Pass.repairable.length,
+      blocking: c4Pass.blocking.length,
       by_kind: c4Pass.byKind,
       by_source: c4Pass.bySource,
       call: c4Decision.call,
@@ -18811,6 +18819,11 @@ Deno.serve(async (req) => {
       call: c4Decision.call,
       reason: c4Decision.call ? null : c4Decision.reason,
     });
+    // ⟳ 2026-09-15 — LE REFUS DE POLITIQUE SE NOTE, pour que la campagne compte
+    // combien de plans sont partis avec un écart nommé SANS appel de réparation.
+    if (!c4Decision.call && c4Decision.reason === "no_blocking_defect") {
+      c4Note(`plan_repair_skipped:no_blocking_defect:${c4Pass.defects.length}`);
+    }
     if (!c4Stop && improvementRetries && c4Decision.call) {
       // ══════════════════════════════════════════════════════════════════
       // ⟳ 2026-09-12 · FERMETURE LOT 1 — ON VÉRIFIE LE CONTEXTE AVANT DE
@@ -19493,6 +19506,7 @@ Deno.serve(async (req) => {
           const suite = repairRoundOutcome({
             verdict: "no_improvement",
             remainingDefects: c4BestDefects ?? [],
+            remainingBlocking: (c4BestBlocking ?? []).length,
             callsMade: c4CallsMade,
             maxCalls: PLAN_REPAIR_MAX_CALLS,
             attemptsUsed: planBudget.snapshot().repairs_used,

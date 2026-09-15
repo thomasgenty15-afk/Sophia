@@ -1296,6 +1296,35 @@ for (const l of registre) {
 const statutDemande = await rpc(me.token, "keel_household_request_status", {
   p_request: requestId,
 });
+// ══════════════════════════════════════════════════════════════════════════
+// ⟳ 2026-09-15 · MESURE — LE JOURNAL MOTEUR DU TIR EST UNE PIÈCE, ON L'ARCHIVE
+// ══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ MESURÉ LE 2026-09-15 : relancer `functions serve` avec `>` a écrasé les
+// lignes `keel.*` des tirs 7 et 9, et l'instrument n'a plus eu de « porte
+// finale » pour eux. `figer-demande.ts` lit `sortie.journal` AVANT le fichier
+// de service : ce qui est ici survit à tout redémarrage.
+//
+// ⚠️ ON NE GARDE QUE LES LIGNES DE CETTE DEMANDE, par son `request_id`, et
+// seulement celles qui portent un `tag` — c'est ce que l'instrument lit.
+const JOURNAL_SERVE = (Deno.env.get("KEEL_SERVE_LOG") ?? "/private/tmp/claude-502/functions-serve.log").trim();
+const journalDuTir: Record<string, unknown>[] = [];
+try {
+  const brut = Deno.readTextFileSync(JOURNAL_SERVE);
+  for (const ligne of brut.split("\n")) {
+    if (!ligne.includes(requestId)) continue;
+    const debut = ligne.indexOf("{");
+    if (debut < 0) continue;
+    try {
+      const o = JSON.parse(ligne.slice(debut)) as Record<string, unknown>;
+      if (typeof o.tag === "string") journalDuTir.push(o);
+    } catch { /* ligne tronquée ou non JSON */ }
+  }
+  console.log(`   journal moteur  ${journalDuTir.length} ligne(s) archivée(s) depuis ${JOURNAL_SERVE}`);
+} catch {
+  console.log(`   ⚠️ journal moteur introuvable (${JOURNAL_SERVE}) — l'instrument n'aura pas la porte finale de ce tir`);
+}
+
 const etatApres = {
   lu_le: new Date().toISOString(),
   request_id: requestId,
@@ -1364,6 +1393,8 @@ Deno.writeTextFileSync(
     // ⟳ 2026-09-15 — l'issue RÉELLE de la demande, lue en base après le tir.
     etat_apres: etatApres,
     brouillon: BROUILLON ? { draft_id: draftId || null } : null,
+    // ⟳ 2026-09-15 — les lignes `keel.*` de CE tir, lues par `figer-demande.ts`.
+    journal: journalDuTir,
     reponse_brute: reponseBrute,
     // ⟳ 2026-09-11 · C0 ④ — chaque étape, séparée et nommée.
     etapes,
